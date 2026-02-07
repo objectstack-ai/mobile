@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-background: 255 255 255;
+    --color-foreground: 15 23 42;
+    --color-card: 255 255 255;
+    --color-card-foreground: 15 23 42;
+    --color-primary: 30 64 175;
+    --color-primary-foreground: 248 250 252;
+    --color-secondary: 241 245 249;
+    --color-secondary-foreground: 15 23 42;
+    --color-muted: 241 245 249;
+    --color-muted-foreground: 100 116 139;
+    --color-accent: 241 245 249;
+    --color-accent-foreground: 15 23 42;
+    --color-destructive: 239 68 68;
+    --color-destructive-foreground: 248 250 252;
+    --color-border: 226 232 240;
+    --color-input: 226 232 240;
+    --color-ring: 30 64 175;
+  }
+
+  .dark {
+    --color-background: 2 6 23;
+    --color-foreground: 248 250 252;
+    --color-card: 15 23 42;
+    --color-card-foreground: 248 250 252;
+    --color-primary: 96 165 250;
+    --color-primary-foreground: 15 23 42;
+    --color-secondary: 30 41 59;
+    --color-secondary-foreground: 248 250 252;
+    --color-muted: 30 41 59;
+    --color-muted-foreground: 148 163 184;
+    --color-accent: 30 41 59;
+    --color-accent-foreground: 248 250 252;
+    --color-destructive: 127 29 29;
+    --color-destructive-foreground: 248 250 252;
+    --color-border: 30 41 59;
+    --color-input: 30 41 59;
+    --color-ring: 96 165 250;
+  }
+}
