@@ -90,6 +90,16 @@ describe("feature-flags", () => {
       expect(mgr.isEnabled("flag_100")).toBe(true);
     });
 
+    it("rollout flag returns false when userId is not set", () => {
+      const mgr = createFeatureFlagManager({
+        defaults: [
+          { key: "rollout_no_user", enabled: true, rolloutPercentage: 100 },
+        ],
+      });
+      // No setUserId call — userId is null
+      expect(mgr.isEnabled("rollout_no_user")).toBe(false);
+    });
+
     it("getPayload returns flag payload", () => {
       const mgr = createFeatureFlagManager({
         defaults: [

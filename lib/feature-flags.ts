@@ -97,8 +97,10 @@ export function createFeatureFlagManager(config: FeatureFlagConfig = {}) {
     if (!flag) return false;
     if (!flag.enabled) return false;
 
-    // If rolloutPercentage is defined, use deterministic bucketing
-    if (flag.rolloutPercentage != null && userId) {
+    // If rolloutPercentage is defined, use deterministic bucketing.
+    // Without a userId we cannot bucket, so default to disabled.
+    if (flag.rolloutPercentage != null) {
+      if (!userId) return false;
       return hashUserToPercentage(userId, key) < flag.rolloutPercentage;
     }
 
