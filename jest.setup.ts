@@ -159,6 +159,18 @@ jest.mock("expo-task-manager", () => ({
   isTaskRegisteredAsync: jest.fn().mockResolvedValue(false),
 }));
 
+/* ---- @sentry/react-native ---- */
+jest.mock("@sentry/react-native", () => ({
+  init: jest.fn(),
+  captureException: jest.fn().mockReturnValue("mock-event-id"),
+  captureMessage: jest.fn().mockReturnValue("mock-event-id"),
+  setUser: jest.fn(),
+  addBreadcrumb: jest.fn(),
+  startSpan: jest.fn((_opts: unknown, cb: (span: unknown) => unknown) =>
+    cb({ end: jest.fn() }),
+  ),
+}));
+
 /* ---- react-native AppState ---- */
 const mockAppState = {
   currentState: "active" as string,

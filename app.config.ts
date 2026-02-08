@@ -31,8 +31,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: "./assets/favicon.png",
     bundler: "metro",
   },
-  plugins: ["expo-router"],
+  plugins: [
+    "expo-router",
+    [
+      "@sentry/react-native/expo",
+      {
+        organization: process.env.SENTRY_ORG ?? "objectstack",
+        project: process.env.SENTRY_PROJECT ?? "mobile",
+      },
+    ],
+  ],
   extra: {
     apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000",
+    sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? "",
   },
 });
