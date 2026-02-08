@@ -10,7 +10,7 @@ export { FormViewRenderer } from "./FormViewRenderer";
 export type { FormViewRendererProps } from "./FormViewRenderer";
 
 export { DetailViewRenderer } from "./DetailViewRenderer";
-export type { DetailViewRendererProps } from "./DetailViewRenderer";
+export type { DetailViewRendererProps, RelatedListConfig } from "./DetailViewRenderer";
 
 export { DashboardViewRenderer } from "./DashboardViewRenderer";
 export type { DashboardViewRendererProps, WidgetDataPayload } from "./DashboardViewRenderer";
