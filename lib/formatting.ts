@@ -70,7 +70,7 @@ export function formatNumber(
   return new Intl.NumberFormat(getLocale(), opts).format(value);
 }
 
-/** Format a number as a percentage. */
+/** Format a number as a percentage. Expects a whole number (e.g. 50 → "50%"). */
 export function formatPercent(value: number): string {
   return new Intl.NumberFormat(getLocale(), {
     style: "percent",

@@ -1,0 +1,50 @@
+name: EAS Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to build"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      profile:
+        description: "Build profile"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: EAS Build (${{ inputs.platform || 'all' }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci --legacy-peer-deps
+      - name: Build iOS
+        if: inputs.platform == 'ios' || inputs.platform == 'all' || inputs.platform == ''
+        run: eas build --platform ios --profile ${{ inputs.profile || 'preview' }} --non-interactive
+      - name: Build Android
+        if: inputs.platform == 'android' || inputs.platform == 'all' || inputs.platform == ''
+        run: eas build --platform android --profile ${{ inputs.profile || 'preview' }} --non-interactive
