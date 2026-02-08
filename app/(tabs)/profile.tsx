@@ -1,9 +1,23 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { UserCircle } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import { Button } from "~/components/ui/Button";
+import { authClient } from "~/lib/auth-client";
 
 export default function ProfileScreen() {
+  const { data: session } = authClient.useSession();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut();
+      router.replace("/(auth)/sign-in");
+    } catch {
+      Alert.alert("Error", "Failed to sign out. Please try again.");
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <ScrollView
@@ -15,10 +29,10 @@ export default function ProfileScreen() {
             <UserCircle size={56} color="#94a3b8" />
           </View>
           <Text className="mt-4 text-xl font-bold text-foreground">
-            John Doe
+            {session?.user.name ?? "User"}
           </Text>
           <Text className="mt-1 text-sm text-muted-foreground">
-            john.doe@company.com
+            {session?.user.email ?? ""}
           </Text>
         </View>
 
@@ -26,7 +40,9 @@ export default function ProfileScreen() {
           <Button variant="outline">Edit Profile</Button>
           <Button variant="outline">Settings</Button>
           <Button variant="ghost">Help &amp; Support</Button>
-          <Button variant="destructive">Sign Out</Button>
+          <Button variant="destructive" onPress={handleSignOut}>
+            Sign Out
+          </Button>
         </View>
       </ScrollView>
     </SafeAreaView>
