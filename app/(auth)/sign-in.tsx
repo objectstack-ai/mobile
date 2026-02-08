@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Mail, Lock } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { authClient } from "~/lib/auth-client";
