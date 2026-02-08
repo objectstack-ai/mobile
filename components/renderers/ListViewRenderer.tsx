@@ -7,11 +7,14 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-import { ChevronDown, ChevronUp, Search as SearchIcon } from "lucide-react-native";
+import { ChevronDown, ChevronUp, Check, Search as SearchIcon } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
 import { SearchBar } from "~/components/common/SearchBar";
+import { BatchActionBar } from "~/components/batch/BatchActionBar";
 import { formatDisplayValue } from "./fields/FieldRenderer";
+import { FilterDrawer, FilterButton } from "./FilterDrawer";
+import { SwipeableRow } from "./SwipeableRow";
 import type { ListColumn, ListViewMeta, FieldDefinition } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -43,6 +46,24 @@ export interface ListViewRendererProps {
   onSearchChange?: (query: string) => void;
   /** Show search bar */
   showSearch?: boolean;
+  /** Filter change handler */
+  onFilterChange?: (filter: unknown) => void;
+  /** Show filter button (requires fields) */
+  showFilter?: boolean;
+  /** Swipe edit handler — called with the record */
+  onSwipeEdit?: (record: Record<string, unknown>) => void;
+  /** Swipe delete handler — called with the record */
+  onSwipeDelete?: (record: Record<string, unknown>) => void;
+  /** Enable row selection mode */
+  selectionMode?: "none" | "single" | "multiple";
+  /** Currently selected record IDs (controlled) */
+  selectedIds?: Set<string>;
+  /** Called when selection changes */
+  onSelectionChange?: (selectedIds: Set<string>) => void;
+  /** Batch delete handler (shown in batch action bar) */
+  onBatchDelete?: (ids: string[]) => void;
+  /** Batch edit handler (shown in batch action bar) */
+  onBatchEdit?: (ids: string[]) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -62,9 +83,61 @@ export function ListViewRenderer({
   onSortChange,
   onSearchChange,
   showSearch = false,
+  onFilterChange,
+  showFilter = false,
+  onSwipeEdit,
+  onSwipeDelete,
+  selectionMode: selectionModeProp,
+  selectedIds: controlledSelectedIds,
+  onSelectionChange,
+  onBatchDelete,
+  onBatchEdit,
 }: ListViewRendererProps) {
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [activeFilterCount, setActiveFilterCount] = useState(0);
+
+  /* ---- Selection state ---- */
+  const selectionMode = selectionModeProp ?? view?.selection?.type ?? "none";
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
+  const selectedIds = controlledSelectedIds ?? internalSelectedIds;
+  const setSelectedIds = useCallback(
+    (next: Set<string>) => {
+      if (onSelectionChange) {
+        onSelectionChange(next);
+      } else {
+        setInternalSelectedIds(next);
+      }
+    },
+    [onSelectionChange],
+  );
+
+  const toggleSelection = useCallback(
+    (recordId: string) => {
+      const next = new Set(selectedIds);
+      if (selectionMode === "single") {
+        if (next.has(recordId)) {
+          next.delete(recordId);
+        } else {
+          next.clear();
+          next.add(recordId);
+        }
+      } else {
+        if (next.has(recordId)) {
+          next.delete(recordId);
+        } else {
+          next.add(recordId);
+        }
+      }
+      setSelectedIds(next);
+    },
+    [selectedIds, selectionMode, setSelectedIds],
+  );
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, [setSelectedIds]);
 
   /* ---- Resolve columns ---- */
   const columns: ListColumn[] = useMemo(() => {
@@ -124,6 +197,8 @@ export function ListViewRenderer({
   /* ---- Render row ---- */
   const renderItem = useCallback(
     ({ item }: { item: Record<string, unknown> }) => {
+      const recordId = String(item.id ?? item._id ?? "");
+      const isSelected = selectedIds.has(recordId);
       const primaryCol = columns[0];
       const secondaryCols = columns.slice(1, 3);
 
@@ -131,39 +206,86 @@ export function ListViewRenderer({
         ? String(item[primaryCol.field] ?? "")
         : item.name ?? item.label ?? item.title ?? item.subject ?? item.id ?? "Record";
 
-      return (
+      const rowContent = (
         <Pressable
-          className="mb-2 rounded-xl border border-border bg-card p-4 active:bg-muted/50"
-          onPress={() => onRowPress?.(item)}
-        >
-          <Text className="text-base font-medium text-card-foreground" numberOfLines={1}>
-            {String(primaryValue)}
-          </Text>
-          {secondaryCols.length > 0 && (
-            <View className="mt-1.5 flex-row flex-wrap gap-x-4">
-              {secondaryCols.map((col) => {
-                const fieldDef = fields.find((f) => f.name === col.field);
-                const displayVal = formatDisplayValue(
-                  item[col.field],
-                  (fieldDef?.type ?? col.type ?? "text") as any,
-                );
-                return (
-                  <View key={col.field} className="flex-row items-center">
-                    <Text className="text-xs text-muted-foreground">
-                      {col.label ?? col.field}:{" "}
-                    </Text>
-                    <Text className="text-xs font-medium text-foreground" numberOfLines={1}>
-                      {displayVal}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
+          className={cn(
+            "mb-2 rounded-xl border bg-card p-4 active:bg-muted/50",
+            isSelected ? "border-primary bg-primary/5" : "border-border",
           )}
+          onPress={() => {
+            if (selectionMode !== "none") {
+              toggleSelection(recordId);
+            } else {
+              onRowPress?.(item);
+            }
+          }}
+          onLongPress={
+            selectionMode === "multiple"
+              ? () => toggleSelection(recordId)
+              : undefined
+          }
+        >
+          <View className="flex-row items-center">
+            {/* Selection checkbox */}
+            {selectionMode !== "none" && (
+              <Pressable
+                className={cn(
+                  "mr-3 h-5 w-5 items-center justify-center rounded border",
+                  isSelected
+                    ? "border-primary bg-primary"
+                    : "border-muted-foreground/40",
+                )}
+                onPress={() => toggleSelection(recordId)}
+              >
+                {isSelected && <Check size={14} color="#ffffff" />}
+              </Pressable>
+            )}
+
+            <View className="flex-1">
+              <Text className="text-base font-medium text-card-foreground" numberOfLines={1}>
+                {String(primaryValue)}
+              </Text>
+              {secondaryCols.length > 0 && (
+                <View className="mt-1.5 flex-row flex-wrap gap-x-4">
+                  {secondaryCols.map((col) => {
+                    const fieldDef = fields.find((f) => f.name === col.field);
+                    const displayVal = formatDisplayValue(
+                      item[col.field],
+                      (fieldDef?.type ?? col.type ?? "text") as any,
+                    );
+                    return (
+                      <View key={col.field} className="flex-row items-center">
+                        <Text className="text-xs text-muted-foreground">
+                          {col.label ?? col.field}:{" "}
+                        </Text>
+                        <Text className="text-xs font-medium text-foreground" numberOfLines={1}>
+                          {displayVal}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          </View>
         </Pressable>
       );
+
+      /* Wrap in SwipeableRow when swipe actions are available */
+      if (onSwipeEdit || onSwipeDelete) {
+        return (
+          <SwipeableRow
+            onEdit={onSwipeEdit ? () => onSwipeEdit(item) : undefined}
+            onDelete={onSwipeDelete ? () => onSwipeDelete(item) : undefined}
+          >
+            {rowContent}
+          </SwipeableRow>
+        );
+      }
+
+      return rowContent;
     },
-    [columns, fields, onRowPress],
+    [columns, fields, onRowPress, onSwipeEdit, onSwipeDelete, selectedIds, selectionMode, toggleSelection],
   );
 
   /* ---- Error state ---- */
@@ -194,17 +316,48 @@ export function ListViewRenderer({
     [onSearchChange],
   );
 
+  /* ---- Filter handlers ---- */
+  const handleFilterApply = useCallback(
+    (filter: unknown) => {
+      if (filter === null || filter === undefined) {
+        setActiveFilterCount(0);
+      } else if (Array.isArray(filter)) {
+        // ObjectQL compound: ['AND', f1, f2, …] → count child filters
+        const logic = filter[0];
+        setActiveFilterCount(
+          typeof logic === "string" && (logic === "AND" || logic === "OR")
+            ? filter.length - 1
+            : 1,
+        );
+      } else {
+        setActiveFilterCount(1);
+      }
+      onFilterChange?.(filter);
+    },
+    [onFilterChange],
+  );
+
   /* ---- Main ---- */
   return (
     <View className="flex-1">
-      {/* Search */}
-      {showSearch && onSearchChange && (
-        <View className="px-4 pt-3">
-          <SearchBar
-            value={searchQuery}
-            onChangeText={handleSearchChange}
-            placeholder="Search records…"
-          />
+      {/* Search + Filter row */}
+      {(showSearch || showFilter) && (
+        <View className="flex-row items-center gap-2 px-4 pt-3">
+          {showSearch && onSearchChange && (
+            <View className="flex-1">
+              <SearchBar
+                value={searchQuery}
+                onChangeText={handleSearchChange}
+                placeholder="Search records…"
+              />
+            </View>
+          )}
+          {showFilter && fields.length > 0 && (
+            <FilterButton
+              count={activeFilterCount}
+              onPress={() => setFilterVisible(true)}
+            />
+          )}
         </View>
       )}
 
@@ -282,6 +435,34 @@ export function ListViewRenderer({
           ) : null
         }
       />
+
+      {/* Batch action bar */}
+      {selectionMode !== "none" && selectedIds.size > 0 && (
+        <BatchActionBar
+          selectedCount={selectedIds.size}
+          onClearSelection={clearSelection}
+          onBatchDelete={
+            onBatchDelete
+              ? () => onBatchDelete(Array.from(selectedIds))
+              : undefined
+          }
+          onBatchEdit={
+            onBatchEdit
+              ? () => onBatchEdit(Array.from(selectedIds))
+              : undefined
+          }
+        />
+      )}
+
+      {/* Filter drawer */}
+      {showFilter && fields.length > 0 && (
+        <FilterDrawer
+          fields={fields}
+          visible={filterVisible}
+          onClose={() => setFilterVisible(false)}
+          onApply={handleFilterApply}
+        />
+      )}
     </View>
   );
 }

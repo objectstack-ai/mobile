@@ -145,6 +145,8 @@ export interface DashboardWidgetMeta {
   aggregate?: "count" | "sum" | "avg" | "min" | "max";
   chartConfig?: Record<string, unknown>;
   options?: unknown;
+  /** Number of grid columns this widget spans (default 1) */
+  span?: number;
 }
 
 export interface DashboardMeta {

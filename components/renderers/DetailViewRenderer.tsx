@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
-import { Edit, Trash2, MoreHorizontal } from "lucide-react-native";
+import { Edit, Trash2, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, ActionMeta } from "./types";
@@ -34,6 +34,16 @@ export interface DetailViewRendererProps {
   relatedLists?: RelatedListConfig[];
   /** Handler when a related record is pressed */
   onRelatedRecordPress?: (objectName: string, record: Record<string, unknown>) => void;
+  /** Navigate to the previous record */
+  onPrevious?: () => void;
+  /** Navigate to the next record */
+  onNext?: () => void;
+  /** Whether there is a previous record available */
+  hasPrevious?: boolean;
+  /** Whether there is a next record available */
+  hasNext?: boolean;
+  /** Label indicating position, e.g. "3 of 50" */
+  positionLabel?: string;
 }
 
 export interface RelatedListConfig {
@@ -137,6 +147,69 @@ function RelatedListSection({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Record Navigator                                                   */
+/* ------------------------------------------------------------------ */
+
+function RecordNavigator({
+  onPrevious,
+  onNext,
+  hasPrevious = false,
+  hasNext = false,
+  positionLabel,
+}: Pick<
+  DetailViewRendererProps,
+  "onPrevious" | "onNext" | "hasPrevious" | "hasNext" | "positionLabel"
+>) {
+  if (!onPrevious && !onNext) return null;
+
+  return (
+    <View className="flex-row items-center justify-between border-b border-border bg-card px-4 py-2">
+      <Pressable
+        className={cn(
+          "flex-row items-center rounded-lg px-3 py-2",
+          hasPrevious ? "active:bg-muted" : "opacity-40",
+        )}
+        onPress={hasPrevious ? onPrevious : undefined}
+        disabled={!hasPrevious}
+      >
+        <ChevronLeft size={16} color={hasPrevious ? "#1e40af" : "#94a3b8"} />
+        <Text
+          className={cn(
+            "ml-1 text-sm font-medium",
+            hasPrevious ? "text-primary" : "text-muted-foreground",
+          )}
+        >
+          Previous
+        </Text>
+      </Pressable>
+
+      {positionLabel && (
+        <Text className="text-xs text-muted-foreground">{positionLabel}</Text>
+      )}
+
+      <Pressable
+        className={cn(
+          "flex-row items-center rounded-lg px-3 py-2",
+          hasNext ? "active:bg-muted" : "opacity-40",
+        )}
+        onPress={hasNext ? onNext : undefined}
+        disabled={!hasNext}
+      >
+        <Text
+          className={cn(
+            "mr-1 text-sm font-medium",
+            hasNext ? "text-primary" : "text-muted-foreground",
+          )}
+        >
+          Next
+        </Text>
+        <ChevronRight size={16} color={hasNext ? "#1e40af" : "#94a3b8"} />
+      </Pressable>
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -153,6 +226,11 @@ export function DetailViewRenderer({
   actions,
   relatedLists,
   onRelatedRecordPress,
+  onPrevious,
+  onNext,
+  hasPrevious,
+  hasNext,
+  positionLabel,
 }: DetailViewRendererProps) {
   /* ---- Build sections ---- */
   const sections: FormSection[] = useMemo(() => {
@@ -222,6 +300,15 @@ export function DetailViewRenderer({
         onDelete={onDelete}
         actions={actions}
         onAction={onAction}
+      />
+
+      {/* Record navigation (previous / next) */}
+      <RecordNavigator
+        onPrevious={onPrevious}
+        onNext={onNext}
+        hasPrevious={hasPrevious}
+        hasNext={hasNext}
+        positionLabel={positionLabel}
       />
 
       <ScrollView

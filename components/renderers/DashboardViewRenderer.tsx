@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
 import {
   TrendingUp,
   TrendingDown,
@@ -252,12 +252,20 @@ function renderWidget(
 /*  Main Component                                                     */
 /* ------------------------------------------------------------------ */
 
+/** Breakpoint (dp) at which the dashboard switches to 2-column grid */
+const GRID_BREAKPOINT = 600;
+/** Gap between grid cells in pixels */
+const GRID_GAP = 12;
+
 export function DashboardViewRenderer({
   dashboard,
   widgetData = {},
   isLoading = false,
   onWidgetPress,
 }: DashboardViewRendererProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const numColumns = screenWidth >= GRID_BREAKPOINT ? 2 : 1;
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -278,10 +286,41 @@ export function DashboardViewRenderer({
     );
   }
 
+  /* ---- Responsive grid layout ---- */
+  const contentPadding = 16;
+  const availableWidth = screenWidth - contentPadding * 2;
+  const columnWidth =
+    numColumns === 1
+      ? availableWidth
+      : (availableWidth - GRID_GAP) / numColumns;
+
+  /** Build rows of widgets respecting span hints */
+  const rows: DashboardWidgetMeta[][] = [];
+  let currentRow: DashboardWidgetMeta[] = [];
+  let currentSpan = 0;
+
+  for (const widget of dashboard.widgets) {
+    // A widget can declare span: 2 to take the full width
+    const span = Math.min(widget.span ?? 1, numColumns);
+
+    if (currentSpan + span > numColumns && currentRow.length > 0) {
+      rows.push(currentRow);
+      currentRow = [];
+      currentSpan = 0;
+    }
+    currentRow.push(widget);
+    currentSpan += span;
+  }
+  if (currentRow.length > 0) rows.push(currentRow);
+
   return (
     <ScrollView
       className="flex-1"
-      contentContainerClassName="px-4 pb-8 pt-4"
+      contentContainerStyle={{
+        paddingHorizontal: contentPadding,
+        paddingBottom: 32,
+        paddingTop: 16,
+      }}
       showsVerticalScrollIndicator={false}
     >
       {/* Dashboard header */}
@@ -296,10 +335,29 @@ export function DashboardViewRenderer({
         </View>
       )}
 
-      {/* Widgets */}
-      {dashboard.widgets.map((widget) => (
-        <View key={widget.name}>
-          {renderWidget(widget, widgetData[widget.name])}
+      {/* Widget grid */}
+      {rows.map((row, rowIdx) => (
+        <View
+          key={`row-${rowIdx}`}
+          style={{
+            flexDirection: "row",
+            marginBottom: GRID_GAP,
+            gap: GRID_GAP,
+          }}
+        >
+          {row.map((widget) => {
+            const span = Math.min(widget.span ?? 1, numColumns);
+            const widgetWidth =
+              numColumns === 1
+                ? availableWidth
+                : columnWidth * span + GRID_GAP * (span - 1);
+
+            return (
+              <View key={widget.name} style={{ width: widgetWidth }}>
+                {renderWidget(widget, widgetData[widget.name])}
+              </View>
+            );
+          })}
         </View>
       ))}
     </ScrollView>
