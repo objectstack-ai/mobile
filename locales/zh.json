@@ -1,0 +1,101 @@
+{
+  "common": {
+    "ok": "确定",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "search": "搜索",
+    "retry": "重试",
+    "loading": "加载中…",
+    "noResults": "未找到结果",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "done": "完成",
+    "close": "关闭",
+    "yes": "是",
+    "no": "否",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "refresh": "刷新",
+    "more": "更多",
+    "settings": "设置",
+    "language": "语言"
+  },
+  "auth": {
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "signUp": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "forgotPassword": "忘记密码？",
+    "sessionExpired": "会话已过期，请重新登录。"
+  },
+  "errors": {
+    "UNAUTHORIZED": "会话已过期，请重新登录。",
+    "FORBIDDEN": "您没有权限执行此操作。",
+    "NOT_FOUND": "请求的资源未找到。",
+    "VALIDATION_ERROR": "请检查输入并重试。",
+    "CONFLICT": "发生冲突，数据可能已被他人修改。",
+    "RATE_LIMITED": "请求过于频繁，请稍后再试。",
+    "INTERNAL_ERROR": "服务器出错，请稍后再试。",
+    "NETWORK_ERROR": "无法连接到服务器，请检查网络连接。",
+    "TIMEOUT": "请求超时，请重试。",
+    "generic": "发生了意外错误。"
+  },
+  "records": {
+    "noRecords": "暂无记录",
+    "noRecordsDescription": "此视图没有找到记录。",
+    "searchRecords": "搜索记录…",
+    "createRecord": "创建记录",
+    "editRecord": "编辑记录",
+    "deleteRecord": "删除记录",
+    "deleteConfirm": "确定要删除此记录吗？",
+    "recordSaved": "记录保存成功。",
+    "recordDeleted": "记录删除成功。",
+    "previous": "上一条",
+    "next": "下一条"
+  },
+  "batch": {
+    "selected": "已选 {{count}} 项",
+    "deleteSelected": "删除选中",
+    "editSelected": "编辑选中",
+    "clearSelection": "清除选择"
+  },
+  "filter": {
+    "filters": "筛选",
+    "addFilter": "添加筛选",
+    "clearAll": "清除全部",
+    "apply": "应用",
+    "field": "字段",
+    "operator": "运算符",
+    "value": "值"
+  },
+  "fields": {
+    "required": "此字段为必填项。",
+    "invalidEmail": "请输入有效的邮箱地址。",
+    "invalidUrl": "请输入有效的 URL。",
+    "invalidNumber": "请输入有效的数字。"
+  },
+  "nav": {
+    "home": "首页",
+    "apps": "应用",
+    "notifications": "通知",
+    "profile": "个人资料"
+  },
+  "offline": {
+    "offlineMode": "离线模式",
+    "pendingSync": "{{count}} 项更改待同步",
+    "syncNow": "立即同步",
+    "syncing": "同步中…",
+    "syncComplete": "同步完成",
+    "syncFailed": "同步失败，将自动重试。"
+  },
+  "dashboard": {
+    "dashboard": "仪表盘",
+    "noWidgets": "未配置小部件。",
+    "refreshing": "刷新中…"
+  }
+}

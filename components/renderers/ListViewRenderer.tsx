@@ -2,11 +2,11 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   Pressable,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { ChevronDown, ChevronUp, Check, Search as SearchIcon } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
@@ -399,13 +399,13 @@ export function ListViewRenderer({
       )}
 
       {/* List */}
-      <FlatList
-        className="flex-1"
+      <FlashList
         data={records}
         keyExtractor={(item: any, index: number) =>
           item.id ?? item._id ?? String(index)
         }
         renderItem={renderItem}
+        estimatedItemSize={80}
         onEndReached={hasMore ? onLoadMore : undefined}
         onEndReachedThreshold={0.5}
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
