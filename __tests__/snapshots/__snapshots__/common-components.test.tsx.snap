@@ -1,0 +1,145 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CachedImage snapshots renders with URI 1`] = `
+<View
+  cachePolicy="disk"
+  contentFit="cover"
+  source={
+    {
+      "uri": "https://example.com/image.jpg",
+    }
+  }
+  style={
+    [
+      undefined,
+      undefined,
+    ]
+  }
+  transition={200}
+/>
+`;
+
+exports[`CachedImage snapshots renders with blurhash 1`] = `
+<View
+  cachePolicy="disk"
+  contentFit="cover"
+  placeholder={
+    {
+      "blurhash": "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+    }
+  }
+  source={
+    {
+      "uri": "https://example.com/image.jpg",
+    }
+  }
+  style={
+    [
+      undefined,
+      undefined,
+    ]
+  }
+  transition={200}
+/>
+`;
+
+exports[`CachedImage snapshots renders with dimensions 1`] = `
+<View
+  cachePolicy="disk"
+  contentFit="cover"
+  source={
+    {
+      "uri": "https://example.com/image.jpg",
+    }
+  }
+  style={
+    [
+      {
+        "height": 150,
+        "width": 200,
+      },
+      undefined,
+    ]
+  }
+  transition={200}
+/>
+`;
+
+exports[`LoadingScreen snapshots renders with message 1`] = `
+<View
+  className="flex-1 items-center justify-center gap-3 bg-background"
+>
+  <ActivityIndicator
+    size="large"
+  />
+  <Text
+    className="text-sm text-muted-foreground"
+  >
+    Loading data…
+  </Text>
+</View>
+`;
+
+exports[`LoadingScreen snapshots renders without message 1`] = `
+<View
+  className="flex-1 items-center justify-center gap-3 bg-background"
+>
+  <ActivityIndicator
+    size="large"
+  />
+</View>
+`;
+
+exports[`SearchBar snapshots renders with custom placeholder 1`] = `
+<View
+  className="flex-row items-center gap-2 rounded-xl border border-input bg-background px-3"
+>
+  <View
+    className="text-muted-foreground"
+    size={18}
+  />
+  <TextInput
+    className="h-12 flex-1 text-base text-foreground placeholder:text-muted-foreground"
+    onChangeText={[Function]}
+    placeholder="Find records…"
+    placeholderTextColor="#94a3b8"
+    value=""
+  />
+</View>
+`;
+
+exports[`SearchBar snapshots renders with default placeholder 1`] = `
+<View
+  className="flex-row items-center gap-2 rounded-xl border border-input bg-background px-3"
+>
+  <View
+    className="text-muted-foreground"
+    size={18}
+  />
+  <TextInput
+    className="h-12 flex-1 text-base text-foreground placeholder:text-muted-foreground"
+    onChangeText={[Function]}
+    placeholder="Search…"
+    placeholderTextColor="#94a3b8"
+    value=""
+  />
+</View>
+`;
+
+exports[`SearchBar snapshots renders with value 1`] = `
+<View
+  className="flex-row items-center gap-2 rounded-xl border border-input bg-background px-3"
+>
+  <View
+    className="text-muted-foreground"
+    size={18}
+  />
+  <TextInput
+    className="h-12 flex-1 text-base text-foreground placeholder:text-muted-foreground"
+    onChangeText={[Function]}
+    placeholder="Search…"
+    placeholderTextColor="#94a3b8"
+    value="test query"
+  />
+</View>
+`;

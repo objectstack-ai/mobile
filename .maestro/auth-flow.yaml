@@ -1,0 +1,28 @@
+# Authentication Flow — sign in and verify landing on tabs
+appId: com.objectstack.mobile
+
+---
+
+- launchApp
+- assertVisible: "Sign In"
+
+# Enter credentials
+- tapOn: "Email"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "password123"
+
+# Submit
+- tapOn: "Sign In"
+
+# Wait for the tab bar to appear (home screen)
+- assertVisible:
+    text: "Home"
+    timeout: 10000
+
+# Sign out
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "Sign Out"
+- tapOn: "Sign Out"
+- assertVisible: "Sign In"

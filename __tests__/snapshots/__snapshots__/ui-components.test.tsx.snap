@@ -1,0 +1,525 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Badge snapshots renders default variant 1`] = `
+<View
+  className="rounded-full px-2.5 py-0.5 bg-primary"
+>
+  <Text
+    className="text-xs font-semibold text-primary-foreground"
+  >
+    New
+  </Text>
+</View>
+`;
+
+exports[`Badge snapshots renders destructive variant 1`] = `
+<View
+  className="rounded-full px-2.5 py-0.5 bg-destructive"
+>
+  <Text
+    className="text-xs font-semibold text-destructive-foreground"
+  >
+    Error
+  </Text>
+</View>
+`;
+
+exports[`Badge snapshots renders outline variant 1`] = `
+<View
+  className="rounded-full px-2.5 py-0.5 border border-border bg-transparent"
+>
+  <Text
+    className="text-xs font-semibold text-foreground"
+  >
+    Tag
+  </Text>
+</View>
+`;
+
+exports[`Badge snapshots renders secondary variant 1`] = `
+<View
+  className="rounded-full px-2.5 py-0.5 bg-secondary"
+>
+  <Text
+    className="text-xs font-semibold text-secondary-foreground"
+  >
+    Draft
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders default variant 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center bg-primary active:opacity-90 h-12 px-5 rounded-xl"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <Text
+    className="font-semibold text-primary-foreground text-base"
+  >
+    Click me
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders destructive variant 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center bg-destructive active:opacity-90 h-12 px-5 rounded-xl"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <Text
+    className="font-semibold text-destructive-foreground text-base"
+  >
+    Delete
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders disabled state 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center bg-primary active:opacity-90 h-12 px-5 rounded-xl opacity-50"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <Text
+    className="font-semibold text-primary-foreground text-base"
+  >
+    Disabled
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders ghost variant 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center active:bg-accent h-12 px-5 rounded-xl"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <Text
+    className="font-semibold text-foreground text-base"
+  >
+    More
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders large size 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center bg-primary active:opacity-90 h-14 px-8 rounded-xl"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <Text
+    className="font-semibold text-primary-foreground text-lg"
+  >
+    Large
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders outline variant 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center border border-border bg-background active:bg-accent h-12 px-5 rounded-xl"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <Text
+    className="font-semibold text-foreground text-base"
+  >
+    Cancel
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders small size 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center bg-primary active:opacity-90 h-9 px-3 rounded-lg"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <Text
+    className="font-semibold text-primary-foreground text-sm"
+  >
+    Small
+  </Text>
+</View>
+`;
+
+exports[`Button snapshots renders with custom children 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="flex-row items-center justify-center bg-primary active:opacity-90 h-12 px-5 rounded-xl"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+>
+  <View>
+    <Text>
+      Custom
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Card snapshots renders a full card 1`] = `
+<View
+  className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+>
+  <View
+    className="pb-3"
+  >
+    <Text
+      className="text-lg font-semibold text-card-foreground"
+    >
+      Title
+    </Text>
+    <Text
+      className="text-sm text-muted-foreground"
+    >
+      Description text
+    </Text>
+  </View>
+  <View
+    className="pt-0"
+  >
+    <Text>
+      Body content
+    </Text>
+  </View>
+  <View
+    className="flex-row items-center pt-3"
+  >
+    <Text>
+      Footer
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`Card snapshots renders a minimal card 1`] = `
+<View
+  className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+>
+  <Text>
+    Simple card
+  </Text>
+</View>
+`;
+
+exports[`EmptyState snapshots renders with action button 1`] = `
+<View
+  className="flex-1 items-center justify-center gap-3 px-6 py-12"
+>
+  <Text
+    className="text-center text-lg font-semibold text-foreground"
+  >
+    Empty
+  </Text>
+  <Text
+    className="text-center text-sm text-muted-foreground"
+  >
+    Nothing here yet.
+  </Text>
+  <View
+    className="pt-2"
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      className="flex-row items-center justify-center bg-primary active:opacity-90 h-12 px-5 rounded-xl"
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+    >
+      <Text
+        className="font-semibold text-primary-foreground text-base"
+      >
+        Create
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`EmptyState snapshots renders with icon 1`] = `
+<View
+  className="flex-1 items-center justify-center gap-3 px-6 py-12"
+>
+  <View
+    testID="icon"
+  />
+  <Text
+    className="text-center text-lg font-semibold text-foreground"
+  >
+    Search
+  </Text>
+</View>
+`;
+
+exports[`EmptyState snapshots renders with title and description 1`] = `
+<View
+  className="flex-1 items-center justify-center gap-3 px-6 py-12"
+>
+  <Text
+    className="text-center text-lg font-semibold text-foreground"
+  >
+    No Records
+  </Text>
+  <Text
+    className="text-center text-sm text-muted-foreground"
+  >
+    Create your first record.
+  </Text>
+</View>
+`;
+
+exports[`EmptyState snapshots renders with title only 1`] = `
+<View
+  className="flex-1 items-center justify-center gap-3 px-6 py-12"
+>
+  <Text
+    className="text-center text-lg font-semibold text-foreground"
+  >
+    No Data
+  </Text>
+</View>
+`;
