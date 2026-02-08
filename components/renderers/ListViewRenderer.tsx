@@ -319,8 +319,18 @@ export function ListViewRenderer({
   /* ---- Filter handlers ---- */
   const handleFilterApply = useCallback(
     (filter: unknown) => {
-      if (filter === null) {
+      if (filter === null || filter === undefined) {
         setActiveFilterCount(0);
+      } else if (Array.isArray(filter)) {
+        // ObjectQL compound: ['AND', f1, f2, …] → count child filters
+        const logic = filter[0];
+        setActiveFilterCount(
+          typeof logic === "string" && (logic === "AND" || logic === "OR")
+            ? filter.length - 1
+            : 1,
+        );
+      } else {
+        setActiveFilterCount(1);
       }
       onFilterChange?.(filter);
     },

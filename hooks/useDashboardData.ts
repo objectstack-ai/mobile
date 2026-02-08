@@ -13,6 +13,12 @@ export interface UseDashboardDataResult {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Constants                                                           */
+/* ------------------------------------------------------------------ */
+
+const DEFAULT_LIST_PAGE_SIZE = 10;
+
+/* ------------------------------------------------------------------ */
 /*  Hook                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -25,7 +31,7 @@ export interface UseDashboardDataResult {
  */
 export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
   const { data, isLoading } = useQuery(widget.object, {
-    top: widget.type === "list" || widget.type === "table" ? 10 : 1,
+    top: widget.type === "list" || widget.type === "table" ? DEFAULT_LIST_PAGE_SIZE : 1,
     enabled: !!widget.object,
   });
 
@@ -108,6 +114,6 @@ export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
  * by wrapping each query in its own sub-component (see
  * `DashboardDataProvider` pattern in the app route layer).
  */
-export function useSingleWidgetData(widget: DashboardWidgetMeta) {
+export function useWidgetData(widget: DashboardWidgetMeta) {
   return useWidgetQuery(widget);
 }
