@@ -15,6 +15,10 @@ export type { DetailViewRendererProps } from "./DetailViewRenderer";
 export { DashboardViewRenderer } from "./DashboardViewRenderer";
 export type { DashboardViewRendererProps, WidgetDataPayload } from "./DashboardViewRenderer";
 
+// Filter drawer
+export { FilterDrawer, FilterButton } from "./FilterDrawer";
+export type { FilterDrawerProps, FilterButtonProps } from "./FilterDrawer";
+
 // Field renderer
 export { FieldRenderer, formatDisplayValue } from "./fields/FieldRenderer";
 export type { FieldRendererProps } from "./fields/FieldRenderer";
