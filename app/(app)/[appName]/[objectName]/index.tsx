@@ -20,7 +20,7 @@ export default function ObjectListScreen() {
   const [filter, setFilter] = useState<unknown>(null);
   const { data, isLoading, error, refetch } = useQuery(objectName!, {
     top: 50,
-    filters: filter ?? undefined,
+    filters: filter || undefined,
     enabled: !!objectName,
   });
 
