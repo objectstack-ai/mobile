@@ -101,6 +101,15 @@ jest.mock("@objectstack/client-react", () => ({
   useFields: jest.fn().mockReturnValue({ data: [] }),
 }));
 
+/* ---- expo-local-authentication ---- */
+jest.mock("expo-local-authentication", () => ({
+  hasHardwareAsync: jest.fn().mockResolvedValue(true),
+  isEnrolledAsync: jest.fn().mockResolvedValue(true),
+  supportedAuthenticationTypesAsync: jest.fn().mockResolvedValue([1, 2]),
+  authenticateAsync: jest.fn().mockResolvedValue({ success: true }),
+  AuthenticationType: { FINGERPRINT: 1, FACIAL_RECOGNITION: 2, IRIS: 3 },
+}));
+
 /* ---- @objectstack/client ---- */
 jest.mock("@objectstack/client", () => ({
   createClient: jest.fn().mockReturnValue({}),
