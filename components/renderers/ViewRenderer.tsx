@@ -7,6 +7,11 @@ import {
   DashboardViewRenderer,
   type DashboardViewRendererProps,
 } from "./DashboardViewRenderer";
+import { KanbanViewRenderer, type KanbanViewRendererProps } from "./KanbanViewRenderer";
+import { CalendarViewRenderer, type CalendarViewRendererProps } from "./CalendarViewRenderer";
+import { ChartViewRenderer, type ChartViewRendererProps } from "./ChartViewRenderer";
+import { TimelineViewRenderer, type TimelineViewRendererProps } from "./TimelineViewRenderer";
+import { MapViewRenderer, type MapViewRendererProps } from "./MapViewRenderer";
 import type { ViewType } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -17,14 +22,18 @@ import type { ViewType } from "./types";
  * Maps a view type string to the corresponding renderer component.
  *
  * The registry is intentionally open-ended so that future view types
- * (kanban, calendar, chart, etc.) can be registered by higher-level
- * code without modifying this file.
+ * can be registered by higher-level code without modifying this file.
  */
 const rendererMap: Record<string, React.ComponentType<any>> = {
   list: ListViewRenderer,
   form: FormViewRenderer,
   detail: DetailViewRenderer,
   dashboard: DashboardViewRenderer,
+  kanban: KanbanViewRenderer,
+  calendar: CalendarViewRenderer,
+  chart: ChartViewRenderer,
+  timeline: TimelineViewRenderer,
+  map: MapViewRenderer,
 };
 
 /**
@@ -51,6 +60,11 @@ export interface ViewRendererProps {
     | FormViewRendererProps
     | DetailViewRendererProps
     | DashboardViewRendererProps
+    | KanbanViewRendererProps
+    | CalendarViewRendererProps
+    | ChartViewRendererProps
+    | TimelineViewRendererProps
+    | MapViewRendererProps
     | Record<string, unknown>;
 }
 

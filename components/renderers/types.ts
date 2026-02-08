@@ -195,7 +195,16 @@ export interface ActionParamMeta {
 /*  View (unified)                                                     */
 /* ------------------------------------------------------------------ */
 
-export type ViewType = "list" | "form" | "detail" | "dashboard" | "kanban" | "calendar";
+export type ViewType =
+  | "list"
+  | "form"
+  | "detail"
+  | "dashboard"
+  | "kanban"
+  | "calendar"
+  | "chart"
+  | "timeline"
+  | "map";
 
 export interface ViewMeta {
   name?: string;

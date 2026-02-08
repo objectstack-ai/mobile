@@ -27,6 +27,7 @@ export function BatchProgressIndicator({
       <View className={cn("rounded-xl border border-border bg-card p-4", className)}>
         <Text className="text-sm font-medium text-foreground">
           Batch complete: {result.succeeded} succeeded, {result.failed} failed
+          {(result as any).skipped > 0 ? `, ${(result as any).skipped} skipped` : ""}
         </Text>
         {result.errors.length > 0 && (
           <View className="mt-2">
