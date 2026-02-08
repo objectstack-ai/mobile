@@ -114,7 +114,7 @@ export async function executeAction(
   } catch (err) {
     const result: ActionResult = {
       success: false,
-      message: err instanceof Error ? err.message : "Action failed",
+      message: `Action "${action.name}" failed: ${err instanceof Error ? err.message : "Unknown error"}`,
     };
     onComplete?.(result);
     return result;
