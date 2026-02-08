@@ -262,8 +262,8 @@ Main app     Clear token
 | Policy | Implementation |
 |--------|---------------|
 | **Token expiry** | Handled by better-auth (auto-refresh) |
-| **Background timeout** | Planned (Phase 4A.6) — lock screen after inactivity |
-| **Biometric unlock** | Planned (Phase 4A.6) — Face ID / Fingerprint |
+| **Background timeout** | Implemented (Phase 4A.6) — lock screen after inactivity via `lib/app-lock.ts` |
+| **Biometric unlock** | Implemented (Phase 4A.6) — Face ID / Fingerprint via `lib/biometric-auth.ts` |
 
 ---
 
@@ -365,14 +365,14 @@ const ERROR_MESSAGES: Record<ObjectStackErrorCode, string> = {
 
 ## Planned Enhancements
 
-### Phase 4A.6 — Security Enhancements
+### Phase 4A.6 — Security Enhancements (Implemented)
 
-| Enhancement | Description | Technology |
-|------------|-------------|-----------|
-| **Biometric auth** | Face ID / Fingerprint unlock | `expo-local-authentication` |
-| **Background lock** | Lock screen after inactivity timeout | App state listener |
-| **Session management** | View active sessions, remote sign-out | `client.auth.me()` |
-| **Certificate pinning** | Pin server TLS certificate | Custom TLS config |
+| Enhancement | Description | Technology | Status |
+|------------|-------------|-----------|--------|
+| **Biometric auth** | Face ID / Fingerprint unlock | `expo-local-authentication` | ✅ `lib/biometric-auth.ts` |
+| **Background lock** | Lock screen after inactivity timeout | App state listener | ✅ `lib/app-lock.ts` |
+| **Session management** | View active sessions, remote sign-out | `client.auth.me()` + `better-auth` | ✅ `lib/session-manager.ts` |
+| **Certificate pinning** | Pin server TLS certificate | Custom TLS config | ✅ `lib/certificate-pinning.ts` |
 
 ### Future Considerations
 
