@@ -1,7 +1,8 @@
-import { View, Text, FlatList, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { useQuery, useView } from "@objectstack/client-react";
+import { useQuery, useView, useFields } from "@objectstack/client-react";
+import { ListViewRenderer } from "~/components/renderers";
+import type { FieldDefinition, ListViewMeta } from "~/components/renderers";
 
 export default function ObjectListScreen() {
   const { appName, objectName } = useLocalSearchParams<{
@@ -11,6 +12,7 @@ export default function ObjectListScreen() {
   const router = useRouter();
 
   const { data: viewData, isLoading: viewLoading } = useView(objectName!, "list");
+  const { data: fieldsData } = useFields(objectName!);
   const { data, isLoading, error, refetch } = useQuery(objectName!, {
     top: 50,
     enabled: !!objectName,
@@ -20,56 +22,25 @@ export default function ObjectListScreen() {
     objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Objects";
 
   const records = data?.records ?? [];
+  const fields: FieldDefinition[] = fieldsData ?? [];
+  const listView: ListViewMeta | undefined = viewData ?? undefined;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <Stack.Screen options={{ title: displayName }} />
-      {isLoading || viewLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#1e40af" />
-        </View>
-      ) : error ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-base text-destructive">{error.message}</Text>
-          <Pressable
-            className="mt-4 rounded-xl bg-primary px-5 py-3"
-            onPress={refetch}
-          >
-            <Text className="font-semibold text-primary-foreground">Retry</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <FlatList
-          data={records}
-          keyExtractor={(item: any, index: number) => item.id ?? item._id ?? String(index)}
-          contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-          renderItem={({ item }: { item: any }) => (
-            <Pressable
-              className="mb-2 rounded-xl border border-border bg-card p-4"
-              onPress={() =>
-                router.push(`/(app)/${appName}/${objectName}/${item.id ?? item._id}`)
-              }
-            >
-              <Text className="text-base font-medium text-card-foreground">
-                {item.name ?? item.label ?? item.title ?? item.subject ?? item.id ?? "Record"}
-              </Text>
-              {item.description ? (
-                <Text className="mt-1 text-sm text-muted-foreground" numberOfLines={2}>
-                  {item.description}
-                </Text>
-              ) : null}
-            </Pressable>
-          )}
-          ListEmptyComponent={
-            <View className="items-center justify-center pt-20">
-              <Text className="text-lg font-semibold text-foreground">No Records</Text>
-              <Text className="mt-2 text-sm text-muted-foreground">
-                No records found for this object.
-              </Text>
-            </View>
-          }
-        />
-      )}
+      <ListViewRenderer
+        view={listView}
+        fields={fields}
+        records={records}
+        isLoading={isLoading || viewLoading}
+        error={error}
+        onRefresh={refetch}
+        onRowPress={(record) =>
+          router.push(
+            `/(app)/${appName}/${objectName}/${(record.id ?? record._id) as string}`,
+          )
+        }
+      />
     </SafeAreaView>
   );
 }
