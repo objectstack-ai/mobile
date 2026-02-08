@@ -295,34 +295,34 @@ const rendererMap = {
 
 #### 3.1 Advanced Query Support
 
-- [ ] Build a query builder UI for user-created filters
-- [ ] Support ObjectQL filter AST syntax (`['field', 'op', 'value']`)
-- [ ] Implement compound filters (AND/OR groups)
-- [ ] Add global search with full-text filtering across objects
-- [ ] Support field selection (projections) for optimized payloads
+- [x] Build a query builder UI for user-created filters
+- [x] Support ObjectQL filter AST syntax (`['field', 'op', 'value']`)
+- [x] Implement compound filters (AND/OR groups)
+- [x] Add global search with full-text filtering across objects
+- [x] Support field selection (projections) for optimized payloads
 
 #### 3.2 Offline-First Architecture
 
-- [ ] Integrate `expo-sqlite` as local storage backend
-- [ ] Design local schema migration strategy based on object metadata
-- [ ] Implement write-ahead sync queue for offline mutations
-- [ ] Build conflict resolution UI (last-write-wins with manual override option)
-- [ ] Add network status detection and offline indicator
-- [ ] Implement background sync with expo-background-fetch
+- [x] Integrate `expo-sqlite` as local storage backend
+- [x] Design local schema migration strategy based on object metadata
+- [x] Implement write-ahead sync queue for offline mutations
+- [x] Build conflict resolution UI (last-write-wins with manual override option)
+- [x] Add network status detection and offline indicator
+- [x] Implement background sync with expo-background-fetch
 
 #### 3.3 Batch Operations
 
-- [ ] Support batch create/update/delete via `client.data.batch()`
-- [ ] Build multi-select UI in list views for bulk actions
-- [ ] Implement progress indicator for batch operations
-- [ ] Handle partial failure scenarios with user notification
+- [x] Support batch create/update/delete via `client.data.batch()`
+- [x] Build multi-select UI in list views for bulk actions
+- [x] Implement progress indicator for batch operations
+- [x] Handle partial failure scenarios with user notification
 
 #### 3.4 View Storage
 
-- [ ] Integrate `client.views.*` for saving custom user views
-- [ ] Build "Save View" UI (name, visibility, filters, sort, columns)
-- [ ] Display saved views as tabs/chips above list views
-- [ ] Support sharing views between users
+- [x] Integrate `client.views.*` for saving custom user views
+- [x] Build "Save View" UI (name, visibility, filters, sort, columns)
+- [x] Display saved views as tabs/chips above list views
+- [x] Support sharing views between users
 
 ---
 
