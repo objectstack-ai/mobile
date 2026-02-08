@@ -1,0 +1,164 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OfflineIndicator snapshots renders offline banner 1`] = `
+<View
+  className="flex-row items-center justify-between px-4 py-2 bg-amber-100 dark:bg-amber-900/30"
+>
+  <View
+    className="flex-row items-center gap-2"
+  >
+    <View
+      color="#d97706"
+      size={14}
+    />
+    <Text
+      className="text-xs font-medium text-foreground"
+    >
+      You are offline
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`OfflineIndicator snapshots renders offline with pending count 1`] = `
+<View
+  className="flex-row items-center justify-between px-4 py-2 bg-amber-100 dark:bg-amber-900/30"
+>
+  <View
+    className="flex-row items-center gap-2"
+  >
+    <View
+      color="#d97706"
+      size={14}
+    />
+    <Text
+      className="text-xs font-medium text-foreground"
+    >
+      You are offline
+    </Text>
+    <Text
+      className="text-xs text-muted-foreground"
+    >
+      • 
+      3
+       pending
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`OfflineIndicator snapshots renders syncing in progress 1`] = `
+<View
+  className="flex-row items-center justify-between px-4 py-2 bg-blue-50 dark:bg-blue-900/20"
+>
+  <View
+    className="flex-row items-center gap-2"
+  >
+    <Text
+      className="text-xs font-medium text-foreground"
+    >
+      Syncing 1 change…
+    </Text>
+  </View>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": true,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    className="flex-row items-center rounded-lg bg-primary/10 px-2.5 py-1"
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+  >
+    <View
+      color="#1e40af"
+      size={12}
+    />
+    <Text
+      className="ml-1 text-xs font-medium text-primary"
+    >
+      Syncing…
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`OfflineIndicator snapshots renders syncing state when online with pending 1`] = `
+<View
+  className="flex-row items-center justify-between px-4 py-2 bg-blue-50 dark:bg-blue-900/20"
+>
+  <View
+    className="flex-row items-center gap-2"
+  >
+    <Text
+      className="text-xs font-medium text-foreground"
+    >
+      Syncing 2 changes…
+    </Text>
+  </View>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": false,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    className="flex-row items-center rounded-lg bg-primary/10 px-2.5 py-1"
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+  >
+    <View
+      color="#1e40af"
+      size={12}
+    />
+    <Text
+      className="ml-1 text-xs font-medium text-primary"
+    >
+      Sync
+    </Text>
+  </View>
+</View>
+`;

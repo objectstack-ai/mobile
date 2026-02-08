@@ -9,6 +9,7 @@
     "web": "expo start --web",
     "lint": "npx tsc --noEmit && npx eslint . --ext .ts,.tsx",
     "test": "jest --passWithNoTests",
+    "test:coverage": "jest --passWithNoTests --coverage",
     "format": "prettier --write \"**/*.{ts,tsx,js,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json}\"",
     "bundle:analyze": "npx expo export --dump-sourcemap --platform ios && npx source-map-explorer dist/bundles/ios/*.js",

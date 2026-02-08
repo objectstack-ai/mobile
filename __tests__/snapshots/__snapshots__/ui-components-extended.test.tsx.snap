@@ -1,0 +1,365 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Avatar snapshots renders large size 1`] = `
+<View
+  className="items-center justify-center rounded-full bg-muted h-14 w-14"
+>
+  <Text
+    className="font-semibold text-muted-foreground text-lg"
+  >
+    XY
+  </Text>
+</View>
+`;
+
+exports[`Avatar snapshots renders small size 1`] = `
+<View
+  className="items-center justify-center rounded-full bg-muted h-8 w-8"
+>
+  <Text
+    className="font-semibold text-muted-foreground text-xs"
+  >
+    AB
+  </Text>
+</View>
+`;
+
+exports[`Avatar snapshots renders with fallback text 1`] = `
+<View
+  className="items-center justify-center rounded-full bg-muted h-10 w-10"
+>
+  <Text
+    className="font-semibold text-muted-foreground text-sm"
+  >
+    JD
+  </Text>
+</View>
+`;
+
+exports[`Avatar snapshots renders with image source 1`] = `
+<View
+  className="items-center justify-center rounded-full bg-muted h-10 w-10"
+>
+  <Image
+    className="rounded-full h-10 w-10"
+    onError={[Function]}
+    source={
+      {
+        "uri": "https://example.com/avatar.jpg",
+      }
+    }
+  />
+</View>
+`;
+
+exports[`Checkbox snapshots renders checked 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": true,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="h-5 w-5 items-center justify-center rounded border border-primary bg-primary"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  role="checkbox"
+>
+  <View
+    className="text-primary-foreground"
+    size={14}
+  />
+</View>
+`;
+
+exports[`Checkbox snapshots renders disabled 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": false,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="h-5 w-5 items-center justify-center rounded border border-input bg-background opacity-50"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  role="checkbox"
+/>
+`;
+
+exports[`Checkbox snapshots renders unchecked 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": false,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="h-5 w-5 items-center justify-center rounded border border-input bg-background"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  role="checkbox"
+/>
+`;
+
+exports[`Input snapshots renders default input 1`] = `
+<View
+  className="rounded-xl border border-input bg-background px-4"
+>
+  <TextInput
+    className="h-12 text-base text-foreground placeholder:text-muted-foreground"
+    onBlur={[Function]}
+    onFocus={[Function]}
+    placeholder="Enter text"
+    placeholderTextColor="#94a3b8"
+  />
+</View>
+`;
+
+exports[`Input snapshots renders with custom class 1`] = `
+<View
+  className="rounded-xl border border-input px-4 bg-red-50"
+>
+  <TextInput
+    className="h-12 text-base text-foreground placeholder:text-muted-foreground"
+    onBlur={[Function]}
+    onFocus={[Function]}
+    placeholder="Search"
+    placeholderTextColor="#94a3b8"
+  />
+</View>
+`;
+
+exports[`Skeleton snapshots renders default skeleton 1`] = `
+<View
+  className="rounded-lg bg-muted"
+  style={
+    {
+      "opacity": 1,
+    }
+  }
+/>
+`;
+
+exports[`Skeleton snapshots renders with custom dimensions 1`] = `
+<View
+  className="rounded-lg bg-muted"
+  style={
+    {
+      "height": 20,
+      "opacity": 1,
+      "width": 200,
+    }
+  }
+/>
+`;
+
+exports[`Switch snapshots renders checked 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": true,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="h-7 w-12 rounded-full justify-center bg-primary"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  role="switch"
+>
+  <View
+    className="h-5 w-5 rounded-full bg-background shadow-sm"
+    style={
+      {
+        "transform": [
+          {
+            "translateX": 20,
+          },
+        ],
+      }
+    }
+  />
+</View>
+`;
+
+exports[`Switch snapshots renders disabled 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": false,
+      "disabled": true,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="h-7 w-12 rounded-full justify-center bg-input opacity-50"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  role="switch"
+>
+  <View
+    className="h-5 w-5 rounded-full bg-background shadow-sm"
+    style={
+      {
+        "transform": [
+          {
+            "translateX": 2,
+          },
+        ],
+      }
+    }
+  />
+</View>
+`;
+
+exports[`Switch snapshots renders unchecked 1`] = `
+<View
+  accessibilityState={
+    {
+      "busy": undefined,
+      "checked": false,
+      "disabled": undefined,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  className="h-7 w-12 rounded-full justify-center bg-input"
+  collapsable={false}
+  focusable={true}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
+  role="switch"
+>
+  <View
+    className="h-5 w-5 rounded-full bg-background shadow-sm"
+    style={
+      {
+        "transform": [
+          {
+            "translateX": 2,
+          },
+        ],
+      }
+    }
+  />
+</View>
+`;

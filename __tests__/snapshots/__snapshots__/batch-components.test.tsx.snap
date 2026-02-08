@@ -1,0 +1,201 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BatchActionBar matches snapshot with all actions 1`] = `
+<View
+  className="flex-row items-center justify-between border-t border-border bg-card px-4 py-3"
+>
+  <View
+    className="flex-row items-center gap-2"
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      className="rounded-full bg-muted p-1.5"
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+    >
+      <View
+        color="#64748b"
+        size={14}
+      />
+    </View>
+    <Text
+      className="text-sm font-medium text-foreground"
+    >
+      5
+       selected
+    </Text>
+  </View>
+  <View
+    className="flex-row items-center gap-3"
+  >
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      className="flex-row items-center rounded-lg bg-primary/10 px-3 py-2"
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+    >
+      <View
+        color="#1e40af"
+        size={14}
+      />
+      <Text
+        className="ml-1.5 text-xs font-semibold text-primary"
+      >
+        Edit
+      </Text>
+    </View>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      className="flex-row items-center rounded-lg bg-destructive/10 px-3 py-2"
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+    >
+      <View
+        color="#ef4444"
+        size={14}
+      />
+      <Text
+        className="ml-1.5 text-xs font-semibold text-destructive"
+      >
+        Delete
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`BatchProgressIndicator renders completed result 1`] = `
+<View
+  className="rounded-xl border border-border bg-card p-4"
+>
+  <Text
+    className="text-sm font-medium text-foreground"
+  >
+    Batch complete: 
+    9
+     succeeded, 
+    1
+     failed
+  </Text>
+  <View
+    className="mt-2"
+  >
+    <Text
+      className="text-xs text-destructive"
+    >
+      • 
+      Record r1: 
+      Not found
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`BatchProgressIndicator renders in-progress state 1`] = `
+<View
+  className="rounded-xl border border-border bg-card p-4"
+>
+  <View
+    className="mb-2 flex-row items-center justify-between"
+  >
+    <Text
+      className="text-sm font-medium text-foreground"
+    >
+      Processing… 
+      3
+      /
+      10
+    </Text>
+  </View>
+  <View
+    className="h-2 rounded-full bg-muted"
+  >
+    <View
+      className="h-2 rounded-full bg-primary"
+      style={
+        {
+          "width": "30%",
+        }
+      }
+    />
+  </View>
+</View>
+`;
