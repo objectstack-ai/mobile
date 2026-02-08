@@ -32,6 +32,8 @@ export interface WidgetDataPayload {
   trend?: string;
   label?: string;
   isLoading?: boolean;
+  /** Analytics chart data points (from useAnalyticsQuery) */
+  chartData?: Array<{ label: string; value: number; [key: string]: unknown }>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -187,8 +189,8 @@ function ChartWidget({
   widget: DashboardWidgetMeta;
   data?: WidgetDataPayload;
 }) {
-  // Chart rendering is a Phase 5 feature (advanced visualizations).
-  // For now, show a placeholder with summary data.
+  const chartType = String(widget.chartConfig?.type ?? widget.type ?? "bar");
+
   return (
     <Card className="mb-3">
       <CardHeader className="flex-row items-center justify-between pb-2">
@@ -202,11 +204,38 @@ function ChartWidget({
       <CardContent>
         {data?.isLoading ? (
           <ActivityIndicator size="small" />
+        ) : data?.chartData && data.chartData.length > 0 ? (
+          /* Render inline mini-chart from analytics data */
+          <View className="gap-1 py-2">
+            {data.chartData.slice(0, 6).map((point, idx) => {
+              const maxVal = Math.max(
+                ...data.chartData!.map((p) => Number(p.value) || 0),
+                1,
+              );
+              const pct = Math.max(((Number(point.value) || 0) / maxVal) * 100, 4);
+              return (
+                <View key={point.label ?? idx} className="flex-row items-center gap-2">
+                  <Text className="w-16 text-[10px] text-muted-foreground" numberOfLines={1}>
+                    {point.label}
+                  </Text>
+                  <View className="flex-1 h-4 rounded-sm bg-muted/40">
+                    <View
+                      className="h-4 rounded-sm bg-primary/70"
+                      style={{ width: `${Math.min(pct, 100)}%` }}
+                    />
+                  </View>
+                  <Text className="w-10 text-right text-[10px] font-medium text-foreground">
+                    {String(point.value)}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
         ) : (
           <View className="items-center justify-center py-8">
             <BarChart3 size={48} color="#94a3b8" />
             <Text className="mt-3 text-sm text-muted-foreground">
-              Chart: {String(widget.chartConfig?.type ?? widget.type ?? "bar")}
+              Chart: {chartType}
             </Text>
             {data?.value != null && (
               <Text className="mt-1 text-lg font-bold text-foreground">

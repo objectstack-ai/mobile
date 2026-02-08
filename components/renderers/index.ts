@@ -15,6 +15,25 @@ export type { DetailViewRendererProps, RelatedListConfig } from "./DetailViewRen
 export { DashboardViewRenderer } from "./DashboardViewRenderer";
 export type { DashboardViewRendererProps, WidgetDataPayload } from "./DashboardViewRenderer";
 
+export { KanbanViewRenderer } from "./KanbanViewRenderer";
+export type { KanbanViewRendererProps, KanbanColumn } from "./KanbanViewRenderer";
+
+export { CalendarViewRenderer } from "./CalendarViewRenderer";
+export type { CalendarViewRendererProps, CalendarEvent } from "./CalendarViewRenderer";
+
+export { ChartViewRenderer } from "./ChartViewRenderer";
+export type { ChartViewRendererProps, ChartType } from "./ChartViewRenderer";
+
+export { TimelineViewRenderer } from "./TimelineViewRenderer";
+export type { TimelineViewRendererProps, TimelineEntry } from "./TimelineViewRenderer";
+
+export { MapViewRenderer, recordsToMarkers } from "./MapViewRenderer";
+export type { MapViewRendererProps, MapMarker } from "./MapViewRenderer";
+
+// Image gallery
+export { ImageGallery } from "./ImageGallery";
+export type { ImageGalleryProps, GalleryImage } from "./ImageGallery";
+
 // Swipeable row
 export { SwipeableRow } from "./SwipeableRow";
 export type { SwipeableRowProps } from "./SwipeableRow";
@@ -26,6 +45,10 @@ export type { FilterDrawerProps, FilterButtonProps } from "./FilterDrawer";
 // Field renderer
 export { FieldRenderer, formatDisplayValue } from "./fields/FieldRenderer";
 export type { FieldRendererProps } from "./fields/FieldRenderer";
+
+// File field
+export { FileField } from "./fields/FileField";
+export type { FileFieldProps } from "./fields/FileField";
 
 // Types
 export type {
