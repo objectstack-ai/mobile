@@ -2,11 +2,11 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   Pressable,
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { ChevronDown, ChevronUp, Check, Search as SearchIcon } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
@@ -64,6 +64,8 @@ export interface ListViewRendererProps {
   onBatchDelete?: (ids: string[]) => void;
   /** Batch edit handler (shown in batch action bar) */
   onBatchEdit?: (ids: string[]) => void;
+  /** Estimated height of each list item for FlashList (default: 80) */
+  estimatedItemSize?: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -92,6 +94,7 @@ export function ListViewRenderer({
   onSelectionChange,
   onBatchDelete,
   onBatchEdit,
+  estimatedItemSize = 80,
 }: ListViewRendererProps) {
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -399,13 +402,13 @@ export function ListViewRenderer({
       )}
 
       {/* List */}
-      <FlatList
-        className="flex-1"
+      <FlashList
         data={records}
         keyExtractor={(item: any, index: number) =>
           item.id ?? item._id ?? String(index)
         }
         renderItem={renderItem}
+        estimatedItemSize={estimatedItemSize}
         onEndReached={hasMore ? onLoadMore : undefined}
         onEndReachedThreshold={0.5}
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}

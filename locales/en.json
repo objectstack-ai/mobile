@@ -1,0 +1,101 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "refresh": "Refresh",
+    "more": "More",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  },
+  "errors": {
+    "UNAUTHORIZED": "Your session has expired. Please sign in again.",
+    "FORBIDDEN": "You don't have permission to perform this action.",
+    "NOT_FOUND": "The requested resource was not found.",
+    "VALIDATION_ERROR": "Please check your input and try again.",
+    "CONFLICT": "A conflict occurred. The data may have been modified by someone else.",
+    "RATE_LIMITED": "Too many requests. Please wait a moment and try again.",
+    "INTERNAL_ERROR": "Something went wrong on the server. Please try again later.",
+    "NETWORK_ERROR": "Unable to connect to the server. Please check your internet connection.",
+    "TIMEOUT": "The request timed out. Please try again.",
+    "generic": "An unexpected error occurred."
+  },
+  "records": {
+    "noRecords": "No Records",
+    "noRecordsDescription": "No records found for this view.",
+    "searchRecords": "Search records…",
+    "createRecord": "Create Record",
+    "editRecord": "Edit Record",
+    "deleteRecord": "Delete Record",
+    "deleteConfirm": "Are you sure you want to delete this record?",
+    "recordSaved": "Record saved successfully.",
+    "recordDeleted": "Record deleted successfully.",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "batch": {
+    "selected": "{{count}} selected",
+    "deleteSelected": "Delete Selected",
+    "editSelected": "Edit Selected",
+    "clearSelection": "Clear Selection"
+  },
+  "filter": {
+    "filters": "Filters",
+    "addFilter": "Add Filter",
+    "clearAll": "Clear All",
+    "apply": "Apply",
+    "field": "Field",
+    "operator": "Operator",
+    "value": "Value"
+  },
+  "fields": {
+    "required": "This field is required.",
+    "invalidEmail": "Please enter a valid email address.",
+    "invalidUrl": "Please enter a valid URL.",
+    "invalidNumber": "Please enter a valid number."
+  },
+  "nav": {
+    "home": "Home",
+    "apps": "Apps",
+    "notifications": "Notifications",
+    "profile": "Profile"
+  },
+  "offline": {
+    "offlineMode": "Offline Mode",
+    "pendingSync": "{{count}} changes pending sync",
+    "syncNow": "Sync Now",
+    "syncing": "Syncing…",
+    "syncComplete": "Sync complete",
+    "syncFailed": "Sync failed. Will retry automatically."
+  },
+  "dashboard": {
+    "dashboard": "Dashboard",
+    "noWidgets": "No widgets configured.",
+    "refreshing": "Refreshing…"
+  }
+}
