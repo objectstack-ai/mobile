@@ -116,9 +116,14 @@ export function useBatchOperations(objectName: string) {
           });
         }
 
-        // If SDK returned fewer results than ops, count remainder as succeeded
+        // If SDK returned fewer results than ops, count remainder as failed
         if (results.length < validOps.length) {
-          result.succeeded += validOps.length - results.length;
+          const missing = validOps.length - results.length;
+          result.failed += missing;
+          result.errors.push({
+            index: validOps[results.length]?.index ?? 0,
+            message: `Server returned ${results.length} results for ${validOps.length} operations`,
+          });
         }
       } catch (err: unknown) {
         // Batch call itself failed — mark all remaining as failed

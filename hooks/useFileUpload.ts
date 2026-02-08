@@ -1,9 +1,7 @@
 import { useCallback, useState } from "react";
-import { Platform } from "react-native";
 import { useClient } from "@objectstack/client-react";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 
 /* ------------------------------------------------------------------ */
@@ -34,7 +32,7 @@ export interface UseFileUploadResult {
   uploadFile: (uri: string, name: string, mimeType: string) => Promise<FileUploadResult | null>;
   /** Get a download URL for a previously uploaded file */
   getDownloadUrl: (fileId: string) => Promise<string | null>;
-  /** Download a file to a local cache directory */
+  /** Get a download URL for a previously uploaded file (or a cached local URI) */
   downloadFile: (fileId: string, fileName: string) => Promise<string | null>;
   /** Share a file via the system share sheet */
   shareFile: (fileId: string, fileName: string) => Promise<void>;
@@ -76,10 +74,6 @@ export function useFileUpload(): UseFileUploadResult {
           throw new Error("client.storage.upload() is not available");
         }
 
-        // Read file info for size
-        const fileInfo = await FileSystem.getInfoAsync(uri);
-        const fileSize = (fileInfo as any).size ?? 0;
-
         setUploadProgress(0.1);
 
         // Build upload payload — SDK expects a File-like object or
@@ -108,7 +102,7 @@ export function useFileUpload(): UseFileUploadResult {
           id: fileId,
           name,
           mimeType,
-          size: fileSize,
+          size: 0,
           downloadUrl,
         };
       } catch (err: unknown) {
@@ -193,14 +187,12 @@ export function useFileUpload(): UseFileUploadResult {
 
   /* ---- Download file ---- */
   const downloadFile = useCallback(
-    async (fileId: string, fileName: string): Promise<string | null> => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async (fileId: string, _fileName: string): Promise<string | null> => {
       try {
-        const url = await getDownloadUrl(fileId);
-        if (!url) return null;
-
-        const localUri = `${FileSystem.cacheDirectory}${fileName}`;
-        const download = await FileSystem.downloadAsync(url, localUri);
-        return download.uri;
+        // Return the remote download URL. For local caching, consumers
+        // can use expo-file-system's legacy API or a fetch-based approach.
+        return await getDownloadUrl(fileId);
       } catch {
         return null;
       }
@@ -210,10 +202,11 @@ export function useFileUpload(): UseFileUploadResult {
 
   /* ---- Share file ---- */
   const shareFile = useCallback(
-    async (fileId: string, fileName: string): Promise<void> => {
-      const localUri = await downloadFile(fileId, fileName);
-      if (!localUri) {
-        setError(new Error("Failed to download file for sharing"));
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async (fileId: string, _fileName: string): Promise<void> => {
+      const url = await getDownloadUrl(fileId);
+      if (!url) {
+        setError(new Error("Failed to get download URL for sharing"));
         return;
       }
 
@@ -223,9 +216,10 @@ export function useFileUpload(): UseFileUploadResult {
         return;
       }
 
-      await Sharing.shareAsync(localUri);
+      await Sharing.shareAsync(url);
     },
-    [downloadFile],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [getDownloadUrl],
   );
 
   return {

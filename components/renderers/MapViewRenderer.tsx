@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { MapPin, Navigation } from "lucide-react-native";
 import { Card, CardContent } from "~/components/ui/Card";

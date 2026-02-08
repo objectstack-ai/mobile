@@ -207,9 +207,9 @@ function ChartWidget({
         ) : data?.chartData && data.chartData.length > 0 ? (
           /* Render inline mini-chart from analytics data */
           <View className="gap-1 py-2">
-            {data.chartData.slice(0, 6).map((point: any, idx: number) => {
+            {data.chartData.slice(0, 6).map((point, idx) => {
               const maxVal = Math.max(
-                ...data.chartData!.map((p: any) => Number(p.value) || 0),
+                ...data.chartData!.map((p) => Number(p.value) || 0),
                 1,
               );
               const pct = Math.max(((Number(point.value) || 0) / maxVal) * 100, 4);

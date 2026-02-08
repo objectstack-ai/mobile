@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { GripVertical, Plus } from "lucide-react-native";
-import { cn } from "~/lib/utils";
 import type { FieldDefinition } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -183,7 +182,8 @@ export function KanbanViewRenderer({
   titleField = "name",
   subtitleField,
   onCardPress,
-  onCardMove,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onCardMove: _onCardMove,
   onAddCard,
 }: KanbanViewRendererProps) {
   /* ---- Derive columns ---- */
