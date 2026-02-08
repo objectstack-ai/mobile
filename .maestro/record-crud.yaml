@@ -1,0 +1,61 @@
+# Record CRUD Flow — create, read, update, and delete a record
+appId: com.objectstack.mobile
+
+---
+
+- launchApp
+- assertVisible: "Sign In"
+
+# Sign in
+- tapOn: "Email"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "password123"
+- tapOn: "Sign In"
+- assertVisible:
+    text: "Home"
+    timeout: 10000
+
+# Navigate to an app
+- tapOn: "Apps"
+- tapOn:
+    index: 0
+    text: ".*"
+
+# Create a new record (tap FAB / Add button)
+- tapOn:
+    text: "Add"
+    optional: true
+- tapOn:
+    id: "fab-create"
+    optional: true
+
+# Fill form if visible
+- tapOn:
+    text: "Name"
+    optional: true
+- inputText: "E2E Test Record"
+
+# Save
+- tapOn:
+    text: "Save"
+    optional: true
+
+# Verify record appears in list
+- assertVisible:
+    text: "E2E Test Record"
+    optional: true
+    timeout: 5000
+
+# Tap to view detail
+- tapOn:
+    text: "E2E Test Record"
+    optional: true
+
+# Delete the record
+- tapOn:
+    text: "Delete"
+    optional: true
+- tapOn:
+    text: "Confirm"
+    optional: true

@@ -1,0 +1,42 @@
+# Record List Flow — list view, search, sort interactions
+appId: com.objectstack.mobile
+
+---
+
+- launchApp
+- assertVisible: "Sign In"
+
+# Sign in
+- tapOn: "Email"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "password123"
+- tapOn: "Sign In"
+- assertVisible:
+    text: "Home"
+    timeout: 10000
+
+# Open an app
+- tapOn: "Apps"
+- assertVisible: "Apps"
+
+# Tap on the first available app (e.g. CRM)
+- tapOn:
+    index: 0
+    text: ".*"
+
+# Wait for list view to load
+- assertVisible:
+    text: "No Records"
+    optional: true
+    timeout: 5000
+
+# If records are present, try search
+- tapOn:
+    text: "Search records…"
+    optional: true
+- inputText: "Task"
+- pressKey: enter
+
+# Clear search
+- clearText

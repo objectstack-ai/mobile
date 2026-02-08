@@ -1,18 +1,50 @@
-import React from "react";
-import { View, Text } from "react-native";
+import React, { Suspense } from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import { ListViewRenderer, type ListViewRendererProps } from "./ListViewRenderer";
 import { FormViewRenderer, type FormViewRendererProps } from "./FormViewRenderer";
 import { DetailViewRenderer, type DetailViewRendererProps } from "./DetailViewRenderer";
-import {
-  DashboardViewRenderer,
-  type DashboardViewRendererProps,
-} from "./DashboardViewRenderer";
-import { KanbanViewRenderer, type KanbanViewRendererProps } from "./KanbanViewRenderer";
-import { CalendarViewRenderer, type CalendarViewRendererProps } from "./CalendarViewRenderer";
-import { ChartViewRenderer, type ChartViewRendererProps } from "./ChartViewRenderer";
-import { TimelineViewRenderer, type TimelineViewRendererProps } from "./TimelineViewRenderer";
-import { MapViewRenderer, type MapViewRendererProps } from "./MapViewRenderer";
+import type { DashboardViewRendererProps } from "./DashboardViewRenderer";
+import type { KanbanViewRendererProps } from "./KanbanViewRenderer";
+import type { CalendarViewRendererProps } from "./CalendarViewRenderer";
+import type { ChartViewRendererProps } from "./ChartViewRenderer";
+import type { TimelineViewRendererProps } from "./TimelineViewRenderer";
+import type { MapViewRendererProps } from "./MapViewRenderer";
 import type { ViewType } from "./types";
+
+/* ------------------------------------------------------------------ */
+/*  Lazy-loaded renderers (route-level code splitting)                  */
+/* ------------------------------------------------------------------ */
+
+const LazyDashboard = React.lazy(() =>
+  import("./DashboardViewRenderer").then((m) => ({ default: m.DashboardViewRenderer })),
+);
+const LazyKanban = React.lazy(() =>
+  import("./KanbanViewRenderer").then((m) => ({ default: m.KanbanViewRenderer })),
+);
+const LazyCalendar = React.lazy(() =>
+  import("./CalendarViewRenderer").then((m) => ({ default: m.CalendarViewRenderer })),
+);
+const LazyChart = React.lazy(() =>
+  import("./ChartViewRenderer").then((m) => ({ default: m.ChartViewRenderer })),
+);
+const LazyTimeline = React.lazy(() =>
+  import("./TimelineViewRenderer").then((m) => ({ default: m.TimelineViewRenderer })),
+);
+const LazyMap = React.lazy(() =>
+  import("./MapViewRenderer").then((m) => ({ default: m.MapViewRenderer })),
+);
+
+/* ------------------------------------------------------------------ */
+/*  Loading fallback                                                    */
+/* ------------------------------------------------------------------ */
+
+function RendererFallback() {
+  return (
+    <View className="flex-1 items-center justify-center">
+      <ActivityIndicator size="large" color="#1e40af" />
+    </View>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Registry                                                           */
@@ -28,12 +60,12 @@ const rendererMap: Record<string, React.ComponentType<any>> = {
   list: ListViewRenderer,
   form: FormViewRenderer,
   detail: DetailViewRenderer,
-  dashboard: DashboardViewRenderer,
-  kanban: KanbanViewRenderer,
-  calendar: CalendarViewRenderer,
-  chart: ChartViewRenderer,
-  timeline: TimelineViewRenderer,
-  map: MapViewRenderer,
+  dashboard: LazyDashboard,
+  kanban: LazyKanban,
+  calendar: LazyCalendar,
+  chart: LazyChart,
+  timeline: LazyTimeline,
+  map: LazyMap,
 };
 
 /**
@@ -93,5 +125,9 @@ export function ViewRenderer({ viewType, props }: ViewRendererProps) {
     );
   }
 
-  return <Renderer {...props} />;
+  return (
+    <Suspense fallback={<RendererFallback />}>
+      <Renderer {...props} />
+    </Suspense>
+  );
 }

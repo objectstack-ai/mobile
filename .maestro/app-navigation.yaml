@@ -1,0 +1,31 @@
+# App Navigation Flow — verify tab bar and app discovery
+appId: com.objectstack.mobile
+
+---
+
+- launchApp
+- assertVisible: "Sign In"
+
+# Sign in first
+- tapOn: "Email"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "password123"
+- tapOn: "Sign In"
+- assertVisible:
+    text: "Home"
+    timeout: 10000
+
+# Navigate between tabs
+- tapOn: "Apps"
+- assertVisible: "Apps"
+
+- tapOn: "Notifications"
+- assertVisible: "Notifications"
+
+- tapOn: "Profile"
+- assertVisible: "Profile"
+
+# Go back to home
+- tapOn: "Home"
+- assertVisible: "Home"
