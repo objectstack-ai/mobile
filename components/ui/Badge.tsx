@@ -35,12 +35,15 @@ export function Badge({
         className
       )}
     >
-      <Text
-        className={cn("text-xs font-semibold", badgeTextVariants[variant])}
-      >
-        {typeof children === "string" ? children : ""}
-      </Text>
-      {typeof children !== "string" && children}
+      {typeof children === "string" ? (
+        <Text
+          className={cn("text-xs font-semibold", badgeTextVariants[variant])}
+        >
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
     </View>
   );
 }

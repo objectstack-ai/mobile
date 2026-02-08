@@ -10,7 +10,7 @@ export default function AppsScreen() {
   const { apps, isLoading, error, refetch } = useAppDiscovery();
   const router = useRouter();
 
-  const handleAppPress = (appId: string, appName: string) => {
+  const handleAppPress = (appName: string) => {
     router.push(`/(app)/${appName}`);
   };
 
@@ -80,7 +80,7 @@ export default function AppsScreen() {
 
         <View className="gap-3">
           {apps.map((app) => (
-            <Pressable key={app.id} onPress={() => handleAppPress(app.id, app.name)}>
+            <Pressable key={app.id} onPress={() => handleAppPress(app.name)}>
               <Card>
                 <CardContent className="flex-row items-center py-4">
                   <View className="rounded-xl bg-primary/10 p-3">
