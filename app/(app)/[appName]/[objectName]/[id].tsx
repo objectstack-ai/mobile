@@ -1,17 +1,21 @@
-import { View, Text, ScrollView, ActivityIndicator, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, Stack } from "expo-router";
-import { useClient, useObject } from "@objectstack/client-react";
+import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { useClient, useObject, useView, useFields } from "@objectstack/client-react";
 import { useEffect, useState, useCallback } from "react";
+import { DetailViewRenderer } from "~/components/renderers";
+import type { FieldDefinition, FormViewMeta } from "~/components/renderers";
 
 export default function ObjectDetailScreen() {
-  const { objectName, id } = useLocalSearchParams<{
+  const { appName, objectName, id } = useLocalSearchParams<{
     appName: string;
     objectName: string;
     id: string;
   }>();
   const client = useClient();
+  const router = useRouter();
   const { data: schema } = useObject(objectName!);
+  const { data: viewData } = useView(objectName!, "form");
+  const { data: fieldsData } = useFields(objectName!);
 
   const [record, setRecord] = useState<Record<string, any> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,44 +42,23 @@ export default function ObjectDetailScreen() {
   const displayName =
     record?.name ?? record?.label ?? record?.title ?? record?.subject ?? "Record Detail";
 
+  const fields: FieldDefinition[] = fieldsData ?? [];
+  const formView: FormViewMeta | undefined = viewData ?? undefined;
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <Stack.Screen options={{ title: String(displayName) }} />
-      {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#1e40af" />
-        </View>
-      ) : error ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-base text-destructive">{error.message}</Text>
-          <Pressable
-            className="mt-4 rounded-xl bg-primary px-5 py-3"
-            onPress={fetchRecord}
-          >
-            <Text className="font-semibold text-primary-foreground">Retry</Text>
-          </Pressable>
-        </View>
-      ) : record ? (
-        <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8 pt-4">
-          <View className="gap-4">
-            {Object.entries(record)
-              .filter(([key]) => !key.startsWith("_") && key !== "id")
-              .map(([key, value]) => {
-                const fieldLabel = key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-                return (
-                  <View key={key} className="rounded-xl border border-border bg-card p-4">
-                    <Text className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      {fieldLabel}
-                    </Text>
-                    <Text className="mt-1 text-base text-card-foreground">
-                      {value != null ? String(value) : "—"}
-                    </Text>
-                  </View>
-                );
-              })}
-          </View>
-        </ScrollView>
-      ) : null}
+      <DetailViewRenderer
+        view={formView}
+        fields={fields}
+        record={record}
+        isLoading={isLoading}
+        error={error}
+        onRetry={fetchRecord}
+        onEdit={() =>
+          router.push(`/(app)/${appName}/${objectName}/${id}/edit` as any)
+        }
+      />
     </SafeAreaView>
   );
 }

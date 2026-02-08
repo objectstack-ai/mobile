@@ -221,9 +221,9 @@ export function createObjectStackClient(token?: string) {
 
 #### 2.1 View Renderer Architecture
 
-- [ ] Create `components/renderers/` directory structure
-- [ ] Build `ViewRenderer` — top-level dispatcher that routes to the correct view type renderer
-- [ ] Implement view-type-to-renderer mapping registry
+- [x] Create `components/renderers/` directory structure
+- [x] Build `ViewRenderer` — top-level dispatcher that routes to the correct view type renderer
+- [x] Implement view-type-to-renderer mapping registry
 
 ```typescript
 // components/renderers/ViewRenderer.tsx
@@ -239,17 +239,17 @@ const rendererMap = {
 
 #### 2.2 List View Renderer
 
-- [ ] Render columns from view metadata as a mobile-optimized list
-- [ ] Support field type formatting (text, number, date, currency, boolean, lookup)
-- [ ] Implement column-based sorting via header taps
+- [x] Render columns from view metadata as a mobile-optimized list
+- [x] Support field type formatting (text, number, date, currency, boolean, lookup)
+- [x] Implement column-based sorting via header taps
 - [ ] Add filter drawer with dynamic filter UI from field definitions
-- [ ] Implement pull-to-refresh and infinite scroll
+- [x] Implement pull-to-refresh and infinite scroll
 - [ ] Add swipe actions (edit, delete) per row
 - [ ] Support row selection (single/multi) for batch operations
 
 #### 2.3 Form View Renderer
 
-- [ ] Build `FieldRenderer` that maps ObjectQL field types to native input components:
+- [x] Build `FieldRenderer` that maps ObjectQL field types to native input components:
   - `text` → TextInput
   - `number` / `currency` / `percent` → Numeric TextInput
   - `boolean` → Switch
@@ -259,31 +259,31 @@ const rendererMap = {
   - `textarea` → Multi-line TextInput
   - `url` / `email` / `phone` → Typed TextInput with keyboard hints
   - `image` / `file` → File picker with preview
-- [ ] Implement layout DSL rendering (sections, rows, columns, tabs)
-- [ ] Apply validation rules from field metadata (required, minLength, maxLength, pattern)
-- [ ] Support conditional field visibility based on form state
-- [ ] Wire up form submission to `useMutation()`
+- [x] Implement layout DSL rendering (sections, rows, columns, tabs)
+- [x] Apply validation rules from field metadata (required, minLength, maxLength, pattern)
+- [x] Support conditional field visibility based on form state
+- [x] Wire up form submission to `useMutation()`
 
 #### 2.4 Detail View Renderer
 
-- [ ] Render record detail as a read-only form with sections
-- [ ] Support related lists (child records) display
-- [ ] Add action bar with edit/delete/custom actions
+- [x] Render record detail as a read-only form with sections
+- [x] Support related lists (child records) display
+- [x] Add action bar with edit/delete/custom actions
 - [ ] Implement record navigation (previous/next)
 
 #### 2.5 Dashboard View Renderer
 
-- [ ] Evolve current static dashboard into a metadata-driven one
-- [ ] Support dashboard widget types: card, chart, list, metric
+- [x] Evolve current static dashboard into a metadata-driven one
+- [x] Support dashboard widget types: card, chart, list, metric
 - [ ] Implement widget layout grid (responsive)
 - [ ] Wire widgets to live data queries
 
 #### 2.6 Action System
 
-- [ ] Implement ObjectUI Action protocol (`navigate`, `create`, `update`, `delete`, `callFlow`, `openUrl`)
-- [ ] Build action executor that handles each action type
-- [ ] Support toolbar actions, row actions, and floating action buttons
-- [ ] Wire up button/action taps to the action executor
+- [x] Implement ObjectUI Action protocol (`navigate`, `create`, `update`, `delete`, `callFlow`, `openUrl`)
+- [x] Build action executor that handles each action type
+- [x] Support toolbar actions, row actions, and floating action buttons
+- [x] Wire up button/action taps to the action executor
 
 ---
 
