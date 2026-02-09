@@ -161,21 +161,38 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 - [ ] Enhanced accessibility (VoiceOver / TalkBack audit)
 - [ ] Widget support (iOS WidgetKit / Android App Widgets)
 
-### v1.2 — Advanced Collaboration
+### v1.2 — Enhanced Notification Center & Activity Feed
 
-- [ ] Real-time collaborative editing indicators (who's editing what)
-- [ ] In-app commenting on records
-- [ ] @mention support in text fields
-- [ ] Activity feed with team updates
+- [ ] Notification categories, grouping, and smart filtering
+- [ ] Inline notification actions (approve, reply, dismiss)
+- [ ] Do Not Disturb scheduling
+- [ ] Record-level activity feed (field changes, workflow, comments)
+- [ ] Record comments with threaded replies and @mentions
+- [ ] Emoji reactions on comments
+- [ ] Global team activity feed on home screen
 
-### v1.3 — Offline-First Enhancements
+> See [MESSAGING-NOTIFICATION-CENTER-DESIGN.md](./MESSAGING-NOTIFICATION-CENTER-DESIGN.md) for full specification.
+
+### v1.3 — Messaging & Channels
+
+- [ ] Object-bound and custom channels (Slack/Teams pattern)
+- [ ] Direct messages and group DMs
+- [ ] Threaded replies on channel messages
+- [ ] Typing indicators and read receipts
+- [ ] File sharing and Markdown support in messages
+- [ ] Message search integrated with GlobalSearch
+- [ ] AI-powered message summarization
+
+> See [MESSAGING-NOTIFICATION-CENTER-DESIGN.md](./MESSAGING-NOTIFICATION-CENTER-DESIGN.md) for full specification.
+
+### v1.4 — Offline-First Enhancements
 
 - [ ] Selective offline sync (choose which objects/views to cache)
 - [ ] Conflict resolution improvements (three-way merge UI)
 - [ ] Offline analytics (queue queries, sync results)
 - [ ] Background data prefetching based on usage patterns
 
-### v1.4 — Platform Integration
+### v1.5 — Platform Integration
 
 - [ ] iOS Shortcuts / Siri integration
 - [ ] Android Quick Settings tiles
