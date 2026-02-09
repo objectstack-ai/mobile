@@ -190,13 +190,21 @@ try {
 
 ## Impact on Development Roadmap
 
-### Phase 4B.1 — Now Unblocked ✅
+### Phase 4B.1 — Partially Unblocked ⚠️
 
-With the Views API now fully typed, **Phase 4B.1 can proceed immediately**:
+With the Views API now runtime-available in v2.0.0, **Phase 4B.1 can partially proceed**:
 
+**Current State**:
+1. ✅ Runtime API is functional and can be used
+2. ⚠️ TypeScript types not yet exported (awaiting v2.0.1+)
+3. ⏳ Can proceed with runtime implementation using type casts
+4. ⏳ Full type safety pending upstream type export
+
+**Once Types Exported**:
 1. Remove `(client as any).views` workaround
 2. Use proper TypeScript types
 3. Improve code quality and maintainability
+4. Fully complete Phase 4B.1
 
 ### Remaining Blocked Phases
 

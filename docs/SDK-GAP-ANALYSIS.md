@@ -141,15 +141,15 @@ useMetadata(fetcher, options?)          ✅ Generic metadata hook
 
 ## Gap 1 — Views API (client.views)
 
-### 状态：✅ **已解决 (v2.0.0)**
+### 状态：⚠️ **部分解决 (v2.0.0)**
 
 ### 问题描述
 
 Mobile 端的 `hooks/useViewStorage.ts` 需要通过 `client.views` 命名空间进行 Saved Views 的 CRUD 操作。在 v1.1.0 中，`ObjectStackClient` 类型定义中不包含 `views` 属性，当前通过 unsafe cast 绕过。
 
-### v2.0.0 解决方案
+### v2.0.0 解决方案（部分）
 
-SDK v2.0.0 已添加完整类型化的 `client.views` API：
+SDK v2.0.0 已实现 `client.views` API 的运行时功能，但 **TypeScript 类型定义尚未导出到 .d.ts 文件**。这是一个打包/导出问题，预计将在后续 patch 版本修复。
 
 ```typescript
 client.views: {
@@ -208,7 +208,7 @@ client.views: {
 - ⚠️ TypeScript 类型定义尚未导出（预计后续 patch 版本解决）
 - ⏳ Phase 4B.1 部分解除阻塞（可使用运行时 API，但需等待类型定义）
 
-### 优先级：✅ **已解决 (v2.0.0)**
+### 优先级：⚠️ **部分解决 (v2.0.0)** - 等待类型导出完成
 
 ---
 
