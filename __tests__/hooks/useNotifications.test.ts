@@ -178,7 +178,7 @@ describe("useNotifications", () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    let prefs: Record<string, unknown> | null;
+    let prefs: Awaited<ReturnType<typeof result.current.getPreferences>>;
     await act(async () => {
       prefs = await result.current.getPreferences();
     });

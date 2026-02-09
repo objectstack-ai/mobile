@@ -3,9 +3,11 @@ import { useClient } from "@objectstack/client-react";
 import type {
   ListNotificationsResponse,
   RegisterDeviceResponse,
+} from "@objectstack/client";
+import type {
   GetNotificationPreferencesResponse,
   UpdateNotificationPreferencesResponse,
-} from "@objectstack/client";
+} from "@objectstack/spec/api";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
