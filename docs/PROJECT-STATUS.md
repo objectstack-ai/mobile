@@ -132,17 +132,20 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 
 **Test Coverage**: 80%+ overall
 
-### Phase 5B: Advanced Features (SDK) ✅ SDK READY
+### Phase 5B: Advanced Features (SDK) ✅ COMPLETE
 
-**Status**: SDK v2.0.1 provides all required APIs — ready for development
+**Status**: All Phase 5B features implemented using SDK v2.0.1 APIs
 
-| Feature | Status | SDK API | ETA |
-|---------|--------|---------|-----|
-| AI Agent Chat | ⬜ Ready | ✅ `client.ai.*` | 2-3 weeks |
-| NLQ to ObjectQL | ⬜ Ready | ✅ `client.ai.nlq()` | 2-3 weeks |
-| Server i18n | ⬜ Ready | ✅ `client.i18n.*` | 1 week |
+| Feature | Status | SDK API | Files |
+|---------|--------|---------|-------|
+| AI Agent Chat | ✅ Complete | `client.ai.chat()` | `hooks/useAI.ts` |
+| NLQ to ObjectQL | ✅ Complete | `client.ai.nlq()` | `hooks/useAI.ts` |
+| AI Suggestions | ✅ Complete | `client.ai.suggest()` | `hooks/useAI.ts` |
+| AI Insights | ✅ Complete | `client.ai.insights()` | `hooks/useAI.ts` |
+| Server i18n | ✅ Complete | `client.i18n.*` | `hooks/useServerTranslations.ts` |
+| SDK Hook Aliases | ✅ Complete | `useClient()` | `hooks/useBatchMutation.ts`, `hooks/usePackages.ts`, `hooks/useSavedViews.ts` |
 
-**Work Required**: Mobile-side implementation of hooks and UI components using the now-available SDK APIs.
+**Implementation**: All hooks built using `useClient()` from `@objectstack/client-react` with 38 new tests (74 total hook tests).
 
 ### Phase 6: Production Readiness ✅ MOSTLY COMPLETE
 

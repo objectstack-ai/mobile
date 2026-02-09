@@ -44,8 +44,6 @@ export interface UseServerTranslationsResult {
 /*  Cache                                                               */
 /* ------------------------------------------------------------------ */
 
-/** In-memory ETag cache for translation responses */
-const etagCache = new Map<string, string>();
 /** In-memory translation data cache */
 const translationCache = new Map<string, GetTranslationsResponse>();
 
@@ -59,8 +57,6 @@ const translationCache = new Map<string, GetTranslationsResponse>();
  * Integrates with the existing i18next setup (lib/i18n.ts) by merging
  * server translations into i18next resource bundles, enabling dynamic
  * translation loading and field label resolution.
- *
- * Supports ETag-based caching to avoid redundant downloads.
  */
 export function useServerTranslations(): UseServerTranslationsResult {
   const client = useClient();
@@ -167,4 +163,4 @@ export function useServerTranslations(): UseServerTranslationsResult {
 }
 
 /** Exported for testing */
-export { etagCache, translationCache };
+export { translationCache };
