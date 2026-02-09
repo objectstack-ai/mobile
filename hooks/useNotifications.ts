@@ -194,6 +194,8 @@ export function useNotifications(): UseNotificationsResult {
     [client],
   );
 
+  // Fetch on mount only; fetchNotifications is intentionally omitted to avoid
+  // re-fetching when the cursor state changes (which would cause an infinite loop).
   useEffect(() => {
     void fetchNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps

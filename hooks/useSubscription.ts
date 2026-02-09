@@ -149,7 +149,9 @@ export function useSubscription(
     }
   }, [client, channel]);
 
-  // Auto-connect on mount if enabled
+  // Auto-connect on mount if enabled; reconnect only when enabled/channel change.
+  // doConnect/doDisconnect are intentionally omitted to avoid re-subscribing on
+  // every render when the events array or callbacks change.
   useEffect(() => {
     if (enabled) {
       void doConnect();

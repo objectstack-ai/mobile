@@ -105,6 +105,9 @@ function FormSectionView({
               if (!depValue) return null;
             }
 
+            const isFieldReadonly = readonly || meta.readonly ||
+              (fieldPermissions?.[fieldDef.name] && !fieldPermissions[fieldDef.name].editable);
+
             return (
               <FieldRenderer
                 key={fieldDef.name}
@@ -115,11 +118,11 @@ function FormSectionView({
                 }}
                 value={values[fieldDef.name]}
                 onChange={
-                  readonly || meta.readonly || (fieldPermissions?.[fieldDef.name] && !fieldPermissions[fieldDef.name].editable)
+                  isFieldReadonly
                     ? undefined
                     : (val) => onChange(fieldDef.name, val)
                 }
-                readonly={readonly || meta.readonly || (fieldPermissions?.[fieldDef.name] && !fieldPermissions[fieldDef.name].editable)}
+                readonly={isFieldReadonly}
                 error={errors[fieldDef.name]}
               />
             );

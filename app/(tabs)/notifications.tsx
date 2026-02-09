@@ -74,7 +74,7 @@ export default function NotificationsScreen() {
     }
     // Deep link to the record/view if actionUrl is provided
     if (n.actionUrl) {
-      router.push(n.actionUrl as never);
+      router.push(n.actionUrl);
     }
   };
 

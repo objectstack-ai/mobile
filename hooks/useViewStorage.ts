@@ -43,6 +43,13 @@ export interface SaveViewInput {
 /*  Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
+function resolveViewType(v: Record<string, unknown>): "list" | "form" | undefined {
+  if (v.viewType === "list" || v.viewType === "form") return v.viewType;
+  if (v.list) return "list";
+  if (v.form) return "form";
+  return undefined;
+}
+
 /**
  * Map a raw view entry from the SDK into our SavedView shape.
  */
@@ -54,7 +61,7 @@ function toSavedView(
     id: (v.id as string) ?? (v.name as string),
     name: (v.name as string) ?? (v.label as string) ?? "Untitled",
     objectName,
-    viewType: (v.viewType as "list" | "form") ?? (v.list ? "list" : v.form ? "form" : undefined),
+    viewType: resolveViewType(v),
     list: v.list as Record<string, unknown> | undefined,
     form: v.form as Record<string, unknown> | undefined,
     visibility: (v.visibility as "private" | "shared") ?? "private",
@@ -75,7 +82,8 @@ function toViewPayload(input: Partial<SaveViewInput>): Record<string, unknown> {
 
   // Support legacy flat filters/sort/columns by wrapping into list config
   if (input.filters !== undefined || input.sort !== undefined || input.columns !== undefined) {
-    const listConfig = (payload.list as Record<string, unknown>) ?? {};
+    const existing = (payload.list as Record<string, unknown>) ?? {};
+    const listConfig: Record<string, unknown> = { ...existing };
     if (input.filters !== undefined) listConfig.filter = input.filters;
     if (input.sort !== undefined) listConfig.sort = input.sort;
     if (input.columns !== undefined) listConfig.columns = input.columns;
