@@ -1,19 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
 import { useClient } from "@objectstack/client-react";
+import type {
+  ListViewsResponse,
+} from "@objectstack/client";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
 /* ------------------------------------------------------------------ */
 
+/** A single view entry from the SDK's ListViewsResponse */
 export interface SavedView {
   id: string;
   name: string;
   objectName: string;
+  /** View type – list or form */
+  viewType?: "list" | "form";
+  /** List view configuration (columns, filter, sort, etc.) */
+  list?: Record<string, unknown>;
+  /** Form view configuration (sections, fields, etc.) */
+  form?: Record<string, unknown>;
   /** "private" = only the creator; "shared" = all users */
   visibility: "private" | "shared";
-  filters?: unknown;
-  sort?: string | string[];
-  columns?: string[];
   createdBy?: string;
   updatedAt?: string;
 }
@@ -21,27 +28,69 @@ export interface SavedView {
 export interface SaveViewInput {
   name: string;
   visibility: "private" | "shared";
+  viewType?: "list" | "form";
+  /** List view config data */
+  list?: Record<string, unknown>;
+  /** Form view config data */
+  form?: Record<string, unknown>;
+  /** Legacy: flat filters (mapped into list config) */
   filters?: unknown;
   sort?: string | string[];
   columns?: string[];
 }
 
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+function resolveViewType(v: Record<string, unknown>): "list" | "form" | undefined {
+  if (v.viewType === "list" || v.viewType === "form") return v.viewType;
+  if (v.list) return "list";
+  if (v.form) return "form";
+  return undefined;
+}
+
 /**
- * Helper to access the views namespace on the client.
- *
- * As of v2.0.1, `client.views` is fully typed and available at runtime.
- * However, this hook's data model (name/visibility/filters) does not yet
- * match the SDK's typed view data schema (list/form view configs).
- * A future refactor (Phase 4B.1) will align this hook with the SDK types.
+ * Map a raw view entry from the SDK into our SavedView shape.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function viewsApi(client: any) {
-  return client.views as {
-    list: (objectName: string) => Promise<{ views?: any[] }>;
-    create: (objectName: string, data: Record<string, unknown>) => Promise<unknown>;
-    update: (objectName: string, viewId: string, data: Record<string, unknown>) => Promise<unknown>;
-    delete: (objectName: string, viewId: string) => Promise<unknown>;
+function toSavedView(
+  v: Record<string, unknown>,
+  objectName: string,
+): SavedView {
+  return {
+    id: (v.id as string) ?? (v.name as string),
+    name: (v.name as string) ?? (v.label as string) ?? "Untitled",
+    objectName,
+    viewType: resolveViewType(v),
+    list: v.list as Record<string, unknown> | undefined,
+    form: v.form as Record<string, unknown> | undefined,
+    visibility: (v.visibility as "private" | "shared") ?? "private",
+    createdBy: (v.createdBy as string) ?? (v.created_by as string),
+    updatedAt: (v.updatedAt as string) ?? (v.updated_at as string),
   };
+}
+
+/**
+ * Build the data payload for create/update matching SDK's CreateViewRequest.
+ */
+function toViewPayload(input: Partial<SaveViewInput>): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+  if (input.name !== undefined) payload.name = input.name;
+  if (input.visibility !== undefined) payload.visibility = input.visibility;
+  if (input.list !== undefined) payload.list = input.list;
+  if (input.form !== undefined) payload.form = input.form;
+
+  // Support legacy flat filters/sort/columns by wrapping into list config
+  if (input.filters !== undefined || input.sort !== undefined || input.columns !== undefined) {
+    const existing = (payload.list as Record<string, unknown>) ?? {};
+    const listConfig: Record<string, unknown> = { ...existing };
+    if (input.filters !== undefined) listConfig.filter = input.filters;
+    if (input.sort !== undefined) listConfig.sort = input.sort;
+    if (input.columns !== undefined) listConfig.columns = input.columns;
+    payload.list = listConfig;
+  }
+
+  return payload;
 }
 
 /* ------------------------------------------------------------------ */
@@ -49,7 +98,9 @@ function viewsApi(client: any) {
 /* ------------------------------------------------------------------ */
 
 /**
- * Hook for managing saved (custom) user views via `client.views.*`.
+ * Hook for managing saved (custom) user views via the typed `client.views.*` API.
+ *
+ * Aligned with SDK v2.0.1 typed views API (list/form view configs).
  */
 export function useViewStorage(objectName: string) {
   const client = useClient();
@@ -58,83 +109,61 @@ export function useViewStorage(objectName: string) {
   const [error, setError] = useState<Error | null>(null);
   const [activeViewId, setActiveViewId] = useState<string | null>(null);
 
-  const api = viewsApi(client);
-
   /** Fetch all saved views for this object */
   const fetchViews = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await api.list(objectName);
-      const items: SavedView[] = (result?.views ?? []).map((v: any) => ({
-        id: v.id ?? v.name,
-        name: v.name ?? v.label ?? "Untitled",
-        objectName,
-        visibility: v.visibility ?? "private",
-        filters: v.filters ?? v.filter,
-        sort: v.sort,
-        columns: v.columns,
-        createdBy: v.createdBy ?? v.created_by,
-        updatedAt: v.updatedAt ?? v.updated_at,
-      }));
+      const result: ListViewsResponse = await client.views.list(objectName);
+      const items: SavedView[] = (result?.views ?? []).map(
+        (v: Record<string, unknown>) => toSavedView(v, objectName),
+      );
       setViews(items);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch views"));
     } finally {
       setIsLoading(false);
     }
-  }, [api, objectName]);
+  }, [client, objectName]);
 
   /** Save a new view */
   const saveView = useCallback(
     async (input: SaveViewInput) => {
       try {
-        await api.create(objectName, {
-          name: input.name,
-          visibility: input.visibility,
-          filter: input.filters,
-          sort: input.sort,
-          columns: input.columns,
-        });
+        await client.views.create(objectName, toViewPayload(input));
         await fetchViews();
       } catch (err) {
         throw err instanceof Error ? err : new Error("Failed to save view");
       }
     },
-    [api, objectName, fetchViews],
+    [client, objectName, fetchViews],
   );
 
   /** Update an existing view */
   const updateView = useCallback(
     async (viewId: string, input: Partial<SaveViewInput>) => {
       try {
-        await api.update(objectName, viewId, {
-          name: input.name,
-          visibility: input.visibility,
-          filter: input.filters,
-          sort: input.sort,
-          columns: input.columns,
-        });
+        await client.views.update(objectName, viewId, toViewPayload(input));
         await fetchViews();
       } catch (err) {
         throw err instanceof Error ? err : new Error("Failed to update view");
       }
     },
-    [api, objectName, fetchViews],
+    [client, objectName, fetchViews],
   );
 
   /** Delete a saved view */
   const deleteView = useCallback(
     async (viewId: string) => {
       try {
-        await api.delete(objectName, viewId);
+        await client.views.delete(objectName, viewId);
         if (activeViewId === viewId) setActiveViewId(null);
         await fetchViews();
       } catch (err) {
         throw err instanceof Error ? err : new Error("Failed to delete view");
       }
     },
-    [api, objectName, activeViewId, fetchViews],
+    [client, objectName, activeViewId, fetchViews],
   );
 
   // Fetch on mount

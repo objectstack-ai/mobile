@@ -22,15 +22,10 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 - Internationalization (i18n) framework
 - Production monitoring (Sentry, analytics, feature flags)
 - Security features (biometric auth, certificate pinning, app lock)
-- Comprehensive test coverage (346 tests, 80%+ coverage)
+- Comprehensive test coverage (375 tests, 80%+ coverage)
 - CI/CD pipeline with EAS Build/Update
 
 ⚠️ **Ready for Development (SDK v2.0.1 已就绪)**:
-- Views API 重构 (client.views.* 已完整类型化)
-- Permissions system (client.permissions.*)
-- Workflow/approval system (client.workflow.*)
-- Real-time WebSocket updates (client.realtime.*)
-- Push notifications registration (client.notifications.*)
 - AI/NLQ integration (client.ai.*)
 - Server-side i18n (client.i18n.*)
 
@@ -111,19 +106,17 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 
 **Test Coverage**: 85%
 
-### Phase 4B: ObjectOS Integration ✅ SDK READY
+### Phase 4B: ObjectOS Integration ✅ COMPLETE
 
-**Status**: SDK v2.0.1 provides all required APIs — ready for development
+**Status**: All Phase 4B features implemented using SDK v2.0.1 APIs
 
-| Feature | Status | SDK API | ETA |
-|---------|--------|---------|-----|
-| Views API Refactor | ⬜ Ready | ✅ `client.views.*` | 1 week |
-| Permissions System | ⬜ Ready | ✅ `client.permissions.*` | 1-2 weeks |
-| Workflows | ⬜ Ready | ✅ `client.workflow.*` | 1-2 weeks |
-| Real-time Updates | ⬜ Ready | ✅ `client.realtime.*` | 2-3 weeks |
-| Push Notifications | ⬜ Ready | ✅ `client.notifications.*` | 1 week |
-
-**Work Required**: Mobile-side implementation of hooks and UI components using the now-available SDK APIs.
+| Feature | Status | SDK API | Key Files |
+|---------|--------|---------|-----------|
+| Views API Refactor | ✅ Done | `client.views.*` | `hooks/useViewStorage.ts` |
+| Permissions System | ✅ Done | `client.permissions.*` | `hooks/usePermissions.ts` |
+| Workflows | ✅ Done | `client.workflow.*` | `hooks/useWorkflowState.ts`, `components/workflow/WorkflowStatePanel.tsx` |
+| Real-time Updates | ✅ Done | `client.realtime.*` | `hooks/useSubscription.ts`, `components/realtime/CollaborationIndicator.tsx` |
+| Push Notifications | ✅ Done | `client.notifications.*` | `hooks/useNotifications.ts`, `app/(tabs)/notifications.tsx` |
 
 ### Phase 5A: Advanced Features ✅ COMPLETE
 
@@ -259,14 +252,9 @@ Coverage (as of 2026-02-09):
 
 ## Known Issues & Limitations
 
-### 1. Phase 4B/5B Implementation (Ready to Develop)
+### 1. Phase 5B Implementation (Ready to Develop)
 
-All SDK APIs are now available in v2.0.1. Phase 4B and 5B can begin immediately:
-- `client.views.*` — Fully typed, needs hook refactoring
-- `client.permissions.*` — Available, needs `usePermissions` hook
-- `client.workflow.*` — Available, needs `useWorkflowState` hook
-- `client.realtime.*` — Available, needs `useSubscription` hook
-- `client.notifications.*` — Available, needs notification UI
+Phase 4B is complete. Phase 5B can begin immediately:
 - `client.ai.*` — Available, needs AI chat UI
 - `client.i18n.*` — Available, needs server translation integration
 
@@ -408,11 +396,9 @@ SDK v2.0.1 provides all required APIs. Estimated timeline: 6-8 weeks.
 
 ### For Mobile Team
 
-1. **Start Phase 4B Development**:
-   - Begin with Permissions hook (`usePermissions`) — most impact
-   - Implement Workflow state hooks and UI
-   - Build real-time subscription system
-   - Add push notification registration
+1. **Start Phase 5B Development**:
+   - Build AI/NLQ chat UI using `client.ai.*`
+   - Integrate server-side i18n using `client.i18n.*`
 
 2. **Continue SDK-Independent Work**:
    - Enhance UI/UX based on user feedback
@@ -427,10 +413,10 @@ SDK v2.0.1 provides all required APIs. Estimated timeline: 6-8 weeks.
 ### For SDK Team
 
 1. **React Hooks** (Quality of Life):
-   - `usePermissions()` — Most requested
-   - `useWorkflowState()` — Critical for Phase 4B.3
-   - `useSubscription()` — Real-time updates
-   - `useSavedViews()` — Views management
+   - `usePermissions()` — Built on mobile side, consider adding to SDK
+   - `useWorkflowState()` — Built on mobile side, consider adding to SDK
+   - `useSubscription()` — Built on mobile side, consider adding to SDK
+   - `useSavedViews()` — Built on mobile side, consider adding to SDK
 
 ## Support & Contact
 
@@ -442,6 +428,6 @@ SDK v2.0.1 provides all required APIs. Estimated timeline: 6-8 weeks.
 ---
 
 **Last Updated**: 2026-02-09
-**Project Status**: ✅ Development In Progress (SDK APIs Ready, Phase 4B/5B unblocked)
-**Test Status**: ✅ 346/346 passing
-**Production Ready**: ⚠️ Yes (Phase 4B/5B features in development)
+**Project Status**: ✅ Phase 4B Complete (Phase 5B ready for development)
+**Test Status**: ✅ 375/375 passing
+**Production Ready**: ⚠️ Yes (Phase 5B features in development)

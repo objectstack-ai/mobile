@@ -11,14 +11,19 @@ export interface ActionBarProps {
   actions: ActionMeta[];
   onAction: (action: ActionMeta) => void;
   className?: string;
+  /** Optional set of action names that should be hidden (e.g. due to permissions) */
+  disabledActions?: Set<string>;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function ActionBar({ actions, onAction, className }: ActionBarProps) {
-  if (actions.length === 0) return null;
+export function ActionBar({ actions, onAction, className, disabledActions }: ActionBarProps) {
+  const visibleActions = disabledActions
+    ? actions.filter((a) => !disabledActions.has(a.name))
+    : actions;
+  if (visibleActions.length === 0) return null;
 
   return (
     <ScrollView
@@ -27,7 +32,7 @@ export function ActionBar({ actions, onAction, className }: ActionBarProps) {
       className={cn("border-b border-border bg-card", className)}
       contentContainerClassName="flex-row items-center gap-2 px-4 py-3"
     >
-      {actions.map((action) => {
+      {visibleActions.map((action) => {
         const variant = getButtonVariant(action);
         return (
           <Pressable

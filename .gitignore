@@ -6,6 +6,9 @@ node_modules/
 # pnpm
 .pnpm-store/
 
+# npm (project uses pnpm)
+package-lock.json
+
 # Expo
 .expo/
 dist/
