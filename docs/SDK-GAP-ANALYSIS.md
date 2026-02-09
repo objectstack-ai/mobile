@@ -1,8 +1,8 @@
 # @objectstack/client SDK — Gap Analysis Report
 
-> **Version analyzed**: `@objectstack/client@2.0.0`, `@objectstack/client-react@2.0.0`, `@objectstack/spec@2.0.0`
+> **Version analyzed**: `@objectstack/client@2.0.1`, `@objectstack/client-react@2.0.1`, `@objectstack/spec@2.0.1`
 >
-> **Date**: 2026-02-09 (Updated after v2.0.0 upgrade)
+> **Date**: 2026-02-09 (Updated after v2.0.1 upgrade)
 >
 > **Purpose**: 列出 Mobile 客户端完成全部开发所需但 SDK 目前尚未提供（或未完善）的 API 与功能，供上游项目排期开发。
 
@@ -30,40 +30,41 @@
 
 ## Executive Summary
 
-ObjectStack Mobile 客户端目前已完成 Phase 0–3（基础框架、SDK 集成、渲染引擎、数据层），以及大部分 Phase 4A, 5A, 6（独立功能）。**Phase 4B 和 5B 的开发仍被 SDK 缺失功能阻塞**。
+ObjectStack Mobile 客户端目前已完成 Phase 0–3（基础框架、SDK 集成、渲染引擎、数据层），以及大部分 Phase 4A, 5A, 6（独立功能）。**v2.0.1 升级后，所有 SDK Gap 已解决，Phase 4B 和 5B 可以立即启动开发。**
 
-### v2.0.0 更新摘要 (2026-02-09)
+### v2.0.1 更新摘要 (2026-02-09)
 
-✅ **Gap 1 已解决**: `client.views.*` API 现已完全类型化并可用
-- 新增 `client.views.create()`, `get()`, `list()`, `update()`, `delete()`, `share()`, `setDefault()`
-- 可移除 `hooks/useViewStorage.ts` 中的 `(client as any).views` workaround
-- Phase 4B.1 现已解除阻塞
+✅ **所有 Gap 已解决**: SDK v2.0.1 完整实现了全部 13 个 API 命名空间，并导出了 TypeScript 类型定义。
 
-✅ **新增功能**:
-- ETag 元数据缓存: `client.meta.getCached()`
-- 增强的批量操作: `client.data.batch()` 支持更多选项
-- 类型安全查询构建器: `createQuery<T>()`, `createFilter<T>()`
+**新增已解决 API**:
+- `client.views.*` — 完整类型化的 Views API (create/get/list/update/delete)
+- `client.permissions.*` — 权限检查 API (check/getObjectPermissions/getEffectivePermissions)
+- `client.workflow.*` — 工作流 API (getConfig/getState/transition/approve/reject)
+- `client.realtime.*` — 实时 WebSocket API (connect/disconnect/subscribe/unsubscribe/setPresence/getPresence)
+- `client.notifications.*` — 推送通知 API (registerDevice/unregisterDevice/getPreferences/updatePreferences/list/markRead/markAllRead)
+- `client.ai.*` — AI/NLQ API (nlq/chat/suggest/insights)
+- `client.i18n.*` — 国际化 API (getLocales/getTranslations/getFieldLabels)
 
-### 剩余关键 Gap
+### 剩余改进项
 
 | Category | Status | Impact |
 |----------|--------|--------|
-| **Views API 类型缺失** | ✅ **已解决 (v2.0.0)** | Phase 4B.1 解除阻塞 |
-| **Permission API** | ❌ 完全缺失 | Phase 4B.2 阻塞 |
-| **Workflow/State Machine API** | ❌ 完全缺失 | Phase 4B.3 阻塞 |
-| **Real-Time WebSocket API** | ❌ 完全缺失 | Phase 4B.4 阻塞 |
-| **Push Notification API** | ❌ 完全缺失 | Phase 4B.5 阻塞 |
-| **AI/NLQ API** | ❌ 完全缺失 | Phase 5B.1 阻塞 |
+| **Views API** | ✅ **已解决 (v2.0.1)** | Phase 4B.1 完全解除阻塞 |
+| **Permission API** | ✅ **已解决 (v2.0.1)** | Phase 4B.2 解除阻塞 |
+| **Workflow/State Machine API** | ✅ **已解决 (v2.0.1)** | Phase 4B.3 解除阻塞 |
+| **Real-Time WebSocket API** | ✅ **已解决 (v2.0.1)** | Phase 4B.4 解除阻塞 |
+| **Push Notification API** | ✅ **已解决 (v2.0.1)** | Phase 4B.5 解除阻塞 |
+| **AI/NLQ API** | ✅ **已解决 (v2.0.1)** | Phase 5B.1 解除阻塞 |
 | **Batch 优化** | ✅ **已改进 (v2.0.0)** | 性能可继续优化 |
-| **Storage React Hooks** | ❌ 缺失 | Phase 5B.3 阻塞 |
-| **i18n API** | ❌ 完全缺失 | Phase 5B.2 阻塞 |
-| **Analytics React Hooks** | ❌ 缺失 | 可用 hooks wrapper 优化 |
+| **Storage React Hooks** | ⚠️ client-react 缺失 | 可自建 hooks |
+| **i18n API** | ✅ **已解决 (v2.0.1)** | Phase 5B.2 解除阻塞 |
+| **Analytics React Hooks** | ⚠️ client-react 缺失 | 可用 hooks wrapper 优化 |
 
 ---
 
 ## Current SDK Coverage
 
-### `@objectstack/client@2.0.0` — 已有 API
+### `@objectstack/client@2.0.1` — 已有 API
 
 以下 API 在 SDK 中有完整类型定义且 Mobile 端已成功集成：
 
@@ -111,6 +112,34 @@ client.analytics.explain(payload)       ✅ Analytics explain
 client.hub.spaces.list()                ✅ List spaces
 client.hub.spaces.create(payload)       ✅ Create space
 client.hub.plugins.install(pkg, ver?)   ✅ Install hub plugin
+client.permissions.check(params)        ✅ Check permission (v2.0.1 新增)
+client.permissions.getObjectPermissions(obj) ✅ Object permissions (v2.0.1 新增)
+client.permissions.getEffectivePermissions() ✅ Effective permissions (v2.0.1 新增)
+client.workflow.getConfig(obj)          ✅ Workflow config (v2.0.1 新增)
+client.workflow.getState(obj, recordId) ✅ Workflow state (v2.0.1 新增)
+client.workflow.transition(params)      ✅ Workflow transition (v2.0.1 新增)
+client.workflow.approve(params)         ✅ Workflow approve (v2.0.1 新增)
+client.workflow.reject(params)          ✅ Workflow reject (v2.0.1 新增)
+client.realtime.connect(options?)       ✅ Realtime connect (v2.0.1 新增)
+client.realtime.disconnect()            ✅ Realtime disconnect (v2.0.1 新增)
+client.realtime.subscribe(params)       ✅ Realtime subscribe (v2.0.1 新增)
+client.realtime.unsubscribe(params)     ✅ Realtime unsubscribe (v2.0.1 新增)
+client.realtime.setPresence(params)     ✅ Set presence (v2.0.1 新增)
+client.realtime.getPresence(params)     ✅ Get presence (v2.0.1 新增)
+client.notifications.registerDevice(p)  ✅ Register device (v2.0.1 新增)
+client.notifications.unregisterDevice(id) ✅ Unregister device (v2.0.1 新增)
+client.notifications.getPreferences()   ✅ Get preferences (v2.0.1 新增)
+client.notifications.updatePreferences(p) ✅ Update preferences (v2.0.1 新增)
+client.notifications.list(options?)     ✅ List notifications (v2.0.1 新增)
+client.notifications.markRead(ids)      ✅ Mark read (v2.0.1 新增)
+client.notifications.markAllRead()      ✅ Mark all read (v2.0.1 新增)
+client.ai.nlq(params)                  ✅ Natural language query (v2.0.1 新增)
+client.ai.chat(params)                 ✅ AI chat (v2.0.1 新增)
+client.ai.suggest(params)              ✅ AI suggestions (v2.0.1 新增)
+client.ai.insights(params)             ✅ AI insights (v2.0.1 新增)
+client.i18n.getLocales()               ✅ Get locales (v2.0.1 新增)
+client.i18n.getTranslations(locale, opts?) ✅ Get translations (v2.0.1 新增)
+client.i18n.getFieldLabels(obj, locale) ✅ Get field labels (v2.0.1 新增)
 ```
 
 ### v2.0.0 新增工具
@@ -122,7 +151,7 @@ QueryBuilder<T>                         ✅ 链式查询构建器类
 FilterBuilder<T>                        ✅ 链式过滤器构建器类
 ```
 
-### `@objectstack/client-react@2.0.0` — 已有 Hooks
+### `@objectstack/client-react@2.0.1` — 已有 Hooks
 
 ```
 ObjectStackProvider                     ✅ Context provider
@@ -141,15 +170,15 @@ useMetadata(fetcher, options?)          ✅ Generic metadata hook
 
 ## Gap 1 — Views API (client.views)
 
-### 状态：⚠️ **部分解决 (v2.0.0)**
+### 状态：✅ **已解决 (v2.0.1)**
 
 ### 问题描述
 
 Mobile 端的 `hooks/useViewStorage.ts` 需要通过 `client.views` 命名空间进行 Saved Views 的 CRUD 操作。在 v1.1.0 中，`ObjectStackClient` 类型定义中不包含 `views` 属性，当前通过 unsafe cast 绕过。
 
-### v2.0.0 解决方案（部分）
+### v2.0.1 解决方案
 
-SDK v2.0.0 已实现 `client.views` API 的运行时功能，但 **TypeScript 类型定义尚未导出到 .d.ts 文件**。这是一个打包/导出问题，预计将在后续 patch 版本修复。
+SDK v2.0.1 已完全实现 `client.views` API，包括运行时功能和 TypeScript 类型定义导出。
 
 ```typescript
 client.views: {
@@ -197,24 +226,24 @@ client.views: {
 
 ### Mobile 端行动项
 
-- [x] SDK 已升级至 v2.0.0
-- [ ] **等待上游**: TypeScript 类型定义尚未在 .d.ts 文件中导出
-- [ ] 一旦类型导出后：更新 `hooks/useViewStorage.ts` 移除 workaround
-- [ ] 一旦类型导出后：补全 SavedView 类型定义以匹配 v2.0.0 API
+- [x] SDK 已升级至 v2.0.1
+- [x] TypeScript 类型定义已在 .d.ts 文件中导出
+- [ ] 重构 `hooks/useViewStorage.ts` 对齐 SDK 正式类型
+- [ ] 补全 SavedView 类型定义以匹配 v2.0.1 API
 
 ### 影响范围
 
 - ✅ API 已实现（运行时可用）
-- ⚠️ TypeScript 类型定义尚未导出（预计后续 patch 版本解决）
-- ⏳ Phase 4B.1 部分解除阻塞（可使用运行时 API，但需等待类型定义）
+- ✅ TypeScript 类型定义已导出
+- ✅ Phase 4B.1 完全解除阻塞
 
-### 优先级：⚠️ **部分解决 (v2.0.0)** - 等待类型导出完成
+### 优先级：✅ **已解决 (v2.0.1)**
 
 ---
 
 ## Gap 2 — Permission System API
 
-### 状态：❌ 完全缺失
+### 状态：✅ **已解决 (v2.0.1)**
 
 ### 问题描述
 
@@ -274,13 +303,13 @@ function usePermissions(objectName: string, options?: {
 };
 ```
 
-### 优先级：🔴 Critical（Phase 4.1 阻塞，企业客户核心需求）
+### 优先级：✅ **已解决 (v2.0.1)** — `client.permissions.check()`, `getObjectPermissions()`, `getEffectivePermissions()`
 
 ---
 
 ## Gap 3 — Workflow & State Machine API
 
-### 状态：❌ 完全缺失
+### 状态：✅ **已解决 (v2.0.1)**
 
 ### 问题描述
 
@@ -357,13 +386,13 @@ function useWorkflowState(objectName: string, recordId: string, options?: {
 };
 ```
 
-### 优先级：🔴 Critical（Phase 4.2 阻塞，业务流程自动化核心）
+### 优先级：✅ **已解决 (v2.0.1)** — `client.workflow.getConfig()`, `getState()`, `transition()`, `approve()`, `reject()`
 
 ---
 
 ## Gap 4 — Real-Time / WebSocket API
 
-### 状态：❌ 完全缺失
+### 状态：✅ **已解决 (v2.0.1)**
 
 ### 问题描述
 
@@ -449,13 +478,13 @@ function usePresence(channel: string, options?: {
 };
 ```
 
-### 优先级：🔴 Critical（Phase 4.3 阻塞，协作和实时更新核心）
+### 优先级：✅ **已解决 (v2.0.1)** — `client.realtime.connect()`, `subscribe()`, `unsubscribe()`, `setPresence()`, `getPresence()`
 
 ---
 
 ## Gap 5 — Push Notification Registration API
 
-### 状态：❌ 完全缺失
+### 状态：✅ **已解决 (v2.0.1)**
 
 ### 问题描述
 
@@ -532,13 +561,13 @@ function useNotifications(options?: {
 };
 ```
 
-### 优先级：🟡 High（Phase 4.4，移动端核心体验）
+### 优先级：✅ **已解决 (v2.0.1)** — `client.notifications.registerDevice()`, `list()`, `markRead()`, etc.
 
 ---
 
 ## Gap 6 — AI / NLQ API
 
-### 状态：❌ 完全缺失
+### 状态：✅ **已解决 (v2.0.1)**
 
 ### 问题描述
 
@@ -633,7 +662,7 @@ function useAIChat(options?: {
 };
 ```
 
-### 优先级：🟡 High（Phase 5.1，差异化竞争力）
+### 优先级：✅ **已解决 (v2.0.1)** — `client.ai.nlq()`, `chat()`, `suggest()`, `insights()`
 
 ---
 
@@ -724,7 +753,7 @@ client.storage.upload(file, {
 
 ## Gap 9 — i18n / Localization API
 
-### 状态：❌ 完全缺失
+### 状态：✅ **已解决 (v2.0.1)**
 
 ### 问题描述
 
@@ -776,7 +805,7 @@ function useTranslations(locale: string, options?: {
 };
 ```
 
-### 优先级：🟡 High（Phase 5.2，国际化市场准入需求）
+### 优先级：✅ **已解决 (v2.0.1)** — `client.i18n.getLocales()`, `getTranslations()`, `getFieldLabels()`
 
 ---
 
@@ -862,49 +891,39 @@ function useSavedViews(objectName: string, options?: {
 
 ## Priority Summary
 
-### ✅ v2.0.0 已解决
+### ✅ v2.0.1 已解决
 
 | # | Gap | 涉及 Phase | 状态 |
 |---|-----|-----------|------|
 | 1 | Views API 类型化 | Phase 4B.1 | ✅ 完全解决 |
+| 2 | Permission System API | Phase 4B.2 | ✅ 完全解决 |
+| 3 | Workflow / State Machine API | Phase 4B.3 | ✅ 完全解决 |
+| 4 | Real-Time / WebSocket API | Phase 4B.4 | ✅ 完全解决 |
+| 5 | Push Notification API | Phase 4B.5 | ✅ 完全解决 |
+| 6 | AI / NLQ API | Phase 5B.1 | ✅ 完全解决 |
+| 9 | i18n API | Phase 5B.2 | ✅ 完全解决 |
 
-### 🔴 Critical — Phase 4B 阻塞，必须优先开发
+### 🟢 Medium — 有 workaround 或已改进，可后续优化
 
-| # | Gap | 涉及 Phase | Spec 类型就绪 | 预估工作量 |
-|---|-----|-----------|-------------|----------|
-| 2 | Permission System API | Phase 4B.2 | ✅ 完整 | 1-2 周 |
-| 3 | Workflow / State Machine API | Phase 4B.3 | ✅ 完整 | 1-2 周 |
-| 4 | Real-Time / WebSocket API | Phase 4B.4 | ✅ 完整 | 2-3 周 |
-
-### 🟡 High — Phase 4B-5B 需要，应在 Critical 之后排期
-
-| # | Gap | 涉及 Phase | Spec 类型就绪 | 预估工作量 |
-|---|-----|-----------|-------------|----------|
-| 5 | Push Notification API | Phase 4B.5 | ✅ 部分 | 1 周 |
-| 6 | AI / NLQ API | Phase 5B.1 | ✅ 完整 | 2-3 周 |
-| 8 | File/Storage React Hooks | Phase 5B.3 | ✅ Client 已有 | 2-3 天 |
-| 9 | i18n API | Phase 5B.2 | ✅ 部分 | 1 周 |
-
-### 🟢 Medium — 有 workaround 或已改进 (v2.0.0)，可后续优化
-
-| # | Gap | 涉及 Phase | Spec 类型就绪 | v2.0.0 状态 |
+| # | Gap | 涉及 Phase | Spec 类型就绪 | v2.0.1 状态 |
 |---|-----|-----------|-------------|------------|
 | 7 | Batch React Hook | Phase 3.3 | ✅ Client 已有 | ✅ 已改进 |
+| 8 | File/Storage React Hooks | Phase 5B.3 | ✅ Client 已有 | 可自建 hooks |
 | 10 | Analytics React Hooks | Phase 5.3/6 | ✅ Client 已有 | 可用 hooks wrapper |
-| 11 | 其他 React Hook 补全 | 多个 | ✅ | 可继续优化 |
+| 11 | 其他 React Hook 补全 | 多个 | ✅ | 可自建 hooks |
 
-### 总预估 (更新后)
+### 总预估 (v2.0.1 更新后)
 
-- **Critical items**: ~5-7 周 (减少 1-2 周，Gap 1 已解决)
-- **High items**: ~5-6 周
-- **Medium items**: ~1 周 (v2.0.0 batch 改进，减少 1 周)
-- **总计**: ~11-14 周（可并行开发缩短周期，相比 v1.1.0 减少 2-3 周）
+- **Phase 4B (权限+工作流+实时+通知)**: ~3-4 周（Mobile 端实现）
+- **Phase 5B (AI+i18n+hooks)**: ~3-4 周（Mobile 端实现）
+- **总计**: ~6-8 周（无上游阻塞）
+- **总计**: ~6-8 周（无上游阻塞，可并行开发缩短周期）
 
 ---
 
 ## Appendix: SDK API Surface Inventory
 
-### `@objectstack/client@1.1.0` 完整类型树
+### `@objectstack/client@2.0.1` 完整类型树
 
 ```
 ObjectStackClient
@@ -952,54 +971,49 @@ ObjectStackClient
 │   ├── spaces.list()                            ✅ Available
 │   ├── spaces.create(payload)                   ✅ Available
 │   └── plugins.install(pkg, ver?)               ✅ Available
-│
-│  ────── MISSING NAMESPACES ──────
-│
-├── views                                        ❌ Not typed
-│   ├── list(objectName, filters?)
-│   ├── get(objectName, viewId)
-│   ├── create(objectName, data)
-│   ├── update(objectName, viewId, data)
-│   └── delete(objectName, viewId)
-├── permissions                                  ❌ Missing
-│   ├── check(params)
-│   ├── getObjectPermissions(objectName)
-│   └── getEffective()
-├── workflows                                    ❌ Missing
-│   ├── getConfig(objectName)
-│   ├── getState(objectName, recordId)
-│   ├── transition(objectName, recordId, params)
-│   ├── approve(objectName, recordId, params)
-│   └── reject(objectName, recordId, params)
-├── realtime                                     ❌ Missing
-│   ├── connect(options?)
-│   ├── disconnect()
-│   ├── subscribe(channel, options?)
-│   ├── unsubscribe(subscriptionId)
-│   ├── setPresence(channel, state)
-│   ├── getPresence(channel)
-│   ├── on(event, handler)
-│   └── off(event, handler)
-├── notifications                                ❌ Missing
-│   ├── registerDevice(params)
-│   ├── unregisterDevice(deviceId)
-│   ├── getPreferences()
-│   ├── updatePreferences(prefs)
-│   ├── list(options?)
-│   ├── markRead(ids)
-│   └── markAllRead()
-├── ai                                           ❌ Missing
-│   ├── nlq(params)
-│   ├── chat(params)
-│   ├── suggest(params)
-│   └── insights(params)
-└── i18n                                         ❌ Missing
-    ├── getLocales()
-    ├── getTranslations(locale, options?)
-    └── getFieldLabels(objectName, locale)
+├── views                                        ✅ Available (v2.0.1)
+│   ├── list(object, type?)                      ✅ Typed
+│   ├── get(object, viewId)                      ✅ Typed
+│   ├── create(object, data)                     ✅ Typed
+│   ├── update(object, viewId, data)             ✅ Typed
+│   └── delete(object, viewId)                   ✅ Typed
+├── permissions                                  ✅ Available (v2.0.1)
+│   ├── check(params)                            ✅ Typed
+│   ├── getObjectPermissions(objectName)         ✅ Typed
+│   └── getEffectivePermissions()                ✅ Typed
+├── workflow                                     ✅ Available (v2.0.1)
+│   ├── getConfig(objectName)                    ✅ Typed
+│   ├── getState(objectName, recordId)           ✅ Typed
+│   ├── transition(params)                       ✅ Typed
+│   ├── approve(params)                          ✅ Typed
+│   └── reject(params)                           ✅ Typed
+├── realtime                                     ✅ Available (v2.0.1)
+│   ├── connect(options?)                        ✅ Typed
+│   ├── disconnect()                             ✅ Typed
+│   ├── subscribe(params)                        ✅ Typed
+│   ├── unsubscribe(params)                      ✅ Typed
+│   ├── setPresence(params)                      ✅ Typed
+│   └── getPresence(params)                      ✅ Typed
+├── notifications                                ✅ Available (v2.0.1)
+│   ├── registerDevice(params)                   ✅ Typed
+│   ├── unregisterDevice(deviceId)               ✅ Typed
+│   ├── getPreferences()                         ✅ Typed
+│   ├── updatePreferences(prefs)                 ✅ Typed
+│   ├── list(options?)                           ✅ Typed
+│   ├── markRead(ids)                            ✅ Typed
+│   └── markAllRead()                            ✅ Typed
+├── ai                                           ✅ Available (v2.0.1)
+│   ├── nlq(params)                              ✅ Typed
+│   ├── chat(params)                             ✅ Typed
+│   ├── suggest(params)                          ✅ Typed
+│   └── insights(params)                         ✅ Typed
+└── i18n                                         ✅ Available (v2.0.1)
+    ├── getLocales()                             ✅ Typed
+    ├── getTranslations(locale, options?)         ✅ Typed
+    └── getFieldLabels(objectName, locale)        ✅ Typed
 ```
 
-### `@objectstack/client-react@1.1.0` 完整导出
+### `@objectstack/client-react@2.0.1` 完整导出
 
 ```
 Providers
@@ -1017,25 +1031,25 @@ Hooks
 ├── useFields(objectName, options?)              ✅ Available
 ├── useMetadata(fetcher, options?)               ✅ Available
 │
-│  ────── MISSING HOOKS ──────
+│  ────── MISSING HOOKS (可基于 useClient() 自建) ──────
 │
-├── usePermissions(objectName, options?)          ❌ Missing
-├── useWorkflowState(objectName, recordId)        ❌ Missing
-├── useSubscription(channel, options?)            ❌ Missing
-├── usePresence(channel, options?)                ❌ Missing
-├── useNotifications(options?)                    ❌ Missing
-├── useNLQ(options?)                              ❌ Missing
-├── useAIChat(options?)                           ❌ Missing
-├── useSavedViews(objectName, options?)           ❌ Missing
-├── usePackages(filters?)                         ❌ Missing
-├── useBatchMutation(object, options?)            ❌ Missing
-├── useFileUpload(options?)                       ❌ Missing
-├── useFileDownload(fileId, options?)             ❌ Missing
-├── useAnalyticsQuery(payload, options?)          ❌ Missing
-├── useAnalyticsMeta(cube, options?)              ❌ Missing
-└── useTranslations(locale, options?)             ❌ Missing
+├── usePermissions(objectName, options?)          ❌ Missing (client API ✅)
+├── useWorkflowState(objectName, recordId)        ❌ Missing (client API ✅)
+├── useSubscription(channel, options?)            ❌ Missing (client API ✅)
+├── usePresence(channel, options?)                ❌ Missing (client API ✅)
+├── useNotifications(options?)                    ❌ Missing (client API ✅)
+├── useNLQ(options?)                              ❌ Missing (client API ✅)
+├── useAIChat(options?)                           ❌ Missing (client API ✅)
+├── useSavedViews(objectName, options?)           ❌ Missing (client API ✅)
+├── usePackages(filters?)                         ❌ Missing (client API ✅)
+├── useBatchMutation(object, options?)            ❌ Missing (client API ✅)
+├── useFileUpload(options?)                       ❌ Missing (client API ✅)
+├── useFileDownload(fileId, options?)             ❌ Missing (client API ✅)
+├── useAnalyticsQuery(payload, options?)          ❌ Missing (client API ✅)
+├── useAnalyticsMeta(cube, options?)              ❌ Missing (client API ✅)
+└── useTranslations(locale, options?)             ❌ Missing (client API ✅)
 ```
 
 ---
 
-*This report is based on the SDK versions installed in the ObjectStack Mobile project as of 2026-02-08. Please update this document when new SDK versions are released.*
+*This report is based on the SDK versions installed in the ObjectStack Mobile project as of 2026-02-09. All client API gaps have been resolved in v2.0.1. Remaining work is Mobile-side hook implementation.*

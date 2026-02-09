@@ -1,4 +1,4 @@
-# v2.0.0 升级评估总结
+# v2.0.1 升级评估总结
 
 > **Date**: 2026-02-09
 > **Task**: 重新评估并重新安排下一步开发计划和 roadmap
@@ -8,40 +8,47 @@
 
 ## 执行摘要
 
-ObjectStack Mobile 已成功升级至 `@objectstack/client@2.0.0` 和 `@objectstack/client-react@2.0.0`。本次升级完全向后兼容，所有 346 个测试用例通过，未引入破坏性变更。
+ObjectStack Mobile 已成功升级至 `@objectstack/client@2.0.1` 和 `@objectstack/client-react@2.0.1`。本次升级完全向后兼容，所有 346 个测试用例通过，未引入破坏性变更。
 
 ### 主要发现
 
-1. **Gap 1 部分解决**: Views API (`client.views.*`) 在运行时可用，但 TypeScript 类型定义尚未导出
-2. **新增功能**: 增强的批量操作、ETag 缓存、类型安全查询构建器
-3. **时间线优化**: 总体开发时间减少 2-3 周（从 13-17 周降至 11-14 周）
-4. **阻塞状态**: Phase 4B.2-4B.5 仍需等待上游 SDK 开发
+1. **所有 Gap 已解决**: v2.0.1 完整实现了全部 13 个 API 命名空间，并导出 TypeScript 类型定义
+2. **Phase 4B/5B 解除阻塞**: 权限、工作流、实时更新、推送通知、AI/NLQ、国际化 API 全部可用
+3. **时间线大幅缩短**: 从 11-14 周降至 6-8 周（无上游阻塞）
+4. **保留功能**: v2.0.0 的增强批量操作、ETag 缓存、类型安全查询构建器继续可用
 
 ---
 
-## v2.0.0 新增功能
+## v2.0.1 新增功能
 
-### 1. Views API (Gap 1)
+### 1. 全部 API 命名空间已实现
 
-**状态**: ✅ 运行时可用 | ⚠️ 类型定义未导出
+**状态**: ✅ 全部可用，TypeScript 类型已导出
 
 ```typescript
-// 功能已实现，但需等待类型定义导出
-client.views.create(request)      // ✅ 可用
-client.views.get(id)               // ✅ 可用
-client.views.list(request?)        // ✅ 可用
-client.views.update(request)       // ✅ 可用
-client.views.delete(id)            // ✅ 可用
-client.views.share(id, userIds)    // ✅ 可用
-client.views.setDefault(id, obj)   // ✅ 可用
+// 以下 API 全部已实现并可用 (v2.0.1)
+client.views.list(object)                  // ✅ Views CRUD
+client.views.create(object, data)          // ✅
+client.permissions.check(params)           // ✅ 权限检查
+client.permissions.getObjectPermissions()  // ✅
+client.workflow.getConfig(object)          // ✅ 工作流
+client.workflow.transition(params)         // ✅
+client.realtime.connect()                  // ✅ 实时 WebSocket
+client.realtime.subscribe(params)          // ✅
+client.notifications.registerDevice(p)     // ✅ 推送通知
+client.notifications.list()                // ✅
+client.ai.nlq(params)                     // ✅ AI/NLQ
+client.ai.chat(params)                    // ✅
+client.i18n.getLocales()                  // ✅ 国际化
+client.i18n.getTranslations(locale)       // ✅
 ```
 
 **影响**:
-- Phase 4B.1 部分解除阻塞
-- 可使用运行时 API，但仍需 `(client as any)` workaround
-- 等待上游 v2.0.1+ 导出类型定义
+- Phase 4B 全部解除阻塞
+- Phase 5B 全部解除阻塞
+- 无需等待上游 SDK 开发
 
-### 2. 增强的批量操作
+### 2. 增强的批量操作 (v2.0.0+)
 
 **状态**: ✅ 完全可用
 
@@ -62,7 +69,7 @@ client.data.batch(object, {
 - 改进批量操作性能和控制
 - 可优化 `hooks/useBatchOperations.ts`
 
-### 3. ETag 元数据缓存
+### 3. ETag 元数据缓存 (v2.0.0+)
 
 **状态**: ✅ 完全可用
 
@@ -82,7 +89,7 @@ if (result.notModified) {
 - 减少不必要的 API 调用
 - 可优化 `lib/metadata-cache.ts`
 
-### 4. 类型安全查询构建器
+### 4. 类型安全查询构建器 (v2.0.0+)
 
 **状态**: ✅ 完全可用
 
@@ -144,18 +151,17 @@ const query = createQuery<Task>('todo_task')
 - 图表和高级视图
 - 安全增强
 
-### Phase 4B ⏳ 部分可开发
+### Phase 4B ✅ SDK 已就绪，可立即开发
 
-#### 4B.1 Views API ✅ 可开发
-- **状态**: 运行时 API 可用
-- **等待**: TypeScript 类型定义导出
-- **行动**: 可使用运行时 API，等待类型后移除 workaround
+#### 4B.1 Views API ✅ 完全可用
+- **状态**: API 和 TypeScript 类型均已导出
+- **行动**: 重构 `useViewStorage.ts` 对齐 SDK 类型
 
-#### 4B.2-4B.5 ⛔ 仍被阻塞
-- **4B.2**: 权限系统 (Gap 2) - 预估 1-2 周
-- **4B.3**: 工作流 (Gap 3) - 预估 1-2 周
-- **4B.4**: 实时更新 (Gap 4) - 预估 2-3 周
-- **4B.5**: 推送通知 (Gap 5) - 预估 1 周
+#### 4B.2-4B.5 ✅ 全部解除阻塞
+- **4B.2**: 权限系统 — `client.permissions.*` ✅
+- **4B.3**: 工作流 — `client.workflow.*` ✅
+- **4B.4**: 实时更新 — `client.realtime.*` ✅
+- **4B.5**: 推送通知 — `client.notifications.*` ✅
 
 ### Phase 5A ✅ 完成
 - 国际化框架
@@ -163,10 +169,10 @@ const query = createQuery<Task>('todo_task')
 - 测试基础设施
 - CI/CD Pipeline
 
-### Phase 5B ⛔ 等待 SDK
-- **5B.1**: AI Agent 集成 (Gap 6) - 预估 2-3 周
-- **5B.2**: 服务端国际化 (Gap 9) - 预估 1 周
-- **5B.3**: SDK React Hooks 升级 (Gap 7/8/10/11) - 预估 2-3 天
+### Phase 5B ✅ SDK 已就绪，可立即开发
+- **5B.1**: AI Agent 集成 — `client.ai.*` ✅
+- **5B.2**: 服务端国际化 — `client.i18n.*` ✅
+- **5B.3**: SDK React Hooks — 需自建（client-react 暂未提供）
 
 ### Phase 6 ✅ 大部分完成
 - 监控和错误追踪 ✅
@@ -177,19 +183,19 @@ const query = createQuery<Task>('todo_task')
 
 ## 时间线影响
 
-### 更新前（基于 v1.1.0）
-- Critical items: ~6-9 周
-- High items: ~5-6 周
-- Medium items: ~2 周
-- **总计**: ~13-17 周
-
-### 更新后（基于 v2.0.0）
-- Critical items: ~5-7 周（Gap 1 部分解决，减少 1-2 周）
-- High items: ~5-6 周
-- Medium items: ~1 周（批量操作改进，减少 1 周）
+### 更新前（基于 v2.0.0）
+- Phase 4B: ~3-4 周（被 SDK 阻塞）
+- Phase 5B: ~3-4 周（被 SDK 阻塞）
+- 上游 SDK 开发: ~6-9 周
 - **总计**: ~11-14 周
 
-**节省**: 2-3 周开发时间
+### 更新后（基于 v2.0.1）
+- Phase 4B: ~3-4 周（✅ 可立即开始）
+- Phase 5B: ~3-4 周（✅ 可立即开始）
+- 上游 SDK 开发: 无需等待
+- **总计**: ~6-8 周（可并行开发缩短周期）
+
+**节省**: 5-6 周开发时间（消除所有上游阻塞）
 
 ---
 
@@ -200,28 +206,23 @@ const query = createQuery<Task>('todo_task')
 1. ✅ 完成文档更新
 2. ✅ 验证所有测试通过
 3. ✅ 存储关键上下文到 memory
-4. ⏳ 通知团队 v2.0.0 升级状态
+4. ⬜ 开始 Phase 4B.2 权限系统开发
 
-### 短期（未来 2 周）
+### 短期（未来 2-4 周）
 
-1. 探索新查询构建器在新功能中的应用
-2. 实施 ETag 缓存优化元数据获取
-3. 更新批量操作使用新选项
-4. 监控上游 @objectstack/client 版本更新
+1. 实现 `hooks/usePermissions.ts`
+2. 实现 `hooks/useWorkflowState.ts`
+3. 重构 `hooks/useViewStorage.ts` 对齐 SDK 类型
+4. 构建推送通知注册流程
 
-### 中期（未来 1-2 月）
+### 中期（未来 4-8 周）
 
-1. 等待 v2.0.1+ 导出 Views API 类型定义
-2. 更新 `useViewStorage.ts` 移除 workaround
-3. 跟踪上游 SDK Gap 2-5 开发进度
-4. 准备 Phase 4B.2-4B.5 实现
-
-### 长期（未来 3-6 月）
-
-1. 实现剩余 Phase 4B 功能（一旦 SDK 就绪）
-2. 实现 Phase 5B 功能
-3. 完成 Phase 6 最终优化
-4. 准备 v1.0 生产发布
+1. 实现实时 WebSocket 订阅
+2. 构建 AI/NLQ 聊天界面
+3. 集成服务端国际化翻译
+4. 完成 Phase 4B 和 5B 全部功能
+5. 完成 E2E 测试
+6. 准备 v1.0 生产发布
 
 ---
 
@@ -240,24 +241,24 @@ const query = createQuery<Task>('todo_task')
 
 ### 技术团队
 
-1. **v2.0.0 已升级**: 所有依赖已更新，测试通过
-2. **Views API 可用**: 运行时功能齐全，类型定义等待上游导出
-3. **新功能探索**: 鼓励在新代码中使用查询构建器和 ETag 缓存
-4. **workaround 保留**: `useViewStorage.ts` 的类型转换仍需保留
+1. **v2.0.1 已升级**: 所有依赖已更新，测试通过
+2. **所有 API 可用**: 全部 13 个命名空间已实现并导出 TypeScript 类型
+3. **Phase 4B/5B 可开始**: 权限、工作流、实时、通知、AI、i18n 全部可用
+4. **React Hooks 需自建**: client-react 暂未提供新命名空间的 hooks
 
 ### 产品/项目管理
 
-1. **时间线优化**: 总体开发时间减少 2-3 周
-2. **部分解除阻塞**: Phase 4B.1 可部分进行
-3. **主要阻塞项**: Phase 4B.2-4B.5 和 5B 仍等待上游
-4. **预计交付**: 取决于上游 SDK 开发进度
+1. **时间线大幅缩短**: 从 11-14 周降至 6-8 周
+2. **全部解除阻塞**: Phase 4B 和 5B 可以立即启动
+3. **优先级**: 建议先开发权限系统（企业客户核心需求）
+4. **预计交付**: 6-8 周内可完成所有功能
 
 ### 利益相关方
 
 1. **向后兼容**: 无破坏性变更，平滑升级
-2. **功能增强**: 新增批量操作、缓存优化等性能改进
-3. **开发加速**: 整体时间线缩短 15-20%
-4. **依赖管理**: 部分功能仍依赖上游开发
+2. **功能大幅扩展**: 新增权限、工作流、实时、通知、AI 等核心功能支持
+3. **开发加速**: 整体时间线缩短 40-50%
+4. **无外部依赖**: 所有开发工作现在完全由 Mobile 团队控制
 
 ---
 
@@ -265,12 +266,11 @@ const query = createQuery<Task>('todo_task')
 
 - [SDK Gap Analysis](./SDK-GAP-ANALYSIS.md) - Gap 状态和优先级
 - [Development Roadmap](./ROADMAP.md) - 开发路线图
-- [SDK v2.0.0 Upgrade Guide](./SDK-V2-UPGRADE.md) - 详细升级指南
-- [Client v2.0.0 README](../node_modules/@objectstack/client/README.md) - API 文档
+- [SDK v2.0.1 Upgrade Guide](./SDK-V2-UPGRADE.md) - 详细升级指南
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 2.0  
 **Author**: GitHub Copilot Agent  
 **Date**: 2026-02-09  
-**Status**: ✅ 评估完成
+**Status**: ✅ 评估完成 — 所有 SDK Gap 已解决

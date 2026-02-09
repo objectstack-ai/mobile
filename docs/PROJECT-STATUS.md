@@ -2,13 +2,13 @@
 
 > **Date**: 2026-02-09
 > **Version**: 1.0.0
-> **Status**: Development Complete (Pending SDK APIs)
+> **Status**: Development In Progress (SDK APIs Ready)
 
 ---
 
 ## Executive Summary
 
-The ObjectStack Mobile client has successfully completed **all feasible development phases** based on available SDK APIs. The project is production-ready for features that don't require the currently missing SDK APIs. All 346 unit and integration tests pass successfully.
+The ObjectStack Mobile client has successfully completed **all feasible development phases** based on available SDK APIs. With the v2.0.1 SDK upgrade, **all previously blocked phases (4B, 5B) are now unblocked** — all 13 API namespaces are fully implemented with TypeScript type exports. All 346 unit and integration tests pass successfully.
 
 ### Key Achievements
 
@@ -25,13 +25,14 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 - Comprehensive test coverage (346 tests, 80%+ coverage)
 - CI/CD pipeline with EAS Build/Update
 
-⚠️ **Blocked by Upstream SDK**:
-- Views API (documented but not implemented in v2.0.0)
-- Permissions system
-- Workflow/approval system
-- Real-time WebSocket updates
-- Push notifications registration
-- AI/NLQ integration
+⚠️ **Ready for Development (SDK v2.0.1 已就绪)**:
+- Views API 重构 (client.views.* 已完整类型化)
+- Permissions system (client.permissions.*)
+- Workflow/approval system (client.workflow.*)
+- Real-time WebSocket updates (client.realtime.*)
+- Push notifications registration (client.notifications.*)
+- AI/NLQ integration (client.ai.*)
+- Server-side i18n (client.i18n.*)
 
 ## Development Phase Status
 
@@ -52,7 +53,7 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 
 | Component | Status | Files |
 |-----------|--------|-------|
-| SDK Installation | ✅ Done | `@objectstack/client@2.0.0` |
+| SDK Installation | ✅ Done | `@objectstack/client@2.0.1` |
 | Client Init | ✅ Done | `lib/objectstack.ts` |
 | Provider | ✅ Done | `ObjectStackProvider` in root layout |
 | Metadata Hooks | ✅ Done | `useObject()`, `useView()`, `useFields()` |
@@ -110,19 +111,19 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 
 **Test Coverage**: 85%
 
-### Phase 4B: ObjectOS Integration ⛔ BLOCKED
+### Phase 4B: ObjectOS Integration ✅ SDK READY
 
-**Status**: Waiting for upstream SDK implementation
+**Status**: SDK v2.0.1 provides all required APIs — ready for development
 
-| Feature | Blocker | SDK Gap | ETA |
-|---------|---------|---------|-----|
-| Views API Types | ❌ Not implemented | Gap 1 | Unknown |
-| Permissions System | ❌ Not implemented | Gap 2 | 1-2 weeks |
-| Workflows | ❌ Not implemented | Gap 3 | 1-2 weeks |
-| Real-time Updates | ❌ Not implemented | Gap 4 | 2-3 weeks |
-| Push Notifications | ❌ Not implemented | Gap 5 | 1 week |
+| Feature | Status | SDK API | ETA |
+|---------|--------|---------|-----|
+| Views API Refactor | ⬜ Ready | ✅ `client.views.*` | 1 week |
+| Permissions System | ⬜ Ready | ✅ `client.permissions.*` | 1-2 weeks |
+| Workflows | ⬜ Ready | ✅ `client.workflow.*` | 1-2 weeks |
+| Real-time Updates | ⬜ Ready | ✅ `client.realtime.*` | 2-3 weeks |
+| Push Notifications | ⬜ Ready | ✅ `client.notifications.*` | 1 week |
 
-**Work Required**: Cannot proceed until SDK APIs are available.
+**Work Required**: Mobile-side implementation of hooks and UI components using the now-available SDK APIs.
 
 ### Phase 5A: Advanced Features ✅ COMPLETE
 
@@ -138,17 +139,17 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 
 **Test Coverage**: 80%+ overall
 
-### Phase 5B: Advanced Features (SDK) ⛔ BLOCKED
+### Phase 5B: Advanced Features (SDK) ✅ SDK READY
 
-**Status**: Waiting for upstream SDK implementation
+**Status**: SDK v2.0.1 provides all required APIs — ready for development
 
-| Feature | Blocker | SDK Gap | ETA |
-|---------|---------|---------|-----|
-| AI Agent Chat | ❌ Not implemented | Gap 6 | 2-3 weeks |
-| NLQ to ObjectQL | ❌ Not implemented | Gap 6 | 2-3 weeks |
-| Server i18n | ❌ Not implemented | Gap 9 | 1 week |
+| Feature | Status | SDK API | ETA |
+|---------|--------|---------|-----|
+| AI Agent Chat | ⬜ Ready | ✅ `client.ai.*` | 2-3 weeks |
+| NLQ to ObjectQL | ⬜ Ready | ✅ `client.ai.nlq()` | 2-3 weeks |
+| Server i18n | ⬜ Ready | ✅ `client.i18n.*` | 1 week |
 
-**Work Required**: Cannot proceed until SDK APIs are available.
+**Work Required**: Mobile-side implementation of hooks and UI components using the now-available SDK APIs.
 
 ### Phase 6: Production Readiness ✅ MOSTLY COMPLETE
 
@@ -178,7 +179,7 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 - **Styling**: NativeWind v4 (Tailwind CSS for React Native)
 
 ### State & Data
-- **Client SDK**: `@objectstack/client@2.0.0`, `@objectstack/client-react@2.0.0`
+- **Client SDK**: `@objectstack/client@2.0.1`, `@objectstack/client-react@2.0.1`
 - **State Management**: Zustand
 - **Server State**: TanStack Query v5
 - **Offline Storage**: expo-sqlite (with sync queue)
@@ -258,18 +259,18 @@ Coverage (as of 2026-02-09):
 
 ## Known Issues & Limitations
 
-### 1. SDK API Gaps (Blocking)
+### 1. Phase 4B/5B Implementation (Ready to Develop)
 
-All Phase 4B and 5B features are blocked by missing SDK APIs:
-- `client.views.*` - Documented but NOT implemented in v2.0.0
-- `client.permissions.*` - Not available
-- `client.workflows.*` - Not available
-- `client.realtime.*` - Not available
-- `client.notifications.*` - Not available
-- `client.ai.*` - Not available
-- `client.i18n.*` - Not available
+All SDK APIs are now available in v2.0.1. Phase 4B and 5B can begin immediately:
+- `client.views.*` — Fully typed, needs hook refactoring
+- `client.permissions.*` — Available, needs `usePermissions` hook
+- `client.workflow.*` — Available, needs `useWorkflowState` hook
+- `client.realtime.*` — Available, needs `useSubscription` hook
+- `client.notifications.*` — Available, needs notification UI
+- `client.ai.*` — Available, needs AI chat UI
+- `client.i18n.*` — Available, needs server translation integration
 
-**Workaround**: Mobile app uses metadata API and custom implementations where possible.
+**Note**: `@objectstack/client-react` does not yet provide dedicated hooks for these namespaces. Mobile-side hooks will need to be built using `useClient()` + custom state management.
 
 ### 2. E2E Tests (Manual Run Required)
 
@@ -378,9 +379,9 @@ eas update --branch production
 
 All development work that can be completed with current SDK is done. See ROADMAP.md for detailed breakdown.
 
-### Blocked (Phases 4B, 5B)
+### Ready to Develop (Phases 4B, 5B)
 
-Cannot proceed until upstream SDK implements required APIs. Estimated timeline: 4-8 weeks pending SDK team.
+SDK v2.0.1 provides all required APIs. Estimated timeline: 6-8 weeks.
 
 ### Remaining Work (Phase 6.3)
 
@@ -407,16 +408,16 @@ Cannot proceed until upstream SDK implements required APIs. Estimated timeline: 
 
 ### For Mobile Team
 
-1. **Continue SDK-Independent Work**:
+1. **Start Phase 4B Development**:
+   - Begin with Permissions hook (`usePermissions`) — most impact
+   - Implement Workflow state hooks and UI
+   - Build real-time subscription system
+   - Add push notification registration
+
+2. **Continue SDK-Independent Work**:
    - Enhance UI/UX based on user feedback
-   - Add more view renderers if needed
    - Expand test coverage to 90%+
    - Performance optimization
-
-2. **Prepare for SDK APIs**:
-   - Review planned APIs in SDK roadmap
-   - Design UI for permissions, workflows, etc.
-   - Prepare migration plan for view storage
 
 3. **Focus on Production Readiness**:
    - Execute E2E tests thoroughly
@@ -425,15 +426,11 @@ Cannot proceed until upstream SDK implements required APIs. Estimated timeline: 
 
 ### For SDK Team
 
-1. **Priority APIs** (Most Impact):
-   - `client.views.*` - Currently using workaround
-   - `client.realtime.*` - Critical for collaborative features
-   - `client.permissions.*` - Needed for enterprise use
-
-2. **Documentation Sync**:
-   - Update README to reflect actual implementation status
-   - Remove references to unimplemented APIs
-   - Add "Coming Soon" tags for planned features
+1. **React Hooks** (Quality of Life):
+   - `usePermissions()` — Most requested
+   - `useWorkflowState()` — Critical for Phase 4B.3
+   - `useSubscription()` — Real-time updates
+   - `useSavedViews()` — Views management
 
 ## Support & Contact
 
@@ -445,6 +442,6 @@ Cannot proceed until upstream SDK implements required APIs. Estimated timeline: 
 ---
 
 **Last Updated**: 2026-02-09
-**Project Status**: ✅ Development Complete (SDK-blocked features pending)
+**Project Status**: ✅ Development In Progress (SDK APIs Ready, Phase 4B/5B unblocked)
 **Test Status**: ✅ 346/346 passing
-**Production Ready**: ⚠️ Yes (with limitations)
+**Production Ready**: ⚠️ Yes (Phase 4B/5B features in development)
