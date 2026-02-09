@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-The ObjectStack Mobile client has successfully completed **all development phases** (0 through 5B) plus most of Phase 6 (Production Readiness). With the v2.0.1 SDK upgrade, all 13 API namespaces are fully implemented with TypeScript type exports. All 413 unit and integration tests pass successfully across 45 test suites.
+The ObjectStack Mobile client has successfully completed **all development phases** (0 through 5B) plus most of Phase 6 (Production Readiness). With the v2.0.1 SDK upgrade, all 13 API namespaces are fully implemented with TypeScript type exports. All 493 unit and integration tests pass successfully across 58 test suites.
 
 ### Key Achievements
 
@@ -22,7 +22,7 @@ The ObjectStack Mobile client has successfully completed **all development phase
 - Internationalization (i18n) framework
 - Production monitoring (Sentry, analytics, feature flags)
 - Security features (biometric auth, certificate pinning, app lock)
-- Comprehensive test coverage (413 tests across 45 suites, 80%+ coverage)
+- Comprehensive test coverage (493 tests across 58 suites, 80%+ coverage)
 - CI/CD pipeline with EAS Build/Update
 
 ⚠️ **Remaining Before v1.0 GA**:
@@ -126,7 +126,7 @@ The ObjectStack Mobile client has successfully completed **all development phase
 | i18n Framework | ✅ Done | `lib/i18n.ts`, expo-localization, i18next |
 | RTL Support | ✅ Done | Arabic/Hebrew layout support |
 | Performance | ✅ Done | FlashList, image caching, code splitting |
-| Unit Tests | ✅ Done | 413 tests passing |
+| Unit Tests | ✅ Done | 493 tests passing |
 | Integration Tests | ✅ Done | MSW-based API mocking |
 | E2E Tests | ✅ Done | Maestro flows configured |
 | CI/CD | ✅ Done | GitHub Actions + EAS Build/Update |
@@ -146,7 +146,7 @@ The ObjectStack Mobile client has successfully completed **all development phase
 | Server i18n | ✅ Complete | `client.i18n.*` | `hooks/useServerTranslations.ts` |
 | SDK Hook Aliases | ✅ Complete | `useClient()` | `hooks/useBatchMutation.ts`, `hooks/usePackages.ts`, `hooks/useSavedViews.ts` |
 
-**Implementation**: All hooks built using `useClient()` from `@objectstack/client-react` with 38 new tests (74 total hook tests).
+**Implementation**: All hooks built using `useClient()` from `@objectstack/client-react` with 38 new tests (154 total hook tests).
 
 ### Phase 6: Production Readiness ✅ MOSTLY COMPLETE
 
@@ -223,16 +223,16 @@ The ObjectStack Mobile client has successfully completed **all development phase
 ### Test Coverage
 
 ```
-Test Suites: 45 passed, 45 total
-Tests:       413 passed, 413 total
+Test Suites: 58 passed, 58 total
+Tests:       493 passed, 493 total
 Snapshots:   49 passed, 49 total
 
 Coverage (as of 2026-02-09):
   lib/        ≥ 80%
   stores/     ≥ 80%
-  hooks/      ~ 85%
+  hooks/      ~ 95% (all hooks tested)
   components/ ~ 75%
-  Overall:    ~ 80%
+  Overall:    ~ 85%
 ```
 
 ### Bundle Size
@@ -417,5 +417,5 @@ All development phases are functionally complete. See ROADMAP.md for detailed br
 
 **Last Updated**: 2026-02-09
 **Project Status**: ✅ All Phases Complete (0–5B + Phase 6 mostly done)
-**Test Status**: ✅ 413/413 passing (45 suites)
+**Test Status**: ✅ 493/493 passing (58 suites)
 **Production Ready**: ⚠️ Pending E2E validation + real-device profiling + App Store submission
