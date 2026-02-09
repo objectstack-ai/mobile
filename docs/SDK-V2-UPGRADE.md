@@ -152,12 +152,21 @@ try {
 
 ## Migration Checklist
 
-### High Priority
+### Status Update (2026-02-09)
 
-- [ ] **Update `hooks/useViewStorage.ts`** to use typed `client.views.*` API
+**Important**: While the Views API is documented in the v2.0.0 README and appears to be functionally available at runtime, the TypeScript type definitions have not yet been exported in the package's `.d.ts` files. This means we cannot yet remove the `(client as any).views` workaround without TypeScript compilation errors.
+
+**Next Steps**: We are tracking this with the upstream @objectstack/client team and expect the type definitions to be exported in an upcoming patch release (e.g., v2.0.1).
+
+### High Priority (Blocked by Type Exports)
+
+- [ ] **Wait for type exports in upstream @objectstack/client**
+  - Currently: API is runtime-available but types not exported
+  - Expected: Future patch release (v2.0.1+)
+- [ ] **Update `hooks/useViewStorage.ts`** once types are available
   - Remove `viewsApi(client: any)` helper function
-  - Update API calls to match v2.0.0 signatures
-  - Update SavedView types to match new schema
+  - Use properly typed `client.views.*` API
+  - Update SavedView types to match v2.0.0 schema
 - [ ] **Add tests for new Views API** to ensure proper integration
 - [ ] **Document new query builder** usage patterns for the team
 

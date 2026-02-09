@@ -198,14 +198,15 @@ client.views: {
 ### Mobile 端行动项
 
 - [x] SDK 已升级至 v2.0.0
-- [ ] 更新 `hooks/useViewStorage.ts` 以使用类型化 API（移除 workaround）
-- [ ] Phase 4B.1 现已解除阻塞
+- [ ] **等待上游**: TypeScript 类型定义尚未在 .d.ts 文件中导出
+- [ ] 一旦类型导出后：更新 `hooks/useViewStorage.ts` 移除 workaround
+- [ ] 一旦类型导出后：补全 SavedView 类型定义以匹配 v2.0.0 API
 
 ### 影响范围
 
-- ✅ 解除 Phase 4B.1 阻塞
-- ✅ 提升代码类型安全性
-- ✅ 改善开发体验（自动补全、类型检查）
+- ✅ API 已实现（运行时可用）
+- ⚠️ TypeScript 类型定义尚未导出（预计后续 patch 版本解决）
+- ⏳ Phase 4B.1 部分解除阻塞（可使用运行时 API，但需等待类型定义）
 
 ### 优先级：✅ **已解决 (v2.0.0)**
 

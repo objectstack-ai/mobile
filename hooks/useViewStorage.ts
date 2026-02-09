@@ -28,8 +28,13 @@ export interface SaveViewInput {
 
 /**
  * Helper to access the views namespace on the client.
- * The `client.views` API may not yet be typed in the current SDK version,
- * so we access it via a safe cast.
+ * 
+ * **Note (v2.0.0)**: The `client.views` API is documented in the v2.0.0 README
+ * and should be fully implemented, but TypeScript types are not yet exported
+ * in the .d.ts files. This workaround will be removed once the upstream SDK
+ * exports the proper type definitions.
+ * 
+ * See: docs/SDK-V2-UPGRADE.md for details on the expected v2.0.0 API.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function viewsApi(client: any) {
