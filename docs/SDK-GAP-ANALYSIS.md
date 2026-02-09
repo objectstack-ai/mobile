@@ -1,8 +1,8 @@
 # @objectstack/client SDK — Gap Analysis Report
 
-> **Version analyzed**: `@objectstack/client@1.1.0`, `@objectstack/client-react@1.1.0`, `@objectstack/spec@1.1.0`
+> **Version analyzed**: `@objectstack/client@2.0.0`, `@objectstack/client-react@2.0.0`, `@objectstack/spec@2.0.0`
 >
-> **Date**: 2026-02-08
+> **Date**: 2026-02-09 (Updated after v2.0.0 upgrade)
 >
 > **Purpose**: 列出 Mobile 客户端完成全部开发所需但 SDK 目前尚未提供（或未完善）的 API 与功能，供上游项目排期开发。
 
@@ -30,28 +30,40 @@
 
 ## Executive Summary
 
-ObjectStack Mobile 客户端目前已完成 Phase 0–3（基础框架、SDK 集成、渲染引擎、数据层），但 **Phase 4–6 的开发被 SDK 缺失功能阻塞**。
+ObjectStack Mobile 客户端目前已完成 Phase 0–3（基础框架、SDK 集成、渲染引擎、数据层），以及大部分 Phase 4A, 5A, 6（独立功能）。**Phase 4B 和 5B 的开发仍被 SDK 缺失功能阻塞**。
 
-### 关键发现
+### v2.0.0 更新摘要 (2026-02-09)
+
+✅ **Gap 1 已解决**: `client.views.*` API 现已完全类型化并可用
+- 新增 `client.views.create()`, `get()`, `list()`, `update()`, `delete()`, `share()`, `setDefault()`
+- 可移除 `hooks/useViewStorage.ts` 中的 `(client as any).views` workaround
+- Phase 4B.1 现已解除阻塞
+
+✅ **新增功能**:
+- ETag 元数据缓存: `client.meta.getCached()`
+- 增强的批量操作: `client.data.batch()` 支持更多选项
+- 类型安全查询构建器: `createQuery<T>()`, `createFilter<T>()`
+
+### 剩余关键 Gap
 
 | Category | Status | Impact |
 |----------|--------|--------|
-| **Views API 类型缺失** | ⚠️ 运行时可用但无类型 | 当前通过 `(client as any).views` 绕过 |
-| **Permission API** | ❌ 完全缺失 | Phase 4.1 阻塞 |
-| **Workflow/State Machine API** | ❌ 完全缺失 | Phase 4.2 阻塞 |
-| **Real-Time WebSocket API** | ❌ 完全缺失 | Phase 4.3 阻塞 |
-| **Push Notification API** | ❌ 完全缺失 | Phase 4.4 阻塞 |
-| **AI/NLQ API** | ❌ 完全缺失 | Phase 5.1 阻塞 |
-| **Batch 优化** | ⚠️ SDK 已有但 React hooks 未包装 | 性能可优化 |
-| **Storage React Hooks** | ❌ 缺失 | Phase 5.4 阻塞 |
-| **i18n API** | ❌ 完全缺失 | Phase 5.2 阻塞 |
-| **Analytics React Hooks** | ❌ 缺失 | Phase 6.4 阻塞 |
+| **Views API 类型缺失** | ✅ **已解决 (v2.0.0)** | Phase 4B.1 解除阻塞 |
+| **Permission API** | ❌ 完全缺失 | Phase 4B.2 阻塞 |
+| **Workflow/State Machine API** | ❌ 完全缺失 | Phase 4B.3 阻塞 |
+| **Real-Time WebSocket API** | ❌ 完全缺失 | Phase 4B.4 阻塞 |
+| **Push Notification API** | ❌ 完全缺失 | Phase 4B.5 阻塞 |
+| **AI/NLQ API** | ❌ 完全缺失 | Phase 5B.1 阻塞 |
+| **Batch 优化** | ✅ **已改进 (v2.0.0)** | 性能可继续优化 |
+| **Storage React Hooks** | ❌ 缺失 | Phase 5B.3 阻塞 |
+| **i18n API** | ❌ 完全缺失 | Phase 5B.2 阻塞 |
+| **Analytics React Hooks** | ❌ 缺失 | 可用 hooks wrapper 优化 |
 
 ---
 
 ## Current SDK Coverage
 
-### `@objectstack/client@1.1.0` — 已有 API
+### `@objectstack/client@2.0.0` — 已有 API
 
 以下 API 在 SDK 中有完整类型定义且 Mobile 端已成功集成：
 
@@ -62,7 +74,7 @@ client.meta.getItems(type, options?)    ✅ Metadata items
 client.meta.getObject(name)             ✅ Object schema (deprecated)
 client.meta.getItem(type, name)         ✅ Metadata item by type & name
 client.meta.saveItem(type, name, item)  ✅ Save metadata
-client.meta.getCached(name, opts?)      ✅ ETag-based caching
+client.meta.getCached(name, opts?)      ✅ ETag-based caching (v2.0.0 新增)
 client.meta.getView(object, type?)      ✅ View metadata (list/form)
 client.data.query(object, ast)          ✅ Full QueryAST query
 client.data.find(object, options?)      ✅ Simplified query
@@ -70,10 +82,17 @@ client.data.get(object, id)             ✅ Get single record
 client.data.create(object, data)        ✅ Create record
 client.data.createMany(object, data[])  ✅ Batch create
 client.data.update(object, id, data)    ✅ Update record
-client.data.batch(object, request)      ✅ Batch update (typed)
+client.data.batch(object, request)      ✅ Batch update (typed, v2.0.0 增强)
 client.data.updateMany(object, recs)    ✅ Simplified batch update
 client.data.delete(object, id)          ✅ Delete record
 client.data.deleteMany(object, ids)     ✅ Batch delete
+client.views.create(request)            ✅ Create saved view (v2.0.0 新增)
+client.views.get(id)                    ✅ Get saved view (v2.0.0 新增)
+client.views.list(request?)             ✅ List saved views (v2.0.0 新增)
+client.views.update(request)            ✅ Update saved view (v2.0.0 新增)
+client.views.delete(id)                 ✅ Delete saved view (v2.0.0 新增)
+client.views.share(id, userIds)         ✅ Share view (v2.0.0 新增)
+client.views.setDefault(id, object)     ✅ Set default view (v2.0.0 新增)
 client.packages.list(filters?)          ✅ List packages
 client.packages.get(id)                 ✅ Get package
 client.packages.install(manifest)       ✅ Install package
@@ -94,7 +113,16 @@ client.hub.spaces.create(payload)       ✅ Create space
 client.hub.plugins.install(pkg, ver?)   ✅ Install hub plugin
 ```
 
-### `@objectstack/client-react@1.1.0` — 已有 Hooks
+### v2.0.0 新增工具
+
+```
+createQuery<T>(object)                  ✅ 类型安全查询构建器
+createFilter<T>()                       ✅ 类型安全过滤器构建器
+QueryBuilder<T>                         ✅ 链式查询构建器类
+FilterBuilder<T>                        ✅ 链式过滤器构建器类
+```
+
+### `@objectstack/client-react@2.0.0` — 已有 Hooks
 
 ```
 ObjectStackProvider                     ✅ Context provider
@@ -113,64 +141,73 @@ useMetadata(fetcher, options?)          ✅ Generic metadata hook
 
 ## Gap 1 — Views API (client.views)
 
-### 状态：⚠️ 运行时可能可用，但 TypeScript 类型未导出
+### 状态：✅ **已解决 (v2.0.0)**
 
 ### 问题描述
 
-Mobile 端的 `hooks/useViewStorage.ts` 需要通过 `client.views` 命名空间进行 Saved Views 的 CRUD 操作，但 `ObjectStackClient` 类型定义中不包含 `views` 属性。当前通过 unsafe cast 绕过：
+Mobile 端的 `hooks/useViewStorage.ts` 需要通过 `client.views` 命名空间进行 Saved Views 的 CRUD 操作。在 v1.1.0 中，`ObjectStackClient` 类型定义中不包含 `views` 属性，当前通过 unsafe cast 绕过。
 
-```typescript
-// hooks/useViewStorage.ts:34-41 — 当前 workaround
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function viewsApi(client: any) {
-  return client.views as {
-    list: (objectName: string) => Promise<{ views?: any[] }>;
-    create: (objectName: string, data: Record<string, unknown>) => Promise<unknown>;
-    update: (objectName: string, viewId: string, data: Record<string, unknown>) => Promise<unknown>;
-    delete: (objectName: string, viewId: string) => Promise<unknown>;
-  };
-}
-```
+### v2.0.0 解决方案
 
-### 期望 SDK 提供
-
-在 `ObjectStackClient` 上新增 `views` 命名空间，类型化以下方法：
+SDK v2.0.0 已添加完整类型化的 `client.views` API：
 
 ```typescript
 client.views: {
-  /** List saved views for an object */
-  list(objectName: string, filters?: {
-    visibility?: 'private' | 'shared';
-    createdBy?: string;
+  /** Create a new saved view */
+  create(request: {
+    name: string;
+    label: string;
+    object: string;
+    type: 'list' | 'form' | 'detail' | 'dashboard';
+    visibility: 'public' | 'private' | 'shared';
+    query?: QueryAST;
+    layout?: Record<string, any>;
+  }): Promise<SavedView>;
+
+  /** Get a saved view by ID */
+  get(id: string): Promise<SavedView>;
+
+  /** List saved views with optional filters */
+  list(request?: {
+    object?: string;
+    type?: string;
+    visibility?: string;
   }): Promise<{ views: SavedView[]; total: number }>;
 
-  /** Get a specific saved view */
-  get(objectName: string, viewId: string): Promise<{ view: SavedView }>;
-
-  /** Create a new saved view */
-  create(objectName: string, data: {
-    name: string;
-    visibility: 'private' | 'shared';
-    filter?: FilterCondition;
-    sort?: SortNode[];
-    columns?: string[];
-  }): Promise<{ view: SavedView }>;
-
   /** Update an existing saved view */
-  update(objectName: string, viewId: string, data: Partial<{
-    name: string;
-    visibility: 'private' | 'shared';
-    filter?: FilterCondition;
-    sort?: SortNode[];
-    columns?: string[];
-  }>): Promise<{ view: SavedView }>;
+  update(request: {
+    id: string;
+    name?: string;
+    label?: string;
+    visibility?: string;
+    query?: QueryAST;
+    layout?: Record<string, any>;
+  }): Promise<SavedView>;
 
   /** Delete a saved view */
-  delete(objectName: string, viewId: string): Promise<{ deleted: boolean }>;
+  delete(id: string): Promise<{ deleted: boolean }>;
+
+  /** Share a view with users/teams */
+  share(id: string, userIds: string[]): Promise<void>;
+
+  /** Set a view as default for an object */
+  setDefault(id: string, object: string): Promise<void>;
 }
 ```
 
-### 优先级：🔴 Critical（当前代码已依赖此 API，缺类型导致类型安全性丧失）
+### Mobile 端行动项
+
+- [x] SDK 已升级至 v2.0.0
+- [ ] 更新 `hooks/useViewStorage.ts` 以使用类型化 API（移除 workaround）
+- [ ] Phase 4B.1 现已解除阻塞
+
+### 影响范围
+
+- ✅ 解除 Phase 4B.1 阻塞
+- ✅ 提升代码类型安全性
+- ✅ 改善开发体验（自动补全、类型检查）
+
+### 优先级：✅ **已解决 (v2.0.0)**
 
 ---
 
@@ -824,38 +861,43 @@ function useSavedViews(objectName: string, options?: {
 
 ## Priority Summary
 
-### 🔴 Critical — Phase 4 阻塞，必须优先开发
+### ✅ v2.0.0 已解决
+
+| # | Gap | 涉及 Phase | 状态 |
+|---|-----|-----------|------|
+| 1 | Views API 类型化 | Phase 4B.1 | ✅ 完全解决 |
+
+### 🔴 Critical — Phase 4B 阻塞，必须优先开发
 
 | # | Gap | 涉及 Phase | Spec 类型就绪 | 预估工作量 |
 |---|-----|-----------|-------------|----------|
-| 1 | Views API 类型化 | Phase 3.4 | ✅ 部分 | 1-2 天 |
-| 2 | Permission System API | Phase 4.1 | ✅ 完整 | 1-2 周 |
-| 3 | Workflow / State Machine API | Phase 4.2 | ✅ 完整 | 1-2 周 |
-| 4 | Real-Time / WebSocket API | Phase 4.3 | ✅ 完整 | 2-3 周 |
+| 2 | Permission System API | Phase 4B.2 | ✅ 完整 | 1-2 周 |
+| 3 | Workflow / State Machine API | Phase 4B.3 | ✅ 完整 | 1-2 周 |
+| 4 | Real-Time / WebSocket API | Phase 4B.4 | ✅ 完整 | 2-3 周 |
 
-### 🟡 High — Phase 4-5 需要，应在 Critical 之后排期
-
-| # | Gap | 涉及 Phase | Spec 类型就绪 | 预估工作量 |
-|---|-----|-----------|-------------|----------|
-| 5 | Push Notification API | Phase 4.4 | ✅ 部分 | 1 周 |
-| 6 | AI / NLQ API | Phase 5.1 | ✅ 完整 | 2-3 周 |
-| 8 | File/Storage React Hooks | Phase 5.4 | ✅ Client 已有 | 2-3 天 |
-| 9 | i18n API | Phase 5.2 | ✅ 部分 | 1 周 |
-
-### 🟢 Medium — 有 workaround，可后续优化
+### 🟡 High — Phase 4B-5B 需要，应在 Critical 之后排期
 
 | # | Gap | 涉及 Phase | Spec 类型就绪 | 预估工作量 |
 |---|-----|-----------|-------------|----------|
-| 7 | Batch React Hook | Phase 3.3 | ✅ Client 已有 | 2-3 天 |
-| 10 | Analytics React Hooks | Phase 5.3/6.4 | ✅ Client 已有 | 2-3 天 |
-| 11 | 其他 React Hook 补全 | 多个 | ✅ | 3-5 天 |
+| 5 | Push Notification API | Phase 4B.5 | ✅ 部分 | 1 周 |
+| 6 | AI / NLQ API | Phase 5B.1 | ✅ 完整 | 2-3 周 |
+| 8 | File/Storage React Hooks | Phase 5B.3 | ✅ Client 已有 | 2-3 天 |
+| 9 | i18n API | Phase 5B.2 | ✅ 部分 | 1 周 |
 
-### 总预估
+### 🟢 Medium — 有 workaround 或已改进 (v2.0.0)，可后续优化
 
-- **Critical items**: ~6-9 周
+| # | Gap | 涉及 Phase | Spec 类型就绪 | v2.0.0 状态 |
+|---|-----|-----------|-------------|------------|
+| 7 | Batch React Hook | Phase 3.3 | ✅ Client 已有 | ✅ 已改进 |
+| 10 | Analytics React Hooks | Phase 5.3/6 | ✅ Client 已有 | 可用 hooks wrapper |
+| 11 | 其他 React Hook 补全 | 多个 | ✅ | 可继续优化 |
+
+### 总预估 (更新后)
+
+- **Critical items**: ~5-7 周 (减少 1-2 周，Gap 1 已解决)
 - **High items**: ~5-6 周
-- **Medium items**: ~2 周
-- **总计**: ~13-17 周（可并行开发缩短周期）
+- **Medium items**: ~1 周 (v2.0.0 batch 改进，减少 1 周)
+- **总计**: ~11-14 周（可并行开发缩短周期，相比 v1.1.0 减少 2-3 周）
 
 ---
 
