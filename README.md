@@ -24,13 +24,13 @@ Enterprise low-code platform mobile runtime built with Expo, React Native, and T
 
 ```bash
 # Install dependencies
-npm install --legacy-peer-deps
+pnpm install
 
 # Copy environment variables
 cp .env.example .env.local
 
 # Start development server
-npx expo start
+pnpm start
 ```
 
 ## Project Structure
@@ -60,10 +60,10 @@ npx expo start
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Start Expo development server |
-| `npm run lint` | TypeScript check + ESLint |
-| `npm test` | Run Jest tests |
-| `npm run format` | Format with Prettier |
+| `pnpm start` | Start Expo development server |
+| `pnpm run lint` | TypeScript check + ESLint |
+| `pnpm test` | Run Jest tests |
+| `pnpm run format` | Format with Prettier |
 
 ## Documentation
 

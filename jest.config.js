@@ -3,7 +3,7 @@ module.exports = {
   setupFiles: ["<rootDir>/jest.setup.ts"],
   setupFilesAfterEnv: ["@testing-library/react-native/extend-expect"],
   transformIgnorePatterns: [
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|nativewind|react-native-css-interop|@objectstack/.*|@shopify/flash-list|i18next|react-i18next|expo-localization|expo-image|msw|until-async|@bundled-es-modules|@mswjs|@open-draft|outvariant|strict-event-emitter|headers-polyfill)",
+    "node_modules/(?!(\\.pnpm/|((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|nativewind|react-native-css-interop|@objectstack/.*|@shopify/flash-list|i18next|react-i18next|expo-localization|expo-image|msw|until-async|@bundled-es-modules|@mswjs|@open-draft|outvariant|strict-event-emitter|headers-polyfill))",
   ],
   moduleNameMapper: {
     "^~/(.*)$": "<rootDir>/$1",

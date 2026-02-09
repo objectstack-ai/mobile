@@ -44,15 +44,15 @@ The app uses Expo's **managed workflow**, which means:
 
 ```bash
 # Install dependencies
-npm install --legacy-peer-deps
+pnpm install
 
 # Start development server
-npx expo start
+pnpm start
 
 # Start on specific platform
-npx expo start --ios
-npx expo start --android
-npx expo start --web
+pnpm start --ios
+pnpm start --android
+pnpm start --web
 
 # Type check
 npx tsc --noEmit
@@ -64,7 +64,7 @@ npx eslint . --ext .ts,.tsx
 npx prettier --write "**/*.{ts,tsx,js,json}"
 
 # Test
-npm test
+pnpm test
 ```
 
 ---
@@ -161,10 +161,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 
 ```
 1. Clone repository
-2. npm install --legacy-peer-deps
+2. pnpm install
 3. Copy .env.example → .env.local
 4. Configure EXPO_PUBLIC_API_URL
-5. npx expo start
+5. pnpm start
 6. Open on device/simulator
 ```
 
@@ -230,7 +230,7 @@ eas build --platform all --profile production
 Source Code
     ↓
 EAS Build (Cloud)
-    ├── Install dependencies (npm ci)
+    ├── Install dependencies (pnpm install)
     ├── Run prebuild hooks
     ├── Generate native projects
     ├── Compile native code (Xcode / Gradle)
@@ -333,7 +333,7 @@ Push / PR
               ↓
 ┌───────────────────────────┐
 │  Unit & Integration Tests  │
-│  npm test -- --coverage    │
+│  pnpm test -- --coverage   │
 └─────────────┬─────────────┘
               ↓
 ┌───────────────────────────┐
@@ -360,14 +360,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-      - run: npm ci --legacy-peer-deps
+          cache: "pnpm"
+      - run: pnpm install
       - run: npx tsc --noEmit
       - run: npx eslint . --ext .ts,.tsx
-      - run: npm test -- --coverage --ci
+      - run: pnpm test -- --coverage --ci
 ```
 
 #### Build on Merge
@@ -383,15 +386,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: "pnpm"
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: npm ci --legacy-peer-deps
+      - run: pnpm install
       - run: eas build --platform all --profile preview --non-interactive
 ```
 
@@ -408,15 +414,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: "pnpm"
       - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-      - run: npm ci --legacy-peer-deps
+      - run: pnpm install
       - run: eas update --branch production --message "${{ github.ref_name }}"
 ```
 
@@ -473,8 +482,8 @@ npm version major
 
 ```
 1. Create release branch: release/v1.x.x
-2. Run full test suite: npm test -- --coverage
-3. Bump version: npm version minor
+2. Run full test suite: pnpm test -- --coverage
+3. Bump version: pnpm version minor
 4. Build production: eas build --platform all --profile production
 5. Test builds on devices
 6. Submit to stores: eas submit --platform all --profile production

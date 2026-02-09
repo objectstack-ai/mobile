@@ -29,7 +29,7 @@
 | Tool | Version | Purpose |
 |------|---------|---------|
 | **Node.js** | ≥ 20.x | Runtime |
-| **npm** | ≥ 10.x | Package manager |
+| **pnpm** | ≥ 10.x | Package manager |
 | **Expo CLI** | Latest | Development tools |
 | **Xcode** | ≥ 15 (macOS) | iOS simulator |
 | **Android Studio** | Latest | Android emulator |
@@ -42,7 +42,7 @@ git clone https://github.com/objectstack-ai/mobile.git
 cd mobile
 
 # 2. Install dependencies
-npm install --legacy-peer-deps
+pnpm install
 
 # 3. Copy environment variables
 cp .env.example .env.local
@@ -51,21 +51,21 @@ cp .env.example .env.local
 # Edit .env.local: EXPO_PUBLIC_API_URL=http://localhost:3000
 
 # 5. Start development server
-npx expo start
+pnpm start
 ```
 
 ### Available Commands
 
 | Command | Description |
 |---------|-------------|
-| `npm start` | Start Expo development server |
-| `npm run android` | Start on Android |
-| `npm run ios` | Start on iOS |
-| `npm run web` | Start on web |
-| `npm run lint` | Run TypeScript check + ESLint |
-| `npm test` | Run Jest tests |
-| `npm run format` | Format code with Prettier |
-| `npm run format:check` | Check formatting without changes |
+| `pnpm start` | Start Expo development server |
+| `pnpm run android` | Start on Android |
+| `pnpm run ios` | Start on iOS |
+| `pnpm run web` | Start on web |
+| `pnpm run lint` | Run TypeScript check + ESLint |
+| `pnpm test` | Run Jest tests |
+| `pnpm run format` | Format code with Prettier |
+| `pnpm run format:check` | Check formatting without changes |
 
 ---
 
@@ -206,7 +206,7 @@ mobile/
 2. Make changes with small, focused commits
 
 3. Run checks before pushing
-   npm run lint && npm test
+   pnpm run lint && pnpm test
 
 4. Push and create PR against develop
    git push origin feature/my-feature
@@ -509,8 +509,8 @@ chore(deps): update expo SDK to 54.0.33
 
 - [ ] TypeScript compiles without errors (`npx tsc --noEmit`)
 - [ ] ESLint passes (`npx eslint . --ext .ts,.tsx`)
-- [ ] Tests pass (`npm test`)
-- [ ] Code is formatted (`npm run format:check`)
+- [ ] Tests pass (`pnpm test`)
+- [ ] Code is formatted (`pnpm run format:check`)
 - [ ] New code has appropriate types (no unnecessary `any`)
 - [ ] New components have `accessibilityLabel` props
 - [ ] Documentation updated if API changed
@@ -578,8 +578,8 @@ How to verify the changes.
 
 | Issue | Solution |
 |-------|----------|
-| **Install fails** | Use `npm install --legacy-peer-deps` |
-| **Metro cache issues** | `npx expo start --clear` |
+| **Install fails** | Use `pnpm install --no-frozen-lockfile` |
+| **Metro cache issues** | `pnpm start --clear` |
 | **TypeScript errors** | `npx tsc --noEmit` to check |
 | **NativeWind not updating** | Restart Metro bundler |
 | **Expo Go crash** | Use development build instead |
@@ -589,7 +589,7 @@ How to verify the changes.
 
 ```bash
 # Clear all caches
-npx expo start --clear
+pnpm start --clear
 
 # Reset Metro cache
 npx react-native start --reset-cache
@@ -601,7 +601,7 @@ npx expo-doctor
 npx tsc --noEmit
 
 # Fix formatting
-npm run format
+pnpm run format
 ```
 
 ---

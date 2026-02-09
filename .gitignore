@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# pnpm
+.pnpm-store/
+
 # Expo
 .expo/
 dist/
