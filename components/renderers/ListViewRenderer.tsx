@@ -64,6 +64,8 @@ export interface ListViewRendererProps {
   onBatchDelete?: (ids: string[]) => void;
   /** Batch edit handler (shown in batch action bar) */
   onBatchEdit?: (ids: string[]) => void;
+  /** Permission: hide create button when false */
+  allowCreate?: boolean;
 }
 
 /* ------------------------------------------------------------------ */

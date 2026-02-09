@@ -44,6 +44,10 @@ export interface DetailViewRendererProps {
   hasNext?: boolean;
   /** Label indicating position, e.g. "3 of 50" */
   positionLabel?: string;
+  /** Permission: hide edit button when false */
+  allowEdit?: boolean;
+  /** Permission: hide delete button when false */
+  allowDelete?: boolean;
 }
 
 export interface RelatedListConfig {
@@ -231,6 +235,8 @@ export function DetailViewRenderer({
   hasPrevious,
   hasNext,
   positionLabel,
+  allowEdit = true,
+  allowDelete = true,
 }: DetailViewRendererProps) {
   /* ---- Build sections ---- */
   const sections: FormSection[] = useMemo(() => {
@@ -296,8 +302,8 @@ export function DetailViewRenderer({
     <View className="flex-1">
       {/* Action bar */}
       <DetailActionBar
-        onEdit={onEdit}
-        onDelete={onDelete}
+        onEdit={allowEdit ? onEdit : undefined}
+        onDelete={allowDelete ? onDelete : undefined}
         actions={actions}
         onAction={onAction}
       />

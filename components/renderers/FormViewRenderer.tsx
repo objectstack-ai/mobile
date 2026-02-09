@@ -35,6 +35,8 @@ export interface FormViewRendererProps {
   readonly?: boolean;
   /** Submit button label */
   submitLabel?: string;
+  /** Per-field permissions: field name → { readable, editable } */
+  fieldPermissions?: Record<string, { readable: boolean; editable: boolean }>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -48,6 +50,7 @@ function FormSectionView({
   errors,
   onChange,
   readonly,
+  fieldPermissions,
 }: {
   section: FormSection;
   fields: FieldDefinition[];
@@ -55,6 +58,7 @@ function FormSectionView({
   errors: Record<string, string>;
   onChange: (field: string, value: unknown) => void;
   readonly: boolean;
+  fieldPermissions?: Record<string, { readable: boolean; editable: boolean }>;
 }) {
   const [collapsed, setCollapsed] = useState(section.collapsed ?? false);
 
@@ -111,11 +115,11 @@ function FormSectionView({
                 }}
                 value={values[fieldDef.name]}
                 onChange={
-                  readonly || meta.readonly
+                  readonly || meta.readonly || (fieldPermissions?.[fieldDef.name] && !fieldPermissions[fieldDef.name].editable)
                     ? undefined
                     : (val) => onChange(fieldDef.name, val)
                 }
-                readonly={readonly || meta.readonly}
+                readonly={readonly || meta.readonly || (fieldPermissions?.[fieldDef.name] && !fieldPermissions[fieldDef.name].editable)}
                 error={errors[fieldDef.name]}
               />
             );
@@ -139,6 +143,7 @@ export function FormViewRenderer({
   isSubmitting = false,
   readonly = false,
   submitLabel = "Save",
+  fieldPermissions,
 }: FormViewRendererProps) {
   const [values, setValues] = useState<Record<string, unknown>>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -225,6 +230,7 @@ export function FormViewRenderer({
             errors={errors}
             onChange={handleChange}
             readonly={readonly}
+            fieldPermissions={fieldPermissions}
           />
         ))}
 
