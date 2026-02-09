@@ -64,8 +64,6 @@ export interface ListViewRendererProps {
   onBatchDelete?: (ids: string[]) => void;
   /** Batch edit handler (shown in batch action bar) */
   onBatchEdit?: (ids: string[]) => void;
-  /** Estimated height of each list item for FlashList (default: 80) */
-  estimatedItemSize?: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -94,7 +92,6 @@ export function ListViewRenderer({
   onSelectionChange,
   onBatchDelete,
   onBatchEdit,
-  estimatedItemSize = 80,
 }: ListViewRendererProps) {
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -408,7 +405,6 @@ export function ListViewRenderer({
           item.id ?? item._id ?? String(index)
         }
         renderItem={renderItem}
-        estimatedItemSize={estimatedItemSize}
         onEndReached={hasMore ? onLoadMore : undefined}
         onEndReachedThreshold={0.5}
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}

@@ -21,10 +21,11 @@ function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
     if (!isReady) return;
 
     const inAuthGroup = segments[0] === "(auth)";
+    const isServerConfigRoute = segments.includes("server-config");
 
     // Step 1: No server URL configured → go to server config
     if (!serverUrl) {
-      if (segments[1] !== "server-config") {
+      if (!isServerConfigRoute) {
         router.replace("/(auth)/server-config");
       }
       return;

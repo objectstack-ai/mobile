@@ -76,7 +76,7 @@ describe("BatchProgressIndicator", () => {
   it("renders in-progress state", () => {
     const tree = render(
       <BatchProgressIndicator
-        progress={{ total: 10, completed: 3, failed: 0 }}
+        progress={{ total: 10, completed: 3, failed: 0, skipped: 0 }}
         result={null}
       />,
     );
@@ -86,12 +86,12 @@ describe("BatchProgressIndicator", () => {
   it("renders completed result", () => {
     const tree = render(
       <BatchProgressIndicator
-        progress={{ total: 10, completed: 10, failed: 0 }}
+        progress={{ total: 10, completed: 10, failed: 0, skipped: 0 }}
         result={{
           succeeded: 9,
           failed: 1,
           skipped: 0,
-          errors: [{ recordId: "r1", message: "Not found" }],
+          errors: [{ index: 0, recordId: "r1", message: "Not found" }],
         }}
       />,
     );
@@ -101,7 +101,7 @@ describe("BatchProgressIndicator", () => {
   it("renders result with skipped count", () => {
     const { getByText } = render(
       <BatchProgressIndicator
-        progress={{ total: 10, completed: 10, failed: 0 }}
+        progress={{ total: 10, completed: 10, failed: 0, skipped: 0 }}
         result={{
           succeeded: 7,
           failed: 1,
@@ -116,7 +116,7 @@ describe("BatchProgressIndicator", () => {
   it("shows failed count in progress", () => {
     const { getByText } = render(
       <BatchProgressIndicator
-        progress={{ total: 10, completed: 5, failed: 2 }}
+        progress={{ total: 10, completed: 5, failed: 2, skipped: 0 }}
         result={null}
       />,
     );
