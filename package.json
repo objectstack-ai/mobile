@@ -52,6 +52,7 @@
     "lucide-react-native": "^0.563.0",
     "nativewind": "^4.2.1",
     "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-i18next": "^16.5.4",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "^2.30.0",
@@ -85,7 +86,7 @@
     "jest-expo": "^54.0.2",
     "msw": "^2.12.9",
     "prettier": "^3.5.3",
-    "react-test-renderer": "^19.1.0",
+    "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },
   "private": true
