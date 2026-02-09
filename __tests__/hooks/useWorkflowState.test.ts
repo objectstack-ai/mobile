@@ -172,7 +172,7 @@ describe("useWorkflowState", () => {
     expect(mockReject).toHaveBeenCalledWith({
       object: "tasks",
       recordId: "rec-1",
-      comment: "Needs changes",
+      reason: "Needs changes",
     });
   });
 });

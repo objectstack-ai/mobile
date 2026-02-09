@@ -48,7 +48,7 @@ export interface UseWorkflowStateResult {
   /** Approve a workflow step */
   approve: (comment?: string) => Promise<WorkflowApproveResponse>;
   /** Reject a workflow step */
-  reject: (comment?: string) => Promise<WorkflowRejectResponse>;
+  reject: (reason: string, comment?: string) => Promise<WorkflowRejectResponse>;
   /** Refetch the workflow state */
   refetch: () => Promise<void>;
 }
@@ -121,10 +121,11 @@ export function useWorkflowState(
   );
 
   const doReject = useCallback(
-    async (comment?: string): Promise<WorkflowRejectResponse> => {
+    async (reason: string, comment?: string): Promise<WorkflowRejectResponse> => {
       const result = await client.workflow.reject({
         object: objectName,
         recordId,
+        reason,
         comment,
       });
       await fetchState();
