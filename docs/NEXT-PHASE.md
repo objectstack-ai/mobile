@@ -185,14 +185,14 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 > See [MESSAGING-NOTIFICATION-CENTER-DESIGN.md](./MESSAGING-NOTIFICATION-CENTER-DESIGN.md) for full specification.
 
-### v1.3 — Offline-First Enhancements
+### v1.4 — Offline-First Enhancements
 
 - [ ] Selective offline sync (choose which objects/views to cache)
 - [ ] Conflict resolution improvements (three-way merge UI)
 - [ ] Offline analytics (queue queries, sync results)
 - [ ] Background data prefetching based on usage patterns
 
-### v1.4 — Platform Integration
+### v1.5 — Platform Integration
 
 - [ ] iOS Shortcuts / Siri integration
 - [ ] Android Quick Settings tiles

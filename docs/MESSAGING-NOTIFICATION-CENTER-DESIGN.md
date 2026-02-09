@@ -115,7 +115,7 @@ ObjectStack's key differentiation is **record-contextual communication** — con
 - Grouped push notification delivery (iOS notification groups)
 - Rich notification previews with quick actions (reply inline, approve, etc.)
 
-### Tier 2 — Activity Feed & Record Comments (v1.3)
+### Tier 2 — Activity Feed & Record Comments (v1.2)
 
 > Salesforce Chatter-style record engagement.
 
@@ -127,7 +127,7 @@ ObjectStack's key differentiation is **record-contextual communication** — con
 - Activity filtering by type (comments, changes, workflow, system)
 - Inline file attachments on comments
 
-### Tier 3 — Messaging & Channels (v1.4)
+### Tier 3 — Messaging & Channels (v1.3)
 
 > Slack/Teams-style communication.
 
