@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-The ObjectStack Mobile client has successfully completed **all feasible development phases** based on available SDK APIs. With the v2.0.1 SDK upgrade, **all previously blocked phases (4B, 5B) are now unblocked** — all 13 API namespaces are fully implemented with TypeScript type exports. All 346 unit and integration tests pass successfully.
+The ObjectStack Mobile client has successfully completed **all development phases** (0 through 5B) plus most of Phase 6 (Production Readiness). With the v2.0.1 SDK upgrade, all 13 API namespaces are fully implemented with TypeScript type exports. All 413 unit and integration tests pass successfully across 45 test suites.
 
 ### Key Achievements
 
@@ -22,12 +22,13 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 - Internationalization (i18n) framework
 - Production monitoring (Sentry, analytics, feature flags)
 - Security features (biometric auth, certificate pinning, app lock)
-- Comprehensive test coverage (375 tests, 80%+ coverage)
+- Comprehensive test coverage (413 tests across 45 suites, 80%+ coverage)
 - CI/CD pipeline with EAS Build/Update
 
-⚠️ **Ready for Development (SDK v2.0.1 已就绪)**:
-- AI/NLQ integration (client.ai.*)
-- Server-side i18n (client.i18n.*)
+⚠️ **Remaining Before v1.0 GA**:
+- E2E test execution (Maestro, requires running app + backend)
+- Real-device performance profiling
+- App Store / Play Store submission preparation
 
 ## Development Phase Status
 
@@ -125,7 +126,7 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 | i18n Framework | ✅ Done | `lib/i18n.ts`, expo-localization, i18next |
 | RTL Support | ✅ Done | Arabic/Hebrew layout support |
 | Performance | ✅ Done | FlashList, image caching, code splitting |
-| Unit Tests | ✅ Done | 346 tests passing |
+| Unit Tests | ✅ Done | 413 tests passing |
 | Integration Tests | ✅ Done | MSW-based API mocking |
 | E2E Tests | ✅ Done | Maestro flows configured |
 | CI/CD | ✅ Done | GitHub Actions + EAS Build/Update |
@@ -222,8 +223,8 @@ The ObjectStack Mobile client has successfully completed **all feasible developm
 ### Test Coverage
 
 ```
-Test Suites: 34 passed, 34 total
-Tests:       346 passed, 346 total
+Test Suites: 45 passed, 45 total
+Tests:       413 passed, 413 total
 Snapshots:   49 passed, 49 total
 
 Coverage (as of 2026-02-09):
@@ -255,15 +256,7 @@ Coverage (as of 2026-02-09):
 
 ## Known Issues & Limitations
 
-### 1. Phase 5B Implementation (Ready to Develop)
-
-Phase 4B is complete. Phase 5B can begin immediately:
-- `client.ai.*` — Available, needs AI chat UI
-- `client.i18n.*` — Available, needs server translation integration
-
-**Note**: `@objectstack/client-react` does not yet provide dedicated hooks for these namespaces. Mobile-side hooks will need to be built using `useClient()` + custom state management.
-
-### 2. E2E Tests (Manual Run Required)
+### 1. E2E Tests (Manual Run Required)
 
 Maestro E2E tests are configured but haven't been executed because:
 - Requires running mobile app build
@@ -272,7 +265,7 @@ Maestro E2E tests are configured but haven't been executed because:
 
 **Next Steps**: See [E2E-TESTING.md](./E2E-TESTING.md) for execution guide.
 
-### 3. Performance Profiling (TODO)
+### 2. Performance Profiling (TODO)
 
 While optimizations are in place, comprehensive performance profiling on real devices is pending:
 - iOS device profiling
@@ -366,15 +359,11 @@ eas update --branch production
 
 ## Development Roadmap
 
-### Completed (Phases 0-3, 4A, 5A, 6.1-6.2)
+### Completed (Phases 0–6, including 4B and 5B)
 
-All development work that can be completed with current SDK is done. See ROADMAP.md for detailed breakdown.
+All development phases are functionally complete. See ROADMAP.md for detailed breakdown.
 
-### Ready to Develop (Phases 4B, 5B)
-
-SDK v2.0.1 provides all required APIs. Estimated timeline: 6-8 weeks.
-
-### Remaining Work (Phase 6.3)
+### Remaining Work (Phase 6.3 — Final Validation)
 
 1. **E2E Testing** (1-2 days):
    - Set up test environment/backend
@@ -399,19 +388,15 @@ SDK v2.0.1 provides all required APIs. Estimated timeline: 6-8 weeks.
 
 ### For Mobile Team
 
-1. **Start Phase 5B Development**:
-   - Build AI/NLQ chat UI using `client.ai.*`
-   - Integrate server-side i18n using `client.i18n.*`
-
-2. **Continue SDK-Independent Work**:
-   - Enhance UI/UX based on user feedback
-   - Expand test coverage to 90%+
-   - Performance optimization
-
-3. **Focus on Production Readiness**:
+1. **Focus on Production Readiness**:
    - Execute E2E tests thoroughly
    - Profile on real devices
    - Prepare App Store assets
+
+2. **Expand Test Coverage**:
+   - Enhance UI/UX based on user feedback
+   - Expand test coverage to 90%+
+   - Performance optimization
 
 ### For SDK Team
 
@@ -431,6 +416,6 @@ SDK v2.0.1 provides all required APIs. Estimated timeline: 6-8 weeks.
 ---
 
 **Last Updated**: 2026-02-09
-**Project Status**: ✅ Phase 4B Complete (Phase 5B ready for development)
-**Test Status**: ✅ 375/375 passing
-**Production Ready**: ⚠️ Yes (Phase 5B features in development)
+**Project Status**: ✅ All Phases Complete (0–5B + Phase 6 mostly done)
+**Test Status**: ✅ 413/413 passing (45 suites)
+**Production Ready**: ⚠️ Pending E2E validation + real-device profiling + App Store submission
