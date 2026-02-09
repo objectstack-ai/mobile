@@ -1,85 +1,38 @@
-# @objectstack/client v2.0.0 Upgrade Guide
+# @objectstack/client v2.0.1 Upgrade Guide
 
 > **Date**: 2026-02-09
-> **Previous Version**: v1.1.0
-> **Current Version**: v2.0.0
+> **Previous Version**: v2.0.0
+> **Current Version**: v2.0.1
 
 ---
 
 ## Overview
 
-The mobile application has been successfully upgraded to `@objectstack/client@2.0.0` and `@objectstack/client-react@2.0.0`. This upgrade is **fully backward compatible** with no breaking API changes. All 346 existing tests pass without modification.
+The mobile application has been successfully upgraded to `@objectstack/client@2.0.1` and `@objectstack/client-react@2.0.1`. This upgrade is **fully backward compatible** with no breaking API changes. All 346 existing tests pass without modification.
 
-## What's New in v2.0.0
+## What's New in v2.0.1
 
-### ❌ Gap 1 Status: Views API NOT YET IMPLEMENTED
+### ✅ ALL SDK Gaps Resolved
 
-**UPDATE (2026-02-09)**: After runtime verification, the `client.views.*` API namespace is **NOT implemented** in v2.0.0. While the README documentation describes the intended API, the actual runtime does not expose a `views` property on the client object.
+**v2.0.1** completes the implementation of all 13 API namespaces with full TypeScript type exports. This resolves **all previously blocked development phases (4B, 5B)**.
 
-**Current Status:**
-- ❌ `client.views` namespace does not exist at runtime
-- ❌ No TypeScript type definitions for views API
-- ⚠️ README documentation is aspirational/planned for future release
-- ✅ Mobile app continues using `hooks/useViewStorage.ts` workaround via metadata API
+**Newly Available APIs:**
 
-**Planned API (NOT YET AVAILABLE):**
+| Namespace | Methods | Phase Unblocked |
+|-----------|---------|-----------------|
+| `client.views.*` | list, get, create, update, delete | Phase 4B.1 |
+| `client.permissions.*` | check, getObjectPermissions, getEffectivePermissions | Phase 4B.2 |
+| `client.workflow.*` | getConfig, getState, transition, approve, reject | Phase 4B.3 |
+| `client.realtime.*` | connect, disconnect, subscribe, unsubscribe, setPresence, getPresence | Phase 4B.4 |
+| `client.notifications.*` | registerDevice, unregisterDevice, getPreferences, updatePreferences, list, markRead, markAllRead | Phase 4B.5 |
+| `client.ai.*` | nlq, chat, suggest, insights | Phase 5B.1 |
+| `client.i18n.*` | getLocales, getTranslations, getFieldLabels | Phase 5B.2 |
 
-The following API is documented in the README but NOT functional in v2.0.0:
-
-```typescript
-// ⚠️ THESE DO NOT WORK IN v2.0.0 - FOR REFERENCE ONLY
-
-// Create a saved view
-const view = await client.views.create({
-  name: 'active_tasks',
-  label: 'Active Tasks',
-  object: 'todo_task',
-  type: 'list',
-  visibility: 'public',
-  query: {
-    object: 'todo_task',
-    where: { status: 'active' },
-    orderBy: [{ field: 'priority', order: 'desc' }],
-    limit: 50
-  },
-  layout: {
-    columns: [
-      { field: 'subject', label: 'Task', width: 200 },
-      { field: 'priority', label: 'Priority', width: 100 }
-    ]
-  }
-});
-
-// Get a saved view
-const view = await client.views.get('view-id');
-
-// List saved views
-const { views, total } = await client.views.list({
-  object: 'todo_task',
-  visibility: 'public'
-});
-
-// Update a saved view
-await client.views.update({
-  id: 'view-id',
-  name: 'Updated Name',
-  visibility: 'private'
-});
-
-// Delete a saved view
-await client.views.delete('view-id');
-
-// Share a view with users
-await client.views.share('view-id', ['user-1', 'user-2']);
-
-// Set as default view for an object
-await client.views.setDefault('view-id', 'todo_task');
-```
-
-**Impact on Mobile Development:**
-- Phase 4B.1 remains **blocked** until SDK implements `client.views.*`
-- Continue using current workaround in `hooks/useViewStorage.ts`
-- No migration work can be done at this time
+**Previously Available (v2.0.0):**
+- Enhanced batch operations with `atomic`, `returnRecords`, `continueOnError`, `validateOnly` options
+- ETag-based metadata caching via `client.meta.getCached()`
+- Type-safe query builders: `createQuery<T>()`, `createFilter<T>()`
+- Improved error handling with retry guidance
 
 ### 🚀 Enhanced Batch Operations
 
@@ -167,73 +120,45 @@ try {
 
 ## Migration Checklist
 
-### Status Update (2026-02-09)
+### Completed
 
-**Important**: While the Views API is documented in the v2.0.0 README and appears to be functionally available at runtime, the TypeScript type definitions have not yet been exported in the package's `.d.ts` files. This means we cannot yet remove the `(client as any).views` workaround without TypeScript compilation errors.
+- [x] **Upgrade to v2.0.1** — packages installed and tested
+- [x] **All 346 tests pass** — backward compatible
+- [x] **TypeScript types available** — all namespaces properly typed
 
-**Next Steps**: We are tracking this with the upstream @objectstack/client team and expect the type definitions to be exported in an upcoming patch release (e.g., v2.0.1).
+### High Priority (Phase 4B Implementation)
 
-### High Priority (Blocked by Type Exports)
+- [ ] **Refactor `hooks/useViewStorage.ts`** to align with SDK view data types
+- [ ] **Create `hooks/usePermissions.ts`** using `client.permissions.*`
+- [ ] **Create `hooks/useWorkflowState.ts`** using `client.workflow.*`
+- [ ] **Create `hooks/useSubscription.ts`** using `client.realtime.*`
+- [ ] **Create notification hooks** using `client.notifications.*`
 
-- [ ] **Wait for type exports in upstream @objectstack/client**
-  - Currently: API is runtime-available but types not exported
-  - Expected: Future patch release (v2.0.1+)
-- [ ] **Update `hooks/useViewStorage.ts`** once types are available
-  - Remove `viewsApi(client: any)` helper function
-  - Use properly typed `client.views.*` API
-  - Update SavedView types to match v2.0.0 schema
-- [ ] **Add tests for new Views API** to ensure proper integration
-- [ ] **Document new query builder** usage patterns for the team
+### Medium Priority (Phase 5B Implementation)
 
-### Medium Priority
-
+- [ ] **Create AI chat UI** using `client.ai.*`
+- [ ] **Integrate server i18n** using `client.i18n.*`
 - [ ] **Consider using `createQuery()` and `createFilter()`** in `lib/query-builder.ts`
-  - Provides better type safety
-  - Improves developer experience with auto-completion
-- [ ] **Leverage ETag caching** in `lib/metadata-cache.ts`
-  - Reduce unnecessary API calls
-  - Improve offline experience
-- [ ] **Update batch operations** to use new `batch()` options
-  - Set `atomic: true` for critical operations
-  - Use `validateOnly: true` for validation before commit
-
-### Low Priority
-
-- [ ] **Explore new error handling** for better user feedback
-- [ ] **Update documentation** with v2.0.0 examples
-- [ ] **Store memory** about new v2.0.0 features for future reference
 
 ## Impact on Development Roadmap
 
-### Phase 4B.1 — Partially Unblocked ⚠️
+### All Phases Unblocked ✅
 
-With the Views API now runtime-available in v2.0.0, **Phase 4B.1 can partially proceed**:
+With v2.0.1, **all previously blocked phases are now unblocked**:
 
-**Current State**:
-1. ✅ Runtime API is functional and can be used
-2. ⚠️ TypeScript types not yet exported (awaiting v2.0.1+)
-3. ⏳ Can proceed with runtime implementation using type casts
-4. ⏳ Full type safety pending upstream type export
-
-**Once Types Exported**:
-1. Remove `(client as any).views` workaround
-2. Use proper TypeScript types
-3. Improve code quality and maintainability
-4. Fully complete Phase 4B.1
-
-### Remaining Blocked Phases
-
-Phase 4B still has blocking dependencies:
-- **4B.2**: Permissions API (Gap 2)
-- **4B.3**: Workflows API (Gap 3)
-- **4B.4**: Real-time API (Gap 4)
-- **4B.5**: Notifications API (Gap 5)
+- **Phase 4B.1**: Views API — ✅ Fully typed and available
+- **Phase 4B.2**: Permissions — ✅ `client.permissions.*` available
+- **Phase 4B.3**: Workflows — ✅ `client.workflow.*` available
+- **Phase 4B.4**: Real-time — ✅ `client.realtime.*` available
+- **Phase 4B.5**: Notifications — ✅ `client.notifications.*` available
+- **Phase 5B.1**: AI/NLQ — ✅ `client.ai.*` available
+- **Phase 5B.2**: Server i18n — ✅ `client.i18n.*` available
 
 ### Timeline Impact
 
-The v2.0.0 upgrade reduces the overall timeline by **2-3 weeks**:
-- **Before**: ~13-17 weeks to complete all gaps
-- **After**: ~11-14 weeks (Gap 1 resolved, batch operations improved)
+The v2.0.1 upgrade **eliminates all upstream SDK dependencies**:
+- **Before (v2.0.0)**: ~11-14 weeks remaining (blocked by SDK)
+- **After (v2.0.1)**: ~6-8 weeks remaining (no blockers, Mobile-side implementation only)
 
 ## Testing Status
 
@@ -245,29 +170,25 @@ The v2.0.0 upgrade reduces the overall timeline by **2-3 weeks**:
 ## Next Steps
 
 1. **Immediate (This Week)**:
-   - Update `useViewStorage.ts` to use typed Views API
-   - Update related tests
-   - Document migration for team
+   - Begin Phase 4B.2 — Permissions hook implementation
+   - Refactor `useViewStorage.ts` to align with SDK types
 
-2. **Short Term (Next 2 Weeks)**:
-   - Explore query builder in new features
-   - Implement ETag caching optimizations
-   - Update batch operations to use new options
+2. **Short Term (Next 2-4 Weeks)**:
+   - Complete Phase 4B (Permissions, Workflows, Real-time, Notifications)
+   - Begin Phase 5B (AI, Server i18n)
 
-3. **Long Term**:
-   - Monitor upstream SDK for remaining gaps (2-5)
-   - Plan Phase 4B.2-4B.5 implementation once APIs available
-   - Continue Phase 6 production readiness tasks
+3. **Medium Term (Next 4-8 Weeks)**:
+   - Complete Phase 5B
+   - Full E2E testing
+   - App Store submission preparation
 
 ## References
 
-- [Client v2.0.0 README](../node_modules/.pnpm/@objectstack+client@2.0.0/node_modules/@objectstack/client/README.md)
-- [Client v2.0.0 CHANGELOG](../node_modules/.pnpm/@objectstack+client@2.0.0/node_modules/@objectstack/client/CHANGELOG.md)
 - [SDK Gap Analysis](./SDK-GAP-ANALYSIS.md)
 - [Development Roadmap](./ROADMAP.md)
 
 ---
 
-**Document Version**: 1.0
+**Document Version**: 2.0
 **Last Updated**: 2026-02-09
-**Status**: ✅ Upgrade Complete, Migration In Progress
+**Status**: ✅ Upgrade Complete — All SDK Gaps Resolved
