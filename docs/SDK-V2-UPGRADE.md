@@ -12,9 +12,9 @@ The mobile application has been successfully upgraded to `@objectstack/client@2.
 
 ## What's New in v2.0.0
 
-### ✅ Gap 1 Resolved: Typed Views API
+### ✅ Gap 1 Resolved: Typed Views API (Partially)
 
-The most significant addition in v2.0.0 is the fully typed `client.views.*` API namespace, which eliminates the need for the `(client as any).views` workaround.
+The most significant addition in v2.0.0 is the `client.views.*` API namespace. While the API is documented and functionally available at runtime, **the TypeScript type definitions have not yet been exported** in the package's `.d.ts` files. This means the `(client as any).views` workaround must remain until a future patch release exports the types.
 
 **New API Methods:**
 
