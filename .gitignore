@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+# pnpm
+.pnpm-store/
+package-lock.json
+
 # Expo
 .expo/
 dist/

@@ -480,19 +480,19 @@ jest.mock("react-native-mmkv", () => ({
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run with coverage
-npm test -- --coverage
+pnpm test -- --coverage
 
 # Run specific test file
-npm test -- --testPathPattern=query-builder
+pnpm test -- --testPathPattern=query-builder
 
 # Run in watch mode
-npm test -- --watch
+pnpm test -- --watch
 
 # Update snapshots
-npm test -- --updateSnapshot
+pnpm test -- --updateSnapshot
 ```
 
 ### Current Configuration
@@ -523,13 +523,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-      - run: npm ci --legacy-peer-deps
-      - run: npm run lint
-      - run: npm test -- --coverage --ci
+          cache: "pnpm"
+      - run: pnpm install
+      - run: pnpm run lint
+      - run: pnpm test -- --coverage --ci
       - uses: codecov/codecov-action@v4
 ```
 
@@ -537,7 +540,7 @@ jobs:
 
 ```bash
 # Recommended pre-commit hook
-npx tsc --noEmit && npx eslint . --ext .ts,.tsx && npm test
+npx tsc --noEmit && npx eslint . --ext .ts,.tsx && pnpm test
 ```
 
 ---
