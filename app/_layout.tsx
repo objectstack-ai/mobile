@@ -1,41 +1,72 @@
 import "../global.css";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ObjectStackProvider } from "@objectstack/client-react";
-import { authClient } from "~/lib/auth-client";
-import { createObjectStackClient } from "~/lib/objectstack";
+import { authClient, reinitializeAuthClient } from "~/lib/auth-client";
+import { createObjectStackClient, setObjectStackApiUrl } from "~/lib/objectstack";
+import { getServerUrl } from "~/lib/server-url";
 
 const queryClient = new QueryClient();
 
-function useProtectedRoute() {
+function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
   const { data: session, isPending } = authClient.useSession();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isPending) return;
+    if (!isReady) return;
 
     const inAuthGroup = segments[0] === "(auth)";
 
+    // Step 1: No server URL configured → go to server config
+    if (!serverUrl) {
+      if (segments[1] !== "server-config") {
+        router.replace("/(auth)/server-config");
+      }
+      return;
+    }
+
+    if (isPending) return;
+
+    // Step 2: Not signed in → go to sign-in
     if (!session && !inAuthGroup) {
       router.replace("/(auth)/sign-in");
     } else if (session && inAuthGroup) {
       router.replace("/(tabs)");
     }
-  }, [session, isPending, segments]);
+  }, [session, isPending, segments, serverUrl, isReady]);
 }
 
 export default function RootLayout() {
-  useProtectedRoute();
+  const [serverUrl, setServerUrlState] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  // On mount, load the persisted server URL and reinitialize clients
+  useEffect(() => {
+    (async () => {
+      const url = await getServerUrl();
+      if (url) {
+        reinitializeAuthClient(url);
+        setObjectStackApiUrl(url);
+        setServerUrlState(url);
+      }
+      setIsReady(true);
+    })();
+  }, []);
+
+  useProtectedRoute(serverUrl, isReady);
 
   const { data: session } = authClient.useSession();
   const token = (session as any)?.token ?? (session as any)?.accessToken;
 
-  const client = useMemo(() => createObjectStackClient(token), [token]);
+  const client = useMemo(
+    () => createObjectStackClient(token),
+    [token, serverUrl],
+  );
 
   return (
     <ObjectStackProvider client={client}>
