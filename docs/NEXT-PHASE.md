@@ -202,12 +202,12 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 1. ✅ All 493+ unit/integration tests passing
 2. ✅ All hooks and lib modules have test coverage
-2. ☐ All 4 Maestro E2E flows passing on iOS and Android
-3. ☐ Performance metrics within targets on real devices
-4. ☐ Security audit passing with no critical issues
-5. ☐ App Store readiness score ≥ 90/100
-6. ☐ TestFlight / internal testing completed (minimum 1 week)
-7. ☐ App Store / Play Store review approved
+3. ☐ All 4 Maestro E2E flows passing on iOS and Android
+4. ☐ Performance metrics within targets on real devices
+5. ☐ Security audit passing with no critical issues
+6. ☐ App Store readiness score ≥ 90/100
+7. ☐ TestFlight / internal testing completed (minimum 1 week)
+8. ☐ App Store / Play Store review approved
 
 ---
 
