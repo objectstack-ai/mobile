@@ -2,9 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useClient } from "@objectstack/client-react";
 import type {
   ListViewsResponse,
-  CreateViewResponse,
-  UpdateViewResponse,
-  DeleteViewResponse,
 } from "@objectstack/client";
 
 /* ------------------------------------------------------------------ */

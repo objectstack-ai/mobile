@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react-native";
-import { cn } from "~/lib/utils";
 import type {
   WorkflowState,
   WorkflowTransition,
@@ -91,7 +90,7 @@ function HistoryRow({ entry }: { entry: WorkflowHistoryEntry }) {
         </Text>
         {entry.comment && (
           <Text className="mt-0.5 text-xs italic text-muted-foreground">
-            "{entry.comment}"
+            &ldquo;{entry.comment}&rdquo;
           </Text>
         )}
       </View>
