@@ -4,6 +4,36 @@ Enterprise low-code platform mobile runtime built with Expo, React Native, and T
 
 > **Metadata-driven runtime** — interprets ObjectUI metadata (Views, Forms, Dashboards, Actions) from an ObjectStack server and renders them as native mobile components. No hardcoded business logic.
 
+## 📊 Current Status
+
+✅ **Development Complete** (Phases 0-6.2) | ⚠️ **E2E Testing Pending** | ⛔ **Phase 4B/5B Blocked by SDK**
+
+- **Tests**: 346/346 passing ✅
+- **Coverage**: 80%+ ✅
+- **Production Ready**: Yes (with SDK limitations) ⚠️
+- **Next Steps**: See [NEXT-PHASE.md](./docs/NEXT-PHASE.md) →
+
+**What's Complete**:
+- ✅ Full authentication system (better-auth)
+- ✅ All major view renderers (List, Form, Detail, Dashboard, Kanban, Calendar, Chart, Map, Timeline)
+- ✅ Offline-first architecture with sync queue
+- ✅ File upload/download with media preview
+- ✅ Analytics and charting
+- ✅ Internationalization (i18n) framework
+- ✅ Production monitoring (Sentry, analytics, feature flags)
+- ✅ Security features (biometric auth, certificate pinning)
+- ✅ CI/CD with EAS Build/Update
+
+**What's Blocked** (waiting for SDK APIs):
+- ⛔ Views API (client.views.* not implemented in v2.0.0)
+- ⛔ Permissions system (client.permissions.*)
+- ⛔ Workflows/approvals (client.workflows.*)
+- ⛔ Real-time WebSocket (client.realtime.*)
+- ⛔ Push notifications (client.notifications.*)
+- ⛔ AI/NLQ integration (client.ai.*)
+
+See [PROJECT-STATUS.md](./docs/PROJECT-STATUS.md) for complete details.
+
 ## Tech Stack
 
 | Category | Technology |
@@ -71,13 +101,19 @@ Comprehensive project documentation is available in the [`docs/`](./docs/) direc
 
 | Document | Description |
 |----------|-------------|
-| **[Architecture](./docs/ARCHITECTURE.md)** | System architecture, layer design, provider hierarchy, module dependencies |
-| **[UI/UX Design](./docs/UI-DESIGN.md)** | Design system, view renderers, field types, interaction patterns |
-| **[Data Layer](./docs/DATA-LAYER.md)** | Offline-first architecture, sync queue, conflict resolution, caching |
-| **[API Integration](./docs/API-INTEGRATION.md)** | SDK usage, authentication, hook reference, error handling |
-| **[Security](./docs/SECURITY.md)** | Auth security, data protection, network security, threat model |
-| **[Testing](./docs/TESTING.md)** | Testing strategy, tooling, unit/integration/E2E guidelines |
-| **[Deployment](./docs/DEPLOYMENT.md)** | Build system, EAS Build, OTA updates, CI/CD pipeline |
+| **[🎯 Next Phase](./docs/NEXT-PHASE.md)** | **→ START HERE** - Recommended next steps and action items |
+| **[📊 Project Status](./docs/PROJECT-STATUS.md)** | Current completion status, metrics, and production readiness |
+| **[🗺️ Roadmap](./docs/ROADMAP.md)** | Development phases, feature status, SDK dependencies |
+| **[🧪 E2E Testing](./docs/E2E-TESTING.md)** | Maestro test flows, execution guide, troubleshooting |
+| **[📦 SDK v2.0 Upgrade](./docs/SDK-V2-UPGRADE.md)** | SDK upgrade status and API availability |
+| **[🔍 SDK Gap Analysis](./docs/SDK-GAP-ANALYSIS.md)** | Missing SDK APIs blocking development |
+| **[Architecture](./docs/ARCHITECTURE.md)** | System architecture, layer design, provider hierarchy |
+| **[UI/UX Design](./docs/UI-DESIGN.md)** | Design system, view renderers, field types |
+| **[Data Layer](./docs/DATA-LAYER.md)** | Offline-first architecture, sync queue, caching |
+| **[API Integration](./docs/API-INTEGRATION.md)** | SDK usage, authentication, hook reference |
+| **[Security](./docs/SECURITY.md)** | Auth security, data protection, network security |
+| **[Testing](./docs/TESTING.md)** | Testing strategy, unit/integration tests |
+| **[Deployment](./docs/DEPLOYMENT.md)** | Build system, EAS Build, OTA updates, CI/CD |
 | **[Contributing](./docs/CONTRIBUTING.md)** | Development workflow, coding standards, PR process |
 | **[Roadmap](./docs/ROADMAP.md)** | Development phases, SDK dependency matrix, release plan |
 | **[SDK Gap Analysis](./docs/SDK-GAP-ANALYSIS.md)** | Missing SDK APIs, impact analysis, workarounds |

@@ -12,13 +12,23 @@ The mobile application has been successfully upgraded to `@objectstack/client@2.
 
 ## What's New in v2.0.0
 
-### ✅ Gap 1 Resolved: Typed Views API (Partially)
+### ❌ Gap 1 Status: Views API NOT YET IMPLEMENTED
 
-The most significant addition in v2.0.0 is the `client.views.*` API namespace. While the API is documented and functionally available at runtime, **the TypeScript type definitions have not yet been exported** in the package's `.d.ts` files. This means the `(client as any).views` workaround must remain until a future patch release exports the types.
+**UPDATE (2026-02-09)**: After runtime verification, the `client.views.*` API namespace is **NOT implemented** in v2.0.0. While the README documentation describes the intended API, the actual runtime does not expose a `views` property on the client object.
 
-**New API Methods:**
+**Current Status:**
+- ❌ `client.views` namespace does not exist at runtime
+- ❌ No TypeScript type definitions for views API
+- ⚠️ README documentation is aspirational/planned for future release
+- ✅ Mobile app continues using `hooks/useViewStorage.ts` workaround via metadata API
+
+**Planned API (NOT YET AVAILABLE):**
+
+The following API is documented in the README but NOT functional in v2.0.0:
 
 ```typescript
+// ⚠️ THESE DO NOT WORK IN v2.0.0 - FOR REFERENCE ONLY
+
 // Create a saved view
 const view = await client.views.create({
   name: 'active_tasks',
@@ -65,6 +75,11 @@ await client.views.share('view-id', ['user-1', 'user-2']);
 // Set as default view for an object
 await client.views.setDefault('view-id', 'todo_task');
 ```
+
+**Impact on Mobile Development:**
+- Phase 4B.1 remains **blocked** until SDK implements `client.views.*`
+- Continue using current workaround in `hooks/useViewStorage.ts`
+- No migration work can be done at this time
 
 ### 🚀 Enhanced Batch Operations
 
