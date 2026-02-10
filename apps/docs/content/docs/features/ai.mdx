@@ -1,0 +1,73 @@
+---
+title: AI Integration
+description: Natural Language Query, AI chat, suggestions, and insights
+---
+
+ObjectStack Mobile integrates AI capabilities through the `useAI` hook and the SDK's `ai` API namespace.
+
+## Natural Language Query (NLQ)
+
+Convert plain English questions into data queries:
+
+```ts
+const { nlq } = useAI();
+
+const result = await nlq('Show me all deals over $50,000 closing this month');
+// {
+//   records: [...],
+//   query: { /* generated ObjectQL */ },
+//   explanation: 'Filtered deals where amount > 50000 and close_date is in current month'
+// }
+```
+
+NLQ supports optional object scoping:
+
+```ts
+const result = await nlq('Top 10 by revenue', 'customers');
+```
+
+## AI Chat
+
+Context-aware conversational AI:
+
+```ts
+const { chat, clearConversation } = useAI();
+
+const response = await chat('Summarize this record', {
+  objectName: 'deals',
+  recordId: 'rec_123',
+});
+// { message: 'This deal is...', suggestions: [...] }
+
+// Clear conversation history
+clearConversation();
+```
+
+## Smart Suggestions
+
+Get AI-powered suggestions for form fields and actions:
+
+```ts
+const { suggest } = useAI();
+
+const suggestions = await suggest({
+  objectName: 'contacts',
+  field: 'industry',
+  context: { name: 'Acme Corp', website: 'acme.com' },
+});
+// ['Technology', 'Software', 'SaaS']
+```
+
+## Data Insights
+
+AI-generated insights about records and datasets:
+
+```ts
+const { insights } = useAI();
+
+// Object-level insights
+const objectInsights = await insights('summary');
+
+// Record-specific insights
+const recordInsights = await insights('analysis', 'rec_123');
+```

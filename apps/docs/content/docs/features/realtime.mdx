@@ -1,0 +1,76 @@
+---
+title: Real-time Collaboration
+description: WebSocket subscriptions and live presence
+---
+
+ObjectStack Mobile supports real-time data updates and presence awareness through WebSocket connections.
+
+## Subscriptions
+
+The `useSubscription` hook manages WebSocket connections for live data updates:
+
+```ts
+const {
+  isConnected,
+  connectionId,
+  subscriptionId,
+  presence,
+  connect,
+  disconnect,
+} = useSubscription({
+  objectName: 'contacts',
+  onEvent: (event) => {
+    switch (event.type) {
+      case 'record.created':
+        // Handle new record
+        break;
+      case 'record.updated':
+        // Handle update
+        break;
+      case 'record.deleted':
+        // Handle deletion
+        break;
+    }
+  },
+});
+```
+
+## Connection Lifecycle
+
+```ts
+// Connect when entering a view
+connect();
+
+// Disconnect when leaving
+disconnect();
+```
+
+The hook automatically handles reconnection when the network drops and reconnects.
+
+## Presence
+
+Track which users are viewing the same data:
+
+```ts
+const { presence } = useSubscription({
+  objectName: 'contacts',
+  onEvent: handleEvent,
+});
+
+// presence: [{ userId, userName, avatar, lastSeen }]
+```
+
+## CollaborationIndicator
+
+Visual indicator showing other active users:
+
+```tsx
+import { CollaborationIndicator } from '@/components/realtime/CollaborationIndicator';
+
+<CollaborationIndicator
+  users={presence}
+  maxAvatars={3}
+/>
+```
+
+Displays overlapping user avatars with a "+N more" indicator.
