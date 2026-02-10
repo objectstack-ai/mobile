@@ -186,7 +186,7 @@ describe("useQueryBuilder", () => {
 
     const serialized = result.current.serialize();
     expect(serialized).toBeDefined();
-    expect(serialized.logic).toBe("AND");
+    expect((serialized as any).logic).toBe("AND");
   });
 
   it("manages selected fields and projection", () => {
