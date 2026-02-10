@@ -1,0 +1,4 @@
+{
+  "title": "Components",
+  "pages": ["index", "renderers", "ui-primitives", "common", "actions", "query"]
+}

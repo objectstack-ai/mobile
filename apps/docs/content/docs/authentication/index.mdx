@@ -1,0 +1,96 @@
+---
+title: Authentication
+description: Authentication system, biometrics, and session management
+---
+
+ObjectStack Mobile uses **better-auth** with the Expo plugin for session management, combined with biometric authentication and app-lock security features.
+
+## Auth Flow
+
+The authentication flow is managed by the root layout (`app/_layout.tsx`):
+
+1. **Server Configuration** — User enters the ObjectStack server URL on first launch
+2. **Sign In** — Email/password login with optional social auth (Google, Apple)
+3. **Session** — Auth token stored securely via `expo-secure-store`
+4. **Route Protection** — Unauthenticated users are redirected to the auth screens
+
+## Auth Client Setup
+
+The auth client is initialized in `lib/auth-client.ts`:
+
+```ts
+import { authClient, reinitializeAuthClient } from '@/lib/auth-client';
+
+// Reinitialize when server URL changes
+reinitializeAuthClient('https://your-server.objectstack.com');
+
+// Sign in
+const result = await authClient.signIn.email({
+  email: 'user@example.com',
+  password: 'password',
+});
+```
+
+## Session Management
+
+`lib/session-manager.ts` provides session utilities:
+
+```ts
+import { getCurrentUser, listSessions } from '@/lib/session-manager';
+
+// Get current authenticated user profile
+const user = await getCurrentUser();
+
+// List all active sessions
+const sessions = await listSessions();
+```
+
+## Biometric Authentication
+
+`lib/biometric-auth.ts` wraps `expo-local-authentication` for fingerprint and face recognition:
+
+```ts
+import { getBiometricStatus } from '@/lib/biometric-auth';
+
+const status = await getBiometricStatus();
+// { isAvailable: true, biometryType: 'fingerprint' | 'facial' | 'iris' }
+```
+
+Biometric auth is used for:
+- **App Unlock** — Require biometric verification after inactivity timeout
+- **Sensitive Actions** — Confirm identity before destructive operations
+
+## App Lock
+
+`lib/app-lock.ts` monitors app lifecycle transitions and locks the app after a configurable inactivity timeout:
+
+```ts
+import { startAppLockMonitor } from '@/lib/app-lock';
+
+// Start monitoring (uses security store settings)
+startAppLockMonitor();
+```
+
+The security state is managed by the `security-store`:
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| `biometricEnabled` | Whether biometric auth is active | `false` |
+| `isLocked` | Current lock state | `false` |
+| `inactivityTimeout` | Seconds before auto-lock | `300` (5 min) |
+| `lastActiveAt` | Last user interaction timestamp | — |
+
+## Certificate Pinning
+
+For enterprise deployments, `lib/certificate-pinning.ts` validates TLS certificates:
+
+```ts
+import { buildPinningPolicy, validateCertificatePin } from '@/lib/certificate-pinning';
+
+const policy = buildPinningPolicy({
+  hostname: 'api.objectstack.com',
+  pins: ['sha256/AAAA...', 'sha256/BBBB...'],
+});
+
+const isValid = await validateCertificatePin(policy);
+```
