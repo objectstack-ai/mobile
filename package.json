@@ -13,14 +13,16 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json}\"",
     "bundle:analyze": "npx expo export --dump-sourcemap --platform ios && npx source-map-explorer dist/bundles/ios/*.js",
+    "server:dev": "tsx server/dev.ts",
+    "server:test": "tsx server/test-auth.ts",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish"
   },
   "dependencies": {
     "@better-auth/expo": "^1.4.18",
-    "@objectstack/client": "^2.0.1",
-    "@objectstack/client-react": "^2.0.1",
+    "@objectstack/client": "^2.0.4",
+    "@objectstack/client-react": "^2.0.4",
     "@sentry/react-native": "^7.12.0",
     "@shopify/flash-list": "^2.2.2",
     "@tanstack/react-query": "^5.90.20",
@@ -71,6 +73,11 @@
     "@babel/core": "^7.29.0",
     "@changesets/changelog-github": "^0.5.2",
     "@changesets/cli": "^2.29.8",
+    "@objectstack/core": "^2.0.4",
+    "@objectstack/driver-memory": "^2.0.4",
+    "@objectstack/objectql": "^2.0.4",
+    "@objectstack/plugin-auth": "^2.0.3",
+    "@objectstack/plugin-hono-server": "^2.0.4",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.9.0",
     "@types/jest": "^29.5.14",
@@ -87,6 +94,7 @@
     "msw": "^2.12.9",
     "prettier": "^3.5.3",
     "react-test-renderer": "19.1.0",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.2"
   },
   "private": true
