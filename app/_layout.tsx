@@ -67,7 +67,7 @@ export default function RootLayout() {
 
   const client = useMemo(
     () => createObjectStackClient(token),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverUrl is used by setObjectStackApiUrl, not by createObjectStackClient
     [token],
   );
 
