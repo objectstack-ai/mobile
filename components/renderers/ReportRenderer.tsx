@@ -181,7 +181,7 @@ function SummaryReport({
                   {col.label ?? col.field} ({col.aggregate})
                 </Text>
                 <Text className="text-sm font-semibold text-primary">
-                  {computeAggregate(rows, col.field, col.aggregate!).toLocaleString()}
+                  {computeAggregate(rows, col.field, col.aggregate ?? "count").toLocaleString()}
                 </Text>
               </View>
             ))}

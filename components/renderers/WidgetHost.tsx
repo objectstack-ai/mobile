@@ -34,7 +34,7 @@ export function WidgetHost({ type, props = {}, fallback }: WidgetHostProps) {
   const mountedRef = useRef(false);
 
   useEffect(() => {
-    if (!entry) return;
+    if (!getWidget(type)) return;
     if (!mountedRef.current) {
       mountedRef.current = true;
       emitWidgetLifecycle({
@@ -50,7 +50,7 @@ export function WidgetHost({ type, props = {}, fallback }: WidgetHostProps) {
         timestamp: Date.now(),
       });
     };
-  }, [entry, type]);
+  }, [type]);
 
   if (!entry) {
     if (fallback) return <>{fallback}</>;

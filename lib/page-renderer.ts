@@ -88,6 +88,12 @@ export function validatePageSchema(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
+
+const VARIABLE_PATTERN = /^\{\{(.+)\}\}$/;
+
+/* ------------------------------------------------------------------ */
 /*  Resolution                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -101,12 +107,15 @@ function resolveProps(
   if (!props) return {};
   const resolved: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(props)) {
-    if (typeof value === "string" && value.startsWith("{{") && value.endsWith("}}")) {
-      const varName = value.slice(2, -2).trim();
-      resolved[key] = variables[varName] ?? value;
-    } else {
-      resolved[key] = value;
+    if (typeof value === "string") {
+      const match = VARIABLE_PATTERN.exec(value);
+      if (match) {
+        const varName = match[1].trim();
+        resolved[key] = variables[varName] ?? value;
+        continue;
+      }
     }
+    resolved[key] = value;
   }
   return resolved;
 }
