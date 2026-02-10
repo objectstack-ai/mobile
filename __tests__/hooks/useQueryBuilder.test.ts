@@ -4,6 +4,16 @@
  */
 import { renderHook, act } from "@testing-library/react-native";
 
+/* ---- Types ---- */
+interface SerializedFilter {
+  logic: string;
+  filters: Array<{
+    field: string;
+    operator: string;
+    value: string;
+  }>;
+}
+
 /* ---- Mock query-builder helpers ---- */
 let mockNextId = 0;
 jest.mock("~/lib/query-builder", () => ({
@@ -186,7 +196,7 @@ describe("useQueryBuilder", () => {
 
     const serialized = result.current.serialize();
     expect(serialized).toBeDefined();
-    expect((serialized as any).logic).toBe("AND");
+    expect((serialized as SerializedFilter).logic).toBe("AND");
   });
 
   it("manages selected fields and projection", () => {
