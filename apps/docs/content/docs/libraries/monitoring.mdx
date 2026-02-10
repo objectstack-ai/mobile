@@ -1,0 +1,95 @@
+---
+title: Monitoring Libraries
+description: Error tracking, analytics, performance, and memory profiling
+---
+
+## sentry.ts
+
+Crash reporting and performance monitoring via Sentry.
+
+```ts
+import { initSentry } from '@/lib/sentry';
+
+initSentry({
+  dsn: 'https://your-sentry-dsn',
+  environment: 'production',
+  tracesSampleRate: 0.2,
+});
+```
+
+Integrates `@sentry/react-native` for automatic crash reporting, breadcrumbs, and performance traces.
+
+## analytics.ts
+
+Event tracking with batch flushing to a remote endpoint.
+
+```ts
+import { createAnalyticsTracker } from '@/lib/analytics';
+
+const tracker = createAnalyticsTracker({
+  endpoint: 'https://analytics.objectstack.com/events',
+  batchSize: 20,
+  flushInterval: 30000, // 30 seconds
+});
+
+// Track events (queued and flushed in batches)
+tracker.track('page_view', { screen: 'ContactList' });
+tracker.track('action', { type: 'record_created', object: 'contacts' });
+```
+
+## error-handling.ts
+
+Standardized error parsing and user-friendly messages.
+
+```ts
+import { parseError } from '@/lib/error-handling';
+
+try {
+  await client.data.create('contacts', data);
+} catch (err) {
+  const error = parseError(err);
+  // {
+  //   code: 'UNAUTHORIZED' | 'NOT_FOUND' | 'VALIDATION' | ...,
+  //   message: 'User-friendly error message',
+  //   details: { ... },
+  // }
+}
+```
+
+Error codes: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION`, `CONFLICT`, `RATE_LIMITED`, `SERVER_ERROR`, `NETWORK_ERROR`, `TIMEOUT`.
+
+## performance-benchmark.ts
+
+Performance metric tracking with configurable thresholds.
+
+```ts
+import type { BenchmarkConfig } from '@/lib/performance-benchmark';
+
+const config: BenchmarkConfig = {
+  appStartup: { threshold: 2000 },    // 2s max
+  screenRender: { threshold: 500 },   // 500ms max
+  apiResponse: { threshold: 3000 },   // 3s max
+  frameTime: { threshold: 16.67 },    // 60fps target
+};
+```
+
+## memory-profiler.ts
+
+Memory leak detection for development builds.
+
+```ts
+import { createMemoryTracker } from '@/lib/memory-profiler';
+
+const tracker = createMemoryTracker({
+  leakThreshold: 10, // Report after 10 unmatched mounts
+});
+
+// Track component lifecycle
+tracker.onMount('ContactList');
+tracker.onUnmount('ContactList');
+
+// Check for leaks
+const leaks = tracker.getLeaks();
+```
+
+Tracks component mounts, subscriptions, and event listeners. Reports potential memory leaks when unmount counts don't match mount counts above a configurable threshold.

@@ -1,0 +1,106 @@
+---
+title: Utility Libraries
+description: Formatting, i18n, and general utilities
+---
+
+## formatting.ts
+
+Locale-aware date, number, and currency formatting.
+
+```ts
+import { formatDate, formatDateTime } from '@/lib/formatting';
+
+// Format based on current i18n language
+formatDate('2024-03-15');           // "Mar 15, 2024" (en)
+formatDate('2024-03-15');           // "2024年3月15日" (zh)
+
+formatDateTime('2024-03-15T10:30'); // "Mar 15, 2024, 10:30 AM" (en)
+```
+
+Uses the current i18next language for locale-aware formatting.
+
+## i18n.ts
+
+Internationalization setup with i18next and expo-localization.
+
+```ts
+import { detectDeviceLanguage, isRTL } from '@/lib/i18n';
+
+// Detect device language
+const lang = detectDeviceLanguage(); // 'en' | 'zh' | 'ar'
+
+// Check RTL layout
+const rtl = isRTL('ar'); // true
+```
+
+**Supported languages:**
+- English (`en`) — Default
+- Chinese (`zh`) — Simplified Chinese
+- Arabic (`ar`) — Right-to-left support
+
+Translation files are stored in `/locales/{lang}.json` with nested keys (e.g., `common.ok`, `screens.home.title`).
+
+i18next is initialized with the `translation` namespace and default key separator (`.`).
+
+## feature-flags.ts
+
+Feature flag manager with A/B testing support.
+
+```ts
+import { createFeatureFlagManager } from '@/lib/feature-flags';
+
+const manager = createFeatureFlagManager({
+  flags: {
+    'new-dashboard': { enabled: true, rollout: 50 },
+    'ai-search': { enabled: false },
+  },
+});
+
+// Evaluate a flag (considers rollout percentage)
+const isEnabled = manager.evaluate('new-dashboard', userId);
+```
+
+Uses `hashUserToPercentage()` for deterministic percentage-based bucketing.
+
+## remote-config.ts
+
+Remote configuration with local MMKV fallback.
+
+```ts
+import { createRemoteConfigManager } from '@/lib/remote-config';
+
+const config = createRemoteConfigManager({
+  endpoint: 'https://server.objectstack.com/config',
+  pollInterval: 300000, // 5 minutes
+});
+
+// Fetch latest config
+await config.refresh();
+
+// Get a value (falls back to cached)
+const value = config.get('maxUploadSizeMB'); // 10
+```
+
+## app-store-review.ts
+
+App Store submission checklist validation.
+
+```ts
+import type { ReviewChecklist } from '@/lib/app-store-review';
+
+// Validates against expo app.json config
+// Checks: metadata, assets, privacy, compliance
+```
+
+## utils.ts
+
+Tailwind CSS class merging utility.
+
+```ts
+import { cn } from '@/lib/utils';
+
+// Merge and deduplicate Tailwind classes
+cn('p-4 bg-white', isActive && 'bg-blue-500', className);
+```
+
+Uses `clsx` + `tailwind-merge` for conditional class composition.

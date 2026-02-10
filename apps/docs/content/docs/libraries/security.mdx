@@ -1,0 +1,79 @@
+---
+title: Security Libraries
+description: Certificate pinning, security audit, and app lock
+---
+
+## certificate-pinning.ts
+
+TLS certificate validation for enterprise deployments.
+
+```ts
+import {
+  buildPinningPolicy,
+  validateCertificatePin,
+} from '@/lib/certificate-pinning';
+
+// Build a pinning policy
+const policy = buildPinningPolicy({
+  hostname: 'api.objectstack.com',
+  pins: ['sha256/AAAA...', 'sha256/BBBB...'],
+});
+
+// Validate during network requests
+const isValid = await validateCertificatePin(policy);
+```
+
+## security-audit.ts
+
+Pre-release security checklist and audit report generator.
+
+```ts
+import { createSecurityAudit } from '@/lib/security-audit';
+
+const audit = createSecurityAudit();
+
+// Register checks
+audit.addCheck('https-enforced', () => checkHTTPS());
+audit.addCheck('cert-pinning', () => checkCertPinning());
+audit.addCheck('secure-storage', () => checkSecureStorage());
+
+// Generate report
+const report = await audit.run();
+// { passed: ['https-enforced', ...], failed: [...], score: 0.95 }
+```
+
+## app-lock.ts
+
+App lifecycle monitoring for biometric locking.
+
+```ts
+import { startAppLockMonitor } from '@/lib/app-lock';
+
+// Start monitoring (reads from security store)
+startAppLockMonitor();
+```
+
+Tracks foreground/background state transitions. When the app returns to foreground after the configured inactivity timeout, it triggers biometric re-authentication.
+
+## server-url.ts
+
+Server URL persistence and validation.
+
+```ts
+import {
+  getServerUrl,
+  setServerUrl,
+  validateServerUrl,
+} from '@/lib/server-url';
+
+// Get stored URL
+const url = await getServerUrl();
+
+// Validate with health check
+const isValid = await validateServerUrl('https://new-server.objectstack.com');
+
+// Persist URL
+await setServerUrl('https://new-server.objectstack.com');
+```
+
+Uses `expo-secure-store` for encrypted persistence. The `validateServerUrl` function performs a health check request to verify the server is accessible.
