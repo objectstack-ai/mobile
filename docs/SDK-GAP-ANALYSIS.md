@@ -1,8 +1,8 @@
 # @objectstack/client SDK — Gap Analysis Report
 
-> **Version analyzed**: `@objectstack/client@2.0.1`, `@objectstack/client-react@2.0.1`, `@objectstack/spec@2.0.1`
+> **Version analyzed**: `@objectstack/client@2.0.4`, `@objectstack/client-react@2.0.4`, `@objectstack/spec@2.0.4`
 >
-> **Date**: 2026-02-09 (Updated after v2.0.1 upgrade)
+> **Date**: 2026-02-10 (Updated after spec v2.0.4 protocol audit)
 >
 > **Purpose**: 列出 Mobile 客户端完成全部开发所需但 SDK 目前尚未提供（或未完善）的 API 与功能，供上游项目排期开发。
 
@@ -11,30 +11,57 @@
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [Current SDK Coverage](#current-sdk-coverage)
-3. [Gap 1 — Views API (client.views)](#gap-1--views-api-clientviews)
-4. [Gap 2 — Permission System API](#gap-2--permission-system-api)
-5. [Gap 3 — Workflow & State Machine API](#gap-3--workflow--state-machine-api)
-6. [Gap 4 — Real-Time / WebSocket API](#gap-4--real-time--websocket-api)
-7. [Gap 5 — Push Notification Registration API](#gap-5--push-notification-registration-api)
-8. [Gap 6 — AI / NLQ API](#gap-6--ai--nlq-api)
-9. [Gap 7 — Batch Operations Optimization](#gap-7--batch-operations-optimization)
-10. [Gap 8 — File & Storage React Hooks](#gap-8--file--storage-react-hooks)
-11. [Gap 9 — i18n / Localization API](#gap-9--i18n--localization-api)
-12. [Gap 10 — Analytics React Hooks](#gap-10--analytics-react-hooks)
-13. [Gap 11 — client-react Hook Gaps](#gap-11--client-react-hook-gaps)
-14. [Priority Summary](#priority-summary)
-15. [Appendix: SDK API Surface Inventory](#appendix-sdk-api-surface-inventory)
+2. [v2.0.4 Spec Audit — New Findings](#v204-spec-audit--new-findings)
+3. [Current SDK Coverage](#current-sdk-coverage)
+4. [Gap 1 — Views API (client.views)](#gap-1--views-api-clientviews)
+5. [Gap 2 — Permission System API](#gap-2--permission-system-api)
+6. [Gap 3 — Workflow & State Machine API](#gap-3--workflow--state-machine-api)
+7. [Gap 4 — Real-Time / WebSocket API](#gap-4--real-time--websocket-api)
+8. [Gap 5 — Push Notification Registration API](#gap-5--push-notification-registration-api)
+9. [Gap 6 — AI / NLQ API](#gap-6--ai--nlq-api)
+10. [Gap 7 — Batch Operations Optimization](#gap-7--batch-operations-optimization)
+11. [Gap 8 — File & Storage React Hooks](#gap-8--file--storage-react-hooks)
+12. [Gap 9 — i18n / Localization API](#gap-9--i18n--localization-api)
+13. [Gap 10 — Analytics React Hooks](#gap-10--analytics-react-hooks)
+14. [Gap 11 — client-react Hook Gaps](#gap-11--client-react-hook-gaps)
+15. [Priority Summary](#priority-summary)
+16. [Appendix: SDK API Surface Inventory](#appendix-sdk-api-surface-inventory)
 
 ---
 
 ## Executive Summary
 
-ObjectStack Mobile 客户端目前已完成 Phase 0–3（基础框架、SDK 集成、渲染引擎、数据层），以及大部分 Phase 4A, 5A, 6（独立功能）。**v2.0.1 升级后，所有 SDK Gap 已解决，Phase 4B 和 5B 可以立即启动开发。**
+ObjectStack Mobile 客户端目前已完成 Phase 0–6.2（基础框架、SDK 集成、渲染引擎、数据层、高级功能、生产监控）。**v2.0.4 已升级，所有 v2.0.1 Gap 已解决，Phase 4B 和 5B 已完成开发。**
+
+### v2.0.4 协议审计摘要 (2026-02-10)
+
+在对 `@objectstack/spec@2.0.4` 的 **15 个模块**（root, driver, data, system, auth, kernel, hub, ai, automation, api, ui, contracts, integration, studio, permission）进行完整审计后，发现以下新的协议合规差距：
+
+**新发现的合规差距** (spec v2.0.4):
+
+| Category | Spec Module | Client API | Mobile Status | Priority |
+|----------|-------------|-----------|---------------|----------|
+| **Automation Trigger Hook** | `spec/automation` | `client.automation.trigger()` | ⚠️ 仅在 ActionExecutor 中使用，无专用 hook | 🔴 High |
+| **Package Management UI** | `spec/api` → packages | `client.packages.*` (6个方法) | ⚠️ 仅 `useAppDiscovery` 使用 `list()` | 🔴 High |
+| **Analytics SQL Explain** | `spec/api` → analytics | `client.analytics.explain()` | ❌ 未使用 | 🟡 Medium |
+| **Report View** | `spec/ui` → `ReportSchema` | — | ❌ 无报表视图渲染器 | 🟡 Medium |
+| **SDUI Page Composition** | `spec/ui` → `PageSchema` | — | ❌ 无服务端驱动页面 | 🟡 Medium |
+| **Widget System** | `spec/ui` → `WidgetManifest` | — | ❌ 无 Widget 注册系统 | 🟢 Low |
+| **Theme Tokens** | `spec/ui` → `ThemeSchema` | — | ⚠️ NativeWind 未映射 spec 令牌 | 🟢 Low |
+| **AI Conversation Session** | `spec/ai` → `ConversationSession` | — | ⚠️ useAI 无会话持久化 | 🟡 Medium |
+| **RAG Pipeline** | `spec/ai` → `RAGPipelineConfig` | — | ❌ 未实现 | 🟡 Medium |
+| **MCP Integration** | `spec/ai` → `MCPServerConfig` | — | ❌ 未实现 | 🟢 Low |
+| **Agent Orchestration** | `spec/ai` → `AgentSchema` | — | ❌ 未实现 | 🟢 Low |
+| **Approval Process UI** | `spec/automation` → `ApprovalProcess` | `client.workflow.approve/reject` | ⚠️ 无审批列表 UI | 🔴 High |
+| **Collaboration/CRDT** | `spec/system` → `CollaborationSession` | — | ❌ 未实现 | 🟡 Medium |
+| **Audit Log** | `spec/system` → `AuditEvent` | — | ❌ 未实现 | 🟢 Low |
+| **Flow Visualization** | `spec/automation` → `FlowSchema` | — | ❌ 未实现 | 🟢 Low |
+
+> **详细改进方案**: 见 [NEXT-PHASE.md](./NEXT-PHASE.md) Phase 9–12
 
 ### v2.0.1 更新摘要 (2026-02-09)
 
-✅ **所有 Gap 已解决**: SDK v2.0.1 完整实现了全部 13 个 API 命名空间，并导出了 TypeScript 类型定义。
+✅ **所有核心 Gap 已解决**: SDK v2.0.1 完整实现了全部 13 个 API 命名空间，并导出了 TypeScript 类型定义。
 
 **新增已解决 API**:
 - `client.views.*` — 完整类型化的 Views API (create/get/list/update/delete)
@@ -45,7 +72,7 @@ ObjectStack Mobile 客户端目前已完成 Phase 0–3（基础框架、SDK 集
 - `client.ai.*` — AI/NLQ API (nlq/chat/suggest/insights)
 - `client.i18n.*` — 国际化 API (getLocales/getTranslations/getFieldLabels)
 
-### 剩余改进项
+### 改进项总览
 
 | Category | Status | Impact |
 |----------|--------|--------|
@@ -56,15 +83,61 @@ ObjectStack Mobile 客户端目前已完成 Phase 0–3（基础框架、SDK 集
 | **Push Notification API** | ✅ **已解决 (v2.0.1)** | Phase 4B.5 解除阻塞 |
 | **AI/NLQ API** | ✅ **已解决 (v2.0.1)** | Phase 5B.1 解除阻塞 |
 | **Batch 优化** | ✅ **已改进 (v2.0.0)** | 性能可继续优化 |
-| **Storage React Hooks** | ⚠️ client-react 缺失 | 可自建 hooks |
+| **Storage React Hooks** | ⚠️ client-react 缺失 | 已自建 `useFileUpload` hook |
 | **i18n API** | ✅ **已解决 (v2.0.1)** | Phase 5B.2 解除阻塞 |
-| **Analytics React Hooks** | ⚠️ client-react 缺失 | 可用 hooks wrapper 优化 |
+| **Analytics React Hooks** | ⚠️ client-react 缺失 | 已自建 `useAnalyticsQuery/Meta` hooks |
+| **Automation Hook** | 🆕 **需要新 hook (v2.0.4)** | Phase 9.1 |
+| **Package Management** | 🆕 **需要扩展 (v2.0.4)** | Phase 9.2 |
+| **Report View** | 🆕 **需要新渲染器 (v2.0.4)** | Phase 10.1 |
+| **SDUI Page Renderer** | 🆕 **需要新能力 (v2.0.4)** | Phase 10.2 |
+| **AI Sessions/RAG/MCP** | 🆕 **需要新 hooks (v2.0.4)** | Phase 11 |
+| **Collaboration** | 🆕 **需要新能力 (v2.0.4)** | Phase 12.1 |
+
+---
+
+## v2.0.4 Spec Audit — New Findings
+
+### 审计方法
+
+对 `@objectstack/spec@2.0.4` 的全部 15 个导出模块进行了完整协议扫描，比对 `@objectstack/client@2.0.4` 的 API surface 和 Mobile App 的现有实现。
+
+### Spec 模块覆盖率
+
+| Spec Module | Schemas | Client Exposed | Mobile Implemented | Coverage |
+|-------------|---------|---------------|-------------------|----------|
+| `spec/api` | ~200+ types | ✅ 完整 | ✅ 95%+ | 🟢 |
+| `spec/data` | ~60 types (Field, Query, Filter, Driver) | ✅ 通过 client.data | ✅ 完整 | 🟢 |
+| `spec/ui` | ~60 types (View, Form, Dashboard, Report, Page, Widget, Theme) | ⚠️ 部分 (通过 meta) | ⚠️ 80% (缺 Report, Page, Widget) | 🟡 |
+| `spec/system` | ~200+ types (Cache, Storage, Logging, Audit, Collaboration, CRDT) | ⚠️ 部分 | ⚠️ 50% (缺 Collaboration, Audit) | 🟡 |
+| `spec/ai` | ~100+ types (Agent, RAG, MCP, Conversation, Cost) | ⚠️ 仅 NLQ/Chat/Suggest/Insights | ⚠️ 30% (缺 RAG, MCP, Agent, Session) | 🔴 |
+| `spec/automation` | ~50 types (Flow, ETL, Approval, StateMachine, Connector) | ⚠️ 仅 trigger() | ⚠️ 20% (仅 trigger in ActionExecutor) | 🔴 |
+| `spec/kernel` | ~150+ types (Plugin, Event, FeatureFlag, Metadata) | ❌ 不适用 (服务端) | — | — |
+| `spec/hub` | ~30 types (Tenant, Registry, Plans) | ⚠️ 部分 | ❌ 未实现 | 🔴 |
+| `spec/contracts` | ~15 interfaces (IDataEngine, IHttpServer, IServiceRegistry) | ❌ 不适用 (服务端接口) | — | — |
+| `spec/integration` | ~80 types (Connectors, FileStorage, MessageQueue, GitHub, Vercel) | ❌ 不适用 (服务端) | — | — |
+| `spec/studio` | ~15 types (StudioPlugin, Contributions) | ❌ 不适用 (桌面端) | — | — |
+| `spec/permission` | (通过 api 模块) | ✅ 通过 client.permissions | ✅ 完整 | 🟢 |
+
+### 关键协议合规要求
+
+根据 `@objectstack/spec/prompts/implement-objectui.md`，Mobile 端必须遵循以下规则:
+
+1. **Rule #1: Server-Driven UI (SDUI)** — UI 必须根据 `PageSchema` 和 `ViewSchema` 动态渲染，不可硬编码页面布局
+2. **Rule #2: Metadata-Aware Components** — 组件必须接受 `ViewSchema` 作为 props
+3. **Rule #3: Action Abstraction** — 按钮执行 `ActionSchema` 定义，非任意代码
+4. **Rule #4: Global Theming** — 样式基于 `ThemeSchema` 令牌
+
+**当前合规状态:**
+- Rule #1: ⚠️ 部分合规 (视图渲染器接受 metadata，但缺少 PageSchema 页面组合)
+- Rule #2: ✅ 合规 (所有渲染器接受 metadata 配置)
+- Rule #3: ✅ 合规 (`ActionExecutor` 执行 ActionSchema)
+- Rule #4: ⚠️ 部分合规 (使用 NativeWind，但未映射 spec ThemeSchema 令牌)
 
 ---
 
 ## Current SDK Coverage
 
-### `@objectstack/client@2.0.1` — 已有 API
+### `@objectstack/client@2.0.4` — 已有 API
 
 以下 API 在 SDK 中有完整类型定义且 Mobile 端已成功集成：
 
@@ -151,7 +224,7 @@ QueryBuilder<T>                         ✅ 链式查询构建器类
 FilterBuilder<T>                        ✅ 链式过滤器构建器类
 ```
 
-### `@objectstack/client-react@2.0.1` — 已有 Hooks
+### `@objectstack/client-react@2.0.4` — 已有 Hooks
 
 ```
 ObjectStackProvider                     ✅ Context provider
