@@ -26,7 +26,7 @@ jobs:
       - name: Type Check (Mobile)
         run: npx tsc --noEmit
       - name: Type Check (Docs)
-        run: cd apps/docs && npx tsc --noEmit
+        run: cd apps/docs && pnpm run types:check
       - name: Lint
         run: npx eslint . --ext .ts,.tsx
       - name: Test
