@@ -1,0 +1,36 @@
+---
+title: Hooks Reference
+description: Complete reference for all custom React hooks
+---
+
+ObjectStack Mobile provides 23+ custom React hooks that encapsulate business logic, data fetching, and feature integrations.
+
+## Hook Categories
+
+<Cards>
+  <Card title="Data Hooks" href="/docs/hooks/data-hooks" />
+  <Card title="Auth & Security Hooks" href="/docs/hooks/auth-hooks" />
+  <Card title="Feature Hooks" href="/docs/hooks/feature-hooks" />
+  <Card title="Analytics Hooks" href="/docs/hooks/analytics-hooks" />
+  <Card title="UI Hooks" href="/docs/hooks/ui-hooks" />
+</Cards>
+
+## SDK Re-exports
+
+The `useObjectStack` barrel file re-exports all SDK hooks plus custom hooks:
+
+```ts
+import {
+  useClient,
+  useQuery,
+  useMutation,
+  usePagination,
+  useInfiniteQuery,
+  useObject,
+  useView,
+  useFields,
+  useMetadata,
+} from '@/hooks/useObjectStack';
+```
+
+These hooks come from `@objectstack/client-react` and provide direct access to the SDK's data layer with TanStack Query integration.

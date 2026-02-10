@@ -1,0 +1,62 @@
+---
+title: Auth & Security Hooks
+description: Hooks for permissions, feature flags, and configuration
+---
+
+## usePermissions
+
+Checks object-level and field-level permissions for the current user.
+
+```ts
+const {
+  permissions,     // PermissionSet
+  checkPermission, // (action, recordId?, field?) => boolean
+  isLoading,       // boolean
+  refetch,         // () => void
+} = usePermissions('contacts');
+```
+
+**Example:**
+
+```ts
+const { checkPermission } = usePermissions('contacts');
+
+const canCreate = checkPermission('create');
+const canEditEmail = checkPermission('update', record.id, 'email');
+const canDelete = checkPermission('delete', record.id);
+```
+
+Actions: `create`, `read`, `update`, `delete`, `export`, `import`.
+
+## useFeatureFlag
+
+Evaluates a single feature flag with reactive updates.
+
+```ts
+const isEnabled = useFeatureFlag('new-dashboard');
+// Returns: boolean
+```
+
+Re-renders automatically when feature flags change. Supports A/B testing with percentage-based rollout bucketing.
+
+## useRemoteConfig
+
+Accesses remote configuration values with local MMKV fallback.
+
+```ts
+const {
+  config,  // Record<string, unknown>
+  refresh, // () => Promise<void>
+} = useRemoteConfig();
+```
+
+**Example:**
+
+```ts
+const { config, refresh } = useRemoteConfig();
+
+const maxUploadSize = config.maxUploadSizeMB ?? 10;
+const enableBeta = config.enableBetaFeatures ?? false;
+```
+
+Config values are cached locally in MMKV and refreshed periodically from the server.

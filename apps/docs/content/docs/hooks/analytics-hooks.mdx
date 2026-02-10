@@ -1,0 +1,61 @@
+---
+title: Analytics Hooks
+description: Hooks for event tracking and analytics queries
+---
+
+## useAnalyticsTracking
+
+Page view and action tracking for user analytics.
+
+```ts
+// Track page views automatically
+usePageView('ContactList', { objectName: 'contacts' });
+
+// Track custom actions
+const { trackAction } = useTrackAction();
+trackAction('record_created', { objectName: 'contacts', recordId: 'rec_123' });
+```
+
+The `useAnalyticsTracking` module exports two hooks:
+
+- `usePageView(screenName, properties?)` — Automatically logs a page view event when the component mounts
+- `useTrackAction()` — Returns a `trackAction(action, properties?)` function for custom event tracking
+
+Events are batched and flushed periodically to the analytics endpoint.
+
+## useAnalyticsQuery
+
+Query analytics data with metric/dimension grouping and aggregations.
+
+```ts
+const {
+  data,      // AnalyticsResult[]
+  total,     // number
+  isLoading, // boolean
+  error,     // Error | null
+  refetch,   // () => void
+} = useAnalyticsQuery({
+  metric: 'record_count',
+  dimensions: ['status', 'region'],
+  aggregation: 'count',
+  dateRange: { start: '2024-01-01', end: '2024-12-31' },
+  filters: { objectName: 'deals' },
+});
+```
+
+**Aggregation types:** `count`, `sum`, `avg`, `min`, `max`.
+
+## useAnalyticsMeta
+
+Fetches available analytics metadata (metrics, fields, aggregate types).
+
+```ts
+const {
+  metrics,   // AnalyticsMetric[]
+  isLoading, // boolean
+  error,     // Error | null
+  refetch,   // () => void
+} = useAnalyticsMeta();
+```
+
+Returns the list of available metrics, queryable fields, and supported aggregation functions.

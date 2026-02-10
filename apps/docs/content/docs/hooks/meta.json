@@ -1,0 +1,4 @@
+{
+  "title": "Hooks",
+  "pages": ["index", "data-hooks", "auth-hooks", "feature-hooks", "analytics-hooks", "ui-hooks"]
+}
