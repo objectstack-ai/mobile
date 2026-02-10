@@ -1,0 +1,79 @@
+---
+title: Offline-First Architecture
+description: How ObjectStack Mobile works without network connectivity
+---
+
+ObjectStack Mobile is designed to function fully offline. Users can browse, create, edit, and delete records without network connectivity. Changes are queued and synced when the device reconnects.
+
+## Storage Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| Structured Data | expo-sqlite | Records, sync queue entries |
+| Key-Value Cache | react-native-mmkv | Metadata, feature flags, config |
+| Secure Storage | expo-secure-store | Auth tokens, server URL |
+
+## Sync Queue
+
+All mutations performed offline are written to a **FIFO sync queue** stored in SQLite:
+
+```ts
+interface SyncQueueEntry {
+  id: string;
+  objectName: string;
+  operation: 'create' | 'update' | 'delete';
+  recordId?: string;
+  payload: Record<string, unknown>;
+  status: 'pending' | 'in_progress' | 'failed' | 'conflict';
+  retryCount: number;
+  createdAt: number;
+}
+```
+
+When the device comes back online, the `useOfflineSync` hook processes the queue:
+
+1. **Dequeue** — Take the next pending entry
+2. **Execute** — Send the mutation to the server
+3. **Handle response** — On success, remove from queue; on 409, mark as conflict
+4. **Retry** — Failed entries are retried up to 5 times with exponential backoff
+
+## Conflict Resolution
+
+When a record has been modified on both the server and the device, a **409 Conflict** response triggers the conflict resolution flow:
+
+```ts
+interface ConflictInfo {
+  localVersion: Record<string, unknown>;
+  serverVersion: Record<string, unknown>;
+  conflictFields: string[];
+}
+```
+
+The `ConflictResolutionDialog` component presents the user with a side-by-side comparison and three options:
+
+- **Keep Local** — Overwrite server with local changes
+- **Keep Server** — Discard local changes
+- **Merge** — Field-by-field manual merge
+
+## Background Sync
+
+The `registerBackgroundSync()` function from `lib/background-sync.ts` registers an Expo background task that drains the sync queue even when the app is in the background:
+
+```ts
+import { registerBackgroundSync } from '@/lib/background-sync';
+
+// Register on app startup
+await registerBackgroundSync();
+```
+
+This uses `expo-background-fetch` and `expo-task-manager` to periodically check for pending queue entries.
+
+## Network Status
+
+The `useNetworkStatus` hook monitors connectivity and updates the app store:
+
+```ts
+const { isConnected, isOffline, networkType, refresh } = useNetworkStatus();
+```
+
+The `OfflineIndicator` component shows a banner when the device is offline, displaying the number of pending mutations and a manual sync button.
