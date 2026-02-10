@@ -1,0 +1,40 @@
+---
+title: ObjectStack Mobile
+description: Enterprise-grade mobile runtime for the ObjectStack low-code platform
+---
+
+ObjectStack Mobile is a metadata-driven, offline-first mobile application built with **Expo** and **React Native**. It interprets server-side metadata from the ObjectStack platform and renders fully native mobile UIs — lists, forms, dashboards, kanban boards, calendars, charts, and more.
+
+## Key Features
+
+- **Metadata-Driven Rendering** — Views, fields, and actions are defined on the server and rendered dynamically on the client
+- **Offline-First Architecture** — Full SQLite offline storage with sync queue and automatic conflict resolution
+- **12+ View Renderers** — List, Form, Detail, Dashboard, Kanban, Calendar, Timeline, Chart, Map, and more
+- **Enterprise Security** — Biometric authentication, certificate pinning, app lock, and encrypted storage
+- **AI Integration** — Natural Language Query (NLQ), AI chat, smart suggestions, and data insights
+- **Real-time Collaboration** — WebSocket-based live updates and presence indicators
+- **Internationalization** — Multi-language support (English, Chinese, Arabic) with RTL layout
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Expo SDK 54 + React Native 0.81 |
+| Routing | Expo Router v6 (file-based) |
+| Styling | NativeWind 4 + Tailwind CSS |
+| State | Zustand (client) + TanStack Query (server) |
+| SDK | @objectstack/client + @objectstack/client-react |
+| Auth | better-auth + @better-auth/expo |
+| Offline | expo-sqlite + react-native-mmkv |
+| Testing | Jest + React Native Testing Library |
+
+## Quick Links
+
+<Cards>
+  <Card title="Getting Started" href="/docs/getting-started" />
+  <Card title="Architecture" href="/docs/architecture" />
+  <Card title="Components" href="/docs/components" />
+  <Card title="Hooks Reference" href="/docs/hooks" />
+  <Card title="Libraries" href="/docs/libraries" />
+  <Card title="Features" href="/docs/features" />
+</Cards>

@@ -1,0 +1,69 @@
+---
+title: Action Components
+description: User action handling and execution
+---
+
+The action system interprets server-defined actions and provides a native execution layer.
+
+## ActionBar
+
+Horizontal scrollable bar of action buttons:
+
+```tsx
+import { ActionBar } from '@/components/actions/ActionBar';
+
+<ActionBar
+  actions={availableActions}
+  onAction={handleAction}
+  disabledActions={['delete']}
+/>
+```
+
+## FloatingActionButton
+
+Bottom-right floating button with haptic feedback:
+
+```tsx
+import { FloatingActionButton } from '@/components/actions/FloatingActionButton';
+
+<FloatingActionButton
+  onPress={handleCreate}
+  icon="plus"
+/>
+```
+
+## ActionExecutor
+
+Handles action execution with deep-linking and navigation:
+
+```tsx
+import { ActionExecutor } from '@/components/actions/ActionExecutor';
+
+<ActionExecutor
+  client={client}
+  objectName="contacts"
+  recordId="rec_123"
+  appName="crm"
+  onSuccess={handleSuccess}
+  onError={handleError}
+/>
+```
+
+## Batch Operations
+
+For bulk operations on multiple records:
+
+```tsx
+import { BatchActionBar } from '@/components/batch/BatchActionBar';
+import { BatchProgressIndicator } from '@/components/batch/BatchProgressIndicator';
+
+<BatchActionBar
+  selectedCount={selectedRecords.length}
+  onBatchAction={handleBatchAction}
+/>
+
+<BatchProgressIndicator
+  progress={batchProgress}
+  total={totalRecords}
+/>
+```

@@ -1,0 +1,73 @@
+---
+title: Getting Started
+description: Set up and run ObjectStack Mobile
+---
+
+This guide walks you through setting up the ObjectStack Mobile development environment, running the app, and understanding the project structure.
+
+## Prerequisites
+
+- **Node.js** ≥ 18
+- **pnpm** (recommended) or npm
+- **Expo CLI** (`npx expo`)
+- An ObjectStack server instance (for API connectivity)
+- iOS Simulator (macOS) or Android Emulator
+
+## Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/objectstack-ai/mobile.git
+cd mobile
+pnpm install
+```
+
+## Running the App
+
+Start the Expo development server:
+
+```bash
+# Start with interactive menu
+pnpm start
+
+# Platform-specific
+pnpm ios       # iOS Simulator
+pnpm android   # Android Emulator
+pnpm web       # Web browser
+```
+
+## Server Configuration
+
+On first launch, the app displays a **Server Configuration** screen. Enter your ObjectStack server URL (e.g., `https://your-instance.objectstack.com`). The URL is validated via a health check and stored securely using `expo-secure-store`.
+
+## Project Structure
+
+```
+mobile/
+├── app/                  # Expo Router pages (file-based routing)
+│   ├── _layout.tsx       # Root layout with providers
+│   ├── (auth)/           # Authentication screens
+│   ├── (tabs)/           # Main tab navigation
+│   └── (app)/            # Dynamic app screens
+├── components/           # React Native components
+│   ├── renderers/        # View type renderers (list, form, etc.)
+│   ├── ui/               # Design system primitives
+│   ├── common/           # Shared utility components
+│   ├── actions/          # Action system components
+│   └── query/            # Query builder UI
+├── hooks/                # Custom React hooks (23+)
+├── lib/                  # Core utility libraries (24+)
+├── stores/               # Zustand state stores
+├── locales/              # i18n translation files
+├── assets/               # Static assets
+└── docs/                 # Internal documentation
+```
+
+## Next Steps
+
+<Cards>
+  <Card title="Architecture" href="/docs/architecture" />
+  <Card title="Authentication" href="/docs/authentication" />
+  <Card title="Components" href="/docs/components" />
+</Cards>

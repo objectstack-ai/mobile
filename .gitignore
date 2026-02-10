@@ -48,3 +48,8 @@ coverage/
 # generated native folders
 /ios
 /android
+
+# fumadocs
+apps/docs/.next/
+apps/docs/.source/
+apps/docs/node_modules/

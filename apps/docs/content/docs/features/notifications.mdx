@@ -1,0 +1,66 @@
+---
+title: Notifications
+description: Push notifications and preference management
+---
+
+## Notification Management
+
+The `useNotifications` hook provides full notification lifecycle management:
+
+```ts
+const {
+  notifications,
+  unreadCount,
+  isLoading,
+  fetchMore,
+  markAsRead,
+  updatePreferences,
+} = useNotifications();
+```
+
+## Reading Notifications
+
+```tsx
+// Display notifications
+notifications.map(notification => (
+  <NotificationItem
+    key={notification.id}
+    title={notification.title}
+    body={notification.body}
+    read={notification.read}
+    createdAt={notification.createdAt}
+  />
+));
+
+// Load more (cursor-based pagination)
+await fetchMore();
+
+// Mark as read
+await markAsRead(notification.id);
+```
+
+## Notification Preferences
+
+Users can configure which notifications they receive:
+
+```ts
+await updatePreferences({
+  email: true,
+  push: true,
+  inApp: true,
+  digest: 'daily',    // 'realtime' | 'daily' | 'weekly'
+  categories: {
+    workflow: true,
+    mentions: true,
+    updates: false,
+  },
+});
+```
+
+## UI Components
+
+The notification tab (`(tabs)/notifications.tsx`) displays the notification feed with:
+- Unread badge counter on the tab icon
+- Pull-to-refresh for latest notifications
+- Infinite scroll pagination
+- Swipe-to-mark-read gesture

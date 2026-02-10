@@ -1,0 +1,89 @@
+---
+title: Security Libraries
+description: Certificate pinning, security audit, and app lock
+---
+
+## certificate-pinning.ts
+
+TLS certificate validation for enterprise deployments.
+
+```ts
+import {
+  buildPinningPolicy,
+  validateCertificatePin,
+} from '@/lib/certificate-pinning';
+
+// Build a pinning policy from the API base URL
+const policy = buildPinningPolicy(
+  'https://api.objectstack.com',
+  ['sha256/AAAA...', 'sha256/BBBB...'],
+);
+// Returns: { hostname, pins, enforced: true, maxChainLength: 3 }
+
+// Validate a certificate hash against the policy
+const isValid = validateCertificatePin(policy, 'sha256/AAAA...');
+```
+
+## security-audit.ts
+
+Pre-release security checklist and audit report generator.
+
+```ts
+import { createSecurityAudit, getDefaultSecurityChecks } from '@/lib/security-audit';
+
+const audit = createSecurityAudit();
+
+// Register checks using the AuditCheckDefinition shape
+audit.addCheck({
+  id: 'https-only',
+  description: 'API communication uses HTTPS',
+  severity: 'critical',
+  evaluate: () => apiUrl.startsWith('https://'),
+  failureDetail: 'All API communication must use HTTPS.',
+});
+
+// Or use the built-in check set
+for (const check of getDefaultSecurityChecks({ httpsOnly: true, biometricEnabled: true })) {
+  audit.addCheck(check);
+}
+
+// Generate report
+const report = await audit.run();
+// { checks: AuditCheckResult[], passedCount, failedCount, score: 0–100 }
+```
+
+## app-lock.ts
+
+App lifecycle monitoring for biometric locking.
+
+```ts
+import { startAppLockMonitor } from '@/lib/app-lock';
+
+// Start monitoring (reads from security store)
+startAppLockMonitor();
+```
+
+Tracks foreground/background state transitions. When the app returns to foreground after the configured inactivity timeout, it triggers biometric re-authentication.
+
+## server-url.ts
+
+Server URL persistence and validation.
+
+```ts
+import {
+  getServerUrl,
+  setServerUrl,
+  validateServerUrl,
+} from '@/lib/server-url';
+
+// Get stored URL
+const url = await getServerUrl();
+
+// Validate with health check
+const isValid = await validateServerUrl('https://new-server.objectstack.com');
+
+// Persist URL
+await setServerUrl('https://new-server.objectstack.com');
+```
+
+Uses `expo-secure-store` for encrypted persistence. The `validateServerUrl` function performs a health check request to verify the server is accessible.

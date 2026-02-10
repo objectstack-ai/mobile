@@ -1,0 +1,118 @@
+---
+title: Deployment
+description: Building, deploying, and CI/CD for ObjectStack Mobile
+---
+
+## Build System
+
+ObjectStack Mobile uses **Expo Application Services (EAS)** for building and deploying.
+
+### Local Development
+
+```bash
+# Start development server
+pnpm start
+
+# Platform-specific
+pnpm ios        # iOS Simulator
+pnpm android    # Android Emulator
+pnpm web        # Web browser
+```
+
+### EAS Build
+
+```bash
+# Install EAS CLI
+npm install -g eas-cli
+
+# Build for development
+eas build --profile development --platform ios
+eas build --profile development --platform android
+
+# Build for production
+eas build --profile production --platform all
+```
+
+### EAS Update (OTA)
+
+```bash
+# Push an over-the-air update
+eas update --branch production --message "Bug fixes"
+```
+
+## Environment Configuration
+
+Environment variables are managed through `.env` files:
+
+```bash
+# .env.example
+EXPO_PUBLIC_API_URL=https://your-server.objectstack.com
+EXPO_PUBLIC_SENTRY_DSN=https://your-sentry-dsn
+EXPO_PUBLIC_ANALYTICS_ENDPOINT=https://analytics.objectstack.com
+```
+
+## CI/CD Pipeline
+
+The recommended CI/CD pipeline uses GitHub Actions:
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install
+      - run: pnpm test
+      - run: pnpm lint
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: expo/expo-github-action@v8
+      - run: eas build --non-interactive --platform all
+```
+
+## Testing
+
+```bash
+# Run all tests
+pnpm test
+
+# With coverage
+pnpm test:coverage
+
+# Lint
+pnpm lint
+
+# Format check
+pnpm format:check
+```
+
+## App Configuration
+
+The app is configured via `app.config.ts` and `eas.json`:
+
+- **app.config.ts** — App name, icons, splash screen, plugins, bundle IDs
+- **eas.json** — EAS Build profiles (development, preview, production)
+- **app.json** — Static Expo config
+
+## Versioning
+
+The project uses **Changesets** for version management:
+
+```bash
+# Create a changeset
+pnpm changeset
+
+# Version packages
+pnpm version-packages
+
+# Publish
+pnpm release
+```

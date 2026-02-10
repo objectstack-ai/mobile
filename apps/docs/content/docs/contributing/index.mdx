@@ -1,0 +1,129 @@
+---
+title: Contributing
+description: Development guidelines and contribution process
+---
+
+## Development Setup
+
+```bash
+# Clone and install
+git clone https://github.com/objectstack-ai/mobile.git
+cd mobile
+pnpm install
+
+# Start development
+pnpm start
+```
+
+## Project Conventions
+
+### File Naming
+
+- **Components**: PascalCase (`FormViewRenderer.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useOfflineSync.ts`)
+- **Libraries**: kebab-case (`offline-storage.ts`)
+- **Tests**: `__tests__/{dir}/{name}.test.ts`
+
+### Code Style
+
+- **TypeScript** — Strict mode, no `any` types
+- **React** — Functional components with hooks only
+- **Styling** — NativeWind (Tailwind CSS) via `className` prop
+- **Imports** — Path aliases (`@/components/`, `@/hooks/`, `@/lib/`)
+
+### Component Guidelines
+
+```tsx
+// Prefer explicit prop interfaces
+interface MyComponentProps {
+  title: string;
+  onPress: () => void;
+  className?: string;
+}
+
+// Use NativeWind for styling
+export function MyComponent({ title, onPress, className }: MyComponentProps) {
+  return (
+    <Pressable onPress={onPress} className={cn('p-4 rounded-lg', className)}>
+      <Text className="text-base font-medium">{title}</Text>
+    </Pressable>
+  );
+}
+```
+
+### Hook Guidelines
+
+```tsx
+// Follow the pattern: fetch → transform → return
+export function useMyHook(param: string) {
+  const client = useClient();
+  const [state, setState] = useState(initialState);
+
+  const action = useCallback(async () => {
+    // implementation
+  }, [client, param]);
+
+  return { state, action, isLoading };
+}
+```
+
+## Testing
+
+### Running Tests
+
+```bash
+# All tests
+pnpm test
+
+# Specific test
+npx jest __tests__/hooks/useOfflineSync.test.ts
+
+# With coverage
+pnpm test:coverage
+```
+
+### Test Organization
+
+```
+__tests__/
+├── hooks/       # Hook unit tests
+├── lib/         # Library unit tests
+└── components/  # Component snapshot tests
+```
+
+### Testing Patterns
+
+- **Hooks**: Use `@testing-library/react-native` with `renderHook`
+- **Components**: Snapshot tests for rendering
+- **Mocking**: Mock `useClient()` with a stable object reference to prevent infinite re-render loops
+
+```ts
+// Always use stable mock references
+const mockClient = {
+  data: { list: jest.fn(), create: jest.fn() },
+  meta: { getObject: jest.fn() },
+};
+jest.mock('@/hooks/useObjectStack', () => ({
+  useClient: () => mockClient,
+}));
+```
+
+## Pull Request Process
+
+1. Create a feature branch from `main`
+2. Make changes following the conventions above
+3. Add/update tests for your changes
+4. Run `pnpm test` and `pnpm lint`
+5. Submit a PR with a clear description
+6. Address review feedback
+
+## Commit Messages
+
+Follow conventional commits:
+
+```
+feat: add kanban view drag-and-drop
+fix: resolve offline sync retry logic
+docs: update API integration guide
+test: add useWorkflowState unit tests
+```

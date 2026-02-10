@@ -1,0 +1,99 @@
+---
+title: Common Components
+description: Shared utility components used across the app
+---
+
+The `components/common/` directory contains reusable components for common mobile patterns.
+
+## SearchBar
+
+Debounced search input (300ms default):
+
+```tsx
+import { SearchBar } from '@/components/common/SearchBar';
+
+<SearchBar
+  value={query}
+  onChangeText={setQuery}
+  placeholder="Search records..."
+  debounceMs={300}
+/>
+```
+
+## EmptyState
+
+Centered empty view with icon, message, and optional action:
+
+```tsx
+import { EmptyState } from '@/components/common/EmptyState';
+
+<EmptyState
+  icon="inbox"
+  title="No Records Found"
+  description="Create your first record to get started"
+  action={{ label: 'Create Record', onPress: handleCreate }}
+/>
+```
+
+## ErrorBoundary
+
+Class component error handler with retry functionality:
+
+```tsx
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+
+<ErrorBoundary>
+  <YourComponent />
+</ErrorBoundary>
+```
+
+Catches rendering errors and displays an error screen with a retry button.
+
+## InfiniteScrollList
+
+FlatList wrapper with automatic load-more:
+
+```tsx
+import { InfiniteScrollList } from '@/components/common/InfiniteScrollList';
+
+<InfiniteScrollList
+  data={records}
+  renderItem={({ item }) => <RecordRow record={item} />}
+  onEndReached={fetchNextPage}
+  hasMore={hasNextPage}
+/>
+```
+
+## LoadingScreen
+
+Centered activity indicator with optional message:
+
+```tsx
+import { LoadingScreen } from '@/components/common/LoadingScreen';
+
+<LoadingScreen message="Loading records..." />
+```
+
+## OfflineIndicator
+
+Banner showing offline status and pending mutation count:
+
+```tsx
+import { OfflineIndicator } from '@/components/common/OfflineIndicator';
+
+<OfflineIndicator
+  isOffline={isOffline}
+  pendingCount={pendingMutations}
+  isSyncing={isSyncing}
+  onSyncPress={handleManualSync}
+/>
+```
+
+## Other Components
+
+| Component | Description |
+|-----------|-------------|
+| `CachedImage` | Image with expo caching and blurhash placeholder |
+| `GlobalSearch` | Full-text cross-field search input |
+| `LanguageSelector` | Language picker list with checkmark indicator |
+| `PullToRefresh` | ScrollView with pull-to-refresh control |

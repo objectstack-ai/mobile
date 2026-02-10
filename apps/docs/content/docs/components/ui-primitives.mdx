@@ -1,0 +1,91 @@
+---
+title: UI Primitives
+description: Design system components (shadcn/ui style)
+---
+
+The `components/ui/` directory contains foundational design primitives following the **shadcn/ui** pattern adapted for React Native with NativeWind.
+
+## Button
+
+```tsx
+import { Button } from '@/components/ui/Button';
+
+<Button variant="default" size="default" onPress={handlePress}>
+  Save Record
+</Button>
+```
+
+| Prop | Type | Options |
+|------|------|---------|
+| `variant` | string | `default`, `destructive`, `outline`, `ghost` |
+| `size` | string | `sm`, `default`, `lg` |
+| `onPress` | function | Press handler |
+| `disabled` | boolean | Disable state |
+
+## Card
+
+Container component with rounded borders and shadow:
+
+```tsx
+import { Card } from '@/components/ui/Card';
+
+<Card className="p-4">
+  <Text>Card content</Text>
+</Card>
+```
+
+## Input
+
+Text input field with focus styling:
+
+```tsx
+import { Input } from '@/components/ui/Input';
+
+<Input
+  placeholder="Enter name..."
+  value={value}
+  onChangeText={setValue}
+/>
+```
+
+## Dialog
+
+Modal overlay with fade-in animation:
+
+```tsx
+import { Dialog } from '@/components/ui/Dialog';
+
+<Dialog visible={isOpen} onClose={handleClose} title="Confirm">
+  <Text>Are you sure?</Text>
+</Dialog>
+```
+
+## BottomSheet
+
+Slide-up drawer modal for mobile-friendly interactions:
+
+```tsx
+import { BottomSheet } from '@/components/ui/BottomSheet';
+
+<BottomSheet visible={isOpen} onClose={handleClose}>
+  {/* Content */}
+</BottomSheet>
+```
+
+## Complete List
+
+| Component | Description |
+|-----------|-------------|
+| `Avatar` | User image or initials (sm, default, lg sizes) |
+| `Badge` | Small label or status indicator |
+| `Button` | Action button with variants and sizes |
+| `Card` | Container with border and shadow |
+| `Checkbox` | Boolean toggle control |
+| `Dialog` | Modal overlay with fade transition |
+| `BottomSheet` | Slide-up drawer modal |
+| `Input` | Text field with focus ring |
+| `Select` | Dropdown picker |
+| `Skeleton` | Loading placeholder animation |
+| `Switch` | Boolean switch toggle |
+| `Tabs` | Tab navigation component |
+| `Toast` | Notification toast messages |

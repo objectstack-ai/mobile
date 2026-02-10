@@ -1,0 +1,97 @@
+---
+title: Internationalization
+description: Multi-language support and RTL layout
+---
+
+ObjectStack Mobile supports multiple languages with full right-to-left (RTL) layout support.
+
+## Supported Languages
+
+| Language | Code | Direction |
+|----------|------|-----------|
+| English | `en` | LTR |
+| Chinese (Simplified) | `zh` | LTR |
+| Arabic | `ar` | RTL |
+
+## Setup
+
+i18n is initialized in `lib/i18n.ts` using i18next with expo-localization:
+
+```ts
+import { detectDeviceLanguage, isRTL } from '@/lib/i18n';
+
+// Auto-detect device language
+const language = detectDeviceLanguage(); // 'en' | 'zh' | 'ar'
+
+// Check if language requires RTL layout
+const rtl = isRTL(language); // true for 'ar'
+```
+
+## Using Translations
+
+In components, use the `useTranslation` hook from react-i18next:
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+function MyComponent() {
+  const { t } = useTranslation();
+
+  return (
+    <View>
+      <Text>{t('common.ok')}</Text>
+      <Text>{t('screens.home.title')}</Text>
+    </View>
+  );
+}
+```
+
+## Translation Files
+
+Translations are stored in `/locales/{lang}.json` with nested keys:
+
+```json
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "screens": {
+    "home": {
+      "title": "Dashboard",
+      "welcome": "Welcome back"
+    }
+  }
+}
+```
+
+## Server-Side Translations
+
+The `useServerTranslations` hook manages server-side translations:
+
+```ts
+const { fetchLocales, fetchTranslations, fetchFieldLabels } = useServerTranslations();
+
+// Fetch available locales
+const locales = await fetchLocales(); // ['en', 'zh', 'ar']
+
+// Fetch translations for a locale
+const translations = await fetchTranslations('zh');
+
+// Fetch field labels for an object
+const labels = await fetchFieldLabels('contacts', 'zh');
+```
+
+## Language Selector
+
+The `LanguageSelector` component provides a native language picker:
+
+```tsx
+import { LanguageSelector } from '@/components/common/LanguageSelector';
+
+<LanguageSelector />
+```
+
+Language selection is persisted in the UI store and applies immediately to all components.

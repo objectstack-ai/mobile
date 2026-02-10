@@ -1,0 +1,32 @@
+---
+title: Components Overview
+description: UI component library for ObjectStack Mobile
+---
+
+ObjectStack Mobile uses a layered component architecture organized into five categories.
+
+## Component Categories
+
+<Cards>
+  <Card title="View Renderers" href="/docs/components/renderers" />
+  <Card title="UI Primitives" href="/docs/components/ui-primitives" />
+  <Card title="Common Components" href="/docs/components/common" />
+  <Card title="Action Components" href="/docs/components/actions" />
+  <Card title="Query Components" href="/docs/components/query" />
+</Cards>
+
+## Architecture
+
+```
+┌────────────────────────────┐
+│      View Renderers        │  Metadata-driven layouts
+├────────────────────────────┤
+│   Common Components        │  Shared patterns
+├────────────────────────────┤
+│   Action / Query / Batch   │  Feature-specific
+├────────────────────────────┤
+│      UI Primitives         │  Design system tokens
+└────────────────────────────┘
+```
+
+All components use **NativeWind** (Tailwind CSS for React Native) for styling with the `className` prop pattern. The design system follows shadcn/ui conventions adapted for mobile.

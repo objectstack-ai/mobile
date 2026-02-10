@@ -1,0 +1,85 @@
+---
+title: Data Layer
+description: Data fetching, caching, and state management
+---
+
+The data layer connects the UI to the ObjectStack server through a multi-tier caching and sync system.
+
+## Client Initialization
+
+The ObjectStack client is initialized as a singleton via `lib/objectstack.ts`:
+
+```ts
+import { createObjectStackClient } from '@/lib/objectstack';
+
+// Set the server URL (persisted in expo-secure-store)
+setObjectStackApiUrl('https://your-server.objectstack.com');
+
+// Create or retrieve the client singleton
+const client = createObjectStackClient(authToken);
+```
+
+The client is provided to the React tree via `ObjectStackProvider` from `@objectstack/client-react`.
+
+## Data Fetching with Hooks
+
+All data access goes through React hooks that wrap TanStack Query:
+
+```tsx
+import { useQuery, useMutation } from '@/hooks/useObjectStack';
+
+// Fetch records
+const { data, isLoading } = useQuery('contacts', {
+  filters: { status: 'active' },
+  sort: { field: 'createdAt', order: 'desc' },
+  limit: 50,
+});
+
+// Mutate records
+const mutation = useMutation('contacts');
+await mutation.mutateAsync({
+  type: 'create',
+  data: { name: 'Jane Doe', email: 'jane@example.com' },
+});
+```
+
+## Metadata Caching
+
+Server metadata (object schemas, view definitions, field configurations) is cached locally using MMKV with ETag-based invalidation:
+
+```ts
+import { getCachedMetadata, isCacheFresh } from '@/lib/metadata-cache';
+
+// Check if cache is fresh (5-minute TTL)
+if (isCacheFresh('objects/contacts')) {
+  return getCachedMetadata('objects/contacts');
+}
+```
+
+## Query Builder
+
+The `useQueryBuilder` hook provides a programmatic interface for building complex filters:
+
+```ts
+const { addFilter, addGroup, serialized } = useQueryBuilder();
+
+addFilter('status', 'eq', 'active');
+addGroup('AND');
+addFilter('createdAt', 'gte', '2024-01-01');
+
+// Serialize to ObjectQL format
+const query = serialized();
+```
+
+Supported operators: `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `contains`, `startsWith`, `endsWith`, `in`, `between`, `isNull`, `isNotNull`.
+
+## State Stores
+
+Four Zustand stores manage client-side state:
+
+| Store | Purpose | Key State |
+|-------|---------|-----------|
+| `app-store` | App context | `currentAppId`, `isOffline` |
+| `ui-store` | UI preferences | `theme`, `language` |
+| `sync-store` | Sync status | `isSyncing`, `pendingCount`, `conflicts` |
+| `security-store` | Security | `biometricEnabled`, `isLocked`, `inactivityTimeout` |

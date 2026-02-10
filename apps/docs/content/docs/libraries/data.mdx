@@ -1,0 +1,97 @@
+---
+title: Data Libraries
+description: Offline storage, sync queue, metadata cache, and query builder
+---
+
+## offline-storage.ts
+
+SQLite offline storage with key/value patterns and schema migration.
+
+```ts
+import { getDatabase, bootstrapOfflineDatabase } from '@/lib/offline-storage';
+
+// Initialize database and run migrations
+await bootstrapOfflineDatabase();
+
+// Get database instance
+const db = getDatabase();
+```
+
+Records are stored locally in SQLite tables, enabling full offline CRUD operations.
+
+## sync-queue.ts
+
+Write-ahead sync queue for offline mutations. Entries are stored in SQLite and processed in FIFO order.
+
+```ts
+interface SyncQueueEntry {
+  id: number;
+  objectName: string;
+  recordId: string;
+  operation: 'create' | 'update' | 'delete';
+  payload: string;            // JSON-encoded
+  status: 'pending' | 'in_progress' | 'failed' | 'conflict';
+  retries: number;
+  errorMessage: string | null;
+  createdAt: number;          // timestamp (ms)
+  updatedAt: number;          // timestamp (ms)
+}
+
+interface ConflictInfo {
+  entry: SyncQueueEntry;
+  serverRecord: Record<string, unknown> | null;
+  localRecord: Record<string, unknown> | null;
+}
+```
+
+Status lifecycle: `pending` → `in_progress` → (success: removed) | `failed` | `conflict`.
+
+## metadata-cache.ts
+
+MMKV-based metadata caching with ETag support.
+
+```ts
+import {
+  getCachedMetadata,
+  setCachedMetadata,
+  isCacheFresh,
+} from '@/lib/metadata-cache';
+
+// Check freshness (5-minute TTL)
+if (isCacheFresh('objects/contacts')) {
+  const metadata = getCachedMetadata('objects/contacts');
+}
+
+// Update cache with ETag
+setCachedMetadata('objects/contacts', data, etag);
+```
+
+## background-sync.ts
+
+Background sync task registration using Expo background fetch.
+
+```ts
+import { registerBackgroundSync } from '@/lib/background-sync';
+
+// Register on app startup
+await registerBackgroundSync();
+```
+
+Uses `expo-background-fetch` and `expo-task-manager` to drain the sync queue when the app is in the background.
+
+## query-builder.ts
+
+ObjectQL filter AST helpers for building typed query filters.
+
+```ts
+import { OPERATOR_META, operatorsForFieldType } from '@/lib/query-builder';
+
+// Read operator metadata (exported as a const)
+OPERATOR_META.eq;       // { label: 'equals', valueCount: 1 }
+OPERATOR_META.between;  // { label: 'is between', valueCount: 2 }
+OPERATOR_META.is_null;  // { label: 'is empty', valueCount: 0 }
+
+// Get valid operators for a field type
+const ops = operatorsForFieldType('text');
+// ['eq', 'neq', 'is_null', 'is_not_null', 'contains', 'not_contains', 'starts_with', 'ends_with', 'in', 'not_in']
+```

@@ -1,0 +1,74 @@
+---
+title: Analytics
+description: Event tracking and data analytics
+---
+
+## Event Tracking
+
+The analytics system provides two levels of tracking:
+
+### Page View Tracking
+
+Automatically log screen views:
+
+```ts
+import { usePageView } from '@/hooks/useAnalyticsTracking';
+
+function ContactListScreen() {
+  usePageView('ContactList', { objectName: 'contacts' });
+  // ...
+}
+```
+
+### Action Tracking
+
+Track custom user actions:
+
+```ts
+import { useTrackAction } from '@/hooks/useAnalyticsTracking';
+
+function CreateButton() {
+  const { trackAction } = useTrackAction();
+
+  const handleCreate = () => {
+    trackAction('record_created', {
+      objectName: 'contacts',
+      source: 'fab_button',
+    });
+  };
+}
+```
+
+## Analytics Queries
+
+Query aggregated analytics data:
+
+```ts
+import { useAnalyticsQuery } from '@/hooks/useAnalyticsQuery';
+
+const { data, total } = useAnalyticsQuery({
+  metric: 'record_count',
+  dimensions: ['status'],
+  aggregation: 'count',
+  dateRange: {
+    start: '2024-01-01',
+    end: '2024-12-31',
+  },
+});
+```
+
+## Analytics Backend
+
+Events are processed through `lib/analytics.ts`:
+
+```ts
+import { createAnalyticsTracker } from '@/lib/analytics';
+
+const tracker = createAnalyticsTracker({
+  endpoint: '/api/analytics/events',
+  batchSize: 20,          // Flush every 20 events
+  flushInterval: 30000,   // Or every 30 seconds
+});
+```
+
+Events are queued in memory and flushed in batches to minimize network requests.

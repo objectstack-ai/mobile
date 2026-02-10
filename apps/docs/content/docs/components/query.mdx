@@ -1,0 +1,75 @@
+---
+title: Query Components
+description: Query builder and filtering UI
+---
+
+The query system provides a visual interface for building complex data filters.
+
+## QueryBuilder
+
+Visual filter rule builder supporting AND/OR logic groups:
+
+```tsx
+import { QueryBuilder } from '@/components/query/QueryBuilder';
+
+<QueryBuilder
+  root={filterTree}
+  fields={fieldDefinitions}
+  onAddFilter={handleAddFilter}
+  onUpdateFilter={handleUpdateFilter}
+  onRemoveFilter={handleRemoveFilter}
+  onAddGroup={handleAddGroup}
+/>
+```
+
+The QueryBuilder renders a tree of filter rules where each rule specifies a field, operator, and value. Rules can be grouped with AND/OR logic.
+
+## FilterRow
+
+Individual filter rule editor:
+
+```tsx
+import { FilterRow } from '@/components/query/FilterRow';
+
+<FilterRow
+  filter={filterRule}
+  fields={availableFields}
+  onUpdate={handleUpdate}
+  onRemove={handleRemove}
+/>
+```
+
+Each FilterRow renders three selectors:
+1. **Field** — Pick from available object fields
+2. **Operator** — Context-sensitive operators (eq, contains, between, etc.)
+3. **Value** — Type-appropriate input (text, number, date, select)
+
+## Filter Operators
+
+| Operator | Description | Applicable Types |
+|----------|-------------|-----------------|
+| `eq` | Equals | All |
+| `neq` | Not equals | All |
+| `gt` / `gte` | Greater than (or equal) | Number, Date |
+| `lt` / `lte` | Less than (or equal) | Number, Date |
+| `contains` | Contains substring | Text |
+| `startsWith` | Starts with | Text |
+| `endsWith` | Ends with | Text |
+| `in` | In list | All |
+| `between` | Between range | Number, Date |
+| `isNull` | Is empty | All |
+| `isNotNull` | Is not empty | All |
+
+## GlobalSearch
+
+Full-text search across all visible fields:
+
+```tsx
+import { GlobalSearch } from '@/components/query/GlobalSearch';
+
+<GlobalSearch
+  value={searchQuery}
+  onChangeText={setSearchQuery}
+  placeholder="Search everywhere..."
+/>
+```

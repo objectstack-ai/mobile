@@ -1,0 +1,66 @@
+---
+title: UI Hooks
+description: Hooks for network status, app discovery, and UI state
+---
+
+## useNetworkStatus
+
+Monitors device connectivity and updates the app store.
+
+```ts
+const {
+  isConnected, // boolean
+  isOffline,   // boolean
+  networkType, // 'wifi' | 'cellular' | 'unknown' | null
+  refresh,     // () => Promise<void>
+} = useNetworkStatus();
+```
+
+Uses `expo-network` to detect connectivity changes. Automatically updates the `isOffline` flag in the app store, triggering UI updates like the `OfflineIndicator` banner.
+
+## useAppDiscovery
+
+Discovers installed packages and apps from the ObjectStack server.
+
+```ts
+const {
+  apps,      // AppPackage[]
+  isLoading, // boolean
+  error,     // Error | null
+  refetch,   // () => void
+} = useAppDiscovery();
+```
+
+Queries the `packages` API namespace and returns only enabled packages. Used by the Apps tab to display the list of available applications.
+
+## Hook Quick Reference
+
+| Hook | Category | Purpose |
+|------|----------|---------|
+| `useQuery` | Data | Fetch records with filters |
+| `useMutation` | Data | Create/update/delete records |
+| `usePagination` | Data | Cursor-based pagination |
+| `useInfiniteQuery` | Data | Infinite scroll queries |
+| `useObject` | Data | Object metadata |
+| `useView` | Data | View configuration |
+| `useFields` | Data | Field definitions |
+| `useMetadata` | Data | Server metadata |
+| `useQueryBuilder` | Data | Build ObjectQL filters |
+| `useBatchOperations` | Data | Batch create/update/delete |
+| `useOfflineSync` | Data | Offline sync cycle |
+| `useDashboardData` | Data | Dashboard widget data |
+| `useSubscription` | Data | Real-time WebSocket |
+| `usePermissions` | Auth | Permission checks |
+| `useFeatureFlag` | Auth | Feature flag evaluation |
+| `useRemoteConfig` | Auth | Remote configuration |
+| `useAI` | Feature | AI/NLQ/Chat |
+| `useWorkflowState` | Feature | Workflow transitions |
+| `useNotifications` | Feature | Notification management |
+| `useFileUpload` | Feature | File operations |
+| `useServerTranslations` | Feature | Server-side i18n |
+| `useViewStorage` | Feature | Saved views CRUD |
+| `useAnalyticsTracking` | Analytics | Event tracking |
+| `useAnalyticsQuery` | Analytics | Analytics queries |
+| `useAnalyticsMeta` | Analytics | Analytics metadata |
+| `useNetworkStatus` | UI | Connectivity monitoring |
+| `useAppDiscovery` | UI | Package discovery |

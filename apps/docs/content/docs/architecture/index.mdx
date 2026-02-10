@@ -1,0 +1,78 @@
+---
+title: Architecture Overview
+description: System architecture of ObjectStack Mobile
+---
+
+ObjectStack Mobile is a **metadata-driven runtime** — it does not hard-code UI layouts or business logic. Instead, it fetches metadata from the ObjectStack server and dynamically renders native mobile interfaces.
+
+## Layered Architecture
+
+The app follows a strict layered architecture with clear separation of concerns:
+
+```
+┌─────────────────────────────────┐
+│         Navigation Layer        │  Expo Router (file-based)
+├─────────────────────────────────┤
+│         Rendering Layer         │  View renderers, field widgets
+├─────────────────────────────────┤
+│           Hooks Layer           │  Custom React hooks
+├─────────────────────────────────┤
+│           State Layer           │  Zustand stores + TanStack Query
+├─────────────────────────────────┤
+│            SDK Layer            │  @objectstack/client
+├─────────────────────────────────┤
+│         Offline Layer           │  SQLite + MMKV + sync queue
+└─────────────────────────────────┘
+```
+
+### Navigation Layer
+
+File-based routing powered by **Expo Router v6**. Routes are organized into three groups:
+
+- `(auth)/` — Authentication screens (server config, sign-in, sign-up)
+- `(tabs)/` — Main tab bar (Home, Apps, Notifications, Profile)
+- `(app)/` — Dynamic app screens with nested routes for objects, records, and dashboards
+
+### Rendering Layer
+
+**12+ view renderers** that interpret server metadata and produce native UI:
+
+| Renderer | Purpose |
+|----------|---------|
+| `ListViewRenderer` | Sortable, filterable data lists with swipe actions |
+| `FormViewRenderer` | Dynamic forms with sections and conditional fields |
+| `DetailViewRenderer` | Record detail with related lists and actions |
+| `DashboardViewRenderer` | Responsive widget grid (KPIs, charts, tables) |
+| `KanbanViewRenderer` | Drag-and-drop board grouped by status/field |
+| `CalendarViewRenderer` | Monthly calendar with event display |
+| `ChartViewRenderer` | Bar, line, pie, and funnel charts |
+| `TimelineViewRenderer` | Chronological activity/audit log |
+| `MapViewRenderer` | Geographic markers with clustering |
+
+### Hooks Layer
+
+23+ custom hooks encapsulate business logic — data fetching, offline sync, permissions, workflows, AI, analytics, and more. Hooks compose lower-level SDK calls with app-specific state management.
+
+### State Layer
+
+- **Zustand** stores for client-side state (app, UI, sync, security)
+- **TanStack Query** for server state caching and automatic refetching
+- Stores are small and focused — each managing a single concern
+
+### SDK Layer
+
+`@objectstack/client` v2.0.1 provides 13 API namespaces:
+
+`meta` · `data` · `auth` · `views` · `permissions` · `workflow` · `realtime` · `notifications` · `ai` · `analytics` · `i18n` · `automation` · `packages`
+
+### Offline Layer
+
+Full offline-first support with SQLite for structured data, MMKV for key-value caching, and a write-ahead sync queue for mutations. See [Offline-First Architecture](/docs/architecture/offline-first) for details.
+
+## Design Principles
+
+1. **Server-Driven UI** — The server defines what to render; the client decides how
+2. **Offline-First** — Every interaction works without network; syncs when connected
+3. **Progressive Enhancement** — Core features work immediately; advanced features load on demand
+4. **Type Safety** — End-to-end TypeScript from SDK types to UI components
+5. **Performance** — Lazy loading, virtualized lists, memoized computations

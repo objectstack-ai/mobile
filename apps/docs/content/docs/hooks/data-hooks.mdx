@@ -1,0 +1,112 @@
+---
+title: Data Hooks
+description: Hooks for data fetching, mutations, and offline sync
+---
+
+## useQueryBuilder
+
+Builds and manages ObjectQL filter trees for complex data queries.
+
+```ts
+const {
+  root,           // Filter tree root node
+  addFilter,      // (field, operator) => void
+  addGroup,       // (logic: 'AND' | 'OR') => void
+  updateFilter,   // (id, updates) => void
+  removeNode,     // (id) => void
+  serialized,     // () => ObjectQL query
+  buildProjection // () => field projection
+} = useQueryBuilder();
+```
+
+**Example:**
+
+```ts
+const { addFilter, serialized } = useQueryBuilder();
+
+addFilter('status', 'eq', 'active');
+addFilter('createdAt', 'gte', '2024-01-01');
+
+const query = serialized();
+// { AND: [{ status: { eq: 'active' } }, { createdAt: { gte: '2024-01-01' } }] }
+```
+
+## useBatchOperations
+
+Execute batch create/update/delete operations on records.
+
+```ts
+const {
+  isProcessing, // boolean
+  progress,     // { completed: number, total: number }
+  lastResult,   // BatchResult
+  executeBatch, // (operations: BatchOp[]) => Promise<BatchResult>
+} = useBatchOperations('contacts');
+```
+
+**Example:**
+
+```ts
+const { executeBatch } = useBatchOperations('contacts');
+
+const result = await executeBatch([
+  { type: 'create', data: { name: 'Alice' } },
+  { type: 'update', id: 'rec_1', data: { status: 'active' } },
+  { type: 'delete', id: 'rec_2' },
+]);
+```
+
+Uses SDK-native `batch()` API with fallback for mixed operations. Reports partial failures.
+
+## useOfflineSync
+
+Drives the offline sync cycle when the device reconnects.
+
+```ts
+const {
+  isSyncing,    // boolean
+  syncProgress, // { completed, total, failed }
+  lastSyncAt,   // Date | null
+  conflicts,    // ConflictInfo[]
+  startSync,    // () => Promise<void>
+} = useOfflineSync();
+```
+
+Processes the FIFO sync queue: dequeues pending entries, sends mutations to the server, handles 409 conflicts, retries failed entries up to 5 times.
+
+## useDashboardData
+
+Fetches widget data for dashboard views.
+
+```ts
+const widgetData = useDashboardData(widgetMeta);
+// Returns: WidgetDataPayload (metric, kpi, list, or table data)
+```
+
+Supports metric/kpi/list/table widget types with live query updates via TanStack Query.
+
+## useSubscription
+
+Real-time data subscriptions via WebSocket.
+
+```ts
+const {
+  isConnected,    // boolean
+  connectionId,   // string | null
+  subscriptionId, // string | null
+  presence,       // UserPresence[]
+  connect,        // () => void
+  disconnect,     // () => void
+} = useSubscription({
+  objectName: 'contacts',
+  onEvent: (event) => handleRealtimeEvent(event),
+});
+```
+
+## Aliases
+
+| Alias | Wraps | Purpose |
+|-------|-------|---------|
+| `useBatchMutation` | `useBatchOperations` | SDK naming convention |
+| `usePackages` | `useAppDiscovery` | SDK naming convention |
+| `useSavedViews` | `useViewStorage` | SDK naming convention |

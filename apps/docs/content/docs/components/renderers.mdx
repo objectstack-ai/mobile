@@ -1,0 +1,134 @@
+---
+title: View Renderers
+description: Metadata-driven view rendering components
+---
+
+View renderers are the core of ObjectStack Mobile's dynamic UI. Each renderer interprets server metadata and produces a native mobile interface for a specific view type.
+
+## ViewRenderer (Router)
+
+The `ViewRenderer` component acts as a dynamic router that lazy-loads the appropriate renderer based on the view type:
+
+```tsx
+import { ViewRenderer } from '@/components/renderers/ViewRenderer';
+
+<ViewRenderer
+  view={viewMetadata}
+  records={data}
+  fields={fieldDefinitions}
+  onRowPress={handleRowPress}
+/>
+```
+
+## List View
+
+`ListViewRenderer` renders sortable, filterable data tables with swipe actions and infinite scroll.
+
+```tsx
+<ListViewRenderer
+  records={records}
+  view={viewConfig}
+  fields={fieldDefinitions}
+  onRowPress={(record) => navigate(record.id)}
+  onLoadMore={fetchNextPage}
+  hasMore={hasNextPage}
+/>
+```
+
+**Features:** Column sorting, pull-to-refresh, swipe-to-edit/delete, empty state, search integration.
+
+## Form View
+
+`FormViewRenderer` renders dynamic data entry forms with sections and conditional field visibility.
+
+```tsx
+<FormViewRenderer
+  view={formView}
+  fields={fieldDefinitions}
+  initialValues={record}
+  onSubmit={handleSave}
+  readonly={!hasEditPermission}
+  fieldPermissions={permissions}
+/>
+```
+
+**Features:** Field sections, conditional logic, validation, field-level permissions, read-only mode.
+
+## Detail View
+
+`DetailViewRenderer` displays a single record with action buttons and related data lists.
+
+```tsx
+<DetailViewRenderer
+  record={record}
+  view={detailView}
+  fields={fieldDefinitions}
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+  onAction={handleAction}
+  relatedLists={relatedListConfigs}
+/>
+```
+
+## Dashboard View
+
+`DashboardViewRenderer` renders a responsive widget grid with KPIs, charts, and data tables.
+
+```tsx
+<DashboardViewRenderer
+  dashboard={dashboardMeta}
+  widgetData={widgetPayloads}
+  onWidgetPress={handleWidgetTap}
+/>
+```
+
+**Layout:** 2 columns on tablets (≥600dp), 1 column on phones, with 12px gap and widget span support.
+
+## Kanban View
+
+`KanbanViewRenderer` renders a drag-and-drop board grouped by a status or category field.
+
+```tsx
+<KanbanViewRenderer
+  records={records}
+  groupField="status"
+  columns={['Open', 'In Progress', 'Done']}
+  titleField="name"
+  subtitleField="assignee"
+/>
+```
+
+## Calendar View
+
+`CalendarViewRenderer` displays events on a monthly calendar with navigation.
+
+```tsx
+<CalendarViewRenderer
+  events={calendarEvents}
+  onEventPress={handleEventTap}
+  onMonthChange={handleMonthChange}
+/>
+```
+
+## Chart View
+
+`ChartViewRenderer` renders data visualizations (bar, line, pie, funnel).
+
+```tsx
+<ChartViewRenderer
+  data={chartData}
+  chartType="bar"
+  chartHeight={300}
+  title="Sales by Region"
+/>
+```
+
+## Other Renderers
+
+| Renderer | Purpose |
+|----------|---------|
+| `TimelineViewRenderer` | Chronological activity/audit log |
+| `MapViewRenderer` | Geographic markers with list fallback |
+| `ImageGallery` | Grid image viewer with modal detail |
+| `FilterDrawer` | Modal filter builder with QueryBuilder |
+| `SwipeableRow` | Gesture row revealing edit/delete actions (80px per action) |

@@ -1,0 +1,74 @@
+---
+title: Auth Libraries
+description: Authentication, session, and biometric libraries
+---
+
+## objectstack.ts
+
+Client initialization and singleton management for the ObjectStack SDK.
+
+```ts
+import {
+  setObjectStackApiUrl,
+  createObjectStackClient,
+  getObjectStackClient,
+} from '@/lib/objectstack';
+
+// Set server URL (persisted to expo-secure-store)
+setObjectStackApiUrl('https://your-server.objectstack.com');
+
+// Create client with auth token
+const client = createObjectStackClient(authToken);
+
+// Retrieve existing singleton
+const existingClient = getObjectStackClient();
+```
+
+## auth-client.ts
+
+better-auth client for session management with the Expo plugin.
+
+```ts
+import { authClient, reinitializeAuthClient, getAuthBaseURL } from '@/lib/auth-client';
+
+// Get current base URL
+const baseURL = getAuthBaseURL();
+
+// Reinitialize when server URL changes
+reinitializeAuthClient('https://new-server.objectstack.com');
+
+// Use the auth client
+await authClient.signIn.email({ email, password });
+await authClient.signOut();
+```
+
+## session-manager.ts
+
+Session handling via the ObjectStack client.
+
+```ts
+import { getCurrentUser, listSessions } from '@/lib/session-manager';
+
+// Get authenticated user profile
+const user = await getCurrentUser();
+// { id, email, name, avatar, ... }
+
+// List all active sessions
+const sessions = await listSessions();
+// [{ id, device, lastActive, ... }]
+```
+
+## biometric-auth.ts
+
+Biometric authentication wrapping `expo-local-authentication`.
+
+```ts
+import { getBiometricStatus } from '@/lib/biometric-auth';
+
+const status = await getBiometricStatus();
+// {
+//   isAvailable: boolean,
+//   biometryType: 'fingerprint' | 'facial' | 'iris' | null,
+//   isEnrolled: boolean,
+// }
+```

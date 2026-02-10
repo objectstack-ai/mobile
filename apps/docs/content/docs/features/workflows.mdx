@@ -1,0 +1,61 @@
+---
+title: Workflows
+description: Workflow state management and approval flows
+---
+
+ObjectStack Mobile supports workflow-driven record management through the `useWorkflowState` hook.
+
+## Workflow State
+
+Each workflow-enabled record has a current state, available transitions, and an audit history:
+
+```ts
+const {
+  currentState,
+  availableActions,
+  history,
+  transition,
+  approve,
+  reject,
+} = useWorkflowState('deals', recordId);
+```
+
+## State Transitions
+
+Move a record through its workflow:
+
+```ts
+// Advance to next stage
+await transition('submit_for_review', 'Ready for review');
+
+// Custom transition
+await transition('escalate', 'Needs manager attention');
+```
+
+## Approvals
+
+Approve or reject records in approval workflows:
+
+```ts
+// Approve with optional comment
+await approve('Approved - meets all criteria');
+
+// Reject with required reason and optional comment
+await reject('Incomplete documentation', 'Please attach the signed contract');
+```
+
+The `reject` function requires a `reason` string (first parameter) and accepts an optional `comment`.
+
+## Workflow History
+
+Track all state changes:
+
+```ts
+const { history } = useWorkflowState('deals', recordId);
+
+history.forEach(entry => {
+  console.log(`${entry.fromState} → ${entry.toState}`);
+  console.log(`By: ${entry.userId} at ${entry.timestamp}`);
+  console.log(`Comment: ${entry.comment}`);
+});
+```

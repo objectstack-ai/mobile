@@ -1,0 +1,4 @@
+{
+  "title": "Libraries",
+  "pages": ["index", "auth", "data", "security", "monitoring", "utilities"]
+}

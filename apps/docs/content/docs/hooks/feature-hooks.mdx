@@ -1,0 +1,148 @@
+---
+title: Feature Hooks
+description: Hooks for AI, workflows, notifications, file upload, and i18n
+---
+
+## useAI
+
+AI-powered features including Natural Language Query, chat, suggestions, and insights.
+
+```ts
+const {
+  nlq,               // (query, object?) => Promise<NLQResult>
+  chat,              // (message, context?) => Promise<ChatResponse>
+  suggest,           // (request) => Promise<Suggestion[]>
+  insights,          // (type?, recordId?) => Promise<Insight[]>
+  clearConversation, // () => void
+  isLoading,         // boolean
+} = useAI();
+```
+
+**Natural Language Query:**
+
+```ts
+const { nlq } = useAI();
+
+const result = await nlq('Show me all active customers from California');
+// Returns: { records, query, explanation }
+```
+
+**AI Chat:**
+
+```ts
+const { chat } = useAI();
+
+const response = await chat('Summarize this quarter sales', {
+  objectName: 'deals',
+  recordId: 'rec_123',
+});
+```
+
+## useWorkflowState
+
+Manages workflow state transitions and approvals for a record.
+
+```ts
+const {
+  currentState,   // WorkflowState
+  availableActions,// WorkflowAction[]
+  history,        // WorkflowHistoryEntry[]
+  transition,     // (name, comment?) => Promise<void>
+  approve,        // (comment?) => Promise<void>
+  reject,         // (reason, comment?) => Promise<void>
+  isLoading,      // boolean
+} = useWorkflowState('deals', recordId);
+```
+
+**Example:**
+
+```ts
+const { transition, approve, reject } = useWorkflowState('deals', 'rec_123');
+
+// Move to next stage
+await transition('submit_for_review', 'Ready for review');
+
+// Approve
+await approve('Looks good');
+
+// Reject (reason is required)
+await reject('Missing documentation', 'Please add the contract attachment');
+```
+
+## useNotifications
+
+Manages notifications with preferences and cursor-based pagination.
+
+```ts
+const {
+  notifications,     // Notification[]
+  unreadCount,       // number
+  isLoading,         // boolean
+  fetchMore,         // () => Promise<void>
+  markAsRead,        // (id) => Promise<void>
+  updatePreferences, // (prefs) => Promise<void>
+} = useNotifications();
+```
+
+## useFileUpload
+
+File operations — pick, upload, download, and share files.
+
+```ts
+const {
+  isUploading,           // boolean
+  progress,              // number (0-100)
+  pickAndUploadImage,    // () => Promise<FileResult>
+  captureAndUploadPhoto, // () => Promise<FileResult>
+  pickAndUploadDocument, // () => Promise<FileResult>
+  uploadFile,            // (uri, name, mimeType) => Promise<FileResult>
+  downloadFile,          // (url, filename) => Promise<string>
+  shareFile,             // (uri) => Promise<void>
+} = useFileUpload('contacts', recordId);
+```
+
+**Example:**
+
+```ts
+const { pickAndUploadImage, downloadFile } = useFileUpload('contacts', 'rec_123');
+
+// Pick from gallery and upload
+const result = await pickAndUploadImage();
+// { uri, name, size, mimeType, uploadedUrl }
+
+// Download a file
+const localPath = await downloadFile(
+  'https://server.com/files/report.pdf',
+  'report.pdf'
+);
+```
+
+## useServerTranslations
+
+Server-side i18n management with i18next integration.
+
+```ts
+const {
+  locales,            // string[]
+  fetchLocales,       // () => Promise<string[]>
+  fetchTranslations,  // (locale) => Promise<Translations>
+  fetchFieldLabels,   // (object, locale) => Promise<Labels>
+  isLoading,          // boolean
+} = useServerTranslations();
+```
+
+## useViewStorage
+
+Manage saved views (CRUD) for an object.
+
+```ts
+const {
+  views,      // SavedView[]
+  isLoading,  // boolean
+  saveView,   // (view) => Promise<void>
+  deleteView, // (id) => Promise<void>
+  updateView, // (id, updates) => Promise<void>
+} = useViewStorage('contacts');
+```
+
+Supports private and shared visibility settings for saved list and form view configurations.
