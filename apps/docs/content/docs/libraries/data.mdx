@@ -25,20 +25,22 @@ Write-ahead sync queue for offline mutations. Entries are stored in SQLite and p
 
 ```ts
 interface SyncQueueEntry {
-  id: string;
+  id: number;
   objectName: string;
+  recordId: string;
   operation: 'create' | 'update' | 'delete';
-  recordId?: string;
-  payload: Record<string, unknown>;
+  payload: string;            // JSON-encoded
   status: 'pending' | 'in_progress' | 'failed' | 'conflict';
-  retryCount: number;
-  createdAt: number;
+  retries: number;
+  errorMessage: string | null;
+  createdAt: number;          // timestamp (ms)
+  updatedAt: number;          // timestamp (ms)
 }
 
 interface ConflictInfo {
-  localVersion: Record<string, unknown>;
-  serverVersion: Record<string, unknown>;
-  conflictFields: string[];
+  entry: SyncQueueEntry;
+  serverRecord: Record<string, unknown> | null;
+  localRecord: Record<string, unknown> | null;
 }
 ```
 
@@ -82,14 +84,14 @@ Uses `expo-background-fetch` and `expo-task-manager` to drain the sync queue whe
 ObjectQL filter AST helpers for building typed query filters.
 
 ```ts
-import { OPERATOR_META } from '@/lib/query-builder';
+import { OPERATOR_META, operatorsForFieldType } from '@/lib/query-builder';
 
-// Available operators with metadata
-OPERATOR_META = {
-  eq: { label: 'Equals', types: ['text', 'number', 'date', ...] },
-  neq: { label: 'Not Equals', types: ['text', 'number', 'date', ...] },
-  contains: { label: 'Contains', types: ['text'] },
-  between: { label: 'Between', types: ['number', 'date'] },
-  // ... more operators
-};
+// Read operator metadata (exported as a const)
+OPERATOR_META.eq;       // { label: 'equals', valueCount: 1 }
+OPERATOR_META.between;  // { label: 'is between', valueCount: 2 }
+OPERATOR_META.is_null;  // { label: 'is empty', valueCount: 0 }
+
+// Get valid operators for a field type
+const ops = operatorsForFieldType('text');
+// ['eq', 'neq', 'is_null', 'is_not_null', 'contains', 'not_contains', 'starts_with', 'ends_with', 'in', 'not_in']
 ```

@@ -13,14 +13,15 @@ import {
   validateCertificatePin,
 } from '@/lib/certificate-pinning';
 
-// Build a pinning policy
-const policy = buildPinningPolicy({
-  hostname: 'api.objectstack.com',
-  pins: ['sha256/AAAA...', 'sha256/BBBB...'],
-});
+// Build a pinning policy from the API base URL
+const policy = buildPinningPolicy(
+  'https://api.objectstack.com',
+  ['sha256/AAAA...', 'sha256/BBBB...'],
+);
+// Returns: { hostname, pins, enforced: true, maxChainLength: 3 }
 
-// Validate during network requests
-const isValid = await validateCertificatePin(policy);
+// Validate a certificate hash against the policy
+const isValid = validateCertificatePin(policy, 'sha256/AAAA...');
 ```
 
 ## security-audit.ts
@@ -28,18 +29,27 @@ const isValid = await validateCertificatePin(policy);
 Pre-release security checklist and audit report generator.
 
 ```ts
-import { createSecurityAudit } from '@/lib/security-audit';
+import { createSecurityAudit, getDefaultSecurityChecks } from '@/lib/security-audit';
 
 const audit = createSecurityAudit();
 
-// Register checks
-audit.addCheck('https-enforced', () => checkHTTPS());
-audit.addCheck('cert-pinning', () => checkCertPinning());
-audit.addCheck('secure-storage', () => checkSecureStorage());
+// Register checks using the AuditCheckDefinition shape
+audit.addCheck({
+  id: 'https-only',
+  description: 'API communication uses HTTPS',
+  severity: 'critical',
+  evaluate: () => apiUrl.startsWith('https://'),
+  failureDetail: 'All API communication must use HTTPS.',
+});
+
+// Or use the built-in check set
+for (const check of getDefaultSecurityChecks({ httpsOnly: true, biometricEnabled: true })) {
+  audit.addCheck(check);
+}
 
 // Generate report
 const report = await audit.run();
-// { passed: ['https-enforced', ...], failed: [...], score: 0.95 }
+// { checks: AuditCheckResult[], passedCount, failedCount, score: 0–100 }
 ```
 
 ## app-lock.ts

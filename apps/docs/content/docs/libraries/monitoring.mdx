@@ -29,7 +29,7 @@ import { createAnalyticsTracker } from '@/lib/analytics';
 const tracker = createAnalyticsTracker({
   endpoint: 'https://analytics.objectstack.com/events',
   batchSize: 20,
-  flushInterval: 30000, // 30 seconds
+  flushIntervalMs: 30_000, // 30 seconds
 });
 
 // Track events (queued and flushed in batches)
@@ -56,21 +56,33 @@ try {
 }
 ```
 
-Error codes: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION`, `CONFLICT`, `RATE_LIMITED`, `SERVER_ERROR`, `NETWORK_ERROR`, `TIMEOUT`.
+Error codes: `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `VALIDATION_ERROR`, `CONFLICT`, `RATE_LIMITED`, `INTERNAL_ERROR`, `NETWORK_ERROR`, `TIMEOUT`.
 
 ## performance-benchmark.ts
 
 Performance metric tracking with configurable thresholds.
 
 ```ts
-import type { BenchmarkConfig } from '@/lib/performance-benchmark';
+import { createPerformanceBenchmark } from '@/lib/performance-benchmark';
 
-const config: BenchmarkConfig = {
-  appStartup: { threshold: 2000 },    // 2s max
-  screenRender: { threshold: 500 },   // 500ms max
-  apiResponse: { threshold: 3000 },   // 3s max
-  frameTime: { threshold: 16.67 },    // 60fps target
-};
+const bench = createPerformanceBenchmark({
+  appStartup: 2000,     // 2s max
+  screenRender: 500,    // 500ms max
+  apiResponse: 3000,    // 3s max
+  frameTime: 16.67,     // 60fps target
+});
+
+// Record a measurement
+bench.measure('login-api', 450, 'apiResponse');
+
+// Time an async operation
+const { result, measurement } = await bench.timeAsync(
+  'fetch-contacts', () => fetchContacts(), 'apiResponse',
+);
+
+// Get aggregate report
+const report = bench.getReport();
+// { measurements, thresholds, passedCount, failedCount, passRate }
 ```
 
 ## memory-profiler.ts
@@ -80,16 +92,19 @@ Memory leak detection for development builds.
 ```ts
 import { createMemoryTracker } from '@/lib/memory-profiler';
 
-const tracker = createMemoryTracker({
-  leakThreshold: 10, // Report after 10 unmatched mounts
-});
+const tracker = createMemoryTracker();
 
-// Track component lifecycle
-tracker.onMount('ContactList');
-tracker.onUnmount('ContactList');
+// Register a resource (component mount, subscription, etc.)
+tracker.track('ContactList', () => cleanup());
 
-// Check for leaks
-const leaks = tracker.getLeaks();
+// Unregister when done (component unmount, unsubscribe)
+tracker.untrack('ContactList');
+
+// Report entries tracked longer than 30s (potential leaks)
+const leaks = tracker.reportLeaks(30_000);
+
+// Clean up all tracked entries
+tracker.disposeAll();
 ```
 
-Tracks component mounts, subscriptions, and event listeners. Reports potential memory leaks when unmount counts don't match mount counts above a configurable threshold.
+Tracks component mounts, subscriptions, and event listeners. Entries that remain tracked beyond the threshold are reported as potential leaks in development builds.

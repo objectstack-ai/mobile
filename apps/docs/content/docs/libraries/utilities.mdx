@@ -50,14 +50,22 @@ Feature flag manager with A/B testing support.
 import { createFeatureFlagManager } from '@/lib/feature-flags';
 
 const manager = createFeatureFlagManager({
-  flags: {
-    'new-dashboard': { enabled: true, rollout: 50 },
-    'ai-search': { enabled: false },
-  },
+  endpoint: 'https://server.objectstack.com/flags',
+  refreshIntervalMs: 300_000, // 5 minutes
+  defaults: [
+    { key: 'new-dashboard', enabled: true, rolloutPercentage: 50 },
+    { key: 'ai-search', enabled: false },
+  ],
 });
 
-// Evaluate a flag (considers rollout percentage)
-const isEnabled = manager.evaluate('new-dashboard', userId);
+// Set user for rollout bucketing
+manager.setUserId(userId);
+
+// Evaluate a flag (considers rolloutPercentage)
+const enabled = manager.isEnabled('new-dashboard');
+
+// Start periodic refresh
+manager.startPolling();
 ```
 
 Uses `hashUserToPercentage()` for deterministic percentage-based bucketing.
@@ -71,25 +79,30 @@ import { createRemoteConfigManager } from '@/lib/remote-config';
 
 const config = createRemoteConfigManager({
   endpoint: 'https://server.objectstack.com/config',
-  pollInterval: 300000, // 5 minutes
+  refreshIntervalMs: 600_000, // 10 minutes
+  defaults: { maxUploadSizeMB: 10 },
 });
 
 // Fetch latest config
 await config.refresh();
 
 // Get a value (falls back to cached)
-const value = config.get('maxUploadSizeMB'); // 10
+const value = config.getValue<number>('maxUploadSizeMB');
+
+// Get with fallback
+const limit = config.getValueWithDefault('maxUploadSizeMB', 10);
 ```
 
 ## app-store-review.ts
 
-App Store submission checklist validation.
+App Store submission checklist validation against Expo app config.
 
 ```ts
-import type { ReviewChecklist } from '@/lib/app-store-review';
+import { validateAppStoreReadiness } from '@/lib/app-store-review';
+import type { AppConfig, ReviewReport, ReviewCheckItem } from '@/lib/app-store-review';
 
-// Validates against expo app.json config
-// Checks: metadata, assets, privacy, compliance
+const report: ReviewReport = validateAppStoreReadiness(appConfig);
+// { checks: ReviewCheckItem[], passedCount, failedCount, readiness: 0–100 }
 ```
 
 ## utils.ts
