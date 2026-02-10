@@ -105,7 +105,7 @@ describe("executeAction", () => {
       type: "url",
       target: "https://example.com/{id}",
     };
-    const result = await executeAction(action, {
+    await executeAction(action, {
       client: mockClient,
       record: { id: "123" },
     });

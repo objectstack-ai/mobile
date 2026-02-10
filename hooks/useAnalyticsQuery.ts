@@ -73,6 +73,7 @@ export function useAnalyticsQuery(params: AnalyticsQueryParams): AnalyticsQueryR
     setError(null);
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const analytics = (client as any).analytics;
       if (!analytics?.query) {
         throw new Error("client.analytics.query() is not available");

@@ -90,6 +90,7 @@ export function useBatchOperations(objectName: string) {
 
       try {
         const batchPayload = validOps.map((v) => v.op);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await (client.data as any).batch(batchPayload);
 
         // Parse batch response — SDK returns an array of results
@@ -160,6 +161,7 @@ export function useBatchOperations(objectName: string) {
       setProgress({ total, completed: 0, failed: 0, skipped: 0 });
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await (client.data as any).createMany(objectName, dataItems);
         const created: unknown[] = Array.isArray(response)
           ? response
@@ -195,6 +197,7 @@ export function useBatchOperations(objectName: string) {
       setProgress({ total, completed: 0, failed: 0, skipped: 0 });
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await (client.data as any).deleteMany(objectName, recordIds);
         const deleted: number =
           typeof response === "number"

@@ -97,6 +97,7 @@ export async function executeAction(
       case "modal": {
         // Navigate to the target route
         const route = action.target ?? `/(app)/${appName}/${objectName}/${recordId}`;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         router.push(route as any);
         result = { success: true };
         break;

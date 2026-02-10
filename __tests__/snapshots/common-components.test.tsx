@@ -6,7 +6,7 @@ import { render, fireEvent, act } from "@testing-library/react-native";
 
 import { SearchBar } from "~/components/common/SearchBar";
 import { LoadingScreen } from "~/components/common/LoadingScreen";
-import { EmptyState } from "~/components/common/EmptyState";
+import { EmptyState as _EmptyState } from "~/components/common/EmptyState";
 import { CachedImage } from "~/components/common/CachedImage";
 
 /* ------------------------------------------------------------------ */

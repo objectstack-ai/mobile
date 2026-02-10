@@ -46,6 +46,7 @@ export default function DashboardScreen() {
     setIsLoading(true);
     (async () => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).views.get(dashboardName);
         const meta: DashboardMeta = result?.dashboard ?? result ?? {
           name: dashboardName,

@@ -4,7 +4,6 @@ import { X } from "lucide-react-native";
 import type { FieldDefinition } from "~/components/renderers/types";
 import {
   type SimpleFilter,
-  type FilterOperator,
   OPERATOR_META,
   operatorsForFieldType,
 } from "~/lib/query-builder";

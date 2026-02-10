@@ -34,7 +34,7 @@ export default function ObjectListScreen() {
   const handleSwipeEdit = useCallback(
     (record: Record<string, unknown>) => {
       const id = (record.id ?? record._id) as string;
-      router.push(`/(app)/${appName}/${objectName}/${id}/edit` as any);
+      router.push(`/(app)/${appName}/${objectName}/${id}/edit` as never);
     },
     [router, appName, objectName],
   );

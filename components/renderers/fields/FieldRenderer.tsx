@@ -181,8 +181,8 @@ export function FieldRenderer({
       )}
 
       {/* Help text */}
-      {!isReadOnly && (field as any).helpText ? (
-        <Text className="text-xs text-muted-foreground">{(field as any).helpText}</Text>
+      {!isReadOnly && (field as Record<string, unknown>).helpText ? (
+        <Text className="text-xs text-muted-foreground">{String((field as Record<string, unknown>).helpText)}</Text>
       ) : null}
 
       {/* Error */}

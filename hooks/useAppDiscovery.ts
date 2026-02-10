@@ -33,14 +33,14 @@ export function useAppDiscovery(): UseAppDiscoveryResult {
     setError(null);
     try {
       const result = await client.packages.list({ enabled: true });
-      const manifests: AppManifest[] = (result.packages ?? []).map((pkg: any) => ({
-        id: pkg.id ?? pkg.name,
-        name: pkg.name,
-        label: pkg.label ?? pkg.name,
-        description: pkg.description,
-        icon: pkg.icon,
-        version: pkg.version,
-        enabled: pkg.enabled ?? true,
+      const manifests: AppManifest[] = (result.packages ?? []).map((pkg: Record<string, unknown>) => ({
+        id: (pkg.id ?? pkg.name) as string,
+        name: pkg.name as string,
+        label: (pkg.label ?? pkg.name) as string,
+        description: pkg.description as string | undefined,
+        icon: pkg.icon as string | undefined,
+        version: pkg.version as string | undefined,
+        enabled: (pkg.enabled as boolean | undefined) ?? true,
       }));
       setApps(manifests);
     } catch (err) {

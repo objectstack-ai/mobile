@@ -69,6 +69,7 @@ export function useFileUpload(): UseFileUploadResult {
       setError(null);
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const storage = (client as any).storage;
         if (!storage?.upload) {
           throw new Error("client.storage.upload() is not available");
@@ -175,6 +176,7 @@ export function useFileUpload(): UseFileUploadResult {
   const getDownloadUrl = useCallback(
     async (fileId: string): Promise<string | null> => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const storage = (client as any).storage;
         if (!storage?.getDownloadUrl) return null;
         return await storage.getDownloadUrl(fileId);

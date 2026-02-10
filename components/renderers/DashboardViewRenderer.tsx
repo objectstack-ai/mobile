@@ -290,7 +290,7 @@ export function DashboardViewRenderer({
   dashboard,
   widgetData = {},
   isLoading = false,
-  onWidgetPress,
+  onWidgetPress: _onWidgetPress,
 }: DashboardViewRendererProps) {
   const { width: screenWidth } = useWindowDimensions();
   const numColumns = screenWidth >= GRID_BREAKPOINT ? 2 : 1;

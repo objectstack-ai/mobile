@@ -7,10 +7,7 @@ import {
   type CompoundFilter,
   type SimpleFilter,
   type FilterOperator,
-  isCompoundFilter,
   isSimpleFilter,
-  OPERATOR_META,
-  operatorsForFieldType,
 } from "~/lib/query-builder";
 import { FilterRow } from "./FilterRow";
 
@@ -75,7 +72,7 @@ export function QueryBuilder({
 
       {/* Filter rows */}
       <ScrollView className="max-h-64">
-        {root.filters.map((node, index) => {
+        {root.filters.map((node) => {
           if (isSimpleFilter(node)) {
             return (
               <FilterRow

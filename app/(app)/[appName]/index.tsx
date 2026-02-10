@@ -26,11 +26,14 @@ export default function AppHomeScreen() {
     try {
       const result = await client.meta.getItems("object", { packageId: appName });
       const items: ObjectMeta[] = Array.isArray(result?.items)
-        ? result.items.map((item: any) => ({
-            name: item.name,
-            label: item.label ?? item.name,
-            description: item.description,
-          }))
+        ? result.items.map((rawItem: unknown) => {
+            const item = rawItem as Record<string, unknown>;
+            return {
+              name: item.name as string,
+              label: (item.label ?? item.name) as string,
+              description: item.description as string | undefined,
+            };
+          })
         : [];
       setObjects(items);
     } catch (err) {

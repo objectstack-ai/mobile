@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable } from "react-native";
 import { Plus } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { cn } from "~/lib/utils";

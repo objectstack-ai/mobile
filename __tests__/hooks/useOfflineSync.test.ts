@@ -134,7 +134,7 @@ describe("useOfflineSync", () => {
     mockGetPendingEntries.mockReturnValue([entry]);
     mockCreate.mockResolvedValue({ id: "created-1" });
 
-    const { result } = renderHook(() => useOfflineSync());
+    renderHook(() => useOfflineSync());
 
     // The hook auto-syncs on mount when online
     await waitFor(() => {

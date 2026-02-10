@@ -22,6 +22,19 @@ module.exports = {
   rules: {
     "react/react-in-jsx-scope": "off",
     "react/prop-types": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+    ],
   },
+  overrides: [
+    {
+      files: ["__tests__/**", "jest.setup.ts"],
+      rules: {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-var-requires": "off",
+      },
+    },
+  ],
   ignorePatterns: ["node_modules/", ".expo/", "dist/", "*.config.js", "babel.config.js"],
 };

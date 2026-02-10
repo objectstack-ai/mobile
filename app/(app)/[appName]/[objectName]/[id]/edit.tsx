@@ -7,7 +7,7 @@ import { FormViewRenderer } from "~/components/renderers";
 import type { FieldDefinition } from "~/components/renderers";
 
 export default function EditRecordScreen() {
-  const { appName, objectName, id } = useLocalSearchParams<{
+  const { objectName, id } = useLocalSearchParams<{
     appName: string;
     objectName: string;
     id: string;
@@ -21,7 +21,7 @@ export default function EditRecordScreen() {
     },
   });
 
-  const [record, setRecord] = useState<Record<string, any> | null>(null);
+  const [record, setRecord] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -84,7 +84,7 @@ export default function EditRecordScreen() {
       <FormViewRenderer
         fields={fields}
         initialValues={record ?? {}}
-        onSubmit={(values) => mutate({ id, data: values } as any)}
+        onSubmit={(values) => mutate({ id, data: values } as Record<string, unknown>)}
         onCancel={() => router.back()}
         isSubmitting={isSubmitting}
         submitLabel="Save"

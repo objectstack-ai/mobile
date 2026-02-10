@@ -2,7 +2,7 @@
  * Snapshot and behavior tests for more common components.
  */
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
 import { Text, View } from "react-native";
 
 import { OfflineIndicator } from "~/components/common/OfflineIndicator";

@@ -4,7 +4,6 @@
 import {
   createSecurityAudit,
   getDefaultSecurityChecks,
-  type AuditCheckDefinition,
 } from "~/lib/security-audit";
 
 describe("createSecurityAudit", () => {

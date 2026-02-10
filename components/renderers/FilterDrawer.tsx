@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { View, Text, Pressable, Modal } from "react-native";
 import { Filter, X } from "lucide-react-native";
 import { cn } from "~/lib/utils";
@@ -43,7 +43,7 @@ export function FilterDrawer({
     toggleRootLogic,
     clearFilters,
     serialize,
-    hasFilters,
+    hasFilters: _hasFilters,
   } = useQueryBuilder();
 
   /* ---- Active filter count ---- */

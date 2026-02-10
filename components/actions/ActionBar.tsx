@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { Text, Pressable, ScrollView } from "react-native";
 import { cn } from "~/lib/utils";
 import type { ActionMeta } from "../renderers/types";
 
