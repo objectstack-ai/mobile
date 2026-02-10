@@ -1,7 +1,7 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { useClient, useQuery, useObject, useView, useFields } from "@objectstack/client-react";
+import { useClient, useQuery, useView, useFields } from "@objectstack/client-react";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DetailViewRenderer } from "~/components/renderers";
 import type { FieldDefinition, FormViewMeta } from "~/components/renderers";
@@ -14,7 +14,6 @@ export default function ObjectDetailScreen() {
   }>();
   const client = useClient();
   const router = useRouter();
-  const { data: schema } = useObject(objectName!);
   const { data: viewData } = useView(objectName!, "form");
   const { data: fieldsData } = useFields(objectName!);
 
@@ -32,7 +31,7 @@ export default function ObjectDetailScreen() {
   );
   const currentIndex = recordIds.indexOf(id!);
 
-  const [record, setRecord] = useState<Record<string, any> | null>(null);
+  const [record, setRecord] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -66,6 +65,7 @@ export default function ObjectDetailScreen() {
 
   const navigateToRecord = useCallback(
     (targetId: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       router.replace(`/(app)/${appName}/${objectName}/${targetId}` as any);
     },
     [router, appName, objectName],
@@ -112,6 +112,7 @@ export default function ObjectDetailScreen() {
         error={error}
         onRetry={fetchRecord}
         onEdit={() =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           router.push(`/(app)/${appName}/${objectName}/${id}/edit` as any)
         }
         onDelete={handleDelete}

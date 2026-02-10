@@ -16,7 +16,7 @@ import {
   applySchemaVersion,
 } from "~/lib/offline-storage";
 
-const mockDb = (SQLite.openDatabaseSync as jest.Mock).mock.results[0]?.value ??
+const _mockDb = (SQLite.openDatabaseSync as jest.Mock).mock.results[0]?.value ??
   (SQLite.openDatabaseSync as jest.Mock)("test");
 
 beforeEach(() => {

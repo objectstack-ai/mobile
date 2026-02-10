@@ -15,7 +15,7 @@ import { BatchActionBar } from "~/components/batch/BatchActionBar";
 import { formatDisplayValue } from "./fields/FieldRenderer";
 import { FilterDrawer, FilterButton } from "./FilterDrawer";
 import { SwipeableRow } from "./SwipeableRow";
-import type { ListColumn, ListViewMeta, FieldDefinition } from "./types";
+import type { ListColumn, ListViewMeta, FieldDefinition, FieldType } from "./types";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -253,7 +253,7 @@ export function ListViewRenderer({
                     const fieldDef = fields.find((f) => f.name === col.field);
                     const displayVal = formatDisplayValue(
                       item[col.field],
-                      (fieldDef?.type ?? col.type ?? "text") as any,
+                      (fieldDef?.type ?? col.type ?? "text") as FieldType,
                     );
                     return (
                       <View key={col.field} className="flex-row items-center">
@@ -290,23 +290,6 @@ export function ListViewRenderer({
     [columns, fields, onRowPress, onSwipeEdit, onSwipeDelete, selectedIds, selectionMode, toggleSelection],
   );
 
-  /* ---- Error state ---- */
-  if (error && !isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-base text-destructive">{error.message}</Text>
-        {onRefresh && (
-          <Pressable
-            className="mt-4 rounded-xl bg-primary px-5 py-3"
-            onPress={onRefresh}
-          >
-            <Text className="font-semibold text-primary-foreground">Retry</Text>
-          </Pressable>
-        )}
-      </View>
-    );
-  }
-
   /* ---- Search state ---- */
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -338,6 +321,23 @@ export function ListViewRenderer({
     },
     [onFilterChange],
   );
+
+  /* ---- Error state ---- */
+  if (error && !isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center px-6">
+        <Text className="text-base text-destructive">{error.message}</Text>
+        {onRefresh && (
+          <Pressable
+            className="mt-4 rounded-xl bg-primary px-5 py-3"
+            onPress={onRefresh}
+          >
+            <Text className="font-semibold text-primary-foreground">Retry</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
 
   /* ---- Main ---- */
   return (
@@ -403,8 +403,8 @@ export function ListViewRenderer({
       {/* List */}
       <FlashList
         data={records}
-        keyExtractor={(item: any, index: number) =>
-          item.id ?? item._id ?? String(index)
+        keyExtractor={(item: Record<string, unknown>, index: number) =>
+          String(item.id ?? item._id ?? index)
         }
         renderItem={renderItem}
         onEndReached={hasMore ? onLoadMore : undefined}

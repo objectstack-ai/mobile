@@ -1,7 +1,7 @@
 /**
  * Tests for useAI – validates AI integration hooks wrapping client.ai.*.
  */
-import { renderHook, act, waitFor } from "@testing-library/react-native";
+import { renderHook, act } from "@testing-library/react-native";
 
 /* ---- Mock useClient from SDK ---- */
 const mockNlq = jest.fn();

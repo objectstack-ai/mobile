@@ -5,7 +5,7 @@ import { FormViewRenderer } from "~/components/renderers";
 import type { FieldDefinition } from "~/components/renderers";
 
 export default function CreateRecordScreen() {
-  const { appName, objectName } = useLocalSearchParams<{
+  const { objectName } = useLocalSearchParams<{
     appName: string;
     objectName: string;
   }>();
@@ -27,7 +27,7 @@ export default function CreateRecordScreen() {
       <Stack.Screen options={{ title: `New ${displayName}` }} />
       <FormViewRenderer
         fields={fields}
-        onSubmit={(values) => mutate(values as any)}
+        onSubmit={(values) => mutate(values as Record<string, unknown>)}
         onCancel={() => router.back()}
         isSubmitting={isSubmitting}
         submitLabel="Create"

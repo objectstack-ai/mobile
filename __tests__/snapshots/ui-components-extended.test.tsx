@@ -3,7 +3,6 @@
  */
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import { Text } from "react-native";
 
 import { Input } from "~/components/ui/Input";
 import { Avatar } from "~/components/ui/Avatar";

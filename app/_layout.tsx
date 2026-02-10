@@ -39,7 +39,7 @@ function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
     } else if (session && inAuthGroup) {
       router.replace("/(tabs)");
     }
-  }, [session, isPending, segments, serverUrl, isReady]);
+  }, [session, isPending, segments, serverUrl, isReady, router]);
 }
 
 export default function RootLayout() {
@@ -62,11 +62,13 @@ export default function RootLayout() {
   useProtectedRoute(serverUrl, isReady);
 
   const { data: session } = authClient.useSession();
-  const token = (session as any)?.token ?? (session as any)?.accessToken;
+  const sessionRecord = session as Record<string, unknown> | null;
+  const token = (sessionRecord?.token ?? sessionRecord?.accessToken) as string | undefined;
 
   const client = useMemo(
     () => createObjectStackClient(token),
-    [token, serverUrl],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverUrl is used by setObjectStackApiUrl, not by createObjectStackClient
+    [token],
   );
 
   return (

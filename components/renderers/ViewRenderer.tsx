@@ -56,6 +56,7 @@ function RendererFallback() {
  * The registry is intentionally open-ended so that future view types
  * can be registered by higher-level code without modifying this file.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rendererMap: Record<string, React.ComponentType<any>> = {
   list: ListViewRenderer,
   form: FormViewRenderer,
@@ -74,6 +75,7 @@ const rendererMap: Record<string, React.ComponentType<any>> = {
  */
 export function registerRenderer(
   viewType: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: React.ComponentType<any>,
 ) {
   rendererMap[viewType] = component;

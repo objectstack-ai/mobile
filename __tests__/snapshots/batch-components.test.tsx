@@ -2,7 +2,7 @@
  * Snapshot tests for batch and action components.
  */
 import React from "react";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
 
 import { BatchActionBar } from "~/components/batch/BatchActionBar";
 import { BatchProgressIndicator } from "~/components/batch/BatchProgressIndicator";

@@ -30,7 +30,7 @@ export const sampleApps = [
 
 export const handlers = [
   /* ---- Query records ---- */
-  http.get(`${API_BASE}/objects/:objectName/records`, ({ params }) => {
+  http.get(`${API_BASE}/objects/:objectName/records`, () => {
     return HttpResponse.json({
       records: sampleRecords,
       count: sampleRecords.length,

@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, Pressable, ScrollView, Modal } from "react-native";
 import { AlertTriangle, RefreshCw, Trash2, X } from "lucide-react-native";
-import { cn } from "~/lib/utils";
 import type { SyncQueueEntry } from "~/lib/sync-queue";
 
 /* ------------------------------------------------------------------ */

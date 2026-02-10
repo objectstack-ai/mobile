@@ -10,10 +10,6 @@ import * as TaskManager from "expo-task-manager";
 import * as Network from "expo-network";
 import {
   getPendingEntries,
-  markInProgress,
-  markCompleted,
-  markFailed,
-  markConflict,
 } from "./sync-queue";
 import { getDatabase } from "./offline-storage";
 

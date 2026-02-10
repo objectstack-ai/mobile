@@ -6,7 +6,6 @@
  * with conflict detection and optional manual override.
  */
 
-import * as SQLite from "expo-sqlite";
 import { getDatabase } from "./offline-storage";
 
 /* ------------------------------------------------------------------ */

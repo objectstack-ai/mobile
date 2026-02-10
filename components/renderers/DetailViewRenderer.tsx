@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
-import { Edit, Trash2, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react-native";
+import { Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, ActionMeta } from "./types";
