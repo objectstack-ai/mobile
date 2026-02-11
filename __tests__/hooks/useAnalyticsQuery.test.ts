@@ -6,10 +6,12 @@ import { renderHook, act, waitFor } from "@testing-library/react-native";
 
 /* ---- Mock useClient from SDK ---- */
 const mockAnalyticsQuery = jest.fn();
+const mockAnalyticsExplain = jest.fn();
 
 const mockClient = {
   analytics: {
     query: mockAnalyticsQuery,
+    explain: mockAnalyticsExplain,
   },
 };
 
@@ -21,6 +23,7 @@ import { useAnalyticsQuery } from "~/hooks/useAnalyticsQuery";
 
 beforeEach(() => {
   mockAnalyticsQuery.mockReset();
+  mockAnalyticsExplain.mockReset();
 });
 
 describe("useAnalyticsQuery", () => {
@@ -150,6 +153,66 @@ describe("useAnalyticsQuery", () => {
       startDate: "2025-01-01",
       endDate: "2025-12-31",
       limit: 10,
+    });
+  });
+
+  it("calls explain with current query params", async () => {
+    mockAnalyticsQuery.mockResolvedValue({ data: [], total: 0 });
+    mockAnalyticsExplain.mockResolvedValue({
+      sql: "SELECT status, COUNT(*) FROM tasks GROUP BY status",
+      plan: "Seq Scan on tasks",
+      description: "Count tasks grouped by status",
+    });
+
+    const { result } = renderHook(() =>
+      useAnalyticsQuery({ metric: "tasks", groupBy: "status", aggregate: "count" }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    let explainResult: unknown;
+    await act(async () => {
+      explainResult = await result.current.explain();
+    });
+
+    expect(mockAnalyticsExplain).toHaveBeenCalledWith({
+      metric: "tasks",
+      groupBy: "status",
+      aggregate: "count",
+      field: undefined,
+      filter: undefined,
+      startDate: undefined,
+      endDate: undefined,
+      limit: undefined,
+    });
+    expect(explainResult).toEqual({
+      sql: "SELECT status, COUNT(*) FROM tasks GROUP BY status",
+      plan: "Seq Scan on tasks",
+      description: "Count tasks grouped by status",
+    });
+  });
+
+  it("calls explain with custom payload", async () => {
+    mockAnalyticsQuery.mockResolvedValue({ data: [], total: 0 });
+    mockAnalyticsExplain.mockResolvedValue({ sql: "SELECT 1" });
+
+    const { result } = renderHook(() =>
+      useAnalyticsQuery({ metric: "tasks" }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.explain({ metric: "custom", limit: 5 });
+    });
+
+    expect(mockAnalyticsExplain).toHaveBeenCalledWith({
+      metric: "custom",
+      limit: 5,
     });
   });
 });

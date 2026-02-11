@@ -204,7 +204,9 @@ export type ViewType =
   | "calendar"
   | "chart"
   | "timeline"
-  | "map";
+  | "map"
+  | "report"
+  | "page";
 
 export interface ViewMeta {
   name?: string;

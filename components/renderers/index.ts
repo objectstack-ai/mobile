@@ -34,6 +34,18 @@ export type { MapViewRendererProps, MapMarker } from "./MapViewRenderer";
 export { ImageGallery } from "./ImageGallery";
 export type { ImageGalleryProps, GalleryImage } from "./ImageGallery";
 
+// Report renderer
+export { ReportRenderer } from "./ReportRenderer";
+export type { ReportRendererProps, ReportColumn, ReportGrouping, ReportType } from "./ReportRenderer";
+
+// SDUI Page renderer
+export { PageRenderer } from "./PageRenderer";
+export type { PageRendererProps } from "./PageRenderer";
+
+// Widget host
+export { WidgetHost } from "./WidgetHost";
+export type { WidgetHostProps } from "./WidgetHost";
+
 // Swipeable row
 export { SwipeableRow } from "./SwipeableRow";
 export type { SwipeableRowProps } from "./SwipeableRow";

@@ -201,13 +201,15 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 ---
 
-## Phase 9: Spec v2.0.4 Alignment — Core Protocol Compliance
+## Phase 9: Spec v2.0.4 Alignment — Core Protocol Compliance ✅ COMPLETE
 
 > **Goal**: Close the highest-priority gaps identified in the spec analysis to ensure protocol compliance.
 >
 > **Duration**: 2–3 weeks
 >
 > **Prerequisites**: Phases 7–8 in progress or complete
+>
+> **Status**: ✅ Complete — All items implemented and tested (540 tests passing)
 
 ### 9.1 Automation Hook & Approval Process UI (Priority: 🔴 High)
 
@@ -258,11 +260,13 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 ---
 
-## Phase 10: Spec v2.0.4 Alignment — UI Protocol Compliance
+## Phase 10: Spec v2.0.4 Alignment — UI Protocol Compliance ✅ COMPLETE
 
 > **Goal**: Implement spec-mandated UI patterns: SDUI page composition, report views, and theme token mapping.
 >
 > **Duration**: 2–3 weeks
+>
+> **Status**: ✅ Complete — All items implemented and tested
 
 ### 10.1 Report View Renderer (Priority: 🟡 Medium)
 
@@ -545,8 +549,8 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 ## Success Criteria for v1.1 (Spec v2.0.4 Full Compliance)
 
-1. ☐ Phase 9 complete — Automation hook, package management, analytics explain
-2. ☐ Phase 10 complete — Report views, SDUI pages, theme tokens
+1. ☑ Phase 9 complete — Automation hook, package management, analytics explain
+2. ☑ Phase 10 complete — Report views, SDUI pages, theme tokens, widget system
 3. ☐ Phase 11 complete — AI sessions, RAG, MCP, agents
 4. ☐ Phase 12 complete — Collaboration, audit, flow viz, state machine
 5. ☐ All new hooks exported from `hooks/useObjectStack.ts` barrel

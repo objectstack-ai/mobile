@@ -32,12 +32,21 @@ export interface AnalyticsDataPoint {
   [key: string]: unknown;
 }
 
+export interface AnalyticsExplainResult {
+  sql?: string;
+  plan?: string;
+  description?: string;
+  [key: string]: unknown;
+}
+
 export interface AnalyticsQueryResult {
   data: AnalyticsDataPoint[];
   total?: number;
   isLoading: boolean;
   error: Error | null;
   refetch: () => Promise<void>;
+  /** Get a human-readable explanation of the analytics query */
+  explain: (payload?: Record<string, unknown>) => Promise<AnalyticsExplainResult>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -118,5 +127,39 @@ export function useAnalyticsQuery(params: AnalyticsQueryParams): AnalyticsQueryR
     void fetchData();
   }, [fetchData]);
 
-  return { data, total, isLoading, error, refetch: fetchData };
+  const explain = useCallback(
+    async (
+      payload?: Record<string, unknown>,
+    ): Promise<AnalyticsExplainResult> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const analytics = (client as any).analytics;
+      if (!analytics?.explain) {
+        throw new Error("client.analytics.explain() is not available");
+      }
+      const explainPayload = payload ?? {
+        metric: params.metric,
+        groupBy: params.groupBy,
+        aggregate: params.aggregate,
+        field: params.field,
+        filter: params.filter,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        limit: params.limit,
+      };
+      return await analytics.explain(explainPayload);
+    },
+    [
+      client,
+      params.metric,
+      params.groupBy,
+      params.aggregate,
+      params.field,
+      params.filter,
+      params.startDate,
+      params.endDate,
+      params.limit,
+    ],
+  );
+
+  return { data, total, isLoading, error, refetch: fetchData, explain };
 }

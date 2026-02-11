@@ -9,6 +9,8 @@ import type { CalendarViewRendererProps } from "./CalendarViewRenderer";
 import type { ChartViewRendererProps } from "./ChartViewRenderer";
 import type { TimelineViewRendererProps } from "./TimelineViewRenderer";
 import type { MapViewRendererProps } from "./MapViewRenderer";
+import type { ReportRendererProps } from "./ReportRenderer";
+import type { PageRendererProps } from "./PageRenderer";
 import type { ViewType } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -32,6 +34,12 @@ const LazyTimeline = React.lazy(() =>
 );
 const LazyMap = React.lazy(() =>
   import("./MapViewRenderer").then((m) => ({ default: m.MapViewRenderer })),
+);
+const LazyReport = React.lazy(() =>
+  import("./ReportRenderer").then((m) => ({ default: m.ReportRenderer })),
+);
+const LazyPage = React.lazy(() =>
+  import("./PageRenderer").then((m) => ({ default: m.PageRenderer })),
 );
 
 /* ------------------------------------------------------------------ */
@@ -67,6 +75,8 @@ const rendererMap: Record<string, React.ComponentType<any>> = {
   chart: LazyChart,
   timeline: LazyTimeline,
   map: LazyMap,
+  report: LazyReport,
+  page: LazyPage,
 };
 
 /**
@@ -99,6 +109,8 @@ export interface ViewRendererProps {
     | ChartViewRendererProps
     | TimelineViewRendererProps
     | MapViewRendererProps
+    | ReportRendererProps
+    | PageRendererProps
     | Record<string, unknown>;
 }
 

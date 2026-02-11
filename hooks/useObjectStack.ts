@@ -23,3 +23,7 @@ export { useServerTranslations } from "./useServerTranslations";
 export { useAnalyticsQuery } from "./useAnalyticsQuery";
 export { useAnalyticsMeta } from "./useAnalyticsMeta";
 export { useFileUpload } from "./useFileUpload";
+
+/* ---- Phase 9: Spec v2.0.4 Alignment ---- */
+export { useAutomation } from "./useAutomation";
+export { usePackageManagement } from "./usePackageManagement";
