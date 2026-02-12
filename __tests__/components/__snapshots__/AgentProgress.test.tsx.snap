@@ -2,6 +2,9 @@
 
 exports[`AgentProgress renders cancel button when running and onCancel provided 1`] = `
 <View
+  accessibilityLabel="Agent summarizer, running, 50% complete"
+  accessibilityRole="summary"
+  accessible={true}
   className="rounded-xl border border-border bg-card overflow-hidden"
 >
   <View
@@ -34,6 +37,15 @@ exports[`AgentProgress renders cancel button when running and onCancel provided 
     </View>
   </View>
   <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 50,
+      }
+    }
+    accessible={true}
     className="px-4 pb-2"
   >
     <View
@@ -69,6 +81,8 @@ exports[`AgentProgress renders cancel button when running and onCancel provided 
     className="border-t border-border px-4 py-2"
   >
     <View
+      accessibilityLabel="Cancel agent task"
+      accessibilityRole="button"
       accessibilityState={
         {
           "busy": undefined,
@@ -112,6 +126,9 @@ exports[`AgentProgress renders cancel button when running and onCancel provided 
 
 exports[`AgentProgress renders completed task 1`] = `
 <View
+  accessibilityLabel="Agent summarizer, completed, 100% complete"
+  accessibilityRole="summary"
+  accessible={true}
   className="rounded-xl border border-border bg-card overflow-hidden"
 >
   <View
@@ -144,6 +161,15 @@ exports[`AgentProgress renders completed task 1`] = `
     </View>
   </View>
   <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 100,
+      }
+    }
+    accessible={true}
     className="px-4 pb-2"
   >
     <View
@@ -180,6 +206,9 @@ exports[`AgentProgress renders completed task 1`] = `
 
 exports[`AgentProgress renders failed task with error 1`] = `
 <View
+  accessibilityLabel="Agent summarizer, failed, 30% complete"
+  accessibilityRole="summary"
+  accessible={true}
   className="rounded-xl border border-border bg-card overflow-hidden"
 >
   <View
@@ -212,6 +241,15 @@ exports[`AgentProgress renders failed task with error 1`] = `
     </View>
   </View>
   <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 30,
+      }
+    }
+    accessible={true}
     className="px-4 pb-2"
   >
     <View
@@ -244,6 +282,7 @@ exports[`AgentProgress renders failed task with error 1`] = `
     </Text>
   </View>
   <View
+    accessibilityRole="alert"
     className="border-t border-border px-4 py-2"
   >
     <Text
@@ -257,6 +296,9 @@ exports[`AgentProgress renders failed task with error 1`] = `
 
 exports[`AgentProgress renders running task with progress 1`] = `
 <View
+  accessibilityLabel="Agent summarizer, running, 50% complete"
+  accessibilityRole="summary"
+  accessible={true}
   className="rounded-xl border border-border bg-card overflow-hidden"
 >
   <View
@@ -289,6 +331,15 @@ exports[`AgentProgress renders running task with progress 1`] = `
     </View>
   </View>
   <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 50,
+      }
+    }
+    accessible={true}
     className="px-4 pb-2"
   >
     <View

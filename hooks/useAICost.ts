@@ -67,6 +67,7 @@ export function useAICost(): UseAICostResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).ai.cost.summary({
           ...(period ? { period } : {}),
         });
@@ -91,6 +92,7 @@ export function useAICost(): UseAICostResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).ai.cost.history({
           ...options,
         });
@@ -112,6 +114,7 @@ export function useAICost(): UseAICostResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).ai.cost.setBudget({
           limit,
           ...(period ? { period } : {}),

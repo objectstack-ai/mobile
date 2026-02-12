@@ -61,6 +61,7 @@ export function useAuditLog(): UseAuditLogResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).system?.audit?.list({
           object,
           recordId,

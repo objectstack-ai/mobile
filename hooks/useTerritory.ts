@@ -63,6 +63,7 @@ export function useTerritory(): UseTerritoryResult {
     setIsLoading(true);
     setError(null);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (client as any).security?.territories?.list();
       const list: Territory[] = result ?? [];
       setTerritories(list);
@@ -82,6 +83,7 @@ export function useTerritory(): UseTerritoryResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).security?.territories?.getAssignments({
           object,
           recordId,
@@ -108,6 +110,7 @@ export function useTerritory(): UseTerritoryResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).security?.territories?.assign({
           object,
           recordId,
@@ -134,6 +137,7 @@ export function useTerritory(): UseTerritoryResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).security?.territories?.remove({
           object,
           recordId,

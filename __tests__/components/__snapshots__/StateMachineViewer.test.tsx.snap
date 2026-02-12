@@ -2,6 +2,8 @@
 
 exports[`StateMachineViewer highlights current state 1`] = `
 <RCTScrollView
+  accessibilityLabel="State machine diagram"
+  accessibilityRole="list"
   className="flex-1"
 >
   <View>
@@ -12,6 +14,9 @@ exports[`StateMachineViewer highlights current state 1`] = `
         className="items-center gap-1.5"
       >
         <View
+          accessibilityLabel="State: Draft, current, initial"
+          accessibilityRole="text"
+          accessible={true}
           className="rounded-full border px-3 py-1.5 bg-primary/20 border-primary"
         >
           <Text
@@ -44,6 +49,9 @@ exports[`StateMachineViewer highlights current state 1`] = `
         className="items-center gap-1.5"
       >
         <View
+          accessibilityLabel="State: Published, final"
+          accessibilityRole="text"
+          accessible={true}
           className="rounded-full border px-3 py-1.5 bg-card border-border"
         >
           <Text
@@ -73,6 +81,8 @@ exports[`StateMachineViewer renders empty state when no states 1`] = `
 
 exports[`StateMachineViewer renders states with transitions 1`] = `
 <RCTScrollView
+  accessibilityLabel="State machine diagram"
+  accessibilityRole="list"
   className="flex-1"
 >
   <View>
@@ -83,6 +93,9 @@ exports[`StateMachineViewer renders states with transitions 1`] = `
         className="items-center gap-1.5"
       >
         <View
+          accessibilityLabel="State: Draft, initial"
+          accessibilityRole="text"
+          accessible={true}
           className="rounded-full border px-3 py-1.5 bg-card border-border"
         >
           <Text
@@ -115,6 +128,9 @@ exports[`StateMachineViewer renders states with transitions 1`] = `
         className="items-center gap-1.5"
       >
         <View
+          accessibilityLabel="State: Published, final"
+          accessibilityRole="text"
+          accessible={true}
           className="rounded-full border px-3 py-1.5 bg-card border-border"
         >
           <Text

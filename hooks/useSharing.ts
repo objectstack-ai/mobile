@@ -62,6 +62,7 @@ export function useSharing(): UseSharingResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).security?.sharing?.get({
           object,
           recordId,
@@ -90,6 +91,7 @@ export function useSharing(): UseSharingResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).security?.sharing?.share({
           object,
           recordId,
@@ -116,6 +118,7 @@ export function useSharing(): UseSharingResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).security?.sharing?.revoke({
           object,
           recordId,

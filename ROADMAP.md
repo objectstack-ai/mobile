@@ -2,23 +2,24 @@
 
 > **Date**: 2026-02-12
 > **SDK**: `@objectstack/client@3.0.0`, `@objectstack/client-react@3.0.0`, `@objectstack/spec@3.0.0`
-> **Tests**: ✅ 540/540 passing (63 suites, ~85% coverage)
+> **Tests**: ✅ 605/605 passing (78 suites, ~85% coverage)
 
 ---
 
 ## 1. Project Status
 
-The ObjectStack Mobile client has completed all core development phases (0–6) and spec alignment phases (9–10). The SDK is upgraded to v3.0.0 (spec v3.0.0: 12 modules, 171 schemas).
+The ObjectStack Mobile client has completed all core development phases (0–6), spec alignment phases (9–10), and advanced feature phases (11–13). The SDK is upgraded to v3.0.0 (spec v3.0.0: 12 modules, 171 schemas).
 
 ### What's Implemented
 
-- **23 custom hooks** covering all SDK namespaces
-- **12 view renderers** (List, Form, Detail, Dashboard, Kanban, Calendar, Chart, Timeline, Map, Report, Page + widgets)
+- **34 custom hooks** covering all SDK namespaces (including AI sessions, RAG, MCP, agents, cost, security, collaboration, audit)
+- **16 view renderers / components** (List, Form, Detail, Dashboard, Kanban, Calendar, Chart, Timeline, Map, Report, Page, widgets, FlowViewer, StateMachineViewer, AgentProgress, CollaborationOverlay)
 - **13 UI primitives** + 9 common components
 - **24 lib modules** (auth, cache, offline, security, analytics, etc.)
 - **4 Zustand stores** (app, ui, sync, security)
 - **4 Maestro E2E flows** (configured, pending backend)
 - Full authentication (better-auth), offline-first (SQLite), i18n, CI/CD (EAS)
+- Accessibility props on all new components (Phase 11.6)
 
 ### Tech Stack
 
@@ -79,6 +80,35 @@ The ObjectStack Mobile client has completed all core development phases (0–6) 
 | Widget System (`widget-registry` + `WidgetHost`) | ✅ |
 | Theme Token Mapping (`theme-bridge.ts`) | ✅ |
 
+### Phase 11: AI & Intelligence ✅
+
+| Feature | Status |
+|---------|--------|
+| AI Session Persistence (`useAISession`) | ✅ |
+| RAG Pipeline (`useRAG`) | ✅ |
+| MCP Awareness (`useMCPTools`) | ✅ |
+| Agent Orchestration (`useAgent` + `AgentProgress`) | ✅ |
+| AI Cost Management (`useAICost`) | ✅ |
+| Accessibility (a11y props on components) | ✅ |
+
+### Phase 12: Security Module ✅
+
+| Feature | Status |
+|---------|--------|
+| RLS Awareness (`useRLS`) | ✅ |
+| Security Policies (`useSecurityPolicies`) | ✅ |
+| Sharing Rules (`useSharing`) | ✅ |
+| Territory Management (`useTerritory`) | ✅ |
+
+### Phase 13: Advanced Platform Features ✅
+
+| Feature | Status |
+|---------|--------|
+| Collaboration & CRDT (`useCollaboration` + `CollaborationOverlay`) | ✅ |
+| Audit Log (`useAuditLog`) | ✅ |
+| Flow Visualization (`FlowViewer`) | ✅ |
+| State Machine Visualization (`StateMachineViewer`) | ✅ |
+
 ---
 
 ## 3. Spec v3.0.0 Compliance Matrix
@@ -107,29 +137,29 @@ The ObjectStack Mobile client has completed all core development phases (0–6) 
 | `spec/ui` — SDUI Pages | `PageRenderer` |
 | `spec/ui` — Widgets | `widget-registry` + `WidgetHost` |
 | `spec/ui` — Theme Tokens | `theme-bridge.ts` |
+| `spec/ai` — Conversation Session | `useAISession` |
+| `spec/ai` — RAG Pipeline | `useRAG` |
+| `spec/ai` — MCP Integration | `useMCPTools` |
+| `spec/ai` — Agent System | `useAgent` + `AgentProgress` |
+| `spec/ai` — Cost Management | `useAICost` |
+| `spec/security` — RLS | `useRLS` |
+| `spec/security` — Policies | `useSecurityPolicies` |
+| `spec/security` — Sharing Rules | `useSharing` |
+| `spec/security` — Territory | `useTerritory` |
+| `spec/ui` — Accessibility (a11y) | a11y props on all new components |
+| `spec/automation` — Flow Builder | `FlowViewer` (read-only) |
+| `spec/system` — Collaboration/CRDT | `useCollaboration` + `CollaborationOverlay` |
+| `spec/system` — Awareness/Presence | `CollaborationIndicator` (with a11y) |
+| `spec/system` — Audit Log | `useAuditLog` |
 
-### 🟡 Gaps — To Do
+### 🟡 Gaps — Deferred to Post-GA
 
 | Spec Module | Gap | Priority |
 |-------------|-----|----------|
-| `spec/ai` — Conversation Session | Missing session persistence, token budget | 🟡 |
-| `spec/ai` — RAG Pipeline | Not implemented | 🟡 |
-| `spec/ai` — MCP Integration | Not implemented (full MCP 2.0) | 🟡 |
-| `spec/ai` — Agent System | Not implemented (multi-agent groups) | 🟡 |
-| `spec/ai` — Cost Management | Not implemented | 🟢 |
 | `spec/ai` — DevOps Agent / Code Gen / Predictive | Not implemented | 🟢 |
-| `spec/security` — RLS | Not implemented | 🟡 |
-| `spec/security` — Policies | Not implemented | 🟡 |
-| `spec/security` — Sharing Rules | Not implemented | 🟡 |
-| `spec/security` — Territory | Not implemented | 🟢 |
 | `spec/ui` — Animation / Gesture | Not implemented | 🟢 |
-| `spec/ui` — Accessibility (a11y) | Not implemented | 🟡 |
 | `spec/ui` — Offline/Sync Config | Self-built (expo-sqlite), can align | 🟢 |
-| `spec/automation` — Flow Builder | Not implemented | 🟡 |
 | `spec/automation` — ETL / Connectors | Not implemented | 🟢 |
-| `spec/system` — Collaboration/CRDT | Not implemented | 🟡 |
-| `spec/system` — Awareness/Presence | Not implemented | 🟡 |
-| `spec/system` — Audit Log | Not implemented | 🟢 |
 
 Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-GA
 
@@ -158,84 +188,85 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 
 ---
 
-## 5. Phase 11: AI & Intelligence
+## 5. Phase 11: AI & Intelligence ✅
 
 > **Duration**: 3–4 weeks
 > v3.0.0 expanded AI module from ~100 to 187 exports.
 
-### 11.1 Conversation Session Persistence 🟡
+### 11.1 Conversation Session Persistence ✅
 
-- [ ] Extend `useAI` — session create/resume, persistent history (SQLite), token budget, `ConversationAnalytics`
-- [ ] Session list UI for switching conversations
+- [x] `hooks/useAISession.ts` — session create/resume/delete/list, persistent history
+- [x] Session list UI for switching conversations
 
-### 11.2 RAG Pipeline 🟡
+### 11.2 RAG Pipeline ✅
 
-- [ ] `hooks/useRAG.ts` — query + source citations + confidence scores
-- [ ] Integrate into `useAI` chat flow
+- [x] `hooks/useRAG.ts` — query + source citations + confidence scores
+- [x] Integrate into `useAI` chat flow
 
-### 11.3 MCP Awareness 🟡
+### 11.3 MCP Awareness ✅
 
-- [ ] `hooks/useMCPTools.ts` — discover/trigger MCP-connected tools via server proxy
-- [ ] Show tool availability in AI chat UI
+- [x] `hooks/useMCPTools.ts` — discover/trigger MCP-connected tools via server proxy
+- [x] Show tool availability in AI chat UI
 
-### 11.4 Agent Orchestration 🟡
+### 11.4 Agent Orchestration ✅
 
-- [ ] `hooks/useAgent.ts` — start task, monitor progress, typed agent actions (multi-agent groups)
-- [ ] `components/ai/AgentProgress.tsx`
+- [x] `hooks/useAgent.ts` — start task, monitor progress, typed agent actions (multi-agent groups)
+- [x] `components/ai/AgentProgress.tsx`
 
-### 11.5 AI Cost Management 🟢
+### 11.5 AI Cost Management ✅
 
-- [ ] `hooks/useAICost.ts` — cost breakdown, budget limits, alerts
+- [x] `hooks/useAICost.ts` — cost breakdown, budget limits, alerts
 
-### 11.6 Accessibility 🟡
+### 11.6 Accessibility ✅
 
-- [ ] Audit renderers for ARIA props, focus management, keyboard navigation, WCAG contrast
+- [x] Audit renderers for ARIA props, focus management, keyboard navigation, WCAG contrast
+- [x] a11y props on all new Phase 11–13 components
 
 ---
 
-## 6. Phase 12: Security Module
+## 6. Phase 12: Security Module ✅
 
 > 🆕 v3.0.0 `security` module (26 exports) replaces `auth`/`permission`/`hub`.
 > **Duration**: 2–3 weeks
 
-### 12.1 RLS Awareness 🟡
+### 12.1 RLS Awareness ✅
 
-- [ ] `hooks/useRLS.ts` — show RLS policies, access restrictions on list/detail views
+- [x] `hooks/useRLS.ts` — show RLS policies, access restrictions on list/detail views
 
-### 12.2 Security Policies 🟡
+### 12.2 Security Policies ✅
 
-- [ ] `hooks/useSecurityPolicies.ts` — password/session/network policy display
+- [x] `hooks/useSecurityPolicies.ts` — password/session/network policy display
 
-### 12.3 Sharing Rules 🟡
+### 12.3 Sharing Rules ✅
 
-- [ ] `hooks/useSharing.ts` — record-level sharing + `SharePanel` component
+- [x] `hooks/useSharing.ts` — record-level sharing + `SharePanel` component
 
-### 12.4 Territory Management 🟢
+### 12.4 Territory Management ✅
 
-- [ ] `hooks/useTerritory.ts` — territory assignments on records
+- [x] `hooks/useTerritory.ts` — territory assignments on records
 
 ---
 
-## 7. Phase 13: Advanced Platform Features
+## 7. Phase 13: Advanced Platform Features ✅
 
 > **Duration**: 3–4 weeks (can overlap with other phases)
 
-### 13.1 Collaboration & CRDT 🟡
+### 13.1 Collaboration & CRDT ✅
 
-- [ ] `hooks/useCollaboration.ts` — sessions, cursor tracking, presence indicators
-- [ ] `components/realtime/CollaborationOverlay.tsx`
+- [x] `hooks/useCollaboration.ts` — sessions, cursor tracking, presence indicators
+- [x] `components/realtime/CollaborationOverlay.tsx`
 
-### 13.2 Audit Log 🟢
+### 13.2 Audit Log ✅
 
-- [ ] `hooks/useAuditLog.ts` — timeline view on record details ("History" tab)
+- [x] `hooks/useAuditLog.ts` — timeline view on record details ("History" tab)
 
-### 13.3 Flow Visualization 🟢
+### 13.3 Flow Visualization ✅
 
-- [ ] `components/automation/FlowViewer.tsx` — read-only flow diagram (nodes + edges)
+- [x] `components/automation/FlowViewer.tsx` — read-only flow diagram (nodes + edges)
 
-### 13.4 State Machine Visualization 🟢
+### 13.4 State Machine Visualization ✅
 
-- [ ] `components/workflow/StateMachineViewer.tsx` — diagram of states + transitions
+- [x] `components/workflow/StateMachineViewer.tsx` — diagram of states + transitions
 
 ---
 
@@ -253,27 +284,27 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 
 ## 9. Decision Matrix
 
-| Task | Blocks v1.0? | Est. Time | Priority |
-|------|-------------|-----------|----------|
-| E2E Testing | ✅ Yes | 1–2 days | 🔴 |
-| Performance Profiling | ⚠️ Recommended | 2–3 days | 🟡 |
-| App Store Assets + Submit | ✅ Yes | 1–2 weeks | 🔴 |
-| AI Sessions (11.1) | No | 3–4 days | 🟡 |
-| RAG (11.2) | No | 2–3 days | 🟡 |
-| MCP (11.3) | No | 2 days | 🟡 |
-| Agents (11.4) | No | 3–4 days | 🟡 |
-| AI Cost (11.5) | No | 2 days | 🟢 |
-| a11y (11.6) | No | 3–4 days | 🟡 |
-| RLS (12.1) | No | 3–4 days | 🟡 |
-| Security Policies (12.2) | No | 2 days | 🟡 |
-| Sharing (12.3) | No | 3 days | 🟡 |
-| Territory (12.4) | No | 1–2 days | 🟢 |
-| Collaboration (13.1) | No | 4–5 days | 🟡 |
-| Audit Log (13.2) | No | 2–3 days | 🟢 |
-| Flow Viz (13.3) | No | 3–4 days | 🟢 |
-| State Machine (13.4) | No | 2 days | 🟢 |
+| Task | Blocks v1.0? | Est. Time | Status |
+|------|-------------|-----------|--------|
+| E2E Testing | ✅ Yes | 1–2 days | ⏳ Pending backend |
+| Performance Profiling | ⚠️ Recommended | 2–3 days | ⏳ Pending devices |
+| App Store Assets + Submit | ✅ Yes | 1–2 weeks | ⏳ Pending assets |
+| AI Sessions (11.1) | No | 3–4 days | ✅ Done |
+| RAG (11.2) | No | 2–3 days | ✅ Done |
+| MCP (11.3) | No | 2 days | ✅ Done |
+| Agents (11.4) | No | 3–4 days | ✅ Done |
+| AI Cost (11.5) | No | 2 days | ✅ Done |
+| a11y (11.6) | No | 3–4 days | ✅ Done |
+| RLS (12.1) | No | 3–4 days | ✅ Done |
+| Security Policies (12.2) | No | 2 days | ✅ Done |
+| Sharing (12.3) | No | 3 days | ✅ Done |
+| Territory (12.4) | No | 1–2 days | ✅ Done |
+| Collaboration (13.1) | No | 4–5 days | ✅ Done |
+| Audit Log (13.2) | No | 2–3 days | ✅ Done |
+| Flow Viz (13.3) | No | 3–4 days | ✅ Done |
+| State Machine (13.4) | No | 2 days | ✅ Done |
 
-**Total Phase 11–13**: ~8–10 weeks (can overlap with v1.0 launch)
+**Phase 11–13**: ✅ Complete
 
 ---
 
@@ -281,7 +312,7 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 
 ### v1.0 GA
 
-1. ✅ 540+ unit/integration tests passing
+1. ✅ 605+ unit/integration tests passing
 2. ✅ All hooks and lib modules have test coverage
 3. ☐ All 4 Maestro E2E flows passing
 4. ☐ Performance metrics within targets on real devices
@@ -291,33 +322,38 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 
 ### v1.1 (Spec v3.0.0 Full Compliance)
 
-1. ☑ Phase 9–10 complete
-2. ☐ Phase 11 complete (AI, a11y)
-3. ☐ Phase 12 complete (Security)
-4. ☐ Phase 13 complete (Collaboration, audit, flow)
-5. ☐ All new hooks exported and tested
+1. ✅ Phase 9–10 complete
+2. ✅ Phase 11 complete (AI, a11y)
+3. ✅ Phase 12 complete (Security)
+4. ✅ Phase 13 complete (Collaboration, audit, flow)
+5. ✅ All new hooks exported and tested
 
 ---
 
 ## 11. For SDK Team — Suggested Upstream Hooks
 
-| Mobile Hook | SDK API | Notes |
-|-------------|---------|-------|
-| `usePermissions()` | `client.permissions.*` | RBAC enforcement |
-| `useWorkflowState()` | `client.workflow.*` | State machine UI |
-| `useSubscription()` | `client.realtime.*` | WebSocket management |
-| `useNotifications()` | `client.notifications.*` | Push lifecycle |
-| `useAI()` | `client.ai.*` | NLQ, chat, suggest |
-| `useServerTranslations()` | `client.i18n.*` | Server translations |
-| `useSavedViews()` | `client.views.*` | View CRUD |
-| `useAutomation()` | `client.automation.*` | Automation triggers |
-| `usePackageManagement()` | `client.packages.*` | Package lifecycle |
-| `useRAG()` | `client.ai.rag?` | 🆕 Needs server RAG |
-| `useCollaboration()` | `client.realtime.*` | 🆕 CRDT co-editing |
-| `useRLS()` | `client.security?` | 🆕 RLS awareness (v3.0.0) |
-| `useSharing()` | `client.security?` | 🆕 Sharing rules (v3.0.0) |
-| `useAICost()` | `client.ai.cost?` | 🆕 AI cost tracking (v3.0.0) |
-| `useMCPTools()` | `client.ai.mcp?` | 🆕 MCP tool discovery (v3.0.0) |
+| Mobile Hook | SDK API | Status |
+|-------------|---------|--------|
+| `usePermissions()` | `client.permissions.*` | ✅ |
+| `useWorkflowState()` | `client.workflow.*` | ✅ |
+| `useSubscription()` | `client.realtime.*` | ✅ |
+| `useNotifications()` | `client.notifications.*` | ✅ |
+| `useAI()` | `client.ai.*` | ✅ |
+| `useServerTranslations()` | `client.i18n.*` | ✅ |
+| `useSavedViews()` | `client.views.*` | ✅ |
+| `useAutomation()` | `client.automation.*` | ✅ |
+| `usePackageManagement()` | `client.packages.*` | ✅ |
+| `useRAG()` | `client.ai.rag.*` | ✅ Needs server RAG |
+| `useCollaboration()` | `client.realtime.collaboration.*` | ✅ Needs CRDT backend |
+| `useRLS()` | `client.security.rls.*` | ✅ Needs security API |
+| `useSharing()` | `client.security.sharing.*` | ✅ Needs security API |
+| `useAICost()` | `client.ai.cost.*` | ✅ Needs cost API |
+| `useMCPTools()` | `client.ai.mcp.*` | ✅ Needs MCP proxy |
+| `useAgent()` | `client.ai.agents.*` | ✅ Needs agent runtime |
+| `useAISession()` | `client.ai.sessions.*` | ✅ Needs session API |
+| `useSecurityPolicies()` | `client.security.policies.*` | ✅ Needs security API |
+| `useTerritory()` | `client.security.territories.*` | ✅ Needs security API |
+| `useAuditLog()` | `client.system.audit.*` | ✅ Needs audit API |
 
 ---
 

@@ -46,7 +46,7 @@ export function CollaborationIndicator({
   const overflow = members.length - maxVisible;
 
   return (
-    <View className="flex-row items-center gap-1 px-4 py-2">
+    <View className="flex-row items-center gap-1 px-4 py-2" accessible={true} accessibilityLabel={`${members.length} viewer${members.length !== 1 ? "s" : ""} active`}>
       <Text className="mr-1 text-xs text-muted-foreground">Viewing:</Text>
       {visible.map((member) => (
         <View

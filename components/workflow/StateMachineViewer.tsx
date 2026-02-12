@@ -61,7 +61,12 @@ function StateBadge({
     type === "initial" ? "●" : type === "final" ? "◎" : "";
 
   return (
-    <View className={`rounded-full border px-3 py-1.5 ${bgClass}`}>
+    <View
+      className={`rounded-full border px-3 py-1.5 ${bgClass}`}
+      accessible={true}
+      accessibilityRole="text"
+      accessibilityLabel={`State: ${label ?? formatStateName(name)}${isCurrent ? ", current" : ""}${type === "initial" ? ", initial" : type === "final" ? ", final" : ""}`}
+    >
       <Text className={`text-sm font-semibold ${textClass}`}>
         {typeIndicator ? `${typeIndicator} ` : ""}
         {label ?? formatStateName(name)}
@@ -94,7 +99,7 @@ export function StateMachineViewer({
   }
 
   return (
-    <ScrollView className="flex-1">
+    <ScrollView className="flex-1" accessibilityRole="list" accessibilityLabel="State machine diagram">
       <View className="gap-3 px-4 py-3">
         {states.map((state) => {
           const outgoing = getTransitionsFrom(state.name, transitions);

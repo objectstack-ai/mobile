@@ -60,6 +60,7 @@ export function useAISession(): UseAISessionResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const session = await (client as any).ai.sessions.create({ title });
         setActiveSession(session);
         setSessions((prev) => [session, ...prev]);
@@ -81,6 +82,7 @@ export function useAISession(): UseAISessionResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const session = await (client as any).ai.sessions.get(sessionId);
         setActiveSession(session);
         return session;
@@ -101,6 +103,7 @@ export function useAISession(): UseAISessionResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).ai.sessions.delete(sessionId);
         setSessions((prev) => prev.filter((s) => s.id !== sessionId));
         setActiveSession((prev) => (prev?.id === sessionId ? null : prev));
@@ -120,6 +123,7 @@ export function useAISession(): UseAISessionResult {
     setIsLoading(true);
     setError(null);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (client as any).ai.sessions.list();
       setSessions(result);
       return result;

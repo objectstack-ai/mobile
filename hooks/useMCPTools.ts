@@ -60,6 +60,7 @@ export function useMCPTools(): UseMCPToolsResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).ai.mcp.listTools({
           ...(serverId ? { serverId } : {}),
         });
@@ -85,6 +86,7 @@ export function useMCPTools(): UseMCPToolsResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).ai.mcp.callTool({
           name: toolName,
           ...(input ? { input } : {}),

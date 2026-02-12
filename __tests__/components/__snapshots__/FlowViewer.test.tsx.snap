@@ -14,13 +14,18 @@ exports[`FlowViewer renders empty state when no nodes 1`] = `
 
 exports[`FlowViewer renders nodes with edges 1`] = `
 <RCTScrollView
+  accessibilityLabel="Flow diagram"
+  accessibilityRole="list"
   className="flex-1"
 >
   <View>
     <View
       className="gap-3 px-4 py-3"
     >
-      <View>
+      <View
+        accessibilityLabel="Step 1: Start, type Trigger"
+        accessible={true}
+      >
         <View
           className="rounded-xl border border-border bg-card px-4 py-3"
         >
@@ -53,7 +58,10 @@ exports[`FlowViewer renders nodes with edges 1`] = `
           </Text>
         </View>
       </View>
-      <View>
+      <View
+        accessibilityLabel="Step 2: Send Email, type Action"
+        accessible={true}
+      >
         <View
           className="rounded-xl border border-border bg-card px-4 py-3"
         >

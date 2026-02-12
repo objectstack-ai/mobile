@@ -57,13 +57,13 @@ export function FlowViewer({ nodes, edges }: FlowViewerProps) {
   }
 
   return (
-    <ScrollView className="flex-1">
+    <ScrollView className="flex-1" accessibilityRole="list" accessibilityLabel="Flow diagram">
       <View className="gap-3 px-4 py-3">
         {nodes.map((node, index) => {
           const outEdges = findEdgesForNode(node.id, edges);
 
           return (
-            <View key={node.id}>
+            <View key={node.id} accessible={true} accessibilityLabel={`Step ${index + 1}: ${node.label}, type ${getNodeLabel(node.type)}`}>
               {/* Node */}
               <View className="rounded-xl border border-border bg-card px-4 py-3">
                 <Text className="text-xs text-muted-foreground">

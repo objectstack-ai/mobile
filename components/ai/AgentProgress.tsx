@@ -64,7 +64,12 @@ export function AgentProgress({ task, onCancel }: AgentProgressProps) {
   const progressPercent = Math.min(Math.max(task.progress, 0), 100);
 
   return (
-    <View className="rounded-xl border border-border bg-card overflow-hidden">
+    <View
+      className="rounded-xl border border-border bg-card overflow-hidden"
+      accessible={true}
+      accessibilityRole="summary"
+      accessibilityLabel={`Agent ${task.agentId}, ${task.status}, ${progressPercent}% complete`}
+    >
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3">
         <Text className="text-sm font-semibold text-foreground">
@@ -74,7 +79,12 @@ export function AgentProgress({ task, onCancel }: AgentProgressProps) {
       </View>
 
       {/* Progress bar */}
-      <View className="px-4 pb-2">
+      <View
+        className="px-4 pb-2"
+        accessible={true}
+        accessibilityRole="progressbar"
+        accessibilityValue={{ min: 0, max: 100, now: progressPercent }}
+      >
         <View className="h-2 rounded-full bg-muted">
           <View
             className="h-2 rounded-full bg-primary"
@@ -95,7 +105,7 @@ export function AgentProgress({ task, onCancel }: AgentProgressProps) {
 
       {/* Error message */}
       {task.error && (
-        <View className="border-t border-border px-4 py-2">
+        <View className="border-t border-border px-4 py-2" accessibilityRole="alert">
           <Text className="text-xs text-destructive">{task.error}</Text>
         </View>
       )}
@@ -106,6 +116,8 @@ export function AgentProgress({ task, onCancel }: AgentProgressProps) {
           <Pressable
             className="items-center rounded-lg bg-destructive px-3 py-2 active:bg-destructive/80"
             onPress={onCancel}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel agent task"
           >
             <Text className="text-sm font-semibold text-white">Cancel</Text>
           </Pressable>

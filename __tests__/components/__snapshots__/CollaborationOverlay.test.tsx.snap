@@ -2,6 +2,8 @@
 
 exports[`CollaborationOverlay renders participant cursors 1`] = `
 <View
+  accessibilityLabel="1 collaborator active"
+  accessible={true}
   className="absolute inset-0"
   pointerEvents="none"
 >
@@ -51,6 +53,8 @@ exports[`CollaborationOverlay renders participant cursors 1`] = `
 
 exports[`CollaborationOverlay renders without cursors when showCursors is false 1`] = `
 <View
+  accessibilityLabel="1 collaborator active"
+  accessible={true}
   className="absolute inset-0"
   pointerEvents="none"
 >

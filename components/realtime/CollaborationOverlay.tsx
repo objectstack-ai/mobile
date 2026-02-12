@@ -42,7 +42,7 @@ export function CollaborationOverlay({
   if (participants.length === 0) return null;
 
   return (
-    <View className="absolute inset-0" pointerEvents="none">
+    <View className="absolute inset-0" pointerEvents="none" accessible={true} accessibilityLabel={`${participants.length} collaborator${participants.length !== 1 ? "s" : ""} active`}>
       {participants.map((participant) => (
         <View key={participant.userId}>
           {/* Cursor dot */}

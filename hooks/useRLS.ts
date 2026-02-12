@@ -60,6 +60,7 @@ export function useRLS(): UseRLSResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).security?.rls?.list({ object });
         const list: RLSPolicy[] = result ?? [];
         setPolicies(list);
@@ -85,6 +86,7 @@ export function useRLS(): UseRLSResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return await (client as any).security?.rls?.evaluate({
           object,
           recordId,

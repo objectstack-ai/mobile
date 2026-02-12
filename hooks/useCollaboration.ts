@@ -64,8 +64,10 @@ export function useCollaboration(): UseCollaborationResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).realtime?.collaboration?.join(object, recordId);
         const members =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (await (client as any).realtime?.collaboration?.getParticipants()) ??
           [];
         setParticipants(members);
@@ -86,6 +88,7 @@ export function useCollaboration(): UseCollaborationResult {
     setIsLoading(true);
     setError(null);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (client as any).realtime?.collaboration?.leave();
       setParticipants([]);
       setIsConnected(false);
@@ -109,6 +112,7 @@ export function useCollaboration(): UseCollaborationResult {
     }): Promise<void> => {
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).realtime?.collaboration?.updateCursor(cursor);
       } catch (err: unknown) {
         const cursorError =

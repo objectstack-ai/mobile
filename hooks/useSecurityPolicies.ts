@@ -51,6 +51,7 @@ export function useSecurityPolicies(): UseSecurityPoliciesResult {
     setIsLoading(true);
     setError(null);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (client as any).security?.policies?.list();
       const list: SecurityPolicy[] = result ?? [];
       setPolicies(list);
@@ -70,6 +71,7 @@ export function useSecurityPolicies(): UseSecurityPoliciesResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).security?.policies?.get({ type });
         return (result as SecurityPolicy) ?? null;
       } catch (err: unknown) {

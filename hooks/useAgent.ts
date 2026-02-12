@@ -62,6 +62,7 @@ export function useAgent(): UseAgentResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const task = await (client as any).ai.agents.startTask({
           agentId,
           input,
@@ -85,6 +86,7 @@ export function useAgent(): UseAgentResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const task = await (client as any).ai.agents.getTask(taskId);
         setCurrentTask(task);
         return task;
@@ -105,6 +107,7 @@ export function useAgent(): UseAgentResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (client as any).ai.agents.cancelTask(taskId);
         setCurrentTask((prev) =>
           prev?.id === taskId ? { ...prev, status: "cancelled" } : prev,

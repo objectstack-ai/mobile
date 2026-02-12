@@ -63,6 +63,7 @@ export function useRAG(): UseRAGResult {
       setIsLoading(true);
       setError(null);
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await (client as any).ai.rag.query({
           question,
           ...options,
