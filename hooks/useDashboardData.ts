@@ -53,7 +53,7 @@ export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
         let value: number | string;
 
         if (agg === "count") {
-          value = data?.count ?? records.length;
+          value = data?.total ?? records.length;
         } else if (field) {
           const nums = records
             .map((r) => Number(r[field]))
@@ -75,7 +75,7 @@ export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
               value = nums.reduce((a, b) => a + b, 0);
           }
         } else {
-          value = data?.count ?? records.length;
+          value = data?.total ?? records.length;
         }
 
         return { value, isLoading: false };

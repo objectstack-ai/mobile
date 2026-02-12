@@ -1,9 +1,9 @@
 # Next Development Phase — Roadmap to v1.0 GA & Beyond
 
-> **Date**: 2026-02-10 (Updated after `@objectstack/spec@2.0.4` gap analysis)
+> **Date**: 2026-02-12 (Updated after `@objectstack/spec@3.0.0` upgrade)
 > **Status**: All Feature Development & Testing Complete — Entering Final Validation + Spec Alignment
-> **Test Status**: ✅ 493/493 tests passing (58 suites)
-> **SDK**: `@objectstack/client@2.0.4`, `@objectstack/client-react@2.0.4`, `@objectstack/spec@2.0.4`
+> **Test Status**: ✅ 540/540 tests passing (63 suites)
+> **SDK**: `@objectstack/client@3.0.0`, `@objectstack/client-react@3.0.0`, `@objectstack/spec@3.0.0`
 
 ---
 
@@ -33,14 +33,17 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 - **24 lib modules** (auth, cache, offline, security, analytics, etc.) (all tested)
 - **4 Zustand stores** (app, ui, sync, security)
 - **4 Maestro E2E flows** (auth, navigation, list, CRUD)
-- **493 unit/integration tests** across 58 test suites
+- **493 unit/integration tests** across 58 test suites (expanded to 540 tests / 63 suites after Phase 9–10)
 
 ---
 
-## Spec v2.0.4 Gap Analysis Summary
+## Spec v3.0.0 Gap Analysis Summary
 
 > `@objectstack/spec` is the protocol "constitution" for all ObjectStack development.
-> The spec defines **15 modules**: root, driver, data, system, auth, kernel, hub, ai, automation, api, ui, contracts, integration, studio, permission.
+> The spec v3.0.0 defines **12 modules** (restructured from v2.0.4's 15 modules): data, system, kernel, ai, automation, api, ui, contracts, integration, security, studio, + root.
+> Removed modules: `driver`, `auth`, `hub`, `permission` (functionality merged into `security`, `system`, `data`).
+> New module: `security` (RLS, Permission, Policy, Sharing, Territory).
+> Total: **171 Zod schemas**, 7,095+ `.describe()` annotations.
 > The mobile app must align with this protocol to remain specification-compliant.
 
 ### Protocol Compliance Matrix
@@ -55,28 +58,45 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 | `spec/api` — AI (NLQ, Chat, Suggest, Insights) | `client.ai.*` | ✅ `useAI` hook | — |
 | `spec/api` — i18n | `client.i18n.*` | ✅ `useServerTranslations` hook | — |
 | `spec/api` — Files | `client.files.*` | ✅ `useFileUpload` hook | — |
-| `spec/api` — Analytics | `client.analytics.query/meta` | ✅ `useAnalyticsQuery/Meta` hooks | ⚠️ `analytics.explain()` not used |
-| `spec/api` — Automation Triggers | `client.automation.trigger()` | ⚠️ Only in `ActionExecutor` | 🔴 No dedicated hook |
-| `spec/api` — Package Management | `client.packages.*` (list/get/install/uninstall/enable/disable) | ⚠️ `useAppDiscovery` uses `list` only | 🔴 Install/uninstall/enable/disable not exposed |
+| `spec/api` — Analytics | `client.analytics.query/meta` | ✅ `useAnalyticsQuery/Meta` hooks | — |
+| `spec/api` — Automation Triggers | `client.automation.trigger()` | ✅ `useAutomation` hook | — |
+| `spec/api` — Package Management | `client.packages.*` (6个方法) | ✅ `usePackageManagement` hook | — |
 | `spec/api` — Batch Data Operations | `client.data.batch/createMany/updateMany/deleteMany` | ✅ `useBatchMutation` hook | — |
-| `spec/ui` — Report/Analytics Views | `ReportSchema`, `ReportChart`, `ReportColumn`, `ReportGrouping` | ❌ Not implemented | 🟡 New view type |
-| `spec/ui` — Page/SDUI Composition | `PageSchema`, `PageComponent`, `PageRegion`, `PageVariable` | ❌ Not implemented | 🟡 Spec mandates SDUI |
-| `spec/ui` — Widget System | `WidgetManifest`, `WidgetLifecycle`, `WidgetEvent`, `WidgetProperty` | ❌ Not implemented | 🟡 Extensibility layer |
-| `spec/ui` — Theme Tokens | `ThemeSchema`, `ColorPalette`, `Typography`, `Spacing`, `Shadow` | ⚠️ NativeWind/Tailwind used | 🟢 Can map tokens |
-| `spec/ai` — MCP Server Integration | `MCPServerConfig`, `MCPTool`, `MCPResource`, `MCPPrompt` | ❌ Not implemented | 🟡 AI extensibility |
-| `spec/ai` — RAG Pipeline | `RAGPipelineConfig`, `RAGQueryRequest/Response` | ❌ Not implemented | 🟡 Advanced AI |
-| `spec/ai` — Conversation Session | `ConversationSession`, `ConversationMessage`, `TokenBudget` | ⚠️ Basic in `useAI` | 🟡 Missing session persistence |
-| `spec/ai` — Agent System | `AgentSchema`, `AgentAction`, `AgentActionSequence` | ❌ Not implemented | 🟡 Agent orchestration |
-| `spec/ai` — Cost Management | `CostAnalytics`, `BudgetLimit`, `CostAlert` | ❌ Not implemented | 🟢 Admin feature |
+| `spec/api` — GraphQL Federation | `spec/api` → GraphQL, Subgraph, Federation | ❌ Not implemented | 🟢 Server feature |
+| `spec/api` — OData Adapter | `spec/api` → OData | ❌ Not implemented | 🟢 Server feature |
+| `spec/ui` — Report/Analytics Views | `ReportSchema`, `ReportChart`, `ReportColumn`, `ReportGrouping` | ✅ ReportRenderer 已实现 | — |
+| `spec/ui` — Page/SDUI Composition | `PageSchema`, `PageComponent`, `PageRegion`, `PageVariable` | ✅ PageRenderer 已实现 | — |
+| `spec/ui` — Widget System | `WidgetManifest`, `WidgetLifecycle`, `WidgetEvent`, `WidgetProperty` | ✅ widget-registry + WidgetHost 已实现 | — |
+| `spec/ui` — Theme Tokens | `ThemeSchema`, `ColorPalette`, `Typography`, `Spacing`, `Shadow` | ✅ theme-bridge.ts 已实现 | — |
+| `spec/ui` — Animation System | 🆕 `AnimationSchema`, `ComponentAnimation`, `EasingFunction`, `MotionConfig` | ❌ Not implemented | 🟢 Enhancement |
+| `spec/ui` — Gesture System | 🆕 `GestureConfig`, `SwipeGesture`, `PinchGesture`, `LongPressGesture` | ❌ Not implemented | 🟢 Enhancement |
+| `spec/ui` — Accessibility (a11y) | 🆕 `AriaProps`, `FocusManagement`, `KeyboardNavigation`, `WcagContrastLevel` | ❌ Not implemented | 🟡 Medium |
+| `spec/ui` — Offline/Sync Config | 🆕 `OfflineConfig`, `SyncConfig`, `OfflineStrategy`, `OfflineCache` | ⚠️ 自建 (expo-sqlite) | 🟢 Can align |
+| `spec/ui` — Responsive Layout | 🆕 `ResponsiveConfig`, `Breakpoints`, `DensityMode` | ⚠️ 部分 (NativeWind) | 🟢 Can align |
+| `spec/ui` — DnD Config | 🆕 `DndConfig`, `DragHandle`, `DropZone`, `DragConstraint` | ⚠️ Kanban 有拖拽 | 🟢 Can align |
+| `spec/ai` — MCP Server Integration | `MCPServerConfig`, `MCPTool`, `MCPResource`, `MCPPrompt` (full MCP 2.0) | ❌ Not implemented | 🟡 AI extensibility |
+| `spec/ai` — RAG Pipeline | `RAGPipelineConfig`, `RAGQueryRequest/Response`, `ChunkingStrategy` | ❌ Not implemented | 🟡 Advanced AI |
+| `spec/ai` — Conversation Session | `ConversationSession`, `ConversationMessage`, `TokenBudget`, `ConversationAnalytics` | ⚠️ Basic in `useAI` | 🟡 Missing session persistence |
+| `spec/ai` — Agent System | `AgentSchema`, `AgentAction`, `MultiAgentGroup`, `AgentCommunicationProtocol` | ❌ Not implemented | 🟡 Agent orchestration |
+| `spec/ai` — Cost Management | 🆕 `CostAnalytics`, `BudgetLimit`, `CostAlert`, `CostReport`, `CostOptimizationRecommendation` | ❌ Not implemented | 🟢 Admin feature |
+| `spec/ai` — DevOps Agent | 🆕 `DevOpsAgentSchema`, `DevOpsTool`, `CICDPipelineConfig`, `SelfHealingConfig` | ❌ Not implemented | 🟢 Admin feature |
+| `spec/ai` — Code Generation | 🆕 `CodeGenerationConfig`, `CodeGenerationRequest`, `GeneratedCode` | ❌ Not implemented | 🟢 Developer feature |
+| `spec/ai` — Predictive Analytics | 🆕 `PredictiveModel`, `PredictionRequest`, `AnomalyDetection` | ❌ Not implemented | 🟢 Advanced feature |
+| `spec/security` — RLS | 🆕 `RLSConfig`, `RowLevelSecurityPolicy`, `RLSEvaluationResult` | ❌ Not implemented | 🟡 Security |
+| `spec/security` — Policies | 🆕 `PolicySchema`, `PasswordPolicy`, `SessionPolicy`, `NetworkPolicy` | ❌ Not implemented | 🟡 Security |
+| `spec/security` — Sharing Rules | 🆕 `SharingRuleSchema`, `OwnerSharingRule`, `CriteriaSharingRule` | ❌ Not implemented | 🟡 Security |
+| `spec/security` — Territory | 🆕 `TerritorySchema`, `TerritoryModel` | ❌ Not implemented | 🟢 Enterprise |
 | `spec/automation` — Flow Builder | `FlowSchema`, `FlowNode`, `FlowEdge`, `FlowVariable` | ❌ Not implemented | 🟡 Visual automation |
 | `spec/automation` — ETL Pipelines | `ETLPipeline`, `ETLSource`, `ETLDestination` | ❌ Not implemented | 🟢 Admin feature |
-| `spec/automation` — Approval Processes | `ApprovalProcess`, `ApprovalStep` | ❌ No mobile UI | 🔴 Needed for workflows |
 | `spec/automation` — State Machine Config | `StateMachineConfig`, `StateNodeConfig`, `Transition` | ⚠️ Runtime state only | 🟡 Config viewing |
-| `spec/system` — Collaboration/CRDT | `CollaborationSession`, `CRDTState`, `OTOperation` | ❌ Not implemented | 🟡 Real-time co-editing |
-| `spec/system` — Audit Log | `AuditEvent`, `AuditConfig` | ❌ Not implemented | 🟢 Admin feature |
-| `spec/integration` — Connectors | `ConnectorInstance`, `ConnectorOperation` | ❌ Not implemented | 🟢 Admin feature |
-| `spec/kernel` — Plugin System | `PluginSchema`, `PluginCapability` | ❌ Not implemented | 🟢 Platform feature |
-| `spec/studio` — Studio Plugins | `StudioPluginManifest`, `StudioPluginContributions` | ❌ Not applicable | — Desktop only |
+| `spec/automation` — Connector System | 🆕 `ConnectorSchema`, `ConnectorInstance`, `ConnectorOperation` | ❌ Not implemented | 🟢 Admin feature |
+| `spec/system` — Collaboration/CRDT | `CollaborationSession`, `CRDTState`, `OTOperation` (expanded) | ❌ Not implemented | 🟡 Real-time co-editing |
+| `spec/system` — Awareness/Presence | 🆕 `AwarenessSession`, `AwarenessEvent`, `AwarenessUserState` | ❌ Not implemented | 🟡 Collaboration |
+| `spec/system` — Audit Log | `AuditEvent`, `AuditConfig` (expanded with severity, retention) | ❌ Not implemented | 🟢 Admin feature |
+| `spec/system` — Object Storage | 🆕 `ObjectStorageConfig`, `StorageProvider`, `PresignedUrl` | ⚠️ 使用 client.storage | 🟢 Can align |
+| `spec/integration` — Connectors | 85 types (DB, File, GitHub, MQ, SaaS, Vercel) | ❌ 不适用 (服务端) | — |
+| `spec/kernel` — Plugin System | `PluginSchema`, `PluginCapability`, `FeatureFlag`, `SBOM` | ❌ 不适用 (服务端) | — |
+| `spec/studio` — Studio Plugins | `StudioPluginManifest`, `StudioPluginContributions` | ❌ 不适用 (桌面端) | — |
 
 ### Priority Legend
 
@@ -201,7 +221,7 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 ---
 
-## Phase 9: Spec v2.0.4 Alignment — Core Protocol Compliance ✅ COMPLETE
+## Phase 9: Spec v2.0.4→v3.0.0 Alignment — Core Protocol Compliance ✅ COMPLETE
 
 > **Goal**: Close the highest-priority gaps identified in the spec analysis to ensure protocol compliance.
 >
@@ -260,7 +280,7 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 ---
 
-## Phase 10: Spec v2.0.4 Alignment — UI Protocol Compliance ✅ COMPLETE
+## Phase 10: Spec v2.0.4→v3.0.0 Alignment — UI Protocol Compliance ✅ COMPLETE
 
 > **Goal**: Implement spec-mandated UI patterns: SDUI page composition, report views, and theme token mapping.
 >
@@ -329,15 +349,17 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 ---
 
-## Phase 11: Spec v2.0.4 Alignment — AI & Intelligence
+## Phase 11: Spec v3.0.0 Alignment — AI & Intelligence
 
-> **Goal**: Implement advanced AI protocol features: conversation persistence, RAG pipelines, MCP integration, and agent orchestration.
+> **Goal**: Implement advanced AI protocol features: conversation persistence, RAG pipelines, MCP integration, agent orchestration, cost management, and accessibility.
 >
-> **Duration**: 2–3 weeks
+> **Duration**: 3–4 weeks
+>
+> **Note**: v3.0.0 significantly expanded the AI module from ~100 to 187 exports, adding full MCP 2.0, multi-agent groups, DevOps agents, code generation, cost tracking, and predictive analytics.
 
 ### 11.1 Conversation Session Persistence (Priority: 🟡 Medium)
 
-> `spec/ai` defines `ConversationSession` with session management, message pruning, and token budget tracking. Current `useAI` hook has basic chat but no session persistence or token management.
+> `spec/ai` defines `ConversationSession` with session management, message pruning, token budget tracking, and conversation analytics. Current `useAI` hook has basic chat but no session persistence or token management. v3.0.0 adds `ConversationAnalytics` and `ConversationSummary`.
 
 **Deliverables:**
 - [ ] Extend `hooks/useAI.ts` to support:
@@ -354,7 +376,7 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 ### 11.2 RAG Pipeline Integration (Priority: 🟡 Medium)
 
-> `spec/ai` defines `RAGPipelineConfig`, `RAGQueryRequest`, `RAGQueryResponse` for retrieval-augmented generation. This allows AI to search knowledge bases before generating responses.
+> `spec/ai` defines `RAGPipelineConfig`, `RAGQueryRequest`, `RAGQueryResponse`, `ChunkingStrategy`, `RerankingConfig`, `VectorStoreConfig` for retrieval-augmented generation. v3.0.0 adds document management (`DocumentChunk`, `DocumentMetadata`) and embedding model configuration.
 
 **Deliverables:**
 - [ ] Create `hooks/useRAG.ts`
@@ -367,9 +389,9 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 **Estimated Time**: 2–3 days
 
-### 11.3 MCP (Model Context Protocol) Awareness (Priority: 🟢 Low)
+### 11.3 MCP (Model Context Protocol) Awareness (Priority: 🟡 Medium)
 
-> `spec/ai` defines full MCP schemas: `MCPServerConfig`, `MCPTool`, `MCPResource`, `MCPPrompt`. Mobile doesn't need to host MCP servers but should be aware of MCP-connected tools.
+> `spec/ai` defines full MCP 2.0 schemas: `MCPServerConfig`, `MCPTool`, `MCPResource`, `MCPPrompt`, `MCPResourceTemplate`, `MCPSamplingConfig`, `MCPRootsConfig`, `MCPStreamingConfig`, `MCPToolApproval`. v3.0.0 significantly expanded MCP support with transport, streaming, roots, and tool approval patterns. Mobile should be aware of MCP-connected tools and allow triggering them.
 
 **Deliverables:**
 - [ ] Create `hooks/useMCPTools.ts` — discover and display MCP-connected tools
@@ -380,9 +402,9 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 **Estimated Time**: 2 days
 
-### 11.4 Agent Orchestration UI (Priority: 🟢 Low)
+### 11.4 Agent Orchestration UI (Priority: 🟡 Medium)
 
-> `spec/ai` defines `AgentSchema`, `AgentAction`, `AgentActionSequence` for multi-step agent workflows.
+> `spec/ai` defines `AgentSchema`, `AgentAction`, `AgentActionSequence`, `MultiAgentGroup`, `AgentCommunicationProtocol`, `AgentGroupRole` for multi-agent workflows. v3.0.0 adds multi-agent groups and typed agent actions (`DataAgentAction`, `FormAgentAction`, `ViewAgentAction`, `NavigationAgentAction`, `WorkflowAgentAction`).
 
 **Deliverables:**
 - [ ] Create `hooks/useAgent.ts` — interact with server-side agents
@@ -393,17 +415,107 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 **Estimated Time**: 3–4 days
 
+### 11.5 AI Cost Management UI (Priority: 🟢 Low)
+
+> 🆕 `spec/ai` v3.0.0 defines `CostAnalytics`, `BudgetLimit`, `CostAlert`, `CostReport`, `CostBreakdownEntry`, `CostOptimizationRecommendation` for tracking and managing AI costs.
+
+**Deliverables:**
+- [ ] Create `hooks/useAICost.ts` — fetch AI usage costs and budgets
+  - Display cost breakdown by model/provider
+  - Show budget limits and alerts
+  - Track token usage trends
+- [ ] Create cost summary widget for admin dashboards
+- [ ] Tests for AI cost hook
+
+**Estimated Time**: 2 days
+
+### 11.6 Accessibility (a11y) Alignment (Priority: 🟡 Medium)
+
+> 🆕 `spec/ui` v3.0.0 defines `AriaProps`, `FocusManagement`, `FocusTrapConfig`, `KeyboardNavigation`, `KeyboardShortcut`, `WcagContrastLevel` for comprehensive accessibility support.
+
+**Deliverables:**
+- [ ] Audit all renderers for ARIA props compliance
+- [ ] Implement focus management for form views (`FocusTrapConfig`)
+- [ ] Add keyboard navigation support for list and kanban views
+- [ ] Ensure WCAG contrast compliance in theme bridge
+- [ ] Tests for accessibility features
+
+**Estimated Time**: 3–4 days
+
 ---
 
-## Phase 12: Spec v2.0.4 Alignment — Advanced Platform Features
+## Phase 12: Spec v3.0.0 Alignment — Security Module
+
+> 🆕 **Goal**: Implement the new `security` module introduced in v3.0.0: RLS, Policy, Sharing Rules, and Territory management.
+>
+> **Duration**: 2–3 weeks
+>
+> **Note**: The `security` module (26 exports) replaces the removed `auth`, `permission`, and `hub` modules, consolidating security concerns into a dedicated namespace.
+
+### 12.1 Row-Level Security (RLS) Awareness (Priority: 🟡 Medium)
+
+> `spec/security` defines `RLSConfig`, `RowLevelSecurityPolicy`, `RLSEvaluationResult`, `RLSAuditConfig`, `RLSAuditEvent`, `RLSUserContext`. Mobile needs to understand RLS policies to properly filter data and explain access restrictions to users.
+
+**Deliverables:**
+- [ ] Create `hooks/useRLS.ts` — fetch and display RLS policies for objects
+  - Show which records the user can access and why
+  - Display RLS evaluation results
+- [ ] Integrate RLS awareness into list/query views
+- [ ] Show access restrictions in record detail views
+- [ ] Tests for RLS hook
+
+**Estimated Time**: 3–4 days
+
+### 12.2 Security Policies Display (Priority: 🟡 Medium)
+
+> `spec/security` defines `PolicySchema`, `PasswordPolicy`, `SessionPolicy`, `NetworkPolicy`, `AuditPolicy` for comprehensive security policy management.
+
+**Deliverables:**
+- [ ] Create `hooks/useSecurityPolicies.ts` — fetch active security policies
+- [ ] Display password policy requirements during password changes
+- [ ] Show session policy info (timeout, concurrent session limits)
+- [ ] Tests for security policy hook
+
+**Estimated Time**: 2 days
+
+### 12.3 Sharing Rules (Priority: 🟡 Medium)
+
+> `spec/security` defines `SharingRuleSchema`, `OwnerSharingRule`, `CriteriaSharingRule`, `SharingLevel`, `ShareRecipientType` for record-level sharing control.
+
+**Deliverables:**
+- [ ] Create `hooks/useSharing.ts` — manage sharing rules for records
+  - List sharing rules for an object
+  - Display sharing info on record details
+  - Allow share/unshare actions from mobile
+- [ ] Create `components/security/SharePanel.tsx` — UI for sharing records
+- [ ] Tests for sharing hook
+
+**Estimated Time**: 3 days
+
+### 12.4 Territory Management (Priority: 🟢 Low)
+
+> `spec/security` defines `TerritorySchema`, `TerritoryModel`, `TerritoryType` for geographic and organizational territory-based access control.
+
+**Deliverables:**
+- [ ] Create `hooks/useTerritory.ts` — fetch and display territory assignments
+- [ ] Show territory info on relevant record types
+- [ ] Tests for territory hook
+
+**Estimated Time**: 1–2 days
+
+---
+
+## Phase 13: Spec v3.0.0 Alignment — Advanced Platform Features
 
 > **Goal**: Implement remaining spec modules that enhance the platform experience.
 >
 > **Duration**: 3–4 weeks (can be parallelized with other phases)
+>
+> **Note**: These features were previously Phase 12 in the v2.0.4 roadmap.
 
-### 12.1 Collaboration & CRDT (Priority: 🟡 Medium)
+### 13.1 Collaboration & CRDT (Priority: 🟡 Medium)
 
-> `spec/system` defines `CollaborationSession`, `CollaborativeCursor`, `CRDTState`, `OTOperation` for real-time co-editing.
+> `spec/system` defines `CollaborationSession`, `CollaborativeCursor`, `CRDTState`, `OTOperation`, `AwarenessSession`, `AwarenessEvent`, `AwarenessUserState` for real-time co-editing. v3.0.0 adds comprehensive OT (Operational Transform) support with `OTComponent`, `OTOperationType`, `OTTransformResult` and awareness with `AwarenessUpdateSchema`, `CursorColorPreset`.
 
 **Deliverables:**
 - [ ] Create `hooks/useCollaboration.ts`
@@ -416,9 +528,9 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 **Estimated Time**: 4–5 days
 
-### 12.2 Audit Log Viewer (Priority: 🟢 Low)
+### 13.2 Audit Log Viewer (Priority: 🟢 Low)
 
-> `spec/system` defines `AuditEvent`, `AuditConfig`, `AuditEventFilter` for compliance audit trails.
+> `spec/system` defines `AuditEvent`, `AuditConfig`, `AuditEventFilter`, `AuditEventSeverity`, `AuditRetentionPolicy`, `AuditStorageConfig` for compliance audit trails. v3.0.0 expands with severity levels, retention policies, and storage configuration.
 
 **Deliverables:**
 - [ ] Create `hooks/useAuditLog.ts` — fetch and filter audit events
@@ -428,7 +540,7 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 **Estimated Time**: 2–3 days
 
-### 12.3 Flow Visualization (Priority: 🟢 Low)
+### 13.3 Flow Visualization (Priority: 🟢 Low)
 
 > `spec/automation` defines `FlowSchema`, `FlowNode`, `FlowEdge` for visual workflow builders. Mobile should at minimum allow viewing flow definitions.
 
@@ -441,7 +553,7 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 
 **Estimated Time**: 3–4 days
 
-### 12.4 State Machine Visualization (Priority: 🟢 Low)
+### 13.4 State Machine Visualization (Priority: 🟢 Low)
 
 > `spec/automation` defines `StateMachineConfig`, `StateNodeConfig`, `Transition`. Currently `useWorkflowState` shows runtime state but not the full state machine configuration.
 
@@ -516,29 +628,28 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 | App Store Assets (8.1) | ✅ Yes | ✅ Yes | 3–5 days | 🔴 High |
 | Legal & Compliance (8.2) | ✅ Yes | ✅ Yes | 1–2 days | 🔴 High |
 | Build & Submit (8.3) | ✅ Yes | ✅ Yes | 1–2 weeks | 🔴 High |
-| Automation Hook (9.1) | ✅ Yes | ⚠️ Recommended | 3–4 days | 🔴 High |
-| Package Management (9.2) | ✅ Yes | ⚠️ Recommended | 2–3 days | 🔴 High |
-| Analytics Explain (9.3) | ✅ Yes | No | 0.5 day | 🟡 Medium |
-| Report View (10.1) | ✅ Yes | No | 3–4 days | 🟡 Medium |
-| SDUI Page Renderer (10.2) | ✅ Yes | No | 4–5 days | 🟡 Medium |
-| Theme Token Mapping (10.3) | ✅ Yes | No | 1–2 days | 🟢 Low |
-| Widget System (10.4) | ✅ Yes | No | 2–3 days | 🟢 Low |
 | AI Conversation Sessions (11.1) | ✅ Yes | No | 3–4 days | 🟡 Medium |
 | RAG Integration (11.2) | ⚠️ Needs server RAG | No | 2–3 days | 🟡 Medium |
-| MCP Awareness (11.3) | ⚠️ Needs server MCP | No | 2 days | 🟢 Low |
-| Agent Orchestration (11.4) | ⚠️ Needs server agents | No | 3–4 days | 🟢 Low |
-| Collaboration/CRDT (12.1) | ⚠️ Needs server CRDT | No | 4–5 days | 🟡 Medium |
-| Audit Log (12.2) | ✅ Yes | No | 2–3 days | 🟢 Low |
-| Flow Visualization (12.3) | ✅ Yes | No | 3–4 days | 🟢 Low |
-| State Machine Viz (12.4) | ✅ Yes | No | 2 days | 🟢 Low |
+| MCP Awareness (11.3) | ⚠️ Needs server MCP | No | 2 days | 🟡 Medium |
+| Agent Orchestration (11.4) | ⚠️ Needs server agents | No | 3–4 days | 🟡 Medium |
+| AI Cost Management (11.5) | ✅ Yes | No | 2 days | 🟢 Low |
+| Accessibility (11.6) | ✅ Yes | No | 3–4 days | 🟡 Medium |
+| RLS Awareness (12.1) | ⚠️ Needs server RLS | No | 3–4 days | 🟡 Medium |
+| Security Policies (12.2) | ✅ Yes | No | 2 days | 🟡 Medium |
+| Sharing Rules (12.3) | ⚠️ Needs server sharing | No | 3 days | 🟡 Medium |
+| Territory Management (12.4) | ⚠️ Needs server territory | No | 1–2 days | 🟢 Low |
+| Collaboration/CRDT (13.1) | ⚠️ Needs server CRDT | No | 4–5 days | 🟡 Medium |
+| Audit Log (13.2) | ✅ Yes | No | 2–3 days | 🟢 Low |
+| Flow Visualization (13.3) | ✅ Yes | No | 3–4 days | 🟢 Low |
+| State Machine Viz (13.4) | ✅ Yes | No | 2 days | 🟢 Low |
 
-**Total estimated effort for Phase 9–12**: ~6–8 weeks (can overlap with Phases 7–8)
+**Total estimated effort for Phase 11–13**: ~8–10 weeks (can overlap with Phases 7–8)
 
 ---
 
 ## Success Criteria for v1.0 GA
 
-1. ✅ All 493+ unit/integration tests passing
+1. ✅ All 540+ unit/integration tests passing
 2. ✅ All hooks and lib modules have test coverage
 3. ☐ All 4 Maestro E2E flows passing on iOS and Android
 4. ☐ Performance metrics within targets on real devices
@@ -547,15 +658,16 @@ All development phases (0 through 5B) and most of Phase 6 are **complete**:
 7. ☐ TestFlight / internal testing completed (minimum 1 week)
 8. ☐ App Store / Play Store review approved
 
-## Success Criteria for v1.1 (Spec v2.0.4 Full Compliance)
+## Success Criteria for v1.1 (Spec v3.0.0 Full Compliance)
 
 1. ☑ Phase 9 complete — Automation hook, package management, analytics explain
 2. ☑ Phase 10 complete — Report views, SDUI pages, theme tokens, widget system
-3. ☐ Phase 11 complete — AI sessions, RAG, MCP, agents
-4. ☐ Phase 12 complete — Collaboration, audit, flow viz, state machine
-5. ☐ All new hooks exported from `hooks/useObjectStack.ts` barrel
-6. ☐ All new hooks have unit tests
-7. ☐ SDK-GAP-ANALYSIS.md updated to reflect v2.0.4 compliance
+3. ☐ Phase 11 complete — AI sessions, RAG, MCP, agents, cost management, accessibility
+4. ☐ Phase 12 complete — Security: RLS, policies, sharing, territory
+5. ☐ Phase 13 complete — Collaboration, audit, flow viz, state machine
+6. ☐ All new hooks exported from `hooks/useObjectStack.ts` barrel
+7. ☐ All new hooks have unit tests
+8. ☐ SDK-GAP-ANALYSIS.md updated to reflect v3.0.0 compliance
 
 ---
 
@@ -576,6 +688,9 @@ The following hooks were built on the mobile side using `useClient()`. Consider 
 | `usePackageManagement()` | `client.packages.*` | 🆕 Package lifecycle (install/enable/disable) |
 | `useRAG()` | `client.ai.rag?` | 🆕 Needs server-side RAG endpoint |
 | `useCollaboration()` | `client.realtime.*` | 🆕 CRDT co-editing sessions |
+| `useRLS()` | `client.security?` | 🆕 Row-Level Security awareness (v3.0.0) |
+| `useSharing()` | `client.security?` | 🆕 Sharing rules management (v3.0.0) |
+| `useAICost()` | `client.ai.cost?` | 🆕 AI cost tracking (v3.0.0) |
 
 ### Requested New Client-React Hooks
 
@@ -589,7 +704,11 @@ The following hooks would benefit all ObjectStack frontend implementations if up
 6. **`useCollaboration()`** — Real-time co-editing with cursor tracking
 7. **`useAuditLog()`** — Audit event timeline for records
 8. **`useReport()`** — Report query and rendering
+9. **`useRLS()`** — Row-Level Security policy awareness (v3.0.0)
+10. **`useSharing()`** — Record sharing management (v3.0.0)
+11. **`useAICost()`** — AI cost and budget tracking (v3.0.0)
+12. **`useMCPTools()`** — MCP tool discovery and invocation (v3.0.0)
 
 ---
 
-*Last updated: 2026-02-10. See [ROADMAP.md](./ROADMAP.md) for full development history and [PROJECT-STATUS.md](./PROJECT-STATUS.md) for detailed status report.*
+*Last updated: 2026-02-12. See [ROADMAP.md](./ROADMAP.md) for full development history and [PROJECT-STATUS.md](./PROJECT-STATUS.md) for detailed status report.*

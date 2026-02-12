@@ -32,7 +32,7 @@ describe("useWidgetQuery", () => {
 
   it("computes count for metric widget (default aggregate)", () => {
     mockUseQuery.mockReturnValue({
-      data: { records: [{ id: "1" }, { id: "2" }, { id: "3" }], count: 3 },
+      data: { records: [{ id: "1" }, { id: "2" }, { id: "3" }], total: 3 },
       isLoading: false,
     });
     const widget: DashboardWidgetMeta = {
@@ -53,7 +53,7 @@ describe("useWidgetQuery", () => {
           { id: "2", amount: 20 },
           { id: "3", amount: 30 },
         ],
-        count: 3,
+        total: 3,
       },
       isLoading: false,
     });
