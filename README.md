@@ -94,6 +94,7 @@ Comprehensive project documentation is available in the [`docs/`](./docs/) direc
 | **[🧪 E2E Testing](./docs/E2E-TESTING.md)** | Maestro test flows, execution guide, troubleshooting |
 | **[Architecture](./docs/ARCHITECTURE.md)** | System architecture, layer design, provider hierarchy |
 | **[UI/UX Design](./docs/UI-DESIGN.md)** | Design system, view renderers, field types |
+| **[🎨 UX Design Review](./docs/UX-DESIGN-REVIEW.md)** | UX audit, industry benchmarks, improvement roadmap (Phases 14–20) |
 | **[Data Layer](./docs/DATA-LAYER.md)** | Offline-first architecture, sync queue, caching |
 | **[API Integration](./docs/API-INTEGRATION.md)** | SDK usage, authentication, hook reference |
 | **[Security](./docs/SECURITY.md)** | Auth security, data protection, network security |
