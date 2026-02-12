@@ -1,0 +1,64 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration:
+    name: Server Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # Install mobile app dependencies
+      - name: Install dependencies
+        run: pnpm install
+
+      # Install HotCRM submodule dependencies and build
+      - name: Setup HotCRM server
+        run: |
+          cd server/hotcrm
+          pnpm install
+          pnpm build
+
+      # Start the server in background
+      - name: Start HotCRM server
+        run: ./scripts/start-integration-server.sh --bg
+        env:
+          PORT: 4000
+
+      # Wait for server readiness
+      - name: Wait for server
+        run: ./scripts/wait-for-server.sh http://localhost:4000/api/v1/auth/get-session 60
+
+      # Run integration tests
+      - name: Run integration tests
+        run: pnpm test:integration:server
+        env:
+          INTEGRATION_SERVER_URL: http://localhost:4000
+
+      # Stop server
+      - name: Stop HotCRM server
+        if: always()
+        run: ./scripts/stop-integration-server.sh

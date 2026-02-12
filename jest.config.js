@@ -22,6 +22,11 @@ module.exports = {
     "**/__tests__/**/*.(test|spec).(ts|tsx)",
     "**/*.(test|spec).(ts|tsx)",
   ],
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "\\.integration\\.test\\.(ts|tsx)$",
+    "<rootDir>/server/hotcrm/",
+  ],
   collectCoverageFrom: [
     "lib/**/*.{ts,tsx}",
     "hooks/**/*.{ts,tsx}",
