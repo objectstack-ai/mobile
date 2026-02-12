@@ -1,0 +1,77 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CollaborationOverlay renders participant cursors 1`] = `
+<View
+  className="absolute inset-0"
+  pointerEvents="none"
+>
+  <View>
+    <View
+      className="absolute items-center"
+      style={
+        {
+          "left": 100,
+          "top": 200,
+        }
+      }
+    >
+      <View
+        className="h-4 w-4 items-center justify-center rounded-full"
+        style={
+          {
+            "backgroundColor": "#3b82f6",
+          }
+        }
+      >
+        <Text
+          className="text-[8px] font-bold text-white"
+        >
+          A
+        </Text>
+      </View>
+      <View
+        className="mt-1 rounded px-1.5 py-0.5"
+        style={
+          {
+            "backgroundColor": "#3b82f6",
+          }
+        }
+      >
+        <Text
+          className="text-[10px] text-white"
+          numberOfLines={1}
+        >
+          Alice editing this field
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`CollaborationOverlay renders without cursors when showCursors is false 1`] = `
+<View
+  className="absolute inset-0"
+  pointerEvents="none"
+>
+  <View>
+    <View
+      className="flex-row items-center gap-1 px-2 py-0.5"
+    >
+      <View
+        className="h-2 w-2 rounded-full"
+        style={
+          {
+            "backgroundColor": "#3b82f6",
+          }
+        }
+      />
+      <Text
+        className="text-[10px] text-muted-foreground"
+      >
+        Alice
+      </Text>
+    </View>
+  </View>
+</View>
+`;
