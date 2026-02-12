@@ -1,0 +1,375 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AgentProgress renders cancel button when running and onCancel provided 1`] = `
+<View
+  accessibilityLabel="Agent summarizer, running, 50% complete"
+  accessibilityRole="summary"
+  accessible={true}
+  className="rounded-xl border border-border bg-card overflow-hidden"
+>
+  <View
+    className="flex-row items-center justify-between px-4 py-3"
+  >
+    <Text
+      className="text-sm font-semibold text-foreground"
+    >
+      Agent: 
+      summarizer
+    </Text>
+    <View
+      className="rounded-full px-2.5 py-0.5"
+      style={
+        {
+          "backgroundColor": "#3b82f620",
+        }
+      }
+    >
+      <Text
+        className="text-xs font-semibold"
+        style={
+          {
+            "color": "#3b82f6",
+          }
+        }
+      >
+        Running
+      </Text>
+    </View>
+  </View>
+  <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 50,
+      }
+    }
+    accessible={true}
+    className="px-4 pb-2"
+  >
+    <View
+      className="h-2 rounded-full bg-muted"
+    >
+      <View
+        className="h-2 rounded-full bg-primary"
+        style={
+          {
+            "width": "50%",
+          }
+        }
+      />
+    </View>
+    <Text
+      className="mt-1 text-xs text-muted-foreground"
+    >
+      50
+      % complete
+    </Text>
+  </View>
+  <View
+    className="flex-row items-center gap-3 px-4 pb-3"
+  >
+    <Text
+      className="text-xs text-muted-foreground"
+    >
+      Started: 
+      12:00:00 AM
+    </Text>
+  </View>
+  <View
+    className="border-t border-border px-4 py-2"
+  >
+    <View
+      accessibilityLabel="Cancel agent task"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      className="items-center rounded-lg bg-destructive px-3 py-2 active:bg-destructive/80"
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+    >
+      <Text
+        className="text-sm font-semibold text-white"
+      >
+        Cancel
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`AgentProgress renders completed task 1`] = `
+<View
+  accessibilityLabel="Agent summarizer, completed, 100% complete"
+  accessibilityRole="summary"
+  accessible={true}
+  className="rounded-xl border border-border bg-card overflow-hidden"
+>
+  <View
+    className="flex-row items-center justify-between px-4 py-3"
+  >
+    <Text
+      className="text-sm font-semibold text-foreground"
+    >
+      Agent: 
+      summarizer
+    </Text>
+    <View
+      className="rounded-full px-2.5 py-0.5"
+      style={
+        {
+          "backgroundColor": "#22c55e20",
+        }
+      }
+    >
+      <Text
+        className="text-xs font-semibold"
+        style={
+          {
+            "color": "#22c55e",
+          }
+        }
+      >
+        Completed
+      </Text>
+    </View>
+  </View>
+  <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 100,
+      }
+    }
+    accessible={true}
+    className="px-4 pb-2"
+  >
+    <View
+      className="h-2 rounded-full bg-muted"
+    >
+      <View
+        className="h-2 rounded-full bg-primary"
+        style={
+          {
+            "width": "100%",
+          }
+        }
+      />
+    </View>
+    <Text
+      className="mt-1 text-xs text-muted-foreground"
+    >
+      100
+      % complete
+    </Text>
+  </View>
+  <View
+    className="flex-row items-center gap-3 px-4 pb-3"
+  >
+    <Text
+      className="text-xs text-muted-foreground"
+    >
+      Started: 
+      12:00:00 AM
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`AgentProgress renders failed task with error 1`] = `
+<View
+  accessibilityLabel="Agent summarizer, failed, 30% complete"
+  accessibilityRole="summary"
+  accessible={true}
+  className="rounded-xl border border-border bg-card overflow-hidden"
+>
+  <View
+    className="flex-row items-center justify-between px-4 py-3"
+  >
+    <Text
+      className="text-sm font-semibold text-foreground"
+    >
+      Agent: 
+      summarizer
+    </Text>
+    <View
+      className="rounded-full px-2.5 py-0.5"
+      style={
+        {
+          "backgroundColor": "#ef444420",
+        }
+      }
+    >
+      <Text
+        className="text-xs font-semibold"
+        style={
+          {
+            "color": "#ef4444",
+          }
+        }
+      >
+        Failed
+      </Text>
+    </View>
+  </View>
+  <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 30,
+      }
+    }
+    accessible={true}
+    className="px-4 pb-2"
+  >
+    <View
+      className="h-2 rounded-full bg-muted"
+    >
+      <View
+        className="h-2 rounded-full bg-primary"
+        style={
+          {
+            "width": "30%",
+          }
+        }
+      />
+    </View>
+    <Text
+      className="mt-1 text-xs text-muted-foreground"
+    >
+      30
+      % complete
+    </Text>
+  </View>
+  <View
+    className="flex-row items-center gap-3 px-4 pb-3"
+  >
+    <Text
+      className="text-xs text-muted-foreground"
+    >
+      Started: 
+      12:00:00 AM
+    </Text>
+  </View>
+  <View
+    accessibilityRole="alert"
+    className="border-t border-border px-4 py-2"
+  >
+    <Text
+      className="text-xs text-destructive"
+    >
+      Agent timed out
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`AgentProgress renders running task with progress 1`] = `
+<View
+  accessibilityLabel="Agent summarizer, running, 50% complete"
+  accessibilityRole="summary"
+  accessible={true}
+  className="rounded-xl border border-border bg-card overflow-hidden"
+>
+  <View
+    className="flex-row items-center justify-between px-4 py-3"
+  >
+    <Text
+      className="text-sm font-semibold text-foreground"
+    >
+      Agent: 
+      summarizer
+    </Text>
+    <View
+      className="rounded-full px-2.5 py-0.5"
+      style={
+        {
+          "backgroundColor": "#3b82f620",
+        }
+      }
+    >
+      <Text
+        className="text-xs font-semibold"
+        style={
+          {
+            "color": "#3b82f6",
+          }
+        }
+      >
+        Running
+      </Text>
+    </View>
+  </View>
+  <View
+    accessibilityRole="progressbar"
+    accessibilityValue={
+      {
+        "max": 100,
+        "min": 0,
+        "now": 50,
+      }
+    }
+    accessible={true}
+    className="px-4 pb-2"
+  >
+    <View
+      className="h-2 rounded-full bg-muted"
+    >
+      <View
+        className="h-2 rounded-full bg-primary"
+        style={
+          {
+            "width": "50%",
+          }
+        }
+      />
+    </View>
+    <Text
+      className="mt-1 text-xs text-muted-foreground"
+    >
+      50
+      % complete
+    </Text>
+  </View>
+  <View
+    className="flex-row items-center gap-3 px-4 pb-3"
+  >
+    <Text
+      className="text-xs text-muted-foreground"
+    >
+      Started: 
+      12:00:00 AM
+    </Text>
+  </View>
+</View>
+`;

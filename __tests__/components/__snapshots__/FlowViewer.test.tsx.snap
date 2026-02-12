@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FlowViewer renders empty state when no nodes 1`] = `
+<View
+  className="items-center py-8"
+>
+  <Text
+    className="text-sm text-muted-foreground"
+  >
+    No flow steps defined
+  </Text>
+</View>
+`;
+
+exports[`FlowViewer renders nodes with edges 1`] = `
+<RCTScrollView
+  accessibilityLabel="Flow diagram"
+  accessibilityRole="list"
+  className="flex-1"
+>
+  <View>
+    <View
+      className="gap-3 px-4 py-3"
+    >
+      <View
+        accessibilityLabel="Step 1: Start, type Trigger"
+        accessible={true}
+      >
+        <View
+          className="rounded-xl border border-border bg-card px-4 py-3"
+        >
+          <Text
+            className="text-xs text-muted-foreground"
+          >
+            Trigger
+          </Text>
+          <Text
+            className="mt-0.5 text-sm font-semibold text-foreground"
+          >
+            Start
+          </Text>
+        </View>
+        <View
+          className="items-center gap-0.5 py-1.5"
+        >
+          <View
+            className="h-4 w-px bg-muted-foreground/30"
+          />
+          <Text
+            className="text-[10px] text-muted-foreground"
+          >
+            On Submit
+          </Text>
+          <Text
+            className="text-xs text-muted-foreground"
+          >
+            ↓
+          </Text>
+        </View>
+      </View>
+      <View
+        accessibilityLabel="Step 2: Send Email, type Action"
+        accessible={true}
+      >
+        <View
+          className="rounded-xl border border-border bg-card px-4 py-3"
+        >
+          <Text
+            className="text-xs text-muted-foreground"
+          >
+            Action
+          </Text>
+          <Text
+            className="mt-0.5 text-sm font-semibold text-foreground"
+          >
+            Send Email
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+</RCTScrollView>
+`;
