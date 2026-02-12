@@ -700,4 +700,4 @@ All design tokens have dark mode variants defined in `global.css`:
 
 ---
 
-*This document defines the UI/UX design specification as of Phase 0–3 implementation. See [ARCHITECTURE.md](./ARCHITECTURE.md) for technical architecture and [ROADMAP.md](./ROADMAP.md) for planned enhancements.*
+*This document defines the UI/UX design specification as of Phase 0–3 implementation. See [ARCHITECTURE.md](./ARCHITECTURE.md) for technical architecture and [ROADMAP.md](../ROADMAP.md) for planned enhancements.*

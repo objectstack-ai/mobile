@@ -415,4 +415,4 @@ const ERROR_MESSAGES: Record<ObjectStackErrorCode, string> = {
 
 ---
 
-*This document covers the security architecture as of the current implementation. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the overall system architecture and [ROADMAP.md](./ROADMAP.md) for planned security enhancements.*
+*This document covers the security architecture as of the current implementation. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the overall system architecture and [ROADMAP.md](../ROADMAP.md) for planned security enhancements.*

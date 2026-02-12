@@ -595,11 +595,11 @@ await viewsApi().save(objectName, viewName, viewData);
 await viewsApi().delete(objectName, viewName);
 ```
 
-**Status**: Workaround using `(client as any).views`. Will be replaced when SDK provides typed API (see [SDK-GAP-ANALYSIS.md](./SDK-GAP-ANALYSIS.md) Gap 1).
+**Status**: Workaround using `(client as any).views`. Will be replaced when SDK provides typed API (see [ROADMAP.md](../ROADMAP.md)).
 
 ### Missing SDK APIs
 
-The following APIs are not yet available in the SDK and are tracked in [SDK-GAP-ANALYSIS.md](./SDK-GAP-ANALYSIS.md):
+The following APIs are not yet available in the SDK and are tracked in [ROADMAP.md](../ROADMAP.md):
 
 | Missing API | Blocker For | Workaround |
 |------------|-------------|-----------|
@@ -612,4 +612,4 @@ The following APIs are not yet available in the SDK and are tracked in [SDK-GAP-
 
 ---
 
-*This document covers API integration as of `@objectstack/client@1.1.0`. See [SDK-GAP-ANALYSIS.md](./SDK-GAP-ANALYSIS.md) for detailed gap analysis and [DATA-LAYER.md](./DATA-LAYER.md) for offline data architecture.*
+*This document covers API integration as of `@objectstack/client@1.1.0`. See [ROADMAP.md](../ROADMAP.md) for gap analysis and [DATA-LAYER.md](./DATA-LAYER.md) for offline data architecture.*

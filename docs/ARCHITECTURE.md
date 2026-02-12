@@ -577,4 +577,4 @@ stores/sync-store.ts
 
 ---
 
-*This document describes the architecture as implemented through Phase 0–3 with Phase 4A enhancements. See [ROADMAP.md](./ROADMAP.md) for future phases and [SDK-GAP-ANALYSIS.md](./SDK-GAP-ANALYSIS.md) for upstream SDK dependencies.*
+*This document describes the architecture as implemented through Phase 0–3 with Phase 4A enhancements. See [ROADMAP.md](../ROADMAP.md) for future phases and SDK dependencies.*

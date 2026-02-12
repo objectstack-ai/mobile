@@ -184,8 +184,8 @@ The v2.0.1 upgrade **eliminates all upstream SDK dependencies**:
 
 ## References
 
-- [SDK Gap Analysis](./SDK-GAP-ANALYSIS.md)
-- [Development Roadmap](./ROADMAP.md)
+- [SDK Gap Analysis](../ROADMAP.md)
+- [Development Roadmap](../ROADMAP.md)
 
 ---
 

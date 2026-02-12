@@ -489,4 +489,4 @@ Default TTL: **5 minutes**. After expiration, the next access triggers a conditi
 
 ---
 
-*This document details the data layer as implemented through Phase 3. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the overall system architecture and [SDK-GAP-ANALYSIS.md](./SDK-GAP-ANALYSIS.md) for upstream SDK dependencies.*
+*This document details the data layer as implemented through Phase 3. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the overall system architecture and [ROADMAP.md](../ROADMAP.md) for upstream SDK dependencies.*

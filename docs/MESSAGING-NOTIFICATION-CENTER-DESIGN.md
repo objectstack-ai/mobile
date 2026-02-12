@@ -1322,4 +1322,4 @@ Week 13–14: client-react hooks (upstream mobile hooks)
 
 ---
 
-*Last updated: 2026-02-09. Related documents: [ROADMAP.md](./ROADMAP.md), [SDK-GAP-ANALYSIS.md](./SDK-GAP-ANALYSIS.md), [NEXT-PHASE.md](./NEXT-PHASE.md)*
+*Last updated: 2026-02-09. Related documents: [ROADMAP.md](../ROADMAP.md)*
