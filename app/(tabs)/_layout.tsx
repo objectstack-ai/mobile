@@ -1,9 +1,10 @@
 import { Tabs } from "expo-router";
 import {
   Home,
+  Search,
   LayoutGrid,
   Bell,
-  UserCircle,
+  MoreHorizontal,
 } from "lucide-react-native";
 
 export default function TabLayout() {
@@ -34,6 +35,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="search"
+        options={{
+          title: "Search",
+          tabBarIcon: ({ color, size }) => (
+            <Search size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="apps"
         options={{
           title: "Apps",
@@ -50,12 +60,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="more"
+        options={{
+          title: "More",
+          tabBarIcon: ({ color, size }) => (
+            <MoreHorizontal size={size} color={color} />
+          ),
+        }}
+      />
+      {/* Keep profile route but hide from tab bar (accessible via More) */}
+      <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <UserCircle size={size} color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>

@@ -44,3 +44,44 @@ export { useTerritory } from "./useTerritory";
 /* ---- Phase 13: Advanced Platform Features ---- */
 export { useCollaboration } from "./useCollaboration";
 export { useAuditLog } from "./useAuditLog";
+
+/* ---- Phase 14: UX Foundation — Navigation & Loading ---- */
+export { useGlobalSearch } from "./useGlobalSearch";
+export { useRecentItems } from "./useRecentItems";
+export { useFavorites } from "./useFavorites";
+export { usePageTransition } from "./usePageTransition";
+
+/* ---- Phase 15: UX Polish — Home & Detail ---- */
+export { useInlineEdit } from "./useInlineEdit";
+export { useContextualActions } from "./useContextualActions";
+export { useUndoRedo } from "./useUndoRedo";
+export { useQuickActions } from "./useQuickActions";
+
+/* ---- Phase 16: Forms, Lists & Interactions ---- */
+export { useFormDraft } from "./useFormDraft";
+export { useListEnhancement } from "./useListEnhancement";
+
+/* ---- Phase 17: Settings, Onboarding & Notifications ---- */
+export { useSettings } from "./useSettings";
+export { useOnboarding } from "./useOnboarding";
+export { useNotificationEnhancement } from "./useNotificationEnhancement";
+export { useAuthEnhancement } from "./useAuthEnhancement";
+
+/* ---- Phase 18: Advanced Views ---- */
+export { useDashboardDrillDown } from "./useDashboardDrillDown";
+export { useKanbanDragDrop } from "./useKanbanDragDrop";
+export { useCalendarView } from "./useCalendarView";
+export { useMapView } from "./useMapView";
+export { useChartInteraction } from "./useChartInteraction";
+
+/* ---- Phase 19: Accessibility & Performance ---- */
+export { useDynamicType } from "./useDynamicType";
+export { useReducedMotion } from "./useReducedMotion";
+export { useOptimisticUpdate } from "./useOptimisticUpdate";
+export { usePrefetch } from "./usePrefetch";
+
+/* ---- Phase 20: Platform Integration ---- */
+export { useDeepLink } from "./useDeepLink";
+export { useWidgetKit } from "./useWidgetKit";
+export { useVoiceShortcuts } from "./useVoiceShortcuts";
+export { useWatchConnectivity } from "./useWatchConnectivity";
