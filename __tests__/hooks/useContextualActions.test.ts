@@ -224,4 +224,36 @@ describe("useContextualActions", () => {
       `maps:?q=${encodeURIComponent("123 Main St")}`,
     );
   });
+
+  it("executeAction sanitizes phone numbers", async () => {
+    (Linking.openURL as jest.Mock).mockResolvedValue(undefined);
+
+    const { result } = renderHook(() => useContextualActions());
+
+    await act(async () => {
+      await result.current.executeAction({
+        type: "phone",
+        label: "Call mobile",
+        value: "+1 (234) 567-890",
+        field: "mobile",
+      });
+    });
+
+    expect(Linking.openURL).toHaveBeenCalledWith("tel:+1234567890");
+  });
+
+  it("executeAction rejects invalid email", async () => {
+    const { result } = renderHook(() => useContextualActions());
+
+    await act(async () => {
+      await expect(
+        result.current.executeAction({
+          type: "email",
+          label: "Email",
+          value: "not-an-email",
+          field: "email",
+        }),
+      ).rejects.toThrow("Invalid email address");
+    });
+  });
 });

@@ -92,17 +92,31 @@ export function useContextualActions(): UseContextualActionsResult {
     async (action: ContextualAction): Promise<void> => {
       let url: string;
       switch (action.type) {
-        case "phone":
-          url = `tel:${action.value}`;
+        case "phone": {
+          // Strip non-digit chars (except leading +) to prevent injection
+          const sanitizedPhone = action.value.replace(/(?!^\+)[^\d]/g, "");
+          url = `tel:${sanitizedPhone}`;
           break;
-        case "email":
+        }
+        case "email": {
+          // Basic email format validation
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(action.value)) {
+            throw new Error("Invalid email address");
+          }
           url = `mailto:${action.value}`;
           break;
-        case "url":
-          url = action.value.startsWith("http")
+        }
+        case "url": {
+          // Only allow http/https URLs
+          const candidate = action.value.startsWith("http")
             ? action.value
             : `https://${action.value}`;
+          if (!/^https?:\/\//i.test(candidate)) {
+            throw new Error("Invalid URL");
+          }
+          url = candidate;
           break;
+        }
         case "address":
           url = `maps:?q=${encodeURIComponent(action.value)}`;
           break;

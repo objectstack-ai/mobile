@@ -2,7 +2,7 @@
 
 > **Date**: 2026-02-12
 > **SDK**: `@objectstack/client@3.0.0`, `@objectstack/client-react@3.0.0`, `@objectstack/spec@3.0.0`
-> **Tests**: ✅ 911/911 passing (116 suites, ~85% coverage)
+> **Tests**: ✅ 920/920 passing (116 suites, ~85% coverage)
 
 ---
 
@@ -665,7 +665,7 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 
 ### v1.0 GA
 
-1. ✅ 911+ unit/integration tests passing
+1. ✅ 920+ unit/integration tests passing
 2. ✅ All hooks and lib modules have test coverage
 3. ☐ All 4 Maestro E2E flows passing
 4. ☐ Performance metrics within targets on real devices
