@@ -53,3 +53,15 @@ coverage/
 apps/docs/.next/
 apps/docs/.source/
 apps/docs/node_modules/
+
+# hotcrm submodule build artifacts
+server/hotcrm/node_modules/
+server/hotcrm/.pnpm-store/
+server/hotcrm/packages/*/dist/
+server/hotcrm/packages/*/node_modules/
+server/hotcrm/apps/*/node_modules/
+server/hotcrm/apps/*/.next/
+
+# integration server runtime files
+.hotcrm-server.pid
+.hotcrm-server.log

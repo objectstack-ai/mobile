@@ -15,6 +15,10 @@
     "bundle:analyze": "npx expo export --dump-sourcemap --platform ios && npx source-map-explorer dist/bundles/ios/*.js",
     "server:dev": "tsx server/dev.ts",
     "server:test": "tsx server/test-auth.ts",
+    "server:hotcrm": "./scripts/start-integration-server.sh",
+    "server:hotcrm:bg": "./scripts/start-integration-server.sh --bg",
+    "server:hotcrm:stop": "./scripts/stop-integration-server.sh",
+    "test:integration:server": "jest --config jest.integration.config.js --passWithNoTests",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish"
@@ -94,6 +98,7 @@
     "msw": "^2.12.9",
     "prettier": "^3.5.3",
     "react-test-renderer": "19.1.0",
+    "ts-jest": "^29.4.6",
     "tsx": "^4.21.0",
     "typescript": "~5.9.2"
   },
