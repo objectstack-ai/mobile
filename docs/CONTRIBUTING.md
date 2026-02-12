@@ -170,8 +170,8 @@ mobile/
 │   ├── TESTING.md                  # Testing strategy
 │   ├── DEPLOYMENT.md               # Build & deployment
 │   ├── CONTRIBUTING.md             # This file
-│   ├── ROADMAP.md                  # Development roadmap
-│   └── SDK-GAP-ANALYSIS.md         # SDK gap analysis
+│   ├── ...                         # Technical docs
+│   └── ...                         # Other technical docs
 ├── global.css                      # Design tokens & Tailwind base
 ├── tailwind.config.js              # Tailwind configuration
 ├── app.config.ts                   # Expo app config

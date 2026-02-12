@@ -118,7 +118,7 @@ const query = createQuery<Task>('todo_task')
 
 ### 已更新文档
 
-1. **docs/SDK-GAP-ANALYSIS.md**
+1. **ROADMAP.md** (root)
    - 更新版本至 v2.0.0
    - 标记 Gap 1 为"已解决（部分）"
    - 更新剩余 Gap 优先级
@@ -264,8 +264,8 @@ const query = createQuery<Task>('todo_task')
 
 ## 参考文档
 
-- [SDK Gap Analysis](./SDK-GAP-ANALYSIS.md) - Gap 状态和优先级
-- [Development Roadmap](./ROADMAP.md) - 开发路线图
+- [Roadmap](../ROADMAP.md) - Gap 状态和优先级
+- [Development Roadmap](../ROADMAP.md) - 开发路线图
 - [SDK v2.0.1 Upgrade Guide](./SDK-V2-UPGRADE.md) - 详细升级指南
 
 ---

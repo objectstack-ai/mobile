@@ -430,4 +430,4 @@ To complete Phase 6.3 (Final Optimization), the following E2E test work is recom
 - [Maestro Documentation](https://maestro.mobile.dev/)
 - [Maestro Cloud](https://cloud.mobile.dev/)
 - [Expo Testing Guide](https://docs.expo.dev/develop/unit-testing/)
-- [ObjectStack Mobile ROADMAP](./ROADMAP.md)
+- [ObjectStack Mobile ROADMAP](../ROADMAP.md)

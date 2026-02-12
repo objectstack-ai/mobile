@@ -363,8 +363,8 @@ function WidgetDataFetcher({ widget, onData }) {
 ## Documentation
 
 - **Detailed Verification**: [FEATURE-VERIFICATION.md](./FEATURE-VERIFICATION.md)
-- **Project Status**: [PROJECT-STATUS.md](./PROJECT-STATUS.md)
-- **Development Roadmap**: [ROADMAP.md](./ROADMAP.md)
+- [Project Status](../ROADMAP.md)
+- [Development Roadmap](../ROADMAP.md)
 - **Architecture Guide**: [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ---
