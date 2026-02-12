@@ -12,7 +12,7 @@
  *   pnpm test:integration:server
  */
 
-import { api, apiOk, registerAndLogin } from "./helpers";
+import { api, registerAndLogin } from "./helpers";
 
 describe("CRUD Operations", () => {
   let cookie = "";
