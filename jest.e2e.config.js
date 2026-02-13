@@ -13,5 +13,5 @@ module.exports = {
   ...baseConfig,
   testMatch: ["**/__tests__/e2e/**/*.e2e.test.(ts|tsx)"],
   testPathIgnorePatterns: ["/node_modules/", "<rootDir>/server/hotcrm/"],
-  testTimeout: 15_000,
+  testTimeout: 10_000,
 };
