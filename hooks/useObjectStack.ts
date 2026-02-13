@@ -85,3 +85,24 @@ export { useDeepLink } from "./useDeepLink";
 export { useWidgetKit } from "./useWidgetKit";
 export { useVoiceShortcuts } from "./useVoiceShortcuts";
 export { useWatchConnectivity } from "./useWatchConnectivity";
+
+/* ---- Phase 21: Spec Gap — AI DevOps/CodeGen/Predictive ---- */
+export { useDevOpsAgent } from "./useDevOpsAgent";
+export { useCodeGen } from "./useCodeGen";
+export { usePredictive } from "./usePredictive";
+
+/* ---- Phase 22: Spec Gap — ETL & Connectors ---- */
+export { useETLPipeline } from "./useETLPipeline";
+export { useConnector } from "./useConnector";
+
+/* ---- v1.4: Notification Center ---- */
+export { useNotificationCenter } from "./useNotificationCenter";
+
+/* ---- v1.5: Messaging & Channels ---- */
+export { useMessaging } from "./useMessaging";
+export { useChannels } from "./useChannels";
+
+/* ---- v1.6: Advanced Offline ---- */
+export { useSelectiveSync } from "./useSelectiveSync";
+export { useConflictResolution } from "./useConflictResolution";
+export { useOfflineAnalytics } from "./useOfflineAnalytics";

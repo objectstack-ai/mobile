@@ -2,17 +2,17 @@
 
 > **Date**: 2026-02-13
 > **SDK**: `@objectstack/client@3.0.0`, `@objectstack/client-react@3.0.0`, `@objectstack/spec@3.0.0`
-> **Tests**: ✅ 920/920 passing (116 suites, ~85% coverage)
+> **Tests**: ✅ 1003/1003 passing (127 suites, ~85% coverage)
 
 ---
 
 ## 1. Project Status
 
-The ObjectStack Mobile client has completed all core development phases (0–6), spec alignment phases (9–10), advanced feature phases (11–13), and UX/platform phases (14–20). The SDK is upgraded to v3.0.0 (spec v3.0.0: 12 modules, 171 schemas).
+The ObjectStack Mobile client has completed all core development phases (0–6), spec alignment phases (9–10), advanced feature phases (11–13), UX/platform phases (14–20), spec gap phases (21–22), and post-GA features (v1.4–v1.6). The SDK is upgraded to v3.0.0 (spec v3.0.0: 12 modules, 171 schemas).
 
 ### What's Implemented
 
-- **53 custom hooks** covering all SDK namespaces (including AI, security, UX, platform integration)
+- **64 custom hooks** covering all SDK namespaces (including AI, security, UX, platform integration, messaging, offline)
 - **22 view renderers / components** (List, Form, Detail, Dashboard, Kanban, Calendar, Chart, Timeline, Map, Report, Page, widgets, FlowViewer, StateMachineViewer, AgentProgress, CollaborationOverlay, Skeletons, FAB, UndoSnackbar)
 - **13 UI primitives** + 15 common components
 - **30 lib modules** (auth, cache, offline, security, analytics, haptics, accessibility, design tokens, etc.)
@@ -110,6 +110,42 @@ The ObjectStack Mobile client has completed all core development phases (0–6),
 | Flow Visualization (`FlowViewer`) | ✅ |
 | State Machine Visualization (`StateMachineViewer`) | ✅ |
 
+### Phase 21: Spec Gap — AI DevOps/CodeGen/Predictive ✅
+
+| Feature | Status |
+|---------|--------|
+| DevOps Agent (`useDevOpsAgent`) | ✅ |
+| Code Generation & Review (`useCodeGen`) | ✅ |
+| Predictive Models (`usePredictive`) | ✅ |
+
+### Phase 22: Spec Gap — ETL & Connectors ✅
+
+| Feature | Status |
+|---------|--------|
+| ETL Pipeline Management (`useETLPipeline`) | ✅ |
+| Integration Connectors (`useConnector`) | ✅ |
+
+### v1.4: Notification Center ✅
+
+| Feature | Status |
+|---------|--------|
+| Notification Center (`useNotificationCenter`) | ✅ |
+
+### v1.5: Messaging & Channels ✅
+
+| Feature | Status |
+|---------|--------|
+| Messaging — DMs, Threads, Reactions (`useMessaging`) | ✅ |
+| Channel Management (`useChannels`) | ✅ |
+
+### v1.6: Advanced Offline ✅
+
+| Feature | Status |
+|---------|--------|
+| Selective Sync (`useSelectiveSync`) | ✅ |
+| Three-Way Merge Conflict Resolution (`useConflictResolution`) | ✅ |
+| Offline Analytics (`useOfflineAnalytics`) | ✅ |
+
 ---
 
 ## 3. Spec v3.0.0 Compliance Matrix
@@ -170,15 +206,15 @@ The ObjectStack Mobile client has completed all core development phases (0–6),
 | `spec/integration` — Widget Kit | `useWidgetKit` |
 | `spec/integration` — Voice Shortcuts | `useVoiceShortcuts` |
 | `spec/integration` — Watch | `useWatchConnectivity` |
+| `spec/ai` — DevOps Agent | `useDevOpsAgent` |
+| `spec/ai` — Code Generation / Review | `useCodeGen` |
+| `spec/ai` — Predictive Models | `usePredictive` |
+| `spec/automation` — ETL Pipelines | `useETLPipeline` |
+| `spec/integration` — Connectors | `useConnector` |
 
-### 🟡 Gaps — Deferred to Post-GA
+### ✅ No Remaining Spec Gaps
 
-| Spec Module | Gap | Priority |
-|-------------|-----|----------|
-| `spec/ai` — DevOps Agent / Code Gen / Predictive | Not implemented | 🟢 |
-| `spec/automation` — ETL / Connectors | Not implemented | 🟢 |
-
-Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-GA
+All spec modules have been implemented, including previously deferred AI DevOps/CodeGen/Predictive and ETL/Connector features.
 
 ---
 
@@ -487,6 +523,82 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 
 ---
 
+## 7h. Phase 21: Spec Gap — AI DevOps/CodeGen/Predictive ✅
+
+> **Duration**: 1–2 weeks
+> Resolves previously deferred spec/ai gaps: DevOps Agent, Code Generation, Predictive Models.
+
+### 21.1 DevOps Agent ✅
+
+- [x] `hooks/useDevOpsAgent.ts` — list agents, monitoring metrics/alerts, self-healing triggers
+
+### 21.2 Code Generation & Review ✅
+
+- [x] `hooks/useCodeGen.ts` — generate code from prompt, AI code review with issues/score
+
+### 21.3 Predictive Models ✅
+
+- [x] `hooks/usePredictive.ts` — list models, run predictions with confidence/explanations, train/retrain
+
+---
+
+## 7i. Phase 22: Spec Gap — ETL & Connectors ✅
+
+> **Duration**: 1 week
+> Resolves previously deferred spec/automation ETL and spec/integration Connector gaps.
+
+### 22.1 ETL Pipeline Management ✅
+
+- [x] `hooks/useETLPipeline.ts` — list pipelines, trigger runs, monitor progress, pause/resume
+
+### 22.2 Integration Connectors ✅
+
+- [x] `hooks/useConnector.ts` — list connectors, health checks, test connections, sync
+
+---
+
+## 7j. v1.4: Notification Center ✅
+
+> **Duration**: 1 week
+
+### Notification Center ✅
+
+- [x] `hooks/useNotificationCenter.ts` — activity feed, priority sorting, category/unread filters, mark read/dismiss, bulk actions
+
+---
+
+## 7k. v1.5: Messaging & Channels ✅
+
+> **Duration**: 2 weeks
+
+### Messaging ✅
+
+- [x] `hooks/useMessaging.ts` — send/edit/delete messages, threads, reactions, channel message listing
+
+### Channels ✅
+
+- [x] `hooks/useChannels.ts` — list/create channels, join/leave, active channel management
+
+---
+
+## 7l. v1.6: Advanced Offline ✅
+
+> **Duration**: 2 weeks
+
+### Selective Sync ✅
+
+- [x] `hooks/useSelectiveSync.ts` — per-object sync enable/disable, priority-based ordering, progress tracking
+
+### Three-Way Merge ✅
+
+- [x] `hooks/useConflictResolution.ts` — field-level resolution, strategies (local/remote/manual/latest wins), bulk resolve
+
+### Offline Analytics ✅
+
+- [x] `hooks/useOfflineAnalytics.ts` — local query execution, result caching with TTL, cache management
+
+---
+
 ## 8. UX Design Review Summary
 
 > Full UX design review: **[docs/UX-DESIGN-REVIEW.md](./docs/UX-DESIGN-REVIEW.md)**
@@ -497,7 +609,7 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 | Area | Rating | Status |
 |------|--------|--------|
 | Architecture | ★★★★★ | None — excellent foundation |
-| Feature Coverage | ★★★★★ | 53 hooks, 22 renderers/components |
+| Feature Coverage | ★★★★★ | 64 hooks, 22 renderers/components |
 | Visual Design | ★★★★☆ | Design tokens, elevation system, semantic colors |
 | Interaction Design | ★★★★☆ | Haptics, micro-interactions, animations, gestures |
 | Navigation Efficiency | ★★★★★ | 5-tab layout, global search, recent items |
@@ -623,9 +735,9 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 | **v1.1** | 14–17 | UX overhaul — navigation, home, detail, forms, onboarding | ✅ Complete |
 | **v1.2** | 18–19 | Advanced views, accessibility, performance | ✅ Complete |
 | **v1.3** | 20 | Platform integration (widgets, voice, deep links, Watch) | ✅ Complete |
-| **v1.4** | — | Notification Center (categories, inline actions, activity feed) |  |
-| **v1.5** | — | Messaging & Channels (Slack/Teams pattern, DMs, threads) |  |
-| **v1.6** | — | Advanced Offline (selective sync, three-way merge, offline analytics) |  |
+| **v1.4** | 21–22 | Notification Center + Spec gaps (AI DevOps/CodeGen/Predictive, ETL/Connectors) | ✅ Complete |
+| **v1.5** | — | Messaging & Channels (Slack/Teams pattern, DMs, threads) | ✅ Complete |
+| **v1.6** | — | Advanced Offline (selective sync, three-way merge, offline analytics) | ✅ Complete |
 
 ---
 
@@ -657,8 +769,13 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 | **UX: Advanced Views (18)** | **No** | **3–4 weeks** | **✅ Done** |
 | **UX: A11y & Performance (19)** | **No** | **2–3 weeks** | **✅ Done** |
 | **Platform Integration (20)** | **No** | **3–4 weeks** | **✅ Done** |
+| **Spec Gap: AI DevOps/CodeGen/Predictive (21)** | **No** | **1–2 weeks** | **✅ Done** |
+| **Spec Gap: ETL & Connectors (22)** | **No** | **1 week** | **✅ Done** |
+| **Notification Center (v1.4)** | **No** | **1 week** | **✅ Done** |
+| **Messaging & Channels (v1.5)** | **No** | **2 weeks** | **✅ Done** |
+| **Advanced Offline (v1.6)** | **No** | **2 weeks** | **✅ Done** |
 
-**Phase 11–20**: ✅ Complete
+**Phase 11–22 + v1.4–v1.6**: ✅ Complete
 
 ---
 
@@ -666,7 +783,7 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 
 ### v1.0 GA
 
-1. ✅ 920+ unit/integration tests passing
+1. ✅ 1003+ unit/integration tests passing
 2. ✅ All hooks and lib modules have test coverage
 3. ✅ 4 Jest E2E screen tests passing (32 tests); Maestro flows configured
 4. ☐ Performance metrics within targets on real devices
@@ -730,7 +847,14 @@ Priority: 🔴 Blocks v1.0 · 🟡 Enhances compliance/UX · 🟢 Defer to post-
 | `useKanbanDragDrop()` | `client.api.update.*` | ✅ |
 | `useCalendarView()` | `client.api.create/update/delete.*` | ✅ |
 | `useInlineEdit()` | `client.api.update.*` | ✅ |
+| `useDevOpsAgent()` | `client.ai.devops.*` | ✅ Needs DevOps API |
+| `useCodeGen()` | `client.ai.codegen.*` | ✅ Needs CodeGen API |
+| `usePredictive()` | `client.ai.predictive.*` | ✅ Needs Predictive API |
+| `useETLPipeline()` | `client.automation.etl.*` | ✅ Needs ETL runtime |
+| `useConnector()` | `client.integration.connectors.*` | ✅ Needs connector API |
+| `useMessaging()` | `client.realtime.messaging.*` | ✅ Needs messaging API |
+| `useChannels()` | `client.realtime.channels.*` | ✅ Needs channels API |
 
 ---
 
-*Last updated: 2026-02-12*
+*Last updated: 2026-02-13*
