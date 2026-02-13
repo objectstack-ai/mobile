@@ -1,15 +1,8 @@
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search as SearchIcon, Clock, X } from "lucide-react-native";
 import { Input } from "~/components/ui/Input";
 import { useState, useCallback } from "react";
-
-interface SearchResult {
-  id: string;
-  title: string;
-  subtitle?: string;
-  object?: string;
-}
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");

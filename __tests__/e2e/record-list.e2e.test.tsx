@@ -5,7 +5,7 @@
  * tapping an app navigates to the correct route.
  */
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react-native";
+import { render, fireEvent } from "@testing-library/react-native";
 
 /* ---- Mocks ---- */
 

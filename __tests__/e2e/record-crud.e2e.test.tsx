@@ -5,7 +5,6 @@
  * the MSW mock API to simulate real backend interactions.
  */
 import { server } from "../msw/server";
-import { sampleRecords } from "../msw/handlers";
 
 /* ---- Start / stop MSW server ---- */
 beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
