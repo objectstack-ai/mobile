@@ -16,15 +16,18 @@ appId: com.objectstack.mobile
     text: "Home"
     timeout: 10000
 
-# Navigate between tabs
+# Navigate between all 5 tabs
+- tapOn: "Search"
+- assertVisible: "Search"
+
 - tapOn: "Apps"
 - assertVisible: "Apps"
 
 - tapOn: "Notifications"
 - assertVisible: "Notifications"
 
-- tapOn: "Profile"
-- assertVisible: "Profile"
+- tapOn: "More"
+- assertVisible: "More"
 
 # Go back to home
 - tapOn: "Home"
