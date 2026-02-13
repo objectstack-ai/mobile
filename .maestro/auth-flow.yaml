@@ -20,8 +20,8 @@ appId: com.objectstack.mobile
     text: "Home"
     timeout: 10000
 
-# Sign out
-- tapOn: "Profile"
+# Sign out via More tab
+- tapOn: "More"
 - scrollUntilVisible:
     element: "Sign Out"
 - tapOn: "Sign Out"

@@ -18,6 +18,7 @@
     "server:hotcrm": "./scripts/start-integration-server.sh",
     "server:hotcrm:bg": "./scripts/start-integration-server.sh --bg",
     "server:hotcrm:stop": "./scripts/stop-integration-server.sh",
+    "test:e2e": "jest --config jest.e2e.config.js --passWithNoTests",
     "test:integration:server": "jest --config jest.integration.config.js --passWithNoTests",
     "changeset": "changeset",
     "version-packages": "changeset version",

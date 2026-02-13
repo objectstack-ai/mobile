@@ -25,6 +25,7 @@ module.exports = {
   testPathIgnorePatterns: [
     "/node_modules/",
     "\\.integration\\.test\\.(ts|tsx)$",
+    "\\.e2e\\.test\\.(ts|tsx)$",
     "<rootDir>/server/hotcrm/",
   ],
   collectCoverageFrom: [
