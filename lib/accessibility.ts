@@ -19,8 +19,8 @@ export interface A11yFocusConfig {
  * Announce a message for screen readers
  */
 export function announce(
-  message: string,
-  priority: "polite" | "assertive" = "polite",
+  _message: string,
+  _priority: "polite" | "assertive" = "polite",
 ): void {
   // In real implementation, this would call AccessibilityInfo.announceForAccessibility
   // For now, a no-op that tests can verify was called
