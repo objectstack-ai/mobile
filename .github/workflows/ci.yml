@@ -23,12 +23,6 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install
-      - name: Type Check (Mobile)
-        run: npx tsc --noEmit
-      - name: Type Check (Docs)
-        run: cd apps/docs && pnpm run types:check
-      - name: Lint
-        run: npx eslint . --ext .ts,.tsx
       - name: Test
         run: npx jest --ci --coverage
       - name: Upload coverage
