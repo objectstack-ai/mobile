@@ -12,11 +12,11 @@ importers:
         specifier: ^1.4.18
         version: 1.4.18(@better-auth/core@1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))(better-auth@1.4.18(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(expo-constants@18.0.13)(expo-linking@8.0.11)(expo-network@8.0.8(expo@54.0.33)(react@19.1.0))(expo-web-browser@15.0.10(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))
       '@objectstack/client':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.0.9
+        version: 3.0.9
       '@objectstack/client-react':
-        specifier: ^3.0.0
-        version: 3.0.0(react@19.1.0)
+        specifier: ^3.0.9
+        version: 3.0.9(react@19.1.0)
       '@sentry/react-native':
         specifier: ^7.12.0
         version: 7.12.0(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -163,20 +163,20 @@ importers:
         specifier: ^2.29.8
         version: 2.29.8(@types/node@25.2.2)
       '@objectstack/core':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.0.9
+        version: 3.0.9
       '@objectstack/driver-memory':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.0.9
+        version: 3.0.9
       '@objectstack/objectql':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.0.9
+        version: 3.0.9
       '@objectstack/plugin-auth':
-        specifier: ^3.0.0
-        version: 3.0.0(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^3.0.9
+        version: 3.0.9(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@objectstack/plugin-hono-server':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.0.9
+        version: 3.0.9
       '@testing-library/jest-native':
         specifier: ^5.4.3
         version: 5.4.3(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react-test-renderer@19.1.0(react@19.1.0))(react@19.1.0)
@@ -1684,40 +1684,40 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@objectstack/client-react@3.0.0':
-    resolution: {integrity: sha512-Z4MgpiH8qDxC4k5SXDkzms5mulNbYUbMDAy7bWRSdZlY7Lvjc1teWFfvlLTAdA6tERhmAAoUW7cU08Bwx6BzAg==}
+  '@objectstack/client-react@3.0.9':
+    resolution: {integrity: sha512-xlPQyQiGgT0M27fiZZBR31Ob1V4B/rZLsvF2b/mSwG3+fTqMSiTr8pNfJaRYkPz8Sc3TQd2QVzPdB/oj2YrEcw==}
     peerDependencies:
       react: '>=18.0.0'
 
-  '@objectstack/client@3.0.0':
-    resolution: {integrity: sha512-6puK6tjc6UZ3THnKe4bbJMjV1n1/leKVX9RypOTy7BKxzwKdUZ13YVWoi45XYLdiivY9ZQoyFTWZfX8oRv1zhQ==}
+  '@objectstack/client@3.0.9':
+    resolution: {integrity: sha512-Ntsjr8IWjBhTS/JOkEkPCJ2QEf25LfXJhh/vbm6Big7VuXXIs03UQ5Jy6NDIAvMG53xfy3B7WW/eR58CFzLMkg==}
 
-  '@objectstack/core@3.0.0':
-    resolution: {integrity: sha512-3SXwc5VPO9lbT+PC7PSjNh8nvOegOuIjYMyDRJDMQbD96wZXSvtZBkRkStxEGb0s9/L+7GapGrxhbS3ANaRAVQ==}
+  '@objectstack/core@3.0.9':
+    resolution: {integrity: sha512-d4pE3NdCYZpXJrDspvaDxCbrmlyjqBZG+KVWOunMEEySjThBTtCIrmDeAHNPxysI/p9DY7iwrh2pJ1dzWHTKKw==}
     peerDependencies:
       pino: ^8.0.0
     peerDependenciesMeta:
       pino:
         optional: true
 
-  '@objectstack/driver-memory@3.0.0':
-    resolution: {integrity: sha512-ZL/wDPF2VZfyLtkSyiLn5vQDAQvG3L879bDP2aaEqWHzMvThpxUDOttd0nwdTDEN5iGjH0AwFZF3fDyxHVVC+g==}
+  '@objectstack/driver-memory@3.0.9':
+    resolution: {integrity: sha512-KN7JqDK1RpCjPXW0jF6NVCQU/n/dbFNZkBc3c38I7KqBg7XKRG3NEigGwRQGMB7YiWZ29iJ8rCnKK6yGqzeIQA==}
 
-  '@objectstack/objectql@3.0.0':
-    resolution: {integrity: sha512-nSUh3CQZv3aBJN4hVuwNUM9rHJXnqNpum+H9hMug5qySPpU3GjRnJiZmh4xXtVEVGV+uci0McIXvi7m34hd7fQ==}
+  '@objectstack/objectql@3.0.9':
+    resolution: {integrity: sha512-vwZhzN8ufkcLWDBGC1V6/1twLb1PkNH5uM206jzshAlx+iwUD3smyNtNMBmyYEPLX57vQMyibMtdcw9IrJWXGQ==}
 
-  '@objectstack/plugin-auth@3.0.0':
-    resolution: {integrity: sha512-tMUttIZgFfxdQS+Oc1rdddg2QPBJM/qWqib7IDgVhO45e8qyl43n9sTM6Q4Awm1yzqxL21/7f/3MG4d4hMi+uw==}
+  '@objectstack/plugin-auth@3.0.9':
+    resolution: {integrity: sha512-iufofp1CgNi1/MB9NBnU2wWzIxSvhYRRsxYlPoW4KUPQcBEGduY8HEcv4/pBzUATdbID/FGW8LTVnENyvvK9pw==}
 
-  '@objectstack/plugin-hono-server@3.0.0':
-    resolution: {integrity: sha512-R2XIu54e5vY22yhw0rzW+6YKcAFWac+m9R0zRHNBjRHI2MF417tR8WkGs7cokwm+or5ZtmCrbzsRjDJiJShOUw==}
+  '@objectstack/plugin-hono-server@3.0.9':
+    resolution: {integrity: sha512-cc6HC766Ik2tU7NE9HELO+beZWGrL9ISrSb73OJ/gwp1UMXnxlEwJ3wL/syTDw69muRbp8pGFJfkaZ+vbEM4DA==}
 
-  '@objectstack/spec@3.0.0':
-    resolution: {integrity: sha512-F8UGqVV4CO7BDgzHsNEzTmXGnsW7uzXziHkb3flU/ATZotqc1k7JLArps6vFZAD8e9mWm7OHa1XVdY+IGTDmlg==}
+  '@objectstack/spec@3.0.9':
+    resolution: {integrity: sha512-VQKm4omZIYOqVQKUpCj1Ef3cpGXX88lqAN8hpY1BgKnuP9pqJk7KvwHie7iSajIm2R5x/U+kZegSqQsSC8iQKw==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/types@3.0.0':
-    resolution: {integrity: sha512-zei64KIpwjdsLhZBC13ndmpzJ7G/IzaEcW73w1Vq0bcjcLS3WMwpUcSAZwzD34ncNe+/ZIaU+N2hlQUuvm0rqg==}
+  '@objectstack/types@3.0.9':
+    resolution: {integrity: sha512-iw/v9/hN/kkru87+OsV+tOvq5/4zHNpv2kW+z4C/Bq0GC9eAA0jdUsMX/O6OqF9Y00p3Mb9oEDvMbJDkYLr7VA==}
 
   '@open-draft/deferred-promise@2.2.0':
     resolution: {integrity: sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA==}
@@ -9095,48 +9095,48 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@objectstack/client-react@3.0.0(react@19.1.0)':
+  '@objectstack/client-react@3.0.9(react@19.1.0)':
     dependencies:
-      '@objectstack/client': 3.0.0
-      '@objectstack/core': 3.0.0
-      '@objectstack/spec': 3.0.0
+      '@objectstack/client': 3.0.9
+      '@objectstack/core': 3.0.9
+      '@objectstack/spec': 3.0.9
       react: 19.1.0
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/client@3.0.0':
+  '@objectstack/client@3.0.9':
     dependencies:
-      '@objectstack/core': 3.0.0
-      '@objectstack/spec': 3.0.0
+      '@objectstack/core': 3.0.9
+      '@objectstack/spec': 3.0.9
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/core@3.0.0':
+  '@objectstack/core@3.0.9':
     dependencies:
-      '@objectstack/spec': 3.0.0
+      '@objectstack/spec': 3.0.9
       pino-pretty: 13.1.3
       zod: 4.3.6
 
-  '@objectstack/driver-memory@3.0.0':
+  '@objectstack/driver-memory@3.0.9':
     dependencies:
-      '@objectstack/core': 3.0.0
-      '@objectstack/spec': 3.0.0
+      '@objectstack/core': 3.0.9
+      '@objectstack/spec': 3.0.9
       mingo: 7.2.0
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/objectql@3.0.0':
+  '@objectstack/objectql@3.0.9':
     dependencies:
-      '@objectstack/core': 3.0.0
-      '@objectstack/spec': 3.0.0
-      '@objectstack/types': 3.0.0
+      '@objectstack/core': 3.0.9
+      '@objectstack/spec': 3.0.9
+      '@objectstack/types': 3.0.9
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/plugin-auth@3.0.0(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@objectstack/plugin-auth@3.0.9(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@objectstack/core': 3.0.0
-      '@objectstack/spec': 3.0.0
+      '@objectstack/core': 3.0.9
+      '@objectstack/spec': 3.0.9
       better-auth: 1.4.18(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - '@lynx-js/react'
@@ -9160,22 +9160,22 @@ snapshots:
       - vitest
       - vue
 
-  '@objectstack/plugin-hono-server@3.0.0':
+  '@objectstack/plugin-hono-server@3.0.9':
     dependencies:
       '@hono/node-server': 1.19.9(hono@4.11.9)
-      '@objectstack/core': 3.0.0
-      '@objectstack/spec': 3.0.0
+      '@objectstack/core': 3.0.9
+      '@objectstack/spec': 3.0.9
       hono: 4.11.9
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/spec@3.0.0':
+  '@objectstack/spec@3.0.9':
     dependencies:
       zod: 4.3.6
 
-  '@objectstack/types@3.0.0':
+  '@objectstack/types@3.0.9':
     dependencies:
-      '@objectstack/spec': 3.0.0
+      '@objectstack/spec': 3.0.9
 
   '@open-draft/deferred-promise@2.2.0': {}
 
