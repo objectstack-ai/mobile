@@ -106,3 +106,30 @@ export { useChannels } from "./useChannels";
 export { useSelectiveSync } from "./useSelectiveSync";
 export { useConflictResolution } from "./useConflictResolution";
 export { useOfflineAnalytics } from "./useOfflineAnalytics";
+
+/* ---- Phase 23: SDUI Record Page Protocol ---- */
+export { useRecordDetails } from "./useRecordDetails";
+export { useRecordHighlights } from "./useRecordHighlights";
+export { useRecordActivity } from "./useRecordActivity";
+export { useRecordChatter } from "./useRecordChatter";
+export { useRecordPath } from "./useRecordPath";
+export { useRecordRelatedList } from "./useRecordRelatedList";
+export { useRecordReview } from "./useRecordReview";
+export { useInterfacePageConfig } from "./useInterfacePageConfig";
+export { useBlankPageLayout } from "./useBlankPageLayout";
+
+/* ---- Phase 24: Interaction Protocol (DnD, Gesture, Animation) ---- */
+export { useDndProtocol } from "./useDndProtocol";
+export { useGestureProtocol } from "./useGestureProtocol";
+export { useAnimationProtocol } from "./useAnimationProtocol";
+export { usePageTransitionProtocol } from "./usePageTransitionProtocol";
+export { useComponentAnimation } from "./useComponentAnimation";
+
+/* ---- Phase 25: Focus, Keyboard, Offline & Notification Protocol ---- */
+export { useFocusManagement } from "./useFocusManagement";
+export { useKeyboardNavigation } from "./useKeyboardNavigation";
+export { useOfflineConfig } from "./useOfflineConfig";
+export { useSyncConfig } from "./useSyncConfig";
+export { useNotificationUI } from "./useNotificationUI";
+export { useEmbedConfig } from "./useEmbedConfig";
+export { useViewSharing } from "./useViewSharing";
