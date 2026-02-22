@@ -3,7 +3,7 @@
  * reviewer addition/removal, approval, rejection, and status transitions.
  */
 import { renderHook, act } from "@testing-library/react-native";
-import { useRecordReview, Reviewer } from "~/hooks/useRecordReview";
+import { useRecordReview } from "~/hooks/useRecordReview";
 
 describe("useRecordReview", () => {
   it("returns default state initially", () => {

@@ -3,7 +3,7 @@
  * block addition, removal, reordering, and updates.
  */
 import { renderHook, act } from "@testing-library/react-native";
-import { useInterfacePageConfig, PageBlock } from "~/hooks/useInterfacePageConfig";
+import { useInterfacePageConfig } from "~/hooks/useInterfacePageConfig";
 
 describe("useInterfacePageConfig", () => {
   it("returns default empty state initially", () => {
