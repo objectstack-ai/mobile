@@ -1,14 +1,14 @@
 # ObjectStack Mobile — Roadmap
 
-> **Date**: 2026-02-22
-> **SDK**: `@objectstack/client@3.0.9`, `@objectstack/client-react@3.0.9`, `@objectstack/spec@3.0.9`
+> **Date**: 2026-02-26
+> **SDK**: `@objectstack/client@3.0.10`, `@objectstack/client-react@3.0.10`, `@objectstack/spec@3.0.10`
 > **Tests**: ✅ 1149/1149 passing (148 suites, ~85% coverage)
 
 ---
 
 ## 1. Project Status
 
-The ObjectStack Mobile client has completed all core development phases (0–6), spec alignment phases (9–10), advanced feature phases (11–13), UX/platform phases (14–20), spec gap phases (21–22), post-GA features (v1.4–v1.6), and spec v3.0.9 UI Protocol alignment (v1.7, Phases 23–25). The SDK is upgraded to v3.0.9 (spec v3.0.9: 14 modules, 1683 JSON schemas, 8,380+ `.describe()` annotations).
+The ObjectStack Mobile client has completed all core development phases (0–6), spec alignment phases (9–10), advanced feature phases (11–13), UX/platform phases (14–20), spec gap phases (21–22), post-GA features (v1.4–v1.6), and spec v3.0.10 UI Protocol alignment (v1.7, Phases 23–25). The SDK is upgraded to v3.0.10 (spec v3.0.10: 14 modules, 1683 JSON schemas, 8,380+ `.describe()` annotations).
 
 ### What's Implemented
 
@@ -29,7 +29,7 @@ The ObjectStack Mobile client has completed all core development phases (0–6),
 | Runtime | Expo SDK 54, TypeScript 5.9 strict |
 | Navigation | Expo Router (file-based) |
 | Styling | NativeWind v4 (Tailwind CSS) |
-| Client SDK | `@objectstack/client@3.0.9` + `@objectstack/client-react@3.0.9` |
+| Client SDK | `@objectstack/client@3.0.10` + `@objectstack/client-react@3.0.10` |
 | State | Zustand + TanStack Query v5 |
 | Offline | expo-sqlite + sync queue |
 | Auth | better-auth v1.4.18 + `@better-auth/expo` |
@@ -148,11 +148,11 @@ The ObjectStack Mobile client has completed all core development phases (0–6),
 
 ---
 
-## 3. Spec v3.0.9 Compliance Matrix
+## 3. Spec v3.0.10 Compliance Matrix
 
-> `@objectstack/spec` is the protocol "constitution". v3.0.9 has 14 modules, 1683 JSON schemas, 8,380+ `.describe()` annotations.
+> `@objectstack/spec` is the protocol "constitution". v3.0.10 has 14 modules, 1683 JSON schemas, 8,380+ `.describe()` annotations.
 > Modules: `ai`, `api`, `automation`, `cloud`, `data`, `identity`, `integration`, `kernel`, `qa`, `security`, `shared`, `studio`, `system`, `ui`.
-> v3.0.0 restructured from 15 → 12 modules. v3.0.9 expanded to 14 modules (added `studio`, `qa`, `cloud`, `kernel`).
+> v3.0.0 restructured from 15 → 12 modules. v3.0.10 expanded to 14 modules (added `studio`, `qa`, `cloud`, `kernel`).
 
 ### ✅ Fully Implemented
 
@@ -221,9 +221,9 @@ The ObjectStack Mobile client has completed all core development phases (0–6),
 | `spec/ui` — Embed/Sharing Protocol | `useEmbedConfig`, `useViewSharing` |
 | `spec/ui` — Offline/Sync Protocol | `useOfflineConfig`, `useSyncConfig` |
 
-### ✅ Spec v3.0.9 — UI Protocol Schemas (Implemented in v1.7)
+### ✅ Spec v3.0.10 — UI Protocol Schemas (Implemented in v1.7)
 
-The following UI protocol schemas from spec v3.0.9 have been implemented:
+The following UI protocol schemas from spec v3.0.10 have been implemented:
 
 | Category | Spec Schemas | Mobile Status |
 |----------|-------------|---------------|
@@ -266,7 +266,7 @@ The following UI protocol schemas from spec v3.0.9 have been implemented:
 ## 5. Phase 11: AI & Intelligence ✅
 
 > **Duration**: 3–4 weeks
-> v3.0.9 expanded AI module to 186 schemas / 188 exports.
+> v3.0.10 expanded AI module to 186 schemas / 188 exports.
 
 ### 11.1 Conversation Session Persistence ✅
 
@@ -301,7 +301,7 @@ The following UI protocol schemas from spec v3.0.9 have been implemented:
 
 ## 6. Phase 12: Security Module ✅
 
-> 🆕 v3.0.9 `security` module (26 exports, 19 schemas) replaces `auth`/`permission`/`hub`.
+> 🆕 v3.0.10 `security` module (26 exports, 19 schemas) replaces `auth`/`permission`/`hub`.
 > **Duration**: 2–3 weeks
 
 ### 12.1 RLS Awareness ✅
@@ -620,14 +620,14 @@ The following UI protocol schemas from spec v3.0.9 have been implemented:
 
 ---
 
-## 7m. v1.7: Spec v3.0.9 UI Protocol Alignment ✅
+## 7m. v1.7: Spec v3.0.10 UI Protocol Alignment ✅
 
 > **Duration**: 4–6 weeks | **Priority**: 🟡 Important for spec compliance
-> **Goal**: Implement new UI protocol schemas from `@objectstack/spec@3.0.9` for full SDUI compliance
+> **Goal**: Implement new UI protocol schemas from `@objectstack/spec@3.0.10` for full SDUI compliance
 
 ### Phase 23: SDUI Record Page Protocol ✅
 
-> Align record detail/form views with spec v3.0.9 `RecordDetailsProps`, `RecordHighlightsProps`, etc.
+> Align record detail/form views with spec v3.0.10 `RecordDetailsProps`, `RecordHighlightsProps`, etc.
 
 | # | Feature | Description | Status |
 |---|---------|-------------|--------|
@@ -808,7 +808,7 @@ The following UI protocol schemas from spec v3.0.9 have been implemented:
 | **v1.4** | 21–22 | Notification Center + Spec gaps (AI DevOps/CodeGen/Predictive, ETL/Connectors) | ✅ Complete |
 | **v1.5** | — | Messaging & Channels (Slack/Teams pattern, DMs, threads) | ✅ Complete |
 | **v1.6** | — | Advanced Offline (selective sync, three-way merge, offline analytics) | ✅ Complete |
-| **v1.7** | 23–25 | Spec v3.0.9 UI Protocol (SDUI record pages, DnD protocol, gesture/animation protocol, focus/keyboard) | ✅ Complete |
+| **v1.7** | 23–25 | Spec v3.0.10 UI Protocol (SDUI record pages, DnD protocol, gesture/animation protocol, focus/keyboard) | ✅ Complete |
 
 ---
 
@@ -850,7 +850,7 @@ The following UI protocol schemas from spec v3.0.9 have been implemented:
 | **Focus/Keyboard/Offline/Notification Protocol (25)** | **No** | **1–2 weeks** | **✅ Done** |
 
 **Phase 11–22 + v1.4–v1.6**: ✅ Complete
-**Phase 23–25 (v1.7 — Spec v3.0.9 UI Protocol)**: ✅ Complete
+**Phase 23–25 (v1.7 — Spec v3.0.10 UI Protocol)**: ✅ Complete
 
 ---
 
@@ -890,13 +890,13 @@ The following UI protocol schemas from spec v3.0.9 have been implemented:
 
 1. ✅ Phase 20 complete (design tokens, widget kit, voice, deep links, watch)
 
-### v1.7 (Spec v3.0.9 UI Protocol)
+### v1.7 (Spec v3.0.10 UI Protocol)
 
 1. ✅ Phase 23 complete (SDUI record pages, highlights, chatter, related lists, interface pages)
 2. ✅ Phase 24 complete (spec-driven DnD, gesture, animation, transition protocols)
 3. ✅ Phase 25 complete (focus management, keyboard navigation, offline/sync/notification UI protocols)
 4. ✅ All renderers consume spec UI schemas instead of hardcoded configs
-5. ✅ Full compliance with `@objectstack/spec@3.0.9` UI module (168 exports)
+5. ✅ Full compliance with `@objectstack/spec@3.0.10` UI module (168 exports)
 
 ---
 
