@@ -11,7 +11,7 @@ module.exports = function (api) {
           ? {}
           : {
               jsxImportSource: "nativewind",
-              web: { unstable_transformImportMeta: true },
+              unstable_transformImportMeta: true,
             },
       ],
       ...(isTest ? [] : ["nativewind/babel"]),
