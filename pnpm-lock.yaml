@@ -12,11 +12,11 @@ importers:
         specifier: ^1.4.18
         version: 1.4.18(@better-auth/core@1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))(better-auth@1.4.18(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(expo-constants@18.0.13)(expo-linking@8.0.11)(expo-network@8.0.8(expo@54.0.33)(react@19.1.0))(expo-web-browser@15.0.10(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))
       '@objectstack/client':
-        specifier: ^3.0.9
-        version: 3.0.9
+        specifier: ^3.0.10
+        version: 3.0.11
       '@objectstack/client-react':
-        specifier: ^3.0.9
-        version: 3.0.9(react@19.1.0)
+        specifier: ^3.0.10
+        version: 3.0.11(react@19.1.0)
       '@sentry/react-native':
         specifier: ^7.12.0
         version: 7.12.0(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -163,20 +163,20 @@ importers:
         specifier: ^2.29.8
         version: 2.29.8(@types/node@25.2.2)
       '@objectstack/core':
-        specifier: ^3.0.9
-        version: 3.0.9
+        specifier: ^3.0.10
+        version: 3.0.11
       '@objectstack/driver-memory':
-        specifier: ^3.0.9
-        version: 3.0.9
+        specifier: ^3.0.10
+        version: 3.0.11
       '@objectstack/objectql':
-        specifier: ^3.0.9
-        version: 3.0.9
+        specifier: ^3.0.10
+        version: 3.0.11
       '@objectstack/plugin-auth':
-        specifier: ^3.0.9
-        version: 3.0.9(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^3.0.10
+        version: 3.0.11(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@objectstack/plugin-hono-server':
-        specifier: ^3.0.9
-        version: 3.0.9
+        specifier: ^3.0.10
+        version: 3.0.11
       '@testing-library/jest-native':
         specifier: ^5.4.3
         version: 5.4.3(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react-test-renderer@19.1.0(react@19.1.0))(react@19.1.0)
@@ -847,6 +847,16 @@ packages:
       kysely: ^0.28.5
       nanostores: ^1.0.1
 
+  '@better-auth/core@1.4.19':
+    resolution: {integrity: sha512-uADLHG1jc5BnEJi7f6ijUN5DmPPRSj++7m/G19z3UqA3MVCo4Y4t1MMa4IIxLCqGDFv22drdfxescgW+HnIowA==}
+    peerDependencies:
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.21
+      better-call: 1.1.8
+      jose: ^6.1.0
+      kysely: ^0.28.5
+      nanostores: ^1.0.1
+
   '@better-auth/expo@1.4.18':
     resolution: {integrity: sha512-hrAgqtwe5R1eVsdMtxU8iLMZTHKeww5xpdqqyVWYO5UAwit/pb97d8TBGDfSj/uq5ihklC/0RNYg9SQNVTHSsQ==}
     peerDependencies:
@@ -870,6 +880,11 @@ packages:
     resolution: {integrity: sha512-e5rDF8S4j3Um/0LIVATL2in9dL4lfO2fr2v1Wio4qTMRbfxqnUDTa+6SZtwdeJrbc4O+a3c+IyIpjG9Q/6GpfQ==}
     peerDependencies:
       '@better-auth/core': 1.4.18
+
+  '@better-auth/telemetry@1.4.19':
+    resolution: {integrity: sha512-ApGNS7olCTtDpKF8Ow3Z+jvFAirOj7c4RyFUpu8axklh3mH57ndpfUAUjhgA8UVoaaH/mnm/Tl884BlqiewLyw==}
+    peerDependencies:
+      '@better-auth/core': 1.4.19
 
   '@better-auth/utils@0.3.0':
     resolution: {integrity: sha512-W+Adw6ZA6mgvnSnhOki270rwJ42t4XzSK6YWGF//BbVXL6SwCLWfyzBc1lN2m/4RM28KubdBKQ4X5VMoLRNPQw==}
@@ -1684,40 +1699,40 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@objectstack/client-react@3.0.9':
-    resolution: {integrity: sha512-xlPQyQiGgT0M27fiZZBR31Ob1V4B/rZLsvF2b/mSwG3+fTqMSiTr8pNfJaRYkPz8Sc3TQd2QVzPdB/oj2YrEcw==}
+  '@objectstack/client-react@3.0.11':
+    resolution: {integrity: sha512-S0j5DQfWqn/rkdltTU+DsUmjx80VbNAhMMgCIx+7aEGCMsinuYdm072RacwYGaWXWok8DGP8GaKtsFP//OCPxg==}
     peerDependencies:
       react: '>=18.0.0'
 
-  '@objectstack/client@3.0.9':
-    resolution: {integrity: sha512-Ntsjr8IWjBhTS/JOkEkPCJ2QEf25LfXJhh/vbm6Big7VuXXIs03UQ5Jy6NDIAvMG53xfy3B7WW/eR58CFzLMkg==}
+  '@objectstack/client@3.0.11':
+    resolution: {integrity: sha512-B1q7yZtU7Dp4womCrALur/u6LiNoGe8Js2jT87aerbyzWy9waNJV/gq0e//CpBbTv2C931jAzIAqBv86PnRfew==}
 
-  '@objectstack/core@3.0.9':
-    resolution: {integrity: sha512-d4pE3NdCYZpXJrDspvaDxCbrmlyjqBZG+KVWOunMEEySjThBTtCIrmDeAHNPxysI/p9DY7iwrh2pJ1dzWHTKKw==}
+  '@objectstack/core@3.0.11':
+    resolution: {integrity: sha512-nWwMz8kI3ZFvHVlfKJkKwUil68SW+ONEUkOwnQra/ccGX9sEIxf+gH96JOLEctXh3hAv7YHaLZURmVlnsGFbYA==}
     peerDependencies:
       pino: ^8.0.0
     peerDependenciesMeta:
       pino:
         optional: true
 
-  '@objectstack/driver-memory@3.0.9':
-    resolution: {integrity: sha512-KN7JqDK1RpCjPXW0jF6NVCQU/n/dbFNZkBc3c38I7KqBg7XKRG3NEigGwRQGMB7YiWZ29iJ8rCnKK6yGqzeIQA==}
+  '@objectstack/driver-memory@3.0.11':
+    resolution: {integrity: sha512-fMSHsQjj/bMZ1suXzatGcSzkT1yCANSuDEifpzMLaR2c4yUfbKiMeCWC1o5qYUhA+5jHFo4j8A4WvExuryLYlw==}
 
-  '@objectstack/objectql@3.0.9':
-    resolution: {integrity: sha512-vwZhzN8ufkcLWDBGC1V6/1twLb1PkNH5uM206jzshAlx+iwUD3smyNtNMBmyYEPLX57vQMyibMtdcw9IrJWXGQ==}
+  '@objectstack/objectql@3.0.11':
+    resolution: {integrity: sha512-S47oUmgzTSBZUWkpFgaf2W/RkZT15eE4SmlXSf5eUhK6EMPaEVDWL0PTNl8iss7FLUnYn8VT/eLWMC8xQrU1qw==}
 
-  '@objectstack/plugin-auth@3.0.9':
-    resolution: {integrity: sha512-iufofp1CgNi1/MB9NBnU2wWzIxSvhYRRsxYlPoW4KUPQcBEGduY8HEcv4/pBzUATdbID/FGW8LTVnENyvvK9pw==}
+  '@objectstack/plugin-auth@3.0.11':
+    resolution: {integrity: sha512-O2J6J0rpRfOkdQC2LJbA6w2GDyFhO2X+5I0pqRA5/Ak7yW39SojJhg3XV6iFbiVWVlR6DXV4VbIQeWjp/agNVQ==}
 
-  '@objectstack/plugin-hono-server@3.0.9':
-    resolution: {integrity: sha512-cc6HC766Ik2tU7NE9HELO+beZWGrL9ISrSb73OJ/gwp1UMXnxlEwJ3wL/syTDw69muRbp8pGFJfkaZ+vbEM4DA==}
+  '@objectstack/plugin-hono-server@3.0.11':
+    resolution: {integrity: sha512-yGafN+3uyge7qibZf9dVjp8c9kiXcAI/DKTB+jPueGotDqlhSOVSv1lQ7VrcP1t8RqKPAnZBkC80u/Lxssaueg==}
 
-  '@objectstack/spec@3.0.9':
-    resolution: {integrity: sha512-VQKm4omZIYOqVQKUpCj1Ef3cpGXX88lqAN8hpY1BgKnuP9pqJk7KvwHie7iSajIm2R5x/U+kZegSqQsSC8iQKw==}
+  '@objectstack/spec@3.0.11':
+    resolution: {integrity: sha512-UsVs3tgZ9aELdE1tkfYmxod5BIqKpswgkbTtC78+7ANaUn22jh7uuprIf31Oljsps69DFlw2CU8sJx96CTL4YQ==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/types@3.0.9':
-    resolution: {integrity: sha512-iw/v9/hN/kkru87+OsV+tOvq5/4zHNpv2kW+z4C/Bq0GC9eAA0jdUsMX/O6OqF9Y00p3Mb9oEDvMbJDkYLr7VA==}
+  '@objectstack/types@3.0.11':
+    resolution: {integrity: sha512-UhNBSnMvOU0qjjyQPPR9ZYiKF6sym5qq78Bli5O1xsTL0kSR55cGVYGxtPcMLTBIeDC8rT384+Oxcvee903KTQ==}
 
   '@open-draft/deferred-promise@2.2.0':
     resolution: {integrity: sha512-CecwLWx3rhxVQF6V4bAgPS5t+So2sTbPgAzafKkVizyi7tlwpcFpdFqq+wqF2OwNBmqFuu6tOyouTuxgpMfzmA==}
@@ -2898,6 +2913,68 @@ packages:
 
   better-auth@1.4.18:
     resolution: {integrity: sha512-bnyifLWBPcYVltH3RhS7CM62MoelEqC6Q+GnZwfiDWNfepXoQZBjEvn4urcERC7NTKgKq5zNBM8rvPvRBa6xcg==}
+    peerDependencies:
+      '@lynx-js/react': '*'
+      '@prisma/client': ^5.0.0 || ^6.0.0 || ^7.0.0
+      '@sveltejs/kit': ^2.0.0
+      '@tanstack/react-start': ^1.0.0
+      '@tanstack/solid-start': ^1.0.0
+      better-sqlite3: ^12.0.0
+      drizzle-kit: '>=0.31.4'
+      drizzle-orm: '>=0.41.0'
+      mongodb: ^6.0.0 || ^7.0.0
+      mysql2: ^3.0.0
+      next: ^14.0.0 || ^15.0.0 || ^16.0.0
+      pg: ^8.0.0
+      prisma: ^5.0.0 || ^6.0.0 || ^7.0.0
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+      solid-js: ^1.0.0
+      svelte: ^4.0.0 || ^5.0.0
+      vitest: ^2.0.0 || ^3.0.0 || ^4.0.0
+      vue: ^3.0.0
+    peerDependenciesMeta:
+      '@lynx-js/react':
+        optional: true
+      '@prisma/client':
+        optional: true
+      '@sveltejs/kit':
+        optional: true
+      '@tanstack/react-start':
+        optional: true
+      '@tanstack/solid-start':
+        optional: true
+      better-sqlite3:
+        optional: true
+      drizzle-kit:
+        optional: true
+      drizzle-orm:
+        optional: true
+      mongodb:
+        optional: true
+      mysql2:
+        optional: true
+      next:
+        optional: true
+      pg:
+        optional: true
+      prisma:
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+      solid-js:
+        optional: true
+      svelte:
+        optional: true
+      vitest:
+        optional: true
+      vue:
+        optional: true
+
+  better-auth@1.4.19:
+    resolution: {integrity: sha512-3RlZJcA0+NH25wYD85vpIGwW9oSTuEmLIaGbT8zg41w/Pa2hVWHKedjoUHHJtnzkBXzDb+CShkLnSw7IThDdqQ==}
     peerDependencies:
       '@lynx-js/react': '*'
       '@prisma/client': ^5.0.0 || ^6.0.0 || ^7.0.0
@@ -4326,8 +4403,8 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.11.9:
-    resolution: {integrity: sha512-Eaw2YTGM6WOxA6CXbckaEvslr2Ne4NFsKrvc0v97JD5awbmeBLO5w9Ho9L9kmKonrwF9RJlW6BxT1PVv/agBHQ==}
+  hono@4.12.3:
+    resolution: {integrity: sha512-SFsVSjp8sj5UumXOOFlkZOG6XS9SJDKw0TbwFeV+AJ8xlST8kxK5Z/5EYa111UY8732lK2S/xB653ceuaoGwpg==}
     engines: {node: '>=16.9.0'}
 
   hosted-git-info@7.0.2:
@@ -8013,6 +8090,17 @@ snapshots:
       nanostores: 1.1.0
       zod: 4.3.6
 
+  '@better-auth/core@1.4.19(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0)':
+    dependencies:
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.21
+      '@standard-schema/spec': 1.1.0
+      better-call: 1.1.8(zod@4.3.6)
+      jose: 6.1.3
+      kysely: 0.28.11
+      nanostores: 1.1.0
+      zod: 4.3.6
+
   '@better-auth/expo@1.4.18(@better-auth/core@1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))(better-auth@1.4.18(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(expo-constants@18.0.13)(expo-linking@8.0.11)(expo-network@8.0.8(expo@54.0.33)(react@19.1.0))(expo-web-browser@15.0.10(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))':
     dependencies:
       '@better-auth/core': 1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0)
@@ -8029,6 +8117,12 @@ snapshots:
   '@better-auth/telemetry@1.4.18(@better-auth/core@1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))':
     dependencies:
       '@better-auth/core': 1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0)
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.21
+
+  '@better-auth/telemetry@1.4.19(@better-auth/core@1.4.19(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))':
+    dependencies:
+      '@better-auth/core': 1.4.19(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0)
       '@better-auth/utils': 0.3.0
       '@better-fetch/fetch': 1.1.21
 
@@ -8638,9 +8732,9 @@ snapshots:
     optionalDependencies:
       tailwindcss: 4.1.18
 
-  '@hono/node-server@1.19.9(hono@4.11.9)':
+  '@hono/node-server@1.19.9(hono@4.12.3)':
     dependencies:
-      hono: 4.11.9
+      hono: 4.12.3
 
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
@@ -9095,49 +9189,49 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@objectstack/client-react@3.0.9(react@19.1.0)':
+  '@objectstack/client-react@3.0.11(react@19.1.0)':
     dependencies:
-      '@objectstack/client': 3.0.9
-      '@objectstack/core': 3.0.9
-      '@objectstack/spec': 3.0.9
+      '@objectstack/client': 3.0.11
+      '@objectstack/core': 3.0.11
+      '@objectstack/spec': 3.0.11
       react: 19.1.0
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/client@3.0.9':
+  '@objectstack/client@3.0.11':
     dependencies:
-      '@objectstack/core': 3.0.9
-      '@objectstack/spec': 3.0.9
+      '@objectstack/core': 3.0.11
+      '@objectstack/spec': 3.0.11
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/core@3.0.9':
+  '@objectstack/core@3.0.11':
     dependencies:
-      '@objectstack/spec': 3.0.9
+      '@objectstack/spec': 3.0.11
       pino-pretty: 13.1.3
       zod: 4.3.6
 
-  '@objectstack/driver-memory@3.0.9':
+  '@objectstack/driver-memory@3.0.11':
     dependencies:
-      '@objectstack/core': 3.0.9
-      '@objectstack/spec': 3.0.9
+      '@objectstack/core': 3.0.11
+      '@objectstack/spec': 3.0.11
       mingo: 7.2.0
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/objectql@3.0.9':
+  '@objectstack/objectql@3.0.11':
     dependencies:
-      '@objectstack/core': 3.0.9
-      '@objectstack/spec': 3.0.9
-      '@objectstack/types': 3.0.9
+      '@objectstack/core': 3.0.11
+      '@objectstack/spec': 3.0.11
+      '@objectstack/types': 3.0.11
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/plugin-auth@3.0.9(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@objectstack/plugin-auth@3.0.11(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@objectstack/core': 3.0.9
-      '@objectstack/spec': 3.0.9
-      better-auth: 1.4.18(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@objectstack/core': 3.0.11
+      '@objectstack/spec': 3.0.11
+      better-auth: 1.4.19(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - '@lynx-js/react'
       - '@prisma/client'
@@ -9160,22 +9254,22 @@ snapshots:
       - vitest
       - vue
 
-  '@objectstack/plugin-hono-server@3.0.9':
+  '@objectstack/plugin-hono-server@3.0.11':
     dependencies:
-      '@hono/node-server': 1.19.9(hono@4.11.9)
-      '@objectstack/core': 3.0.9
-      '@objectstack/spec': 3.0.9
-      hono: 4.11.9
+      '@hono/node-server': 1.19.9(hono@4.12.3)
+      '@objectstack/core': 3.0.11
+      '@objectstack/spec': 3.0.11
+      hono: 4.12.3
     transitivePeerDependencies:
       - pino
 
-  '@objectstack/spec@3.0.9':
+  '@objectstack/spec@3.0.11':
     dependencies:
       zod: 4.3.6
 
-  '@objectstack/types@3.0.9':
+  '@objectstack/types@3.0.11':
     dependencies:
-      '@objectstack/spec': 3.0.9
+      '@objectstack/spec': 3.0.11
 
   '@open-draft/deferred-promise@2.2.0': {}
 
@@ -10706,6 +10800,25 @@ snapshots:
     dependencies:
       '@better-auth/core': 1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0)
       '@better-auth/telemetry': 1.4.18(@better-auth/core@1.4.18(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.21
+      '@noble/ciphers': 2.1.1
+      '@noble/hashes': 2.0.1
+      better-call: 1.1.8(zod@4.3.6)
+      defu: 6.1.4
+      jose: 6.1.3
+      kysely: 0.28.11
+      nanostores: 1.1.0
+      zod: 4.3.6
+    optionalDependencies:
+      next: 16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
+  better-auth@1.4.19(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      '@better-auth/core': 1.4.19(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0)
+      '@better-auth/telemetry': 1.4.19(@better-auth/core@1.4.19(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.8(zod@4.3.6))(jose@6.1.3)(kysely@0.28.11)(nanostores@1.1.0))
       '@better-auth/utils': 0.3.0
       '@better-fetch/fetch': 1.1.21
       '@noble/ciphers': 2.1.1
@@ -12285,7 +12398,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.11.9: {}
+  hono@4.12.3: {}
 
   hosted-git-info@7.0.2:
     dependencies:
