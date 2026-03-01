@@ -117,7 +117,7 @@ describe("executeAction", () => {
       name: "run-api",
       label: "Run",
       type: "api",
-      execute: "run-endpoint",
+      target: "run-endpoint",
     };
     const result = await executeAction(action, {
       client: mockClient,
@@ -127,6 +127,25 @@ describe("executeAction", () => {
     expect(result.success).toBe(true);
     expect(mockClient.automation.trigger).toHaveBeenCalledWith(
       "run-endpoint",
+      expect.objectContaining({ object: "tasks", recordId: "r1" }),
+    );
+  });
+
+  it("falls back to deprecated execute field for api action", async () => {
+    const action: ActionMeta = {
+      name: "run-api",
+      label: "Run",
+      type: "api",
+      execute: "legacy-endpoint",
+    };
+    const result = await executeAction(action, {
+      client: mockClient,
+      objectName: "tasks",
+      recordId: "r1",
+    });
+    expect(result.success).toBe(true);
+    expect(mockClient.automation.trigger).toHaveBeenCalledWith(
+      "legacy-endpoint",
       expect.objectContaining({ object: "tasks", recordId: "r1" }),
     );
   });
@@ -147,9 +166,28 @@ describe("executeAction", () => {
       name: "my-flow",
       label: "Flow",
       type: "flow",
+      target: "my-flow-target",
     };
     const result = await executeAction(action, { client: mockClient });
     expect(result.success).toBe(true);
+    expect(mockClient.automation.trigger).toHaveBeenCalledWith(
+      "my-flow-target",
+      expect.objectContaining({}),
+    );
+  });
+
+  it("falls back to name for flow action without target", async () => {
+    const action: ActionMeta = {
+      name: "my-flow",
+      label: "Flow",
+      type: "flow",
+    };
+    const result = await executeAction(action, { client: mockClient });
+    expect(result.success).toBe(true);
+    expect(mockClient.automation.trigger).toHaveBeenCalledWith(
+      "my-flow",
+      expect.objectContaining({}),
+    );
   });
 
   it("returns failure for unsupported action type", async () => {

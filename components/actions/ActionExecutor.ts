@@ -61,7 +61,7 @@ export async function executeAction(
       }
 
       case "api": {
-        const endpoint = action.execute ?? action.target;
+        const endpoint = action.target ?? action.execute;
         if (!endpoint) {
           result = { success: false, message: "No API endpoint specified" };
           break;
@@ -80,7 +80,7 @@ export async function executeAction(
       }
 
       case "flow": {
-        const flowName = action.execute ?? action.name;
+        const flowName = action.target ?? action.execute ?? action.name;
         const data = await client.automation.trigger(flowName, {
           object: objectName,
           recordId,
