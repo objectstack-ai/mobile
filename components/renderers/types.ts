@@ -166,6 +166,7 @@ export interface ActionMeta {
   type?: "url" | "script" | "api" | "modal" | "flow";
   icon?: string;
   target?: string;
+  /** @deprecated Use `target` instead. Auto-migrated to `target` since spec v3.1. */
   execute?: string;
   locations?: (
     | "list_toolbar"
