@@ -1,12 +1,33 @@
 # ObjectStack Mobile — Roadmap
 
-> **Date**: 2026-03-01
-> **SDK**: `@objectstack/client@3.1.1`, `@objectstack/client-react@3.1.1`, `@objectstack/spec@3.1.1`
-> **Tests**: ✅ 1149/1149 passing (148 suites, ~85% coverage)
+> **Date**: 2026-05-30
+> **Mobile SDK**: `@objectstack/*@3.1.1`
+> **Platform latest**: `@objectstack/*@7.3.0` ⚠️ **mobile is 4 major versions behind**
+> **Tests**: ✅ 1149/1149 passing against 3.1.1 (148 suites, ~85% coverage)
 
 ---
 
-## 1. Project Status
+## 0. ⚠️ Current Priority: Re-Baseline to Platform v7
+
+The platform (`objectstack-ai/framework`) has shipped **four major versions** since this
+client was built — every `@objectstack/*` package is now at **7.3.0** while the mobile
+app is pinned to **3.1.1**. This is a structural gap, not an incremental bump: v4 renamed
+query conventions (`filter→where`, etc.), v5 added OCC (`If-Match`), v6 renamed
+`project→environment` across all routing/headers and **reset the AI protocol** (removing
+~4,700 lines of schemas this app built hooks against), and v7 reworked the action/identity
+model.
+
+**The "all phases complete / full v3.1.1 compliance" status below is accurate against
+3.1.1 but overstates readiness against the platform as it ships today.** Before resuming
+feature work, the app must be re-baselined to 7.3.0.
+
+➡️ **See [docs/PLATFORM-V7-MIGRATION.md](./docs/PLATFORM-V7-MIGRATION.md)** for the
+breaking-change inventory, hook reconciliation, and the phased plan. Recommended next PR:
+**Phase 1** (bump deps + produce the compile-error inventory that sizes the rest).
+
+---
+
+## 1. Project Status (as of 3.1.1)
 
 The ObjectStack Mobile client has completed all core development phases (0–6), spec alignment phases (9–10), advanced feature phases (11–13), UX/platform phases (14–20), spec gap phases (21–22), post-GA features (v1.4–v1.6), and spec v3.1.1 UI Protocol alignment (v1.7, Phases 23–25). The SDK is upgraded to v3.1.1 (spec v3.1.1: 14 modules, 1683 JSON schemas, 8,380+ `.describe()` annotations).
 

@@ -6,12 +6,12 @@ Enterprise low-code platform mobile runtime built with Expo, React Native, and T
 
 ## 📊 Current Status
 
-✅ **All Core Phases Complete** (0–6, 9–10) | ⚠️ **E2E Testing Pending** | 📦 **SDK v3.0.0**
+⚠️ **Re-baselining required** | Mobile on **`@objectstack/*@3.1.1`** · Platform now at **7.3.0** (4 major versions ahead)
 
-- **Tests**: 540/540 passing (63 suites) ✅
+- **Tests**: 1149/1149 passing against 3.1.1 ✅ (does not yet reflect 7.x breaking changes)
 - **Coverage**: ~85% ✅
-- **SDK**: `@objectstack/client@3.0.0`, `@objectstack/spec@3.0.0`
-- **Next Steps**: See [ROADMAP.md](./ROADMAP.md) →
+- **SDK**: `@objectstack/client@3.1.1` → target **`@objectstack/client@7.3.0`**
+- **Next Steps**: 👉 **[Platform v7 Migration Plan](./docs/PLATFORM-V7-MIGRATION.md)** (see [ROADMAP.md §0](./ROADMAP.md))
 
 **What's Complete**:
 - ✅ Full authentication system (better-auth)
