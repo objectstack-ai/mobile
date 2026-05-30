@@ -7,7 +7,11 @@ import {
   ANDROID_DEFAULT_CHANNEL_ID,
 } from "~/lib/push-notifications";
 import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
+
+// The lib reads `Device.isDevice` through the Babel ESM-interop namespace,
+// whose properties are getters onto the underlying mock. Mutate the raw mock
+// object (via requireMock) so changes are visible to the code under test.
+const DeviceMock = jest.requireMock("expo-device") as { isDevice: boolean };
 
 describe("deepLinkFromData", () => {
   it("returns an explicit url when present", () => {
