@@ -182,6 +182,19 @@ export interface ActionMeta {
   refreshAfter?: boolean;
   visible?: string;
   params?: ActionParamMeta[];
+  /** Spec v7 `Action.resultDialog` — reveal the action's response after it runs
+   *  (e.g. TOTP URIs, OAuth secrets, backup codes). */
+  resultDialog?: {
+    title?: string;
+    description?: string;
+    acknowledge?: string;
+    format?: "text" | "secret" | "json" | "qrcode" | "code-list";
+    fields?: Array<{
+      path: string;
+      label?: string;
+      format?: "text" | "secret" | "json" | "qrcode" | "code-list";
+    }>;
+  };
 }
 
 export interface ActionParamMeta {

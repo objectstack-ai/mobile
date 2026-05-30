@@ -7,10 +7,26 @@ import type { ActionMeta } from "../renderers/types";
 /*  Action Execution Result                                            */
 /* ------------------------------------------------------------------ */
 
+/** Spec v7 `Action.resultDialog` — reveal an action's response (TOTP URIs, OAuth
+ *  secrets, backup codes) after it runs. */
+export interface ActionResultDialog {
+  title?: string;
+  description?: string;
+  acknowledge?: string;
+  format?: "text" | "secret" | "json" | "qrcode" | "code-list";
+  fields?: Array<{
+    path: string;
+    label?: string;
+    format?: "text" | "secret" | "json" | "qrcode" | "code-list";
+  }>;
+}
+
 export interface ActionResult {
   success: boolean;
   message?: string;
   data?: unknown;
+  /** Present when the action declares a `resultDialog`; callers should render it. */
+  resultDialog?: ActionResultDialog;
 }
 
 /* ------------------------------------------------------------------ */
@@ -27,6 +43,10 @@ export interface ActionExecutorContext {
   record?: Record<string, unknown>;
   /** Current app name (for routing) */
   appName?: string;
+  /** Current user id (for `${ctx.userId}` interpolation) */
+  userId?: string;
+  /** Resolved action parameters (for `${param.X}` interpolation) */
+  params?: Record<string, unknown>;
   /** Callback after action completes */
   onComplete?: (result: ActionResult) => void;
 }
@@ -45,14 +65,32 @@ export async function executeAction(
   action: ActionMeta,
   context: ActionExecutorContext,
 ): Promise<ActionResult> {
-  const { client, objectName, recordId, record, appName, onComplete } = context;
+  const { client, objectName, recordId, record, appName, userId, params, onComplete } =
+    context;
+
+  // Spec v7: `execute` is auto-migrated to `target`.
+  const rawTarget = action.target ?? action.execute;
+  const interp = (s: string | undefined) =>
+    interpolate(s, { objectName, recordId, record, appName, userId, params });
+
+  // The execution context forwarded to server-side handlers (flows/apis).
+  const execContext = {
+    object: objectName,
+    recordId,
+    record,
+    ...(params ? { params } : {}),
+  };
+
+  // Attach the action's resultDialog config (if any) to a result.
+  const withDialog = (r: ActionResult): ActionResult =>
+    action.resultDialog ? { ...r, resultDialog: action.resultDialog } : r;
 
   try {
     let result: ActionResult;
 
     switch (action.type) {
       case "url": {
-        const target = resolveTarget(action.target, record);
+        const target = interp(rawTarget);
         if (target) {
           await Linking.openURL(target);
         }
@@ -61,42 +99,35 @@ export async function executeAction(
       }
 
       case "api": {
-        const endpoint = action.target ?? action.execute;
+        const endpoint = interp(rawTarget);
         if (!endpoint) {
           result = { success: false, message: "No API endpoint specified" };
           break;
         }
-        const data = await client.automation.trigger(endpoint, {
-          object: objectName,
-          recordId,
-          record,
-        });
-        result = {
+        const data = await client.automation.trigger(endpoint, execContext);
+        result = withDialog({
           success: true,
           data,
           message: action.successMessage ?? "Action completed",
-        };
+        });
         break;
       }
 
       case "flow": {
-        const flowName = action.target ?? action.execute ?? action.name;
-        const data = await client.automation.trigger(flowName, {
-          object: objectName,
-          recordId,
-          record,
-        });
-        result = {
+        // v7 canonical flow runner is `client.automation.execute(name, ctx)`.
+        const flowName = interp(rawTarget) ?? action.name;
+        const data = await client.automation.execute(flowName, execContext);
+        result = withDialog({
           success: true,
           data,
           message: action.successMessage ?? "Flow triggered",
-        };
+        });
         break;
       }
 
       case "modal": {
         // Navigate to the target route
-        const route = action.target ?? `/(app)/${appName}/${objectName}/${recordId}`;
+        const route = interp(rawTarget) ?? `/(app)/${appName}/${objectName}/${recordId}`;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         router.push(route as any);
         result = { success: true };
@@ -126,21 +157,61 @@ export async function executeAction(
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
+interface InterpolationContext {
+  objectName?: string;
+  recordId?: string;
+  record?: Record<string, unknown>;
+  appName?: string;
+  userId?: string;
+  params?: Record<string, unknown>;
+}
+
 /**
- * Resolve template variables in a target string.
- * Supports simple `{fieldName}` placeholders.
+ * Resolve template variables in an action `target` per the spec v7 contract:
+ *
+ *   - `${param.X}` — value of action parameter `X`
+ *   - `${ctx.X}`   — value from the execution context: `recordId`, `objectName`,
+ *                    `appName`, `userId`, or a field of the current record
+ *                    (`${ctx.email}` → `record.email`, `${ctx.record.email}` too)
+ *
+ * Legacy `{fieldName}` placeholders (pre-v3.1) are still resolved against the
+ * record for backward compatibility. Unknown references resolve to an empty string.
  */
-function resolveTarget(
+export function interpolate(
   target: string | undefined,
-  record?: Record<string, unknown>,
+  ctx: InterpolationContext,
 ): string | undefined {
   if (!target) return undefined;
-  if (!record) return target;
 
-  return target.replace(/\{(\w+)\}/g, (_, key) => {
-    const val = record[key];
-    return val != null ? String(val) : "";
-  });
+  const ctxValue = (path: string): unknown => {
+    const key = path.startsWith("record.") ? path.slice("record.".length) : path;
+    switch (key) {
+      case "recordId":
+        return ctx.recordId;
+      case "objectName":
+        return ctx.objectName;
+      case "appName":
+        return ctx.appName;
+      case "userId":
+        return ctx.userId;
+      default:
+        return ctx.record?.[key];
+    }
+  };
+
+  return (
+    target
+      // ${param.X} and ${ctx.X[.Y]}
+      .replace(/\$\{(param|ctx)\.([\w.]+)\}/g, (_, scope, path) => {
+        const val = scope === "param" ? ctx.params?.[path] : ctxValue(path);
+        return val != null ? String(val) : "";
+      })
+      // legacy {field}
+      .replace(/\{(\w+)\}/g, (_, key) => {
+        const val = ctx.record?.[key];
+        return val != null ? String(val) : "";
+      })
+  );
 }
 
 /* ------------------------------------------------------------------ */

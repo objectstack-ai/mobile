@@ -75,6 +75,7 @@ describe("executeAction", () => {
   const mockClient = {
     automation: {
       trigger: jest.fn().mockResolvedValue({ ok: true }),
+      execute: jest.fn().mockResolvedValue({ ok: true }),
     },
   } as any;
 
@@ -170,7 +171,8 @@ describe("executeAction", () => {
     };
     const result = await executeAction(action, { client: mockClient });
     expect(result.success).toBe(true);
-    expect(mockClient.automation.trigger).toHaveBeenCalledWith(
+    // v7: flows run through client.automation.execute (not trigger)
+    expect(mockClient.automation.execute).toHaveBeenCalledWith(
       "my-flow-target",
       expect.objectContaining({}),
     );
@@ -184,7 +186,7 @@ describe("executeAction", () => {
     };
     const result = await executeAction(action, { client: mockClient });
     expect(result.success).toBe(true);
-    expect(mockClient.automation.trigger).toHaveBeenCalledWith(
+    expect(mockClient.automation.execute).toHaveBeenCalledWith(
       "my-flow",
       expect.objectContaining({}),
     );
@@ -201,7 +203,7 @@ describe("executeAction", () => {
   });
 
   it("handles errors gracefully", async () => {
-    mockClient.automation.trigger.mockRejectedValueOnce(new Error("Network fail"));
+    mockClient.automation.execute.mockRejectedValueOnce(new Error("Network fail"));
     const action: ActionMeta = {
       name: "fail-flow",
       label: "Fail",

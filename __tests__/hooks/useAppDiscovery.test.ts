@@ -48,8 +48,28 @@ describe("useAppDiscovery", () => {
       icon: "briefcase",
       version: "1.0.0",
       enabled: true,
+      hidden: false,
     });
     expect(result.current.error).toBeNull();
+  });
+
+  it("excludes apps flagged App.hidden from the switcher list", async () => {
+    mockPackagesList.mockResolvedValue({
+      packages: [
+        { id: "com.example.crm", name: "crm", label: "CRM App" },
+        { id: "com.example.setup", name: "setup", label: "Setup", hidden: true },
+      ],
+      total: 2,
+    });
+
+    const { result } = renderHook(() => useAppDiscovery());
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.apps).toHaveLength(1);
+    expect(result.current.apps[0].name).toBe("crm");
   });
 
   it("handles empty packages list", async () => {

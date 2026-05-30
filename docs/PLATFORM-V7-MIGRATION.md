@@ -84,10 +84,24 @@ workflow.\*, `useNotifications`→notifications.\*, `useSubscription`→realtime
 > `sys_department`, and multi-object `data.find`, so these can be reimplemented as real
 > features (querying data) rather than calls to namespaces that never shipped.
 
+### v7 Action protocol ✅
+
+Implemented the v7 Action/App surface in the action system (`components/actions/`):
+
+- **`Action.target` interpolation** — `${param.X}` (action params) and `${ctx.X}`
+  (`recordId`/`objectName`/`appName`/`userId`/record fields, incl. `${ctx.record.X}`),
+  with legacy `{field}` kept for back-compat (`interpolate()` in `ActionExecutor`).
+- **Flows run via `client.automation.execute(name, ctx)`** (the v7 canonical runner)
+  instead of the old `trigger` path.
+- **`Action.resultDialog`** — `executeAction` returns the dialog config; new
+  `ResultDialog` component renders it with `secret` masking + dot-path field extraction
+  (for TOTP URIs, OAuth secrets, backup codes).
+- **`App.hidden`** — `useAppDiscovery` excludes hidden apps from the switcher while
+  keeping them routable by name.
+
 ### Still outstanding
 
-- Phase 4 (v7 `Action.target` interpolation, `Action.resultDialog`, `App.hidden`,
-  Account App) is **forward-compat polish**, non-blocking.
+- Account App self-service identity surfaces (v7) — not yet wired.
 - Optional re-builds of audit/sharing/search on the data API (see note above).
 
 ---
