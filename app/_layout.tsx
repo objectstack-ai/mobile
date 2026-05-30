@@ -14,6 +14,21 @@ import { usePushNotifications } from "~/hooks/usePushNotifications";
 
 const queryClient = new QueryClient();
 
+/**
+ * Activates push notifications. Rendered inside ObjectStackProvider because
+ * usePushNotifications → useNotifications → useClient requires the provider.
+ */
+function PushNotificationsManager({
+  enabled,
+  onDeepLink,
+}: {
+  enabled: boolean;
+  onDeepLink: (url: string) => void;
+}) {
+  usePushNotifications({ enabled, onDeepLink });
+  return null;
+}
+
 function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
   const { data: session, isPending } = authClient.useSession();
   const segments = useSegments();
@@ -80,12 +95,12 @@ export default function RootLayout() {
       // Swallow: an unresolvable link should not crash the app.
     });
   }, []);
-  usePushNotifications({ enabled: !!token, onDeepLink: handleDeepLink });
 
   return (
     <ObjectStackProvider client={client}>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
+          <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
           <StatusBar style="auto" />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" />
