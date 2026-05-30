@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { authClient } from "~/lib/auth-client";
 import { useAccount } from "~/hooks/useAccount";
+import { useTwoFactor } from "~/hooks/useTwoFactor";
 import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
 
@@ -44,12 +45,20 @@ export default function AccountScreen() {
   const user = session?.user;
   const { updateProfile, changePassword, changeEmail, resendVerification, isSaving } =
     useAccount();
+  const twoFactor = useTwoFactor();
 
   const [name, setName] = useState(user?.name ?? "");
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // 2FA enrolment state
+  const twoFactorEnabled = (user as { twoFactorEnabled?: boolean } | undefined)?.twoFactorEnabled === true;
+  const [tfPassword, setTfPassword] = useState("");
+  const [tfUri, setTfUri] = useState<string | null>(null);
+  const [tfBackupCodes, setTfBackupCodes] = useState<string[]>([]);
+  const [tfCode, setTfCode] = useState("");
 
   const notify = (msg: string) => Alert.alert("Account", msg);
   const fail = (e: unknown) =>
@@ -106,6 +115,45 @@ export default function AccountScreen() {
       fail(e);
     }
   };
+
+  const onEnable2FA = async () => {
+    if (!tfPassword) return;
+    try {
+      const { totpURI, backupCodes } = await twoFactor.enable(tfPassword);
+      setTfUri(totpURI);
+      setTfBackupCodes(backupCodes);
+      setTfPassword("");
+    } catch (e) {
+      fail(e);
+    }
+  };
+
+  const onVerify2FA = async () => {
+    if (tfCode.length < 6) return;
+    try {
+      await twoFactor.verifyTotp(tfCode);
+      setTfCode("");
+      setTfUri(null);
+      setTfBackupCodes([]);
+      notify("Two-factor authentication is now enabled.");
+    } catch (e) {
+      fail(e);
+    }
+  };
+
+  const onDisable2FA = async () => {
+    if (!tfPassword) return;
+    try {
+      await twoFactor.disable(tfPassword);
+      setTfPassword("");
+      notify("Two-factor authentication disabled.");
+    } catch (e) {
+      fail(e);
+    }
+  };
+
+  /** Extract the otpauth secret for manual entry into an authenticator app. */
+  const totpSecret = tfUri ? /[?&]secret=([^&]+)/.exec(tfUri)?.[1] ?? null : null;
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
@@ -185,6 +233,79 @@ export default function AccountScreen() {
           <Button onPress={onChangePassword} disabled={isSaving || !currentPassword || !newPassword}>
             <Text className="font-semibold text-primary-foreground">Change password</Text>
           </Button>
+        </Section>
+
+        <Section title="Two-Factor Authentication">
+          {twoFactorEnabled ? (
+            <>
+              <Text className="text-sm text-muted-foreground">
+                Two-factor authentication is <Text className="text-foreground">enabled</Text>.
+              </Text>
+              <Field
+                label="Password (to disable)"
+                value={tfPassword}
+                onChangeText={setTfPassword}
+                placeholder="••••••••"
+                secureTextEntry
+                autoCapitalize="none"
+              />
+              <Button variant="destructive" onPress={onDisable2FA} disabled={twoFactor.isBusy || !tfPassword}>
+                <Text className="font-semibold text-destructive-foreground">Disable 2FA</Text>
+              </Button>
+            </>
+          ) : tfUri ? (
+            <>
+              <Text className="text-sm text-muted-foreground">
+                Add this secret to your authenticator app, then enter the 6-digit code to confirm.
+              </Text>
+              {!!totpSecret && (
+                <View className="rounded-lg bg-muted px-3 py-2">
+                  <Text className="text-xs uppercase text-muted-foreground">Secret</Text>
+                  <Text className="font-mono text-sm text-foreground" selectable>
+                    {totpSecret}
+                  </Text>
+                </View>
+              )}
+              {tfBackupCodes.length > 0 && (
+                <View className="rounded-lg bg-muted px-3 py-2">
+                  <Text className="mb-1 text-xs uppercase text-muted-foreground">
+                    Backup codes (save these)
+                  </Text>
+                  <Text className="font-mono text-sm text-foreground" selectable>
+                    {tfBackupCodes.join("\n")}
+                  </Text>
+                </View>
+              )}
+              <Field
+                label="6-digit code"
+                value={tfCode}
+                onChangeText={setTfCode}
+                placeholder="123456"
+                keyboardType="number-pad"
+                maxLength={6}
+              />
+              <Button onPress={onVerify2FA} disabled={twoFactor.isBusy || tfCode.length < 6}>
+                <Text className="font-semibold text-primary-foreground">Confirm &amp; enable</Text>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Text className="text-sm text-muted-foreground">
+                Protect your account with a time-based one-time code (TOTP).
+              </Text>
+              <Field
+                label="Password (to enable)"
+                value={tfPassword}
+                onChangeText={setTfPassword}
+                placeholder="••••••••"
+                secureTextEntry
+                autoCapitalize="none"
+              />
+              <Button onPress={onEnable2FA} disabled={twoFactor.isBusy || !tfPassword}>
+                <Text className="font-semibold text-primary-foreground">Enable 2FA</Text>
+              </Button>
+            </>
+          )}
         </Section>
 
         <View className="h-10" />

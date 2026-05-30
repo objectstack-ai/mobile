@@ -108,10 +108,18 @@ password with revoke-other-sessions (`changePassword`), verification-gated chang
 against a live 7.3.0 server (register → update-user → change-password → sign-in with the
 new password).
 
+### Two-factor authentication ✅
+
+TOTP enrolment in the Account screen, backed by the better-auth `twoFactorClient` plugin
+(wired into `lib/auth-client.ts`) → the server's `/api/v1/auth/two-factor/*` routes via
+`hooks/useTwoFactor.ts`: enable (returns `totpURI` + one-time backup codes), confirm with
+a 6-digit code (`verifyTotp`), disable, and regenerate backup codes. Verified end-to-end
+against a live 7.3.0 server — `enable` returns a `totpURI` + 10 backup codes, and
+`verify-totp` with a real computed TOTP code returns 200.
+
 ### Still outstanding
 
-- 2FA enrolment UI (needs better-auth `twoFactorClient` wired into the mobile auth
-  client) + session list/revoke.
+- Session list / revoke-other-sessions UI.
 - Optional re-builds of audit/sharing/search on the data API (see note above).
 
 ---
