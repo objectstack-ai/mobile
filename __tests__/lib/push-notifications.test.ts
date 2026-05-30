@@ -104,11 +104,11 @@ describe("acquirePushToken", () => {
   beforeEach(() => {
     mockGet.mockReset();
     mockToken.mockReset();
-    (Device as { isDevice: boolean }).isDevice = true;
+    DeviceMock.isDevice = true;
   });
 
   it("returns null on a non-physical device without requesting a token", async () => {
-    (Device as { isDevice: boolean }).isDevice = false;
+    DeviceMock.isDevice = false;
     expect(await acquirePushToken()).toBeNull();
     expect(mockToken).not.toHaveBeenCalled();
   });
