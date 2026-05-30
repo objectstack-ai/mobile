@@ -1,14 +1,16 @@
 import "../global.css";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as Linking from "expo-linking";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ObjectStackProvider } from "@objectstack/client-react";
 import { authClient, reinitializeAuthClient } from "~/lib/auth-client";
 import { createObjectStackClient, setObjectStackApiUrl } from "~/lib/objectstack";
 import { getServerUrl } from "~/lib/server-url";
+import { usePushNotifications } from "~/hooks/usePushNotifications";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +72,15 @@ export default function RootLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- serverUrl is used by setObjectStackApiUrl, not by createObjectStackClient
     [token],
   );
+
+  // Activate push notifications only once signed in. Tapped notifications carry
+  // an app-scheme deep link, which expo-router resolves via Linking.
+  const handleDeepLink = useCallback((url: string) => {
+    void Linking.openURL(url).catch(() => {
+      // Swallow: an unresolvable link should not crash the app.
+    });
+  }, []);
+  usePushNotifications({ enabled: !!token, onDeepLink: handleDeepLink });
 
   return (
     <ObjectStackProvider client={client}>
