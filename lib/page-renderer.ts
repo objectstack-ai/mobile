@@ -6,16 +6,29 @@
  */
 
 /* ------------------------------------------------------------------ */
-/*  Spec-aligned types (mirrored from @objectstack/spec/ui)            */
+/*  Page contract types (aligned with @objectstack/spec/ui PageSchema) */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Page component type. Mirrors the authoritative `PageComponentType`
+ * (spec/ui) component-slot identifiers, with `view:*` and `custom`
+ * retained for the native engine's composed views.
+ */
 export type PageComponentType =
   | "page:header"
+  | "page:footer"
+  | "page:sidebar"
   | "page:tabs"
+  | "page:accordion"
   | "page:card"
+  | "page:section"
   | "record:details"
-  | "record:related_list"
   | "record:highlights"
+  | "record:related_list"
+  | "record:activity"
+  | "record:chatter"
+  | "record:path"
+  | "record:alert"
   | "view:list"
   | "view:form"
   | "view:chart"
@@ -29,18 +42,38 @@ export interface PageComponent {
 
 export interface PageRegion {
   name: string;
+  /** Region width hint (spec `PageRegion.width`), e.g. a column span. */
+  width?: number | string;
   components: PageComponent[];
 }
 
+/**
+ * Page variable. `type` and `defaultValue` follow the authoritative spec
+ * `PageVariable`. `default` is kept as a deprecated alias for payloads that
+ * have not yet migrated.
+ */
 export interface PageVariable {
   name: string;
-  type: "string" | "number" | "boolean" | "record" | "query";
+  type: "string" | "number" | "boolean" | "object" | "array" | "record_id";
+  /** Default value (spec `PageVariable.defaultValue`). */
+  defaultValue?: unknown;
+  /** @deprecated Use `defaultValue` (spec field). Read as a fallback. */
   default?: unknown;
 }
 
+/**
+ * Page schema.
+ *
+ * NOTE: the authoritative spec `PageSchema` describes layout via a `type`
+ * (`PageType`) plus `blankLayout`, not the `layout` field used here. The
+ * native renderer keeps `layout` as a simplified convenience; full
+ * `PageType`/`blankLayout` support is tracked as a later alignment phase.
+ */
 export interface PageSchema {
   name: string;
   label?: string;
+  description?: string;
+  icon?: string;
   object?: string;
   layout?: "single" | "two-column" | "tabs" | "custom";
   regions: PageRegion[];
@@ -129,10 +162,11 @@ export function resolvePageSchema(
 ): ResolvedPage {
   const vars: Record<string, unknown> = {};
 
-  // Set defaults from schema variables
+  // Set defaults from schema variables. Prefer the authoritative spec field
+  // `defaultValue`, falling back to the legacy `default` alias.
   if (schema.variables) {
     for (const v of schema.variables) {
-      vars[v.name] = v.default;
+      vars[v.name] = v.defaultValue ?? v.default;
     }
   }
   // Override with provided variables
