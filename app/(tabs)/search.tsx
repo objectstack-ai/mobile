@@ -2,11 +2,13 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search as SearchIcon, X, ChevronRight, FileText } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/Input";
 import { useGlobalSearch } from "~/hooks/useGlobalSearch";
 
 export default function SearchScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { query, setQuery, groups, isSearching, hasSearched, totalCount, objectCount } =
     useGlobalSearch();
 
@@ -15,15 +17,15 @@ export default function SearchScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
       <View className="px-5 pt-4">
-        <Text className="mb-3 text-2xl font-bold text-foreground">Search</Text>
+        <Text className="mb-3 text-2xl font-bold text-foreground">{t("search.title")}</Text>
         <View className="flex-row items-center rounded-xl bg-muted px-4 py-3">
           <SearchIcon size={20} color="#94a3b8" />
           <Input
             className="ml-2 flex-1 border-0 bg-transparent p-0 text-base"
-            placeholder="Search across all records…"
+            placeholder={t("search.placeholder")}
             value={query}
             onChangeText={setQuery}
-            accessibilityLabel="Global search input"
+            accessibilityLabel={t("search.inputLabel")}
             autoFocus
             autoCapitalize="none"
             autoCorrect={false}
@@ -31,7 +33,7 @@ export default function SearchScreen() {
           {isSearching ? (
             <ActivityIndicator size="small" color="#94a3b8" />
           ) : query.length > 0 ? (
-            <TouchableOpacity onPress={() => setQuery("")} accessibilityLabel="Clear search">
+            <TouchableOpacity onPress={() => setQuery("")} accessibilityLabel={t("search.clearLabel")}>
               <X size={18} color="#94a3b8" />
             </TouchableOpacity>
           ) : null}
@@ -43,12 +45,12 @@ export default function SearchScreen() {
         <View className="flex-1 items-center justify-center px-10">
           <SearchIcon size={48} color="#cbd5e1" />
           <Text className="mt-4 text-center text-base font-medium text-muted-foreground">
-            Search across all your records
+            {t("search.emptyTitle")}
           </Text>
           <Text className="mt-2 text-center text-sm text-muted-foreground">
             {objectCount > 0
-              ? `Looking across ${objectCount} object${objectCount !== 1 ? "s" : ""}`
-              : "Type to start searching"}
+              ? t("search.lookingAcross", { count: objectCount })
+              : t("search.emptyHint")}
           </Text>
         </View>
       )}
@@ -59,9 +61,11 @@ export default function SearchScreen() {
           <View className="rounded-2xl bg-muted p-6">
             <SearchIcon size={40} color="#94a3b8" />
           </View>
-          <Text className="mt-5 text-lg font-semibold text-foreground">No Results</Text>
+          <Text className="mt-5 text-lg font-semibold text-foreground">
+            {t("search.noResultsTitle")}
+          </Text>
           <Text className="mt-2 text-center text-sm text-muted-foreground">
-            Nothing matched “{query.trim()}”. Try a different keyword.
+            {t("search.noResultsBody", { query: query.trim() })}
           </Text>
         </View>
       )}
@@ -74,7 +78,7 @@ export default function SearchScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="mb-3 text-xs font-medium text-muted-foreground">
-            {totalCount} result{totalCount !== 1 ? "s" : ""}
+            {t("search.resultCount", { count: totalCount })}
           </Text>
           {groups.map((group) => (
             <View key={`${group.appName}:${group.objectName}`} className="mb-5">
@@ -94,7 +98,7 @@ export default function SearchScreen() {
                       )
                     }
                     accessibilityRole="button"
-                    accessibilityLabel={`Open ${rec.title}`}
+                    accessibilityLabel={t("search.openLabel", { title: rec.title })}
                   >
                     <View className="mr-3 rounded-lg bg-primary/10 p-2">
                       <FileText size={16} color="#1e40af" />

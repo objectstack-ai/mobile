@@ -1,4 +1,5 @@
 import { Tabs } from "expo-router";
+import { useTranslation } from "react-i18next";
 import {
   Home,
   Search,
@@ -8,6 +9,7 @@ import {
 } from "lucide-react-native";
 
 export default function TabLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -30,14 +32,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t("nav.home"),
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: "Search",
+          title: t("nav.search"),
           tabBarIcon: ({ color, size }) => (
             <Search size={size} color={color} />
           ),
@@ -46,7 +48,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="apps"
         options={{
-          title: "Apps",
+          title: t("nav.apps"),
           tabBarIcon: ({ color, size }) => (
             <LayoutGrid size={size} color={color} />
           ),
@@ -55,14 +57,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          title: "Notifications",
+          title: t("nav.notifications"),
           tabBarIcon: ({ color, size }) => <Bell size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
-          title: "More",
+          title: t("nav.more"),
           tabBarIcon: ({ color, size }) => (
             <MoreHorizontal size={size} color={color} />
           ),

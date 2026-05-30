@@ -3,6 +3,7 @@ import { Alert, Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
 import { useClient, useQuery, useView } from "@objectstack/client-react";
+import { useTranslation } from "react-i18next";
 import { useCallback, useState } from "react";
 import { ListViewRenderer } from "~/components/renderers";
 import type { ListViewMeta } from "~/components/renderers";
@@ -16,6 +17,7 @@ export default function ObjectListScreen() {
   }>();
   const client = useClient();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { data: viewData, isLoading: viewLoading } = useView(objectName!, "list");
   const { meta, fields } = useObjectMeta(objectName);
@@ -50,23 +52,23 @@ export default function ObjectListScreen() {
     (record: Record<string, unknown>) => {
       const id = (record.id ?? record._id) as string;
       const label = (record.name ?? record.label ?? record.title ?? id) as string;
-      Alert.alert("Delete Record", `Are you sure you want to delete "${label}"?`, [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(t("records.deleteRecord"), t("records.deleteConfirmNamed", { label }), [
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Delete",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             try {
               await client.data.delete(objectName!, id);
               refetch();
             } catch {
-              Alert.alert("Error", "Failed to delete the record.");
+              Alert.alert(t("common.error"), t("records.deleteFailed"));
             }
           },
         },
       ]);
     },
-    [client, objectName, refetch],
+    [client, objectName, refetch, t],
   );
 
   const handleFilterChange = useCallback((f: unknown) => {
@@ -80,7 +82,7 @@ export default function ObjectListScreen() {
   const recordCount = records.length;
   const countLabel = isLoading
     ? undefined
-    : `${recordCount} record${recordCount !== 1 ? "s" : ""}`;
+    : t("records.recordCount", { count: recordCount });
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
@@ -92,7 +94,7 @@ export default function ObjectListScreen() {
             onPress={handleCreate}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={`Create ${displayName}`}
+            accessibilityLabel={t("records.createNamed", { name: displayName })}
             className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
           >
             <Plus size={24} color="#1e40af" />
