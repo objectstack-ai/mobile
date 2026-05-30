@@ -126,11 +126,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
 ```json
 // eas.json
 {
-  "cli": { "version": ">= 3.0.0" },
+  "cli": { "version": ">= 14.0.0" },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": { "simulator": true }
     },
     "preview": {
       "distribution": "internal",
@@ -139,19 +140,23 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       }
     },
     "production": {
+      "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.objectstack.com"
       }
     }
   },
   "submit": {
-    "production": {
-      "ios": { "appleId": "...", "ascAppId": "..." },
-      "android": { "serviceAccountKeyPath": "..." }
-    }
+    "production": {}
   }
 }
 ```
+
+> The `development` profile intentionally has **no** `EXPO_PUBLIC_API_URL` — on
+> a physical device you enter your LAN IP at runtime (see
+> [DEVICE-TESTING.md](./DEVICE-TESTING.md)). `submit.production` is left empty
+> here; fill in `ios` (`appleId`, `ascAppId`) and `android`
+> (`serviceAccountKeyPath`) when wiring up store submission.
 
 ---
 
@@ -504,4 +509,4 @@ npm version major
 
 ---
 
-*This document covers the deployment and CI/CD strategy. See [CONTRIBUTING.md](./CONTRIBUTING.md) for development workflow and [TESTING.md](./TESTING.md) for testing guidelines.*
+*This document covers the deployment and CI/CD strategy. See [CONTRIBUTING.md](./CONTRIBUTING.md) for development workflow, [TESTING.md](./TESTING.md) for testing guidelines, and [DEVICE-TESTING.md](./DEVICE-TESTING.md) for running on a physical device.*

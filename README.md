@@ -92,6 +92,7 @@ Comprehensive project documentation is available in the [`docs/`](./docs/) direc
 |----------|-------------|
 | **[🗺️ Roadmap](./ROADMAP.md)** | **→ START HERE** - Project status, spec compliance, development phases, next steps |
 | **[🧪 E2E Testing](./docs/E2E-TESTING.md)** | Maestro test flows, execution guide, troubleshooting |
+| **[📱 Device Testing](./docs/DEVICE-TESTING.md)** | Run on a physical iOS/Android device (Expo Go vs dev build), push-notification testing |
 | **[Architecture](./docs/ARCHITECTURE.md)** | System architecture, layer design, provider hierarchy |
 | **[UI/UX Design](./docs/UI-DESIGN.md)** | Design system, view renderers, field types |
 | **[🎨 UX Design Review](./docs/UX-DESIGN-REVIEW.md)** | UX audit, industry benchmarks, improvement roadmap (Phases 14–20) |
