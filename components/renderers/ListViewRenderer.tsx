@@ -15,7 +15,133 @@ import { BatchActionBar } from "~/components/batch/BatchActionBar";
 import { formatDisplayValue } from "./fields/FieldRenderer";
 import { FilterDrawer, FilterButton } from "./FilterDrawer";
 import { SwipeableRow } from "./SwipeableRow";
-import type { ListColumn, ListViewMeta, FieldDefinition, FieldType } from "./types";
+import type {
+  ListColumn,
+  ListViewMeta,
+  FieldDefinition,
+  FieldType,
+  ColumnSummary,
+  RowHeight,
+} from "./types";
+
+/* ------------------------------------------------------------------ */
+/*  Spec-aligned display helpers                                       */
+/* ------------------------------------------------------------------ */
+
+/** Card vertical padding per spec `RowHeight` (density). Defaults to `medium`. */
+const ROW_DENSITY_PADDING: Record<RowHeight, string> = {
+  compact: "py-2",
+  short: "py-2.5",
+  medium: "py-4",
+  tall: "py-5",
+  extra_tall: "py-7",
+};
+
+function rowDensityClass(rowHeight?: RowHeight): string {
+  return ROW_DENSITY_PADDING[rowHeight ?? "medium"] ?? "py-4";
+}
+
+/** Stable display label for a (possibly absent) grouping/colour value. */
+function groupValueLabel(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  return String(value);
+}
+
+/**
+ * Compute a spec `ColumnSummary` aggregation over the column's values.
+ * Returns a display string, or `null` when the operator is `none`/absent.
+ *
+ * Exported for unit testing.
+ */
+export function computeColumnSummary(
+  records: Record<string, unknown>[],
+  col: ListColumn,
+): string | null {
+  const op: ColumnSummary | undefined = col.summary;
+  if (!op || op === "none") return null;
+
+  const values = records.map((r) => r[col.field]);
+  const filled = values.filter((v) => v !== null && v !== undefined && v !== "");
+  const empty = values.length - filled.length;
+  const nums = filled
+    .map((v) => (typeof v === "number" ? v : Number(v)))
+    .filter((n) => !Number.isNaN(n));
+
+  const pct = (n: number) =>
+    values.length === 0 ? "0%" : `${Math.round((n / values.length) * 100)}%`;
+
+  switch (op) {
+    case "count":
+      return String(values.length);
+    case "count_empty":
+      return String(empty);
+    case "count_filled":
+      return String(filled.length);
+    case "count_unique":
+      return String(new Set(filled.map((v) => String(v))).size);
+    case "percent_empty":
+      return pct(empty);
+    case "percent_filled":
+      return pct(filled.length);
+    case "sum":
+      return nums.length ? String(nums.reduce((a, b) => a + b, 0)) : "—";
+    case "avg":
+      return nums.length
+        ? String(
+            Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 100) /
+              100,
+          )
+        : "—";
+    case "min":
+      return nums.length ? String(Math.min(...nums)) : "—";
+    case "max":
+      return nums.length ? String(Math.max(...nums)) : "—";
+    default:
+      return null;
+  }
+}
+
+/* ---- Grouped list model ---- */
+
+export type GroupHeaderItem = { __kind: "group"; label: string; count: number };
+export type RecordRowItem = { __kind: "row"; record: Record<string, unknown> };
+export type ListItem = GroupHeaderItem | RecordRowItem;
+
+export function isGroupHeader(item: ListItem): item is GroupHeaderItem {
+  return item.__kind === "group";
+}
+
+/**
+ * Flatten records into a render list, inserting group-header sentinels when
+ * `meta.grouping` is present. Only the first grouping field is honoured here;
+ * deeper nesting is a later phase.
+ *
+ * Exported for unit testing.
+ */
+export function buildListItems(
+  data: Record<string, unknown>[],
+  meta: ListViewMeta | null | undefined,
+): ListItem[] {
+  const groupField = meta?.grouping?.fields?.[0]?.field;
+  if (!groupField) {
+    return data.map((record) => ({ __kind: "row", record }));
+  }
+
+  const buckets = new Map<string, Record<string, unknown>[]>();
+  for (const record of data) {
+    const key = groupValueLabel(record[groupField]);
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(record);
+    else buckets.set(key, [record]);
+  }
+
+  const items: ListItem[] = [];
+  for (const [label, records] of buckets) {
+    items.push({ __kind: "group", label, count: records.length });
+    for (const record of records) items.push({ __kind: "row", record });
+  }
+  return items;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -185,6 +311,26 @@ export function ListViewRenderer({
     return [];
   }, [view, fields, records]);
 
+  /* ---- Spec-aligned display options ---- */
+  const listItems = useMemo(() => buildListItems(records, view), [records, view]);
+  const densityClass = rowDensityClass(view?.rowHeight);
+  const striped = !!view?.striped;
+  const bordered = view?.bordered !== false;
+  const summaryColumns = useMemo(
+    () => columns.filter((c) => c.summary && c.summary !== "none"),
+    [columns],
+  );
+
+  /** Resolve a record's background colour from spec `rowColor`, if configured. */
+  const rowBackground = useCallback(
+    (record: Record<string, unknown>): string | undefined => {
+      const rc = view?.rowColor;
+      if (!rc?.field || !rc.colors) return undefined;
+      return rc.colors[groupValueLabel(record[rc.field])];
+    },
+    [view?.rowColor],
+  );
+
   /* ---- Handlers ---- */
   const handleSort = useCallback(
     (field: string) => {
@@ -196,9 +342,9 @@ export function ListViewRenderer({
     [sortField, sortDir, onSortChange],
   );
 
-  /* ---- Render row ---- */
-  const renderItem = useCallback(
-    ({ item }: { item: Record<string, unknown> }) => {
+  /* ---- Render a single record card ---- */
+  const renderRecordCard = useCallback(
+    (item: Record<string, unknown>, index: number) => {
       const recordId = String(item.id ?? item._id ?? "");
       const isSelected = selectedIds.has(recordId);
       const primaryCol = columns[0];
@@ -208,11 +354,23 @@ export function ListViewRenderer({
         ? String(item[primaryCol.field] ?? "")
         : item.name ?? item.label ?? item.title ?? item.subject ?? item.id ?? "Record";
 
+      const customBg = rowBackground(item);
+      const stripedBg = striped && index % 2 === 1;
+
       const rowContent = (
         <Pressable
+          style={customBg ? { backgroundColor: customBg } : undefined}
           className={cn(
-            "mb-2 rounded-xl border bg-card p-4 active:bg-muted/50",
-            isSelected ? "border-primary bg-primary/5" : "border-border",
+            "mb-2 rounded-xl px-4 active:bg-muted/50",
+            densityClass,
+            bordered ? "border" : "",
+            isSelected
+              ? "border-primary bg-primary/5"
+              : customBg
+                ? "border-border"
+                : stripedBg
+                  ? "border-border bg-muted/30"
+                  : "border-border bg-card",
           )}
           onPress={() => {
             if (selectionMode !== "none") {
@@ -287,7 +445,41 @@ export function ListViewRenderer({
 
       return rowContent;
     },
-    [columns, fields, onRowPress, onSwipeEdit, onSwipeDelete, selectedIds, selectionMode, toggleSelection],
+    [
+      columns,
+      // `columns` is derived from `records`, so listing it keeps the card in
+      // sync with data; `records` is included to satisfy exhaustive-deps.
+      records,
+      fields,
+      densityClass,
+      bordered,
+      striped,
+      rowBackground,
+      onRowPress,
+      onSwipeEdit,
+      onSwipeDelete,
+      selectedIds,
+      selectionMode,
+      toggleSelection,
+    ],
+  );
+
+  /* ---- Render row (group header or record) ---- */
+  const renderItem = useCallback(
+    ({ item, index }: { item: ListItem; index: number }) => {
+      if (isGroupHeader(item)) {
+        return (
+          <View className="mb-2 flex-row items-center px-1 pt-2">
+            <Text className="text-xs font-semibold uppercase text-muted-foreground">
+              {item.label}
+            </Text>
+            <Text className="ml-2 text-xs text-muted-foreground/60">({item.count})</Text>
+          </View>
+        );
+      }
+      return renderRecordCard(item.record, index);
+    },
+    [renderRecordCard],
   );
 
   /* ---- Search state ---- */
@@ -321,6 +513,23 @@ export function ListViewRenderer({
     },
     [onFilterChange],
   );
+
+  /* ---- Summary footer (spec column `summary`) ---- */
+  const summaryFooter =
+    summaryColumns.length > 0 ? (
+      <View className="mt-1 rounded-xl border border-border bg-muted/30 px-4 py-3">
+        {summaryColumns.map((col) => (
+          <View key={col.field} className="flex-row items-center justify-between">
+            <Text className="text-xs text-muted-foreground">
+              {col.label ?? col.field} ({col.summary})
+            </Text>
+            <Text className="text-xs font-semibold text-foreground">
+              {computeColumnSummary(records, col)}
+            </Text>
+          </View>
+        ))}
+      </View>
+    ) : null;
 
   /* ---- Error state ---- */
   if (error && !isLoading) {
@@ -363,6 +572,15 @@ export function ListViewRenderer({
         </View>
       )}
 
+      {/* Record count (spec `showRecordCount`) */}
+      {view?.showRecordCount && (
+        <View className="px-4 pt-2">
+          <Text className="text-xs text-muted-foreground">
+            {records.length} {records.length === 1 ? "record" : "records"}
+          </Text>
+        </View>
+      )}
+
       {/* Sort chips */}
       {columns.some((c) => c.sortable !== false) && (
         <View className="flex-row flex-wrap gap-2 px-4 pb-2 pt-3">
@@ -402,9 +620,11 @@ export function ListViewRenderer({
 
       {/* List */}
       <FlashList
-        data={records}
-        keyExtractor={(item: Record<string, unknown>, index: number) =>
-          String(item.id ?? item._id ?? index)
+        data={listItems}
+        keyExtractor={(item: ListItem, index: number) =>
+          isGroupHeader(item)
+            ? `group:${item.label}:${index}`
+            : String(item.record.id ?? item.record._id ?? index)
         }
         renderItem={renderItem}
         onEndReached={hasMore ? onLoadMore : undefined}
@@ -429,11 +649,14 @@ export function ListViewRenderer({
           )
         }
         ListFooterComponent={
-          isLoading && records.length > 0 ? (
-            <View className="items-center py-4">
-              <ActivityIndicator />
-            </View>
-          ) : null
+          <>
+            {records.length > 0 ? summaryFooter : null}
+            {isLoading && records.length > 0 ? (
+              <View className="items-center py-4">
+                <ActivityIndicator />
+              </View>
+            ) : null}
+          </>
         }
       />
 
