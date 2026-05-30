@@ -1,15 +1,15 @@
 import "../global.css";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ObjectStackProvider } from "@objectstack/client-react";
-import { authClient, reinitializeAuthClient } from "~/lib/auth-client";
-import { createObjectStackClient, setObjectStackApiUrl } from "~/lib/objectstack";
-import { getServerUrl } from "~/lib/server-url";
+import { authClient } from "~/lib/auth-client";
+import { createObjectStackClient } from "~/lib/objectstack";
+import { useServerStore } from "~/stores/server-store";
 import { usePushNotifications } from "~/hooks/usePushNotifications";
 
 const queryClient = new QueryClient();
@@ -60,21 +60,14 @@ function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
 }
 
 export default function RootLayout() {
-  const [serverUrl, setServerUrlState] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const serverUrl = useServerStore((s) => s.serverUrl);
+  const isReady = useServerStore((s) => s.isReady);
+  const hydrate = useServerStore((s) => s.hydrate);
 
   // On mount, load the persisted server URL and reinitialize clients
   useEffect(() => {
-    (async () => {
-      const url = await getServerUrl();
-      if (url) {
-        reinitializeAuthClient(url);
-        setObjectStackApiUrl(url);
-        setServerUrlState(url);
-      }
-      setIsReady(true);
-    })();
-  }, []);
+    void hydrate();
+  }, [hydrate]);
 
   useProtectedRoute(serverUrl, isReady);
 
@@ -82,10 +75,12 @@ export default function RootLayout() {
   const sessionRecord = session as Record<string, unknown> | null;
   const token = (sessionRecord?.token ?? sessionRecord?.accessToken) as string | undefined;
 
+  // Recreate the data client when the token changes (sign-in/out) or the
+  // configured server changes — `createObjectStackClient` snapshots the
+  // module-level API URL that `connect()`/`hydrate()` updates.
   const client = useMemo(
     () => createObjectStackClient(token),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverUrl is used by setObjectStackApiUrl, not by createObjectStackClient
-    [token],
+    [token, serverUrl],
   );
 
   // Activate push notifications only once signed in. Tapped notifications carry

@@ -284,17 +284,37 @@ export function ListViewRenderer({
       });
     }
 
-    // Fallback: derive columns from first record or field definitions
+    // Fallback: derive columns from field definitions when the object has no
+    // list view. Audit/system fields (created_at, created_by, …) lead the meta
+    // `fields` map, so a naive `.slice(0, 5)` would surface only those. Instead
+    // drop system/internal fields and lead with a human-recognizable label
+    // field (name/title/subject/…) so the card's primary line is meaningful.
     if (fields.length > 0) {
-      return fields
-        .filter((f) => !f.name.startsWith("_") && f.name !== "id")
-        .slice(0, 5)
-        .map((f) => ({
-          field: f.name,
-          label: f.label ?? f.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-          sortable: true,
-          type: f.type,
-        }));
+      const PRIMARY_FIELD_NAMES = ["name", "label", "title", "subject", "full_name"];
+      const isSystemField = (f: FieldDefinition) =>
+        f.system === true ||
+        f.name.startsWith("_") ||
+        f.name === "id" ||
+        ["created_at", "created_by", "updated_at", "updated_by"].includes(f.name);
+
+      const businessFields = fields.filter((f) => !isSystemField(f));
+      const primary = businessFields.filter((f) =>
+        PRIMARY_FIELD_NAMES.includes(f.name.toLowerCase()),
+      );
+      const rest = businessFields.filter(
+        (f) => !PRIMARY_FIELD_NAMES.includes(f.name.toLowerCase()),
+      );
+      const ordered = [...primary, ...rest];
+      // If everything was a system field, fall back to the raw list so we still
+      // render *something* rather than an empty table.
+      const source = ordered.length > 0 ? ordered : fields;
+
+      return source.slice(0, 5).map((f) => ({
+        field: f.name,
+        label: f.label ?? f.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        sortable: true,
+        type: f.type,
+      }));
     }
 
     if (records.length > 0) {
@@ -348,7 +368,18 @@ export function ListViewRenderer({
       const recordId = String(item.id ?? item._id ?? "");
       const isSelected = selectedIds.has(recordId);
       const primaryCol = columns[0];
-      const secondaryCols = columns.slice(1, 3);
+      // Show the first two *populated* secondary fields rather than fixed
+      // columns 1–2: a fallback like `name, account, contact, …` otherwise
+      // wastes a card line on an always-empty field (e.g. "Contact: —"). Widen
+      // the candidate window and skip blanks so meaningful data (amount, stage)
+      // surfaces instead.
+      const secondaryCols = columns
+        .slice(1, 5)
+        .filter((col) => {
+          const v = item[col.field];
+          return v !== null && v !== undefined && v !== "";
+        })
+        .slice(0, 2);
 
       const primaryValue = primaryCol
         ? String(item[primaryCol.field] ?? "")
@@ -412,6 +443,7 @@ export function ListViewRenderer({
                     const displayVal = formatDisplayValue(
                       item[col.field],
                       (fieldDef?.type ?? col.type ?? "text") as FieldType,
+                      fieldDef,
                     );
                     return (
                       <View key={col.field} className="flex-row items-center">
@@ -496,13 +528,11 @@ export function ListViewRenderer({
       if (filter === null || filter === undefined) {
         setActiveFilterCount(0);
       } else if (Array.isArray(filter)) {
-        // ObjectQL compound: ['AND', f1, f2, …] → count child filters
+        // ObjectQL compound: ['and', f1, f2, …] → count child filters
         const logic = filter[0];
-        setActiveFilterCount(
-          typeof logic === "string" && (logic === "AND" || logic === "OR")
-            ? filter.length - 1
-            : 1,
-        );
+        const isLogic =
+          typeof logic === "string" && /^(and|or)$/i.test(logic);
+        setActiveFilterCount(isLogic ? filter.length - 1 : 1);
       } else {
         setActiveFilterCount(1);
       }

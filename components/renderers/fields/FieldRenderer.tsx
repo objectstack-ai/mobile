@@ -2,8 +2,75 @@ import React from "react";
 import { View, Text, TextInput, Pressable, Linking } from "react-native";
 import { Switch } from "~/components/ui/Switch";
 import { Select } from "~/components/ui/Select";
+import { DatePicker } from "~/components/ui/DatePicker";
+import { MultiSelect, toStringArray } from "~/components/ui/MultiSelect";
 import { cn } from "~/lib/utils";
-import type { FieldDefinition, FieldType } from "../types";
+import {
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatPercent,
+} from "~/lib/formatting";
+import type { FieldDefinition, FieldType, SelectOption } from "../types";
+
+/* ------------------------------------------------------------------ */
+/*  Option helpers (select / radio / multiselect)                      */
+/* ------------------------------------------------------------------ */
+
+const SELECT_TYPES = new Set(["select", "radio", "picklist", "status"]);
+const MULTI_TYPES = new Set(["multiselect", "checkboxes", "tags"]);
+
+/** Find the option matching `value` in a field's option list. */
+function findOption(
+  field: FieldDefinition | undefined,
+  value: unknown,
+): SelectOption | undefined {
+  return field?.options?.find((o) => String(o.value) === String(value));
+}
+
+/** Tailwind classes for a status badge, derived from an option colour name. */
+function badgeClasses(color: string | undefined): string {
+  switch ((color ?? "").toLowerCase()) {
+    case "green":
+    case "emerald":
+    case "success":
+      return "bg-emerald-50 text-emerald-700";
+    case "red":
+    case "rose":
+    case "danger":
+    case "error":
+      return "bg-red-50 text-red-700";
+    case "amber":
+    case "yellow":
+    case "orange":
+    case "warning":
+      return "bg-amber-50 text-amber-700";
+    case "blue":
+    case "indigo":
+    case "primary":
+      return "bg-blue-50 text-blue-700";
+    case "purple":
+    case "violet":
+      return "bg-violet-50 text-violet-700";
+    case "gray":
+    case "grey":
+    case "slate":
+    case "neutral":
+      return "bg-muted text-muted-foreground";
+    default:
+      return "bg-muted text-foreground";
+  }
+}
+
+/** A coloured pill for a select/status value. */
+function StatusBadge({ label, color }: { label: string; color?: string }) {
+  return (
+    <View className={cn("self-start rounded-full px-2.5 py-1", badgeClasses(color))}>
+      <Text className={cn("text-xs font-semibold", badgeClasses(color))}>{label}</Text>
+    </View>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -28,8 +95,27 @@ export interface FieldRendererProps {
 /*  Read-only value display                                            */
 /* ------------------------------------------------------------------ */
 
-function ReadOnlyValue({ value, type }: { value: unknown; type: FieldType }) {
-  const display = formatDisplayValue(value, type);
+function ReadOnlyValue({ field, value }: { field: FieldDefinition; value: unknown }) {
+  const type = field.type;
+  const display = formatDisplayValue(value, type, field);
+
+  // Single-select / status → coloured badge using the option's label + colour.
+  if (SELECT_TYPES.has(type) && value != null && value !== "") {
+    const opt = findOption(field, value);
+    return <StatusBadge label={opt?.label ?? String(value)} color={opt?.color} />;
+  }
+
+  // Multi-select / tags → a row of pills.
+  if (MULTI_TYPES.has(type) && Array.isArray(value) && value.length > 0) {
+    return (
+      <View className="flex-row flex-wrap gap-1.5">
+        {value.map((v, i) => {
+          const opt = findOption(field, v);
+          return <StatusBadge key={i} label={opt?.label ?? String(v)} color={opt?.color} />;
+        })}
+      </View>
+    );
+  }
 
   if ((type === "url" || type === "email") && typeof value === "string" && value) {
     const href = type === "email" ? `mailto:${value}` : value;
@@ -133,10 +219,10 @@ function BooleanFieldInput({ value, onChange }: FieldRendererProps) {
   );
 }
 
-function SelectFieldInput({ field, value, onChange }: FieldRendererProps) {
+function SelectFieldInput({ field, value, onChange, error }: FieldRendererProps) {
   const options = (field.options ?? []).map((o) => ({
     label: o.label,
-    value: o.value,
+    value: String(o.value),
   }));
 
   return (
@@ -145,6 +231,37 @@ function SelectFieldInput({ field, value, onChange }: FieldRendererProps) {
       value={value != null ? String(value) : ""}
       onValueChange={(val) => onChange?.(val)}
       placeholder={`Select ${field.label ?? field.name}`}
+      className={error ? "border-destructive" : undefined}
+    />
+  );
+}
+
+function MultiSelectFieldInput({ field, value, onChange, error }: FieldRendererProps) {
+  return (
+    <MultiSelect
+      options={field.options ?? []}
+      value={toStringArray(value)}
+      onValueChange={(vals) => onChange?.(vals)}
+      placeholder={`Select ${field.label ?? field.name}`}
+      error={!!error}
+    />
+  );
+}
+
+function DateFieldInput({
+  field,
+  value,
+  onChange,
+  error,
+  mode,
+}: FieldRendererProps & { mode: "date" | "datetime" | "time" }) {
+  return (
+    <DatePicker
+      mode={mode}
+      value={value}
+      onChange={(v) => onChange?.(v)}
+      placeholder={`Select ${field.label ?? field.name}`}
+      error={!!error}
     />
   );
 }
@@ -175,7 +292,7 @@ export function FieldRenderer({
 
       {/* Value / Input */}
       {isReadOnly ? (
-        <ReadOnlyValue value={value} type={field.type} />
+        <ReadOnlyValue field={field} value={value} />
       ) : (
         renderEditableField(field, value, onChange!, error)
       )}
@@ -244,18 +361,16 @@ function renderEditableField(
     case "multiselect":
     case "checkboxes":
     case "tags":
-      return <SelectFieldInput {...props} />;
+      return <MultiSelectFieldInput {...props} />;
 
     case "date":
+      return <DateFieldInput {...props} mode="date" />;
+
     case "datetime":
+      return <DateFieldInput {...props} mode="datetime" />;
+
     case "time":
-      // Simplified: use text input with placeholder hint
-      return (
-        <TextFieldInput
-          {...props}
-          field={{ ...field, label: `${field.label ?? field.name} (${field.type})` }}
-        />
-      );
+      return <DateFieldInput {...props} mode="time" />;
 
     case "lookup":
     case "master_detail":
@@ -267,42 +382,63 @@ function renderEditableField(
   }
 }
 
-export function formatDisplayValue(value: unknown, type: FieldType): string {
-  if (value == null) return "—";
+/**
+ * Format a field value for read-only display. Locale-aware (via `lib/formatting`)
+ * for numbers, currency, percent and dates; resolves select/multiselect values
+ * to their option labels when the field definition is supplied.
+ */
+export function formatDisplayValue(
+  value: unknown,
+  type: FieldType,
+  field?: FieldDefinition,
+): string {
+  if (value == null || value === "") return "—";
 
   switch (type) {
     case "boolean":
     case "toggle":
       return value ? "Yes" : "No";
 
-    case "currency":
-      return typeof value === "number"
-        ? value.toLocaleString("en-US", { style: "currency", currency: "USD" })
-        : String(value);
+    case "number":
+    case "rating":
+    case "slider":
+    case "progress":
+    case "autonumber": {
+      const n = Number(value);
+      return isNaN(n) ? String(value) : formatNumber(n);
+    }
 
-    case "percent":
-      return typeof value === "number" ? `${value}%` : String(value);
+    case "currency": {
+      const n = Number(value);
+      return isNaN(n) ? String(value) : formatCurrency(n, { maximumFractionDigits: 2 });
+    }
+
+    case "percent": {
+      const n = Number(value);
+      return isNaN(n) ? String(value) : formatPercent(n);
+    }
 
     case "date":
-      if (value instanceof Date) return value.toLocaleDateString();
-      if (typeof value === "string") {
-        const d = new Date(value);
-        return isNaN(d.getTime()) ? value : d.toLocaleDateString();
-      }
-      return String(value);
+      return formatDate(value as string | number | Date, { style: "medium" });
 
     case "datetime":
-      if (value instanceof Date) return value.toLocaleString();
-      if (typeof value === "string") {
-        const d = new Date(value);
-        return isNaN(d.getTime()) ? value : d.toLocaleString();
-      }
-      return String(value);
+      return formatDateTime(value as string | number | Date, { style: "medium" });
+
+    case "select":
+    case "radio": {
+      const opt = findOption(field, value);
+      return opt?.label ?? String(value);
+    }
 
     case "tags":
     case "multiselect":
     case "checkboxes":
-      return Array.isArray(value) ? value.join(", ") : String(value);
+      if (Array.isArray(value)) {
+        return value
+          .map((v) => findOption(field, v)?.label ?? String(v))
+          .join(", ");
+      }
+      return String(value);
 
     default:
       return String(value);

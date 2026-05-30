@@ -8,6 +8,7 @@ import {
   serializeFilterTree,
   buildProjection,
   OPERATOR_META,
+  type FilterOperator,
 } from "~/lib/query-builder";
 
 /* ------------------------------------------------------------------ */
@@ -91,10 +92,34 @@ describe("createCompoundFilter", () => {
 /* ------------------------------------------------------------------ */
 
 describe("serializeFilter", () => {
-  it("serializes a simple eq filter", () => {
+  // The data API parses comparison *symbols* (`=`, `>`, …), not the builder's
+  // internal word tokens (`eq`, `gt`). serializeFilter must translate, or the
+  // server silently ignores the filter and returns every row.
+  it("serializes a simple eq filter to the `=` symbol", () => {
     const f = createSimpleFilter("name", "eq");
     f.value = "Alice";
-    expect(serializeFilter(f)).toEqual(["name", "eq", "Alice"]);
+    expect(serializeFilter(f)).toEqual(["name", "=", "Alice"]);
+  });
+
+  it("translates comparison operators to symbols", () => {
+    const cases: [FilterOperator, string][] = [
+      ["neq", "!="],
+      ["gt", ">"],
+      ["gte", ">="],
+      ["lt", "<"],
+      ["lte", "<="],
+    ];
+    for (const [op, sym] of cases) {
+      const f = createSimpleFilter("age", op);
+      f.value = 30;
+      expect(serializeFilter(f)).toEqual(["age", sym, 30]);
+    }
+  });
+
+  it("keeps word operators the API accepts verbatim", () => {
+    const f = createSimpleFilter("name", "contains");
+    f.value = "ac";
+    expect(serializeFilter(f)).toEqual(["name", "contains", "ac"]);
   });
 
   it("returns null for a filter without field", () => {
@@ -102,28 +127,34 @@ describe("serializeFilter", () => {
     expect(serializeFilter(f)).toBeNull();
   });
 
-  it("serializes is_null (no value)", () => {
-    const f = createSimpleFilter("email", "is_null");
-    expect(serializeFilter(f)).toEqual(["email", "is_null"]);
+  it("rewrites is_null / is_not_null to (in)equality with null", () => {
+    const a = createSimpleFilter("email", "is_null");
+    expect(serializeFilter(a)).toEqual(["email", "=", null]);
+    const b = createSimpleFilter("email", "is_not_null");
+    expect(serializeFilter(b)).toEqual(["email", "!=", null]);
   });
 
-  it("serializes between (two values)", () => {
+  it("expands between into an inclusive AND range", () => {
     const f = createSimpleFilter("age", "between");
     f.value = 18;
     f.value2 = 65;
-    expect(serializeFilter(f)).toEqual(["age", "between", 18, 65]);
+    expect(serializeFilter(f)).toEqual([
+      "and",
+      ["age", ">=", 18],
+      ["age", "<=", 65],
+    ]);
   });
 
-  it("serializes a compound AND filter", () => {
+  it("serializes a compound AND filter with lowercase logic", () => {
     const a = createSimpleFilter("name", "eq");
     a.value = "Alice";
     const b = createSimpleFilter("age", "gt");
     b.value = 30;
     const compound = createCompoundFilter("AND", [a, b]);
     expect(serializeFilter(compound)).toEqual([
-      "AND",
-      ["name", "eq", "Alice"],
-      ["age", "gt", 30],
+      "and",
+      ["name", "=", "Alice"],
+      ["age", ">", 30],
     ]);
   });
 
@@ -131,7 +162,7 @@ describe("serializeFilter", () => {
     const a = createSimpleFilter("x", "eq");
     a.value = 1;
     const compound = createCompoundFilter("AND", [a]);
-    expect(serializeFilter(compound)).toEqual(["x", "eq", 1]);
+    expect(serializeFilter(compound)).toEqual(["x", "=", 1]);
   });
 
   it("returns null for an empty compound", () => {

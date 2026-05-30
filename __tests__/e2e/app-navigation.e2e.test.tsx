@@ -30,17 +30,26 @@ jest.mock("~/lib/auth-client", () => ({
   getAuthBaseURL: () => "http://localhost:3000",
 }));
 
-jest.mock("~/hooks/useAppDiscovery", () => ({
-  useAppDiscovery: () => ({
+// Stable singletons: returning fresh objects per render would change the
+// `apps`/`client` references each render and re-trigger Home's fetch effect
+// in a loop, leaving it stuck on the loading spinner.
+jest.mock("~/hooks/useApps", () => {
+  const appsResult = {
     apps: [
-      { id: "app_1", name: "CRM", label: "CRM", description: "Customer Relationship Management" },
-      { id: "app_2", name: "Inventory", label: "Inventory", description: "Inventory Management" },
+      { name: "CRM", label: "CRM", description: "Customer Relationship Management", packageId: "app.crm", navigation: [] },
+      { name: "Inventory", label: "Inventory", description: "Inventory Management", packageId: "app.inv", navigation: [] },
     ],
     isLoading: false,
     error: null,
     refetch: jest.fn(),
-  }),
-}));
+  };
+  return { useApps: () => appsResult };
+});
+
+jest.mock("@objectstack/client-react", () => {
+  const client = { meta: { getItems: jest.fn().mockResolvedValue({ items: [] }) } };
+  return { useClient: () => client };
+});
 
 jest.mock("~/hooks/useNotifications", () => ({
   useNotifications: () => ({
@@ -66,25 +75,13 @@ import NotificationsScreen from "~/app/(tabs)/notifications";
 import MoreScreen from "~/app/(tabs)/more";
 
 describe("E2E: App Navigation — Tab Screens", () => {
-  it("renders Home tab with dashboard cards", () => {
-    const { getByText } = render(<HomeScreen />);
+  it("renders Home tab header and empty dashboards state", async () => {
+    const { getByText, findByText } = render(<HomeScreen />);
 
     expect(getByText("Dashboard")).toBeTruthy();
     expect(getByText("Welcome back. Here's your overview.")).toBeTruthy();
-    expect(getByText("Monthly Sales")).toBeTruthy();
-    expect(getByText("Active Users")).toBeTruthy();
-    expect(getByText("Orders")).toBeTruthy();
-    expect(getByText("Revenue Growth")).toBeTruthy();
-  });
-
-  it("renders Home tab with metric values and trends", () => {
-    const { getByText } = render(<HomeScreen />);
-
-    expect(getByText("$120,000")).toBeTruthy();
-    expect(getByText("+12%")).toBeTruthy();
-    expect(getByText("8,420")).toBeTruthy();
-    expect(getByText("1,340")).toBeTruthy();
-    expect(getByText("-2.1%")).toBeTruthy();
+    // Apps publish no dashboards in this mock, so Home shows its empty state.
+    expect(await findByText("No Dashboards")).toBeTruthy();
   });
 
   it("renders Search tab with search input", () => {

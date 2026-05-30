@@ -1,11 +1,14 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert } from "react-native";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { useClient, useQuery, useView, useFields } from "@objectstack/client-react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useClient, useQuery, useView } from "@objectstack/client-react";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DetailViewRenderer } from "~/components/renderers";
-import type { FieldDefinition, FormViewMeta } from "~/components/renderers";
+import type { FormViewMeta } from "~/components/renderers";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { useObjectMeta } from "~/hooks/useObjectMeta";
+import { renderRecordTitle } from "~/lib/record-title";
 
 export default function ObjectDetailScreen() {
   const { appName, objectName, id } = useLocalSearchParams<{
@@ -17,7 +20,7 @@ export default function ObjectDetailScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { data: viewData } = useView(objectName!, "form");
-  const { data: fieldsData } = useFields(objectName!);
+  const { meta, fields } = useObjectMeta(objectName);
 
   /* ---- Fetch sibling record list for navigation ---- */
   const { data: listData } = useQuery(objectName!, {
@@ -55,10 +58,8 @@ export default function ObjectDetailScreen() {
     fetchRecord();
   }, [fetchRecord]);
 
-  const displayName =
-    record?.name ?? record?.label ?? record?.title ?? record?.subject ?? "Record Detail";
+  const displayName = renderRecordTitle(meta, record, "Record Detail");
 
-  const fields: FieldDefinition[] = fieldsData ?? [];
   const formView: FormViewMeta | undefined = viewData ?? undefined;
 
   /* ---- Navigation handlers ---- */
@@ -105,7 +106,7 @@ export default function ObjectDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <Stack.Screen options={{ title: String(displayName) }} />
+      <ScreenHeader title={String(displayName)} subtitle={positionLabel} />
       <DetailViewRenderer
         view={formView}
         fields={fields}

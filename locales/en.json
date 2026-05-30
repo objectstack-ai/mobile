@@ -53,6 +53,9 @@
     "createRecord": "Create Record",
     "editRecord": "Edit Record",
     "deleteRecord": "Delete Record",
+    "createNamed": "Create {{name}}",
+    "recordCount_one": "{{count}} record",
+    "recordCount_other": "{{count}} records",
     "deleteConfirm": "Are you sure you want to delete this record?",
     "deleteConfirmNamed": "Are you sure you want to delete \"{{label}}\"?",
     "deleteFailed": "Failed to delete the record.",
@@ -91,13 +94,19 @@
     "profile": "Profile"
   },
   "search": {
-    "placeholder": "Search objects, records…",
+    "title": "Search",
+    "placeholder": "Search across all records…",
     "inputLabel": "Global search input",
     "clearLabel": "Clear search",
-    "recentSearches": "Recent Searches",
-    "clearAll": "Clear All",
-    "emptyTitle": "Search across all your objects and records",
-    "emptyHint": "Type to start searching"
+    "emptyTitle": "Search across all your records",
+    "emptyHint": "Type to start searching",
+    "lookingAcross_one": "Looking across {{count}} object",
+    "lookingAcross_other": "Looking across {{count}} objects",
+    "noResultsTitle": "No Results",
+    "noResultsBody": "Nothing matched “{{query}}”. Try a different keyword.",
+    "resultCount_one": "{{count}} result",
+    "resultCount_other": "{{count}} results",
+    "openLabel": "Open {{title}}"
   },
   "offline": {
     "offlineMode": "Offline Mode",

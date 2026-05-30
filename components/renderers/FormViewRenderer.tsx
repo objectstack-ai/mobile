@@ -14,6 +14,23 @@ import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, FormFieldMeta } from "./types";
 
 /* ------------------------------------------------------------------ */
+/*  Entry-field filter                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Whether a field belongs on an auto-generated create/edit form. Excludes
+ * internal keys, the id, system/audit fields, auto-numbers, hidden fields,
+ * and server-computed read-only fields — none of which a user can set.
+ */
+function isEntryField(f: FieldDefinition): boolean {
+  if (f.name.startsWith("_") || f.name === "id") return false;
+  if (f.type === "autonumber" || f.type === "summary" || f.type === "formula") return false;
+  const flag = (k: string) => (f as Record<string, unknown>)[k] === true;
+  if (flag("system") || flag("hidden") || flag("readonly") || flag("disabled")) return false;
+  return true;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Props                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -157,13 +174,15 @@ export function FormViewRenderer({
       return viewSections;
     }
 
-    // Fallback: create a single section with all fields
+    // Fallback: one section with the user-editable fields. Skip fields a user
+    // can't (or shouldn't) set on an entry form — system/audit fields
+    // (created_at/created_by/…), auto-numbers, hidden fields, and
+    // server-computed read-only fields (expected_revenue, days_in_stage, …).
+    // Showing those as empty inputs is the classic "renders but unusable" trap.
     if (fields.length > 0) {
       return [
         {
-          fields: fields
-            .filter((f) => !f.name.startsWith("_") && f.name !== "id")
-            .map((f) => f.name),
+          fields: fields.filter(isEntryField).map((f) => f.name),
         },
       ];
     }
