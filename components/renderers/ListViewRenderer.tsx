@@ -1,178 +1,71 @@
-import React, { useMemo, useState, useCallback } from "react";
-import { View, Text, Pressable, RefreshControl } from "react-native";
-import { FlashList } from "@shopify/flash-list";
+import React, { useCallback, useMemo, useState } from "react";
 import {
-  ListColumn,
-  ListViewMeta,
-  FieldDefinition,
-  ColumnSummary,
-  RowHeight,
-} from "./types";
-import { FieldRenderer } from "./fields/FieldRenderer";
+  View,
+  Text,
+  Pressable,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { ChevronDown, ChevronUp, Check, Search as SearchIcon } from "lucide-react-native";
+import { cn } from "~/lib/utils";
+import { EmptyState } from "~/components/common/EmptyState";
+import { SearchBar } from "~/components/common/SearchBar";
+import { BatchActionBar } from "~/components/batch/BatchActionBar";
+import { formatDisplayValue } from "./fields/FieldRenderer";
+import { FilterDrawer, FilterButton } from "./FilterDrawer";
 import { SwipeableRow } from "./SwipeableRow";
+import type { ListColumn, ListViewMeta, FieldDefinition, FieldType } from "./types";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
 /* ------------------------------------------------------------------ */
 
 export interface ListViewRendererProps {
-  /** The list-view metadata (columns, selection, …) */
-  meta: ListViewMeta;
-  /** The records to display */
-  data: Record<string, unknown>[];
-  /** Field definitions for column type resolution */
-  fieldDefs?: Record<string, FieldDefinition>;
-  /** Whether data is loading */
-  loading?: boolean;
-  /** Pull-to-refresh handler */
-  onRefresh?: () => void;
+  /** ListView metadata from the server */
+  view?: ListViewMeta | null;
+  /** Field definitions for the parent object */
+  fields?: FieldDefinition[];
+  /** Data records */
+  records: Record<string, unknown>[];
+  /** Loading indicator */
+  isLoading?: boolean;
+  /** Error */
+  error?: Error | null;
+  /** Pull-to-refresh callback */
+  onRefresh?: () => void | Promise<void>;
+  /** Load more (infinite scroll) */
+  onLoadMore?: () => void;
+  /** Has more pages */
+  hasMore?: boolean;
   /** Row press handler */
   onRowPress?: (record: Record<string, unknown>) => void;
-  /** Selection-change handler */
-  onSelectionChange?: (selectedIds: string[]) => void;
-  /** Row action handler (swipe) */
-  onRowAction?: (action: string, record: Record<string, unknown>) => void;
-  /** Empty-state message */
-  emptyMessage?: string;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-function getColumnKey(col: string | ListColumn): string {
-  return typeof col === "string" ? col : col.field;
-}
-
-function getColumnLabel(col: string | ListColumn): string {
-  const key = getColumnKey(col);
-  if (typeof col === "object" && col.label) return col.label;
-  return key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
-}
-
-function getColumnField(col: string | ListColumn): ListColumn {
-  return typeof col === "string" ? { field: col } : col;
-}
-
-function isFieldVisible(col: ListColumn): boolean {
-  return !col.hidden;
-}
-
-/** Vertical padding per spec `RowHeight` (density). Defaults to `medium`. */
-const ROW_DENSITY_PADDING: Record<RowHeight, string> = {
-  compact: "py-1.5",
-  short: "py-2",
-  medium: "py-3",
-  tall: "py-4",
-  extra_tall: "py-6",
-};
-
-function rowPaddingClass(rowHeight?: RowHeight): string {
-  return ROW_DENSITY_PADDING[rowHeight ?? "medium"] ?? "py-3";
-}
-
-/** Stable string key for a (possibly absent) grouping value. */
-function groupValueLabel(value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—";
-  return String(value);
-}
-
-/**
- * Compute a spec `ColumnSummary` aggregation over the column's values.
- * Returns a display string, or `null` when the operator is `none`/absent.
- *
- * Exported for unit testing.
- */
-export function computeColumnSummary(
-  records: Record<string, unknown>[],
-  col: ListColumn,
-): string | null {
-  const op: ColumnSummary | undefined = col.summary;
-  if (!op || op === "none") return null;
-
-  const values = records.map((r) => r[col.field]);
-  const filled = values.filter((v) => v !== null && v !== undefined && v !== "");
-  const empty = values.length - filled.length;
-  const nums = filled
-    .map((v) => (typeof v === "number" ? v : Number(v)))
-    .filter((n) => !Number.isNaN(n));
-
-  const pct = (n: number) =>
-    values.length === 0 ? "0%" : `${Math.round((n / values.length) * 100)}%`;
-
-  switch (op) {
-    case "count":
-      return String(values.length);
-    case "count_empty":
-      return String(empty);
-    case "count_filled":
-      return String(filled.length);
-    case "count_unique":
-      return String(new Set(filled.map((v) => String(v))).size);
-    case "percent_empty":
-      return pct(empty);
-    case "percent_filled":
-      return pct(filled.length);
-    case "sum":
-      return nums.length ? String(nums.reduce((a, b) => a + b, 0)) : "—";
-    case "avg":
-      return nums.length
-        ? String(
-            Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 100) /
-              100,
-          )
-        : "—";
-    case "min":
-      return nums.length ? String(Math.min(...nums)) : "—";
-    case "max":
-      return nums.length ? String(Math.max(...nums)) : "—";
-    default:
-      return null;
-  }
-}
-
-/* ------------------------------------------------------------------ */
-/*  Grouped list model                                                 */
-/* ------------------------------------------------------------------ */
-
-type GroupHeaderItem = { __kind: "group"; label: string; count: number };
-type RecordItem = { __kind: "row"; record: Record<string, unknown> };
-type ListItem = GroupHeaderItem | RecordItem;
-
-function isGroupHeader(item: ListItem): item is GroupHeaderItem {
-  return item.__kind === "group";
-}
-
-/**
- * Flatten records into a render list, inserting group-header sentinels when
- * `meta.grouping` is present. Only the first grouping field is honoured here;
- * deeper nesting is a later phase.
- *
- * Exported for unit testing.
- */
-export function buildListItems(
-  data: Record<string, unknown>[],
-  meta: ListViewMeta,
-): ListItem[] {
-  const groupField = meta.grouping?.fields?.[0]?.field;
-  if (!groupField) {
-    return data.map((record) => ({ __kind: "row", record }));
-  }
-
-  const buckets = new Map<string, Record<string, unknown>[]>();
-  for (const record of data) {
-    const key = groupValueLabel(record[groupField]);
-    const bucket = buckets.get(key);
-    if (bucket) bucket.push(record);
-    else buckets.set(key, [record]);
-  }
-
-  const items: ListItem[] = [];
-  for (const [label, records] of buckets) {
-    items.push({ __kind: "group", label, count: records.length });
-    for (const record of records) items.push({ __kind: "row", record });
-  }
-  return items;
+  /** Sort change handler */
+  onSortChange?: (field: string, direction: "asc" | "desc") => void;
+  /** Search query change */
+  onSearchChange?: (query: string) => void;
+  /** Show search bar */
+  showSearch?: boolean;
+  /** Filter change handler */
+  onFilterChange?: (filter: unknown) => void;
+  /** Show filter button (requires fields) */
+  showFilter?: boolean;
+  /** Swipe edit handler — called with the record */
+  onSwipeEdit?: (record: Record<string, unknown>) => void;
+  /** Swipe delete handler — called with the record */
+  onSwipeDelete?: (record: Record<string, unknown>) => void;
+  /** Enable row selection mode */
+  selectionMode?: "none" | "single" | "multiple";
+  /** Currently selected record IDs (controlled) */
+  selectedIds?: Set<string>;
+  /** Called when selection changes */
+  onSelectionChange?: (selectedIds: Set<string>) => void;
+  /** Batch delete handler (shown in batch action bar) */
+  onBatchDelete?: (ids: string[]) => void;
+  /** Batch edit handler (shown in batch action bar) */
+  onBatchEdit?: (ids: string[]) => void;
+  /** Permission: hide create button when false */
+  allowCreate?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -180,250 +73,397 @@ export function buildListItems(
 /* ------------------------------------------------------------------ */
 
 export function ListViewRenderer({
-  meta,
-  data,
-  fieldDefs,
-  loading,
+  view,
+  fields = [],
+  records,
+  isLoading = false,
+  error,
   onRefresh,
+  onLoadMore,
+  hasMore = false,
   onRowPress,
+  onSortChange,
+  onSearchChange,
+  showSearch = false,
+  onFilterChange,
+  showFilter = false,
+  onSwipeEdit,
+  onSwipeDelete,
+  selectionMode: selectionModeProp,
+  selectedIds: controlledSelectedIds,
   onSelectionChange,
-  onRowAction,
-  emptyMessage = "No records found",
+  onBatchDelete,
+  onBatchEdit,
 }: ListViewRendererProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [activeFilterCount, setActiveFilterCount] = useState(0);
 
-  const columns = useMemo(() => {
-    const cols = meta.columns ?? [];
-    return cols.map(getColumnField).filter(isFieldVisible);
-  }, [meta.columns]);
-
-  const listItems = useMemo(() => buildListItems(data, meta), [data, meta]);
-
-  const hasSummary = useMemo(
-    () => columns.some((c) => c.summary && c.summary !== "none"),
-    [columns],
-  );
-
-  const rowPad = rowPaddingClass(meta.rowHeight);
-
-  const allSelected = data.length > 0 && selectedIds.size === data.length;
-
-  const toggleSelectAll = useCallback(() => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(data.map((r) => String(r.id ?? r._id))));
-    }
-  }, [allSelected, data]);
-
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const handleRowPress = useCallback(
-    (record: Record<string, unknown>) => {
-      onRowPress?.(record);
-    },
-    [onRowPress],
-  );
-
-  React.useEffect(() => {
-    onSelectionChange?.(Array.from(selectedIds));
-  }, [selectedIds, onSelectionChange]);
-
-  /** Resolve a row's background colour from spec `rowColor`, if configured. */
-  const rowBackground = useCallback(
-    (record: Record<string, unknown>): string | undefined => {
-      const rc = meta.rowColor;
-      if (!rc?.field || !rc.colors) return undefined;
-      const value = groupValueLabel(record[rc.field]);
-      return rc.colors[value];
-    },
-    [meta.rowColor],
-  );
-
-  const selectionEnabled =
-    !!meta.selection?.type && meta.selection.type !== "none";
-
-  const cellClass = meta.bordered ? "flex-1 px-1 border-r border-gray-100" : "flex-1 px-1";
-
-  const renderToolbar = () => {
-    if (!meta.showRecordCount) return null;
-    return (
-      <View className="flex-row items-center justify-between border-b border-gray-100 bg-white px-4 py-1.5">
-        <Text className="text-xs text-gray-500">{data.length} records</Text>
-      </View>
-    );
-  };
-
-  const renderHeader = () => (
-    <View className="flex-row items-center border-b-2 border-gray-200 bg-gray-50 px-4 py-2">
-      {selectionEnabled ? (
-        <Pressable
-          onPress={toggleSelectAll}
-          className="mr-3 h-5 w-5 items-center justify-center rounded border border-gray-300"
-        >
-          {allSelected ? <Text className="text-blue-600">✓</Text> : null}
-        </Pressable>
-      ) : null}
-      {columns.map((col) => (
-        <View key={col.field} className={cellClass}>
-          <Text className="text-xs font-semibold uppercase text-gray-500" numberOfLines={1}>
-            {getColumnLabel(col)}
-          </Text>
-        </View>
-      ))}
-    </View>
-  );
-
-  const renderSummaryFooter = () => {
-    if (!hasSummary) return null;
-    return (
-      <View className="flex-row items-center border-t-2 border-gray-200 bg-gray-50 px-4 py-2">
-        {selectionEnabled ? <View className="mr-3 h-5 w-5" /> : null}
-        {columns.map((col) => {
-          const summary = computeColumnSummary(data, col);
-          return (
-            <View key={col.field} className={cellClass}>
-              <Text className="text-xs font-semibold text-gray-700" numberOfLines={1}>
-                {summary ?? ""}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-    );
-  };
-
-  const renderRow = useCallback(
-    ({ item, index }: { item: ListItem; index: number }) => {
-      if (isGroupHeader(item)) {
-        return (
-          <View className="flex-row items-center bg-gray-100 px-4 py-1.5">
-            <Text className="text-xs font-semibold uppercase text-gray-600">
-              {item.label}
-            </Text>
-            <Text className="ml-2 text-xs text-gray-400">({item.count})</Text>
-          </View>
-        );
+  /* ---- Selection state ---- */
+  const selectionMode = selectionModeProp ?? view?.selection?.type ?? "none";
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
+  const selectedIds = controlledSelectedIds ?? internalSelectedIds;
+  const setSelectedIds = useCallback(
+    (next: Set<string>) => {
+      if (onSelectionChange) {
+        onSelectionChange(next);
+      } else {
+        setInternalSelectedIds(next);
       }
+    },
+    [onSelectionChange],
+  );
 
-      const record = item.record;
-      const rowId = String(record.id ?? record._id);
-      const isSelected = selectedIds.has(rowId);
-      const customBg = rowBackground(record);
-      const striped = meta.striped && index % 2 === 1;
+  const toggleSelection = useCallback(
+    (recordId: string) => {
+      const next = new Set(selectedIds);
+      if (selectionMode === "single") {
+        if (next.has(recordId)) {
+          next.delete(recordId);
+        } else {
+          next.clear();
+          next.add(recordId);
+        }
+      } else {
+        if (next.has(recordId)) {
+          next.delete(recordId);
+        } else {
+          next.add(recordId);
+        }
+      }
+      setSelectedIds(next);
+    },
+    [selectedIds, selectionMode, setSelectedIds],
+  );
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, [setSelectedIds]);
+
+  /* ---- Resolve columns ---- */
+  const columns: ListColumn[] = useMemo(() => {
+    if (view?.columns && view.columns.length > 0) {
+      return view.columns.map((col) => {
+        if (typeof col === "string") {
+          const fieldDef = fields.find((f) => f.name === col);
+          return {
+            field: col,
+            label: fieldDef?.label ?? col.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+            sortable: true,
+            type: fieldDef?.type,
+          };
+        }
+        return col;
+      });
+    }
+
+    // Fallback: derive columns from first record or field definitions
+    if (fields.length > 0) {
+      return fields
+        .filter((f) => !f.name.startsWith("_") && f.name !== "id")
+        .slice(0, 5)
+        .map((f) => ({
+          field: f.name,
+          label: f.label ?? f.name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          sortable: true,
+          type: f.type,
+        }));
+    }
+
+    if (records.length > 0) {
+      return Object.keys(records[0])
+        .filter((k) => !k.startsWith("_") && k !== "id")
+        .slice(0, 5)
+        .map((k) => ({
+          field: k,
+          label: k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+          sortable: true,
+        }));
+    }
+
+    return [];
+  }, [view, fields, records]);
+
+  /* ---- Handlers ---- */
+  const handleSort = useCallback(
+    (field: string) => {
+      const newDir = sortField === field && sortDir === "asc" ? "desc" : "asc";
+      setSortField(field);
+      setSortDir(newDir);
+      onSortChange?.(field, newDir);
+    },
+    [sortField, sortDir, onSortChange],
+  );
+
+  /* ---- Render row ---- */
+  const renderItem = useCallback(
+    ({ item }: { item: Record<string, unknown> }) => {
+      const recordId = String(item.id ?? item._id ?? "");
+      const isSelected = selectedIds.has(recordId);
+      const primaryCol = columns[0];
+      const secondaryCols = columns.slice(1, 3);
+
+      const primaryValue = primaryCol
+        ? String(item[primaryCol.field] ?? "")
+        : item.name ?? item.label ?? item.title ?? item.subject ?? item.id ?? "Record";
 
       const rowContent = (
         <Pressable
-          onPress={() => handleRowPress(record)}
-          style={customBg ? { backgroundColor: customBg } : undefined}
-          className={`flex-row items-center border-b border-gray-100 px-4 ${rowPad} ${
-            isSelected ? "bg-blue-50" : striped ? "bg-gray-50" : "bg-white"
-          }`}
+          className={cn(
+            "mb-2 rounded-xl border bg-card p-4 active:bg-muted/50",
+            isSelected ? "border-primary bg-primary/5" : "border-border",
+          )}
+          onPress={() => {
+            if (selectionMode !== "none") {
+              toggleSelection(recordId);
+            } else {
+              onRowPress?.(item);
+            }
+          }}
+          onLongPress={
+            selectionMode === "multiple"
+              ? () => toggleSelection(recordId)
+              : undefined
+          }
         >
-          {selectionEnabled ? (
-            <Pressable
-              onPress={() => toggleSelect(rowId)}
-              className="mr-3 h-5 w-5 items-center justify-center rounded border border-gray-300"
-            >
-              {isSelected ? <Text className="text-blue-600">✓</Text> : null}
-            </Pressable>
-          ) : null}
-          {columns.map((col) => (
-            <View key={col.field} className={cellClass}>
-              <FieldRenderer
-                field={resolveFieldDef(col, fieldDefs)}
-                value={record[col.field]}
-                mode="display"
-                compact
-              />
+          <View className="flex-row items-center">
+            {/* Selection checkbox */}
+            {selectionMode !== "none" && (
+              <Pressable
+                className={cn(
+                  "mr-3 h-5 w-5 items-center justify-center rounded border",
+                  isSelected
+                    ? "border-primary bg-primary"
+                    : "border-muted-foreground/40",
+                )}
+                onPress={() => toggleSelection(recordId)}
+              >
+                {isSelected && <Check size={14} color="#ffffff" />}
+              </Pressable>
+            )}
+
+            <View className="flex-1">
+              <Text className="text-base font-medium text-card-foreground" numberOfLines={1}>
+                {String(primaryValue)}
+              </Text>
+              {secondaryCols.length > 0 && (
+                <View className="mt-1.5 flex-row flex-wrap gap-x-4">
+                  {secondaryCols.map((col) => {
+                    const fieldDef = fields.find((f) => f.name === col.field);
+                    const displayVal = formatDisplayValue(
+                      item[col.field],
+                      (fieldDef?.type ?? col.type ?? "text") as FieldType,
+                    );
+                    return (
+                      <View key={col.field} className="flex-row items-center">
+                        <Text className="text-xs text-muted-foreground">
+                          {col.label ?? col.field}:{" "}
+                        </Text>
+                        <Text className="text-xs font-medium text-foreground" numberOfLines={1}>
+                          {displayVal}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
             </View>
-          ))}
+          </View>
         </Pressable>
       );
 
-      return onRowAction ? (
-        <SwipeableRow onAction={(action) => onRowAction(action, record)}>
-          {rowContent}
-        </SwipeableRow>
-      ) : (
-        rowContent
-      );
+      /* Wrap in SwipeableRow when swipe actions are available */
+      if (onSwipeEdit || onSwipeDelete) {
+        return (
+          <SwipeableRow
+            onEdit={onSwipeEdit ? () => onSwipeEdit(item) : undefined}
+            onDelete={onSwipeDelete ? () => onSwipeDelete(item) : undefined}
+          >
+            {rowContent}
+          </SwipeableRow>
+        );
+      }
+
+      return rowContent;
     },
-    [
-      columns,
-      fieldDefs,
-      selectedIds,
-      selectionEnabled,
-      rowPad,
-      cellClass,
-      meta.striped,
-      rowBackground,
-      handleRowPress,
-      toggleSelect,
-      onRowAction,
-    ],
+    [columns, fields, onRowPress, onSwipeEdit, onSwipeDelete, selectedIds, selectionMode, toggleSelection],
   );
 
-  if (loading && data.length === 0) {
+  /* ---- Search state ---- */
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearchChange = useCallback(
+    (text: string) => {
+      setSearchQuery(text);
+      onSearchChange?.(text);
+    },
+    [onSearchChange],
+  );
+
+  /* ---- Filter handlers ---- */
+  const handleFilterApply = useCallback(
+    (filter: unknown) => {
+      if (filter === null || filter === undefined) {
+        setActiveFilterCount(0);
+      } else if (Array.isArray(filter)) {
+        // ObjectQL compound: ['AND', f1, f2, …] → count child filters
+        const logic = filter[0];
+        setActiveFilterCount(
+          typeof logic === "string" && (logic === "AND" || logic === "OR")
+            ? filter.length - 1
+            : 1,
+        );
+      } else {
+        setActiveFilterCount(1);
+      }
+      onFilterChange?.(filter);
+    },
+    [onFilterChange],
+  );
+
+  /* ---- Error state ---- */
+  if (error && !isLoading) {
     return (
-      <View className="flex-1 items-center justify-center py-12">
-        <Text className="text-gray-400">Loading…</Text>
+      <View className="flex-1 items-center justify-center px-6">
+        <Text className="text-base text-destructive">{error.message}</Text>
+        {onRefresh && (
+          <Pressable
+            className="mt-4 rounded-xl bg-primary px-5 py-3"
+            onPress={onRefresh}
+          >
+            <Text className="font-semibold text-primary-foreground">Retry</Text>
+          </Pressable>
+        )}
       </View>
     );
   }
 
-  if (data.length === 0) {
-    return (
-      <View className="flex-1 items-center justify-center py-12">
-        <Text className="text-gray-400">{emptyMessage}</Text>
-      </View>
-    );
-  }
-
+  /* ---- Main ---- */
   return (
     <View className="flex-1">
-      {renderToolbar()}
-      {renderHeader()}
+      {/* Search + Filter row */}
+      {(showSearch || showFilter) && (
+        <View className="flex-row items-center gap-2 px-4 pt-3">
+          {showSearch && onSearchChange && (
+            <View className="flex-1">
+              <SearchBar
+                value={searchQuery}
+                onChangeText={handleSearchChange}
+                placeholder="Search records…"
+              />
+            </View>
+          )}
+          {showFilter && fields.length > 0 && (
+            <FilterButton
+              count={activeFilterCount}
+              onPress={() => setFilterVisible(true)}
+            />
+          )}
+        </View>
+      )}
+
+      {/* Sort chips */}
+      {columns.some((c) => c.sortable !== false) && (
+        <View className="flex-row flex-wrap gap-2 px-4 pb-2 pt-3">
+          {columns
+            .filter((c) => c.sortable !== false && !c.hidden)
+            .slice(0, 4)
+            .map((col) => {
+              const isActive = sortField === col.field;
+              return (
+                <Pressable
+                  key={col.field}
+                  className={cn(
+                    "flex-row items-center rounded-full border px-3 py-1.5",
+                    isActive ? "border-primary bg-primary/10" : "border-border bg-card",
+                  )}
+                  onPress={() => handleSort(col.field)}
+                >
+                  <Text
+                    className={cn(
+                      "text-xs font-medium",
+                      isActive ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    {col.label ?? col.field}
+                  </Text>
+                  {isActive &&
+                    (sortDir === "asc" ? (
+                      <ChevronUp size={12} color="#1e40af" className="ml-1" />
+                    ) : (
+                      <ChevronDown size={12} color="#1e40af" className="ml-1" />
+                    ))}
+                </Pressable>
+              );
+            })}
+        </View>
+      )}
+
+      {/* List */}
       <FlashList
-        data={listItems}
-        renderItem={renderRow}
-        keyExtractor={(item, index) =>
-          isGroupHeader(item)
-            ? `group:${item.label}:${index}`
-            : String(item.record.id ?? item.record._id ?? index)
+        data={records}
+        keyExtractor={(item: Record<string, unknown>, index: number) =>
+          String(item.id ?? item._id ?? index)
         }
+        renderItem={renderItem}
+        onEndReached={hasMore ? onLoadMore : undefined}
+        onEndReachedThreshold={0.5}
+        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
         refreshControl={
           onRefresh ? (
-            <RefreshControl refreshing={!!loading} onRefresh={onRefresh} />
+            <RefreshControl refreshing={false} onRefresh={onRefresh} />
           ) : undefined
         }
+        ListEmptyComponent={
+          isLoading ? (
+            <View className="items-center justify-center pt-20">
+              <ActivityIndicator size="large" color="#1e40af" />
+            </View>
+          ) : (
+            <EmptyState
+              icon={<SearchIcon size={40} color="#94a3b8" />}
+              title="No Records"
+              description="No records found for this view."
+            />
+          )
+        }
         ListFooterComponent={
-          <>
-            {renderSummaryFooter()}
-            <View className="h-4" />
-          </>
+          isLoading && records.length > 0 ? (
+            <View className="items-center py-4">
+              <ActivityIndicator />
+            </View>
+          ) : null
         }
       />
+
+      {/* Batch action bar */}
+      {selectionMode !== "none" && selectedIds.size > 0 && (
+        <BatchActionBar
+          selectedCount={selectedIds.size}
+          onClearSelection={clearSelection}
+          onBatchDelete={
+            onBatchDelete
+              ? () => onBatchDelete(Array.from(selectedIds))
+              : undefined
+          }
+          onBatchEdit={
+            onBatchEdit
+              ? () => onBatchEdit(Array.from(selectedIds))
+              : undefined
+          }
+        />
+      )}
+
+      {/* Filter drawer */}
+      {showFilter && fields.length > 0 && (
+        <FilterDrawer
+          fields={fields}
+          visible={filterVisible}
+          onClose={() => setFilterVisible(false)}
+          onApply={handleFilterApply}
+        />
+      )}
     </View>
   );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Field-definition resolver                                          */
-/* ------------------------------------------------------------------ */
-
-function resolveFieldDef(
-  col: ListColumn,
-  fieldDefs?: Record<string, FieldDefinition>,
-): FieldDefinition {
-  const base = fieldDefs?.[col.field];
-  if (base) return base;
-  return { name: col.field, type: (col.type as FieldDefinition["type"]) ?? "text" };
 }
