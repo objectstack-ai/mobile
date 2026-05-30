@@ -79,9 +79,23 @@ Both pure helpers are unit-tested (`__tests__/components/ListViewRenderer.test.t
 
 Still deferred: `conditionalFormatting`, `inlineEdit`, and multi-level grouping.
 
-### Phase 3 — Missing visualizations
-`gallery` (card grid) and `gantt` are in the authoritative `VisualizationType`
-enum and the `ViewType` union but have no RN renderer yet.
+### Phase 3 — Missing visualizations (done)
+`gallery` and `gantt` — both in the authoritative `VisualizationType` enum and
+the `ViewType` union — now have native renderers, registered in `ViewRenderer`
+(lazy-loaded) and exported from `components/renderers`:
+
+- **`GalleryViewRenderer`** — an image-forward card grid (`expo-image`), with
+  tolerant image/title/subtitle field resolution and configurable column count
+  and aspect ratio (spec `GalleryConfig`).
+- **`GanttViewRenderer`** — horizontal task bars positioned proportionally on a
+  shared timeline derived from start/end date fields (spec `GanttConfig`),
+  with a sensible 1-day default span when an end date is absent.
+
+Pure helpers (`resolveImageUri`/`resolveCardField`, `toEpoch`/`buildGanttTasks`/
+`ganttBounds`) are unit-tested.
+
+Still deferred: drag-to-reschedule on Gantt, Gantt dependency links, and
+Gallery quick-actions.
 
 ### Page layout model
 Spec `PageSchema` expresses layout via `type` (`PageType`) + `blankLayout`, not
