@@ -99,9 +99,19 @@ Implemented the v7 Action/App surface in the action system (`components/actions/
 - **`App.hidden`** — `useAppDiscovery` excludes hidden apps from the switcher while
   keeping them routable by name.
 
+### Account App ✅
+
+Self-service identity management (`app/account.tsx` + `hooks/useAccount.ts`), reachable
+from the More tab, backed by `client.auth.*`: update profile name (`updateUser`), change
+password with revoke-other-sessions (`changePassword`), verification-gated change-email
+(`changeEmail`), resend verification (`sendVerificationEmail`). Verified end-to-end
+against a live 7.3.0 server (register → update-user → change-password → sign-in with the
+new password).
+
 ### Still outstanding
 
-- Account App self-service identity surfaces (v7) — not yet wired.
+- 2FA enrolment UI (needs better-auth `twoFactorClient` wired into the mobile auth
+  client) + session list/revoke.
 - Optional re-builds of audit/sharing/search on the data API (see note above).
 
 ---
