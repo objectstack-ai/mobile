@@ -65,3 +65,6 @@ server/hotcrm/apps/*/.next/
 # integration server runtime files
 .hotcrm-server.pid
 .hotcrm-server.log
+
+# dev server runtime data (in-memory driver persistence)
+.objectstack/

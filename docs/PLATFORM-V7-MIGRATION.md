@@ -1,10 +1,53 @@
 # ObjectStack Mobile — Platform v7 Re-Baselining Plan
 
 > **Date**: 2026-05-30
-> **Status**: 🔴 Planning — not started
-> **Mobile pinned to**: `@objectstack/*@3.1.1`
-> **Platform latest**: `@objectstack/*@7.3.0` (published 2026-05-30)
-> **Gap**: **4 major versions** (3 → 4 → 5 → 6 → 7)
+> **Status**: 🟢 SDK migrated to 7.3.0 — lint + 1151 tests green, dev server verified end-to-end
+> **Mobile now on**: `@objectstack/*@7.3.0`
+> **Was pinned to**: `@objectstack/*@3.1.1`
+> **Gap closed**: **4 major versions** (3 → 4 → 5 → 6 → 7)
+
+## ✅ Completed in this migration
+
+The 3.1.1 → 7.3.0 bump turned out far smaller than the raw "4 majors" suggested,
+because **the 7.x client SDK kept backward compatibility for the breaking surfaces
+that matter to a metadata-driven client**:
+
+- **Query conventions (v4)** — `client.data.find()` accepts **both** legacy
+  `QueryOptions` (`filter`/`select`/`sort`/`top`/`skip`) and canonical
+  `QueryOptionsV2` (`where`/`fields`/`orderBy`/`limit`/`offset`). The rename is
+  normalized at the adapter layer, so the mobile query builder did **not** break.
+  *(Verified live: `data.find('sys_user', { limit })` returns records against a 7.3.0 server.)*
+- **Tenancy rename (v6)** — handled inside the SDK's route resolution; the device
+  client talks to `/api/v1/...` and `connect()`/discovery work unchanged.
+
+What actually required code changes:
+
+| Area | Change | File |
+|------|--------|------|
+| **AI reset (v6)** | `client.ai.chat` was removed. `useAI().chat` is now layered on the surviving `client.ai.nlq` primitive (still multi-turn via `conversationId`); reply = NLQ `explanation`, suggestions surfaced as actions. | `hooks/useAI.ts`, `__tests__/hooks/useAI.test.ts` |
+| **Auth typing** | better-auth 1.4.18 Expo plugin doesn't structurally satisfy `BetterAuthClientPlugin`; isolated the runtime-correct cast in one helper. | `lib/auth-client.ts` |
+| **Dev server engine registration (v7)** | ObjectQL must be registered as the kernel engine plugin (`new ObjectQLPlugin(objectql)`, providing `com.objectstack.engine.objectql`) instead of `registerService("data", …)`, which the auth plugin depends on. | `server/dev.ts` |
+| **Deps** | All `@objectstack/*` `^3.1.1 → ^7.3.0`; lockfile regenerated. | `package.json`, `pnpm-lock.yaml` |
+
+**Verification (live, against `server/dev.ts` on 7.3.0):**
+`GET /api/v1/discovery` ✅ · `client.connect()` ✅ · `client.auth.register()` ✅ ·
+`client.auth.me()` ✅ · `client.data.find()` ✅ · `pnpm lint` ✅ · `1151/1151` tests ✅.
+
+### Still outstanding
+
+- **Integration server (`server/hotcrm` submodule)** fails to build against 7.x
+  (its agent/tool definitions predate spec fields `version`/`async`/
+  `requiresConfirmation`/`deprecated`). That fix lives in the **separate
+  `objectstack-ai/hotcrm` repo**, not here — so the `Server Integration Tests` CI
+  job stays red until that submodule is updated. The in-repo `server/dev.ts`
+  (used for local auth/data verification) is fully working on 7.3.0.
+- Phases 4–5 below (Action interpolation, `App.hidden`, speculative-hook pruning)
+  are **forward-compat polish**, not blockers — the app compiles, tests pass, and
+  the core data/auth path is verified. They can be picked up incrementally.
+
+---
+
+## Original Plan & Breaking-Change Inventory
 
 ---
 

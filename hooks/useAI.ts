@@ -3,8 +3,6 @@ import { useClient } from "@objectstack/client-react";
 import type {
   AiNlqRequest,
   AiNlqResponse,
-  AiChatRequest,
-  AiChatResponse,
   AiSuggestRequest,
   AiSuggestResponse,
   AiInsightsRequest,
@@ -21,11 +19,27 @@ export interface ChatMessage {
   actions?: Array<{ type: string; label: string; data?: Record<string, unknown> }>;
 }
 
+/**
+ * Result of a conversational `chat` turn.
+ *
+ * As of platform v6 the server-side `client.ai.chat` capability was removed when
+ * the AI protocol was refocused on primitives. Conversational chat is now layered
+ * on top of the surviving natural-language-query primitive (`client.ai.nlq`),
+ * which still accepts a `conversationId` for multi-turn context. The assistant
+ * reply is the NLQ `explanation`, with any `suggestions` surfaced as actions.
+ */
+export interface ChatResult {
+  message: string;
+  conversationId: string;
+  confidence?: number;
+  suggestions?: string[];
+}
+
 export interface UseAIResult {
   /** Convert natural language to an ObjectQL query */
   nlq: (query: string, object?: string) => Promise<AiNlqResponse>;
-  /** Send a chat message and receive an AI response */
-  chat: (message: string, context?: Record<string, unknown>) => Promise<AiChatResponse>;
+  /** Send a chat message and receive an AI response (NLQ-backed since v6) */
+  chat: (message: string) => Promise<ChatResult>;
   /** Get AI-powered field value suggestions */
   suggest: (request: Omit<AiSuggestRequest, "object">) => Promise<AiSuggestResponse>;
   /** Get AI-powered data insights */
@@ -87,37 +101,51 @@ export function useAI(objectName: string): UseAIResult {
   );
 
   const chat = useCallback(
-    async (message: string, context?: Record<string, unknown>): Promise<AiChatResponse> => {
+    async (message: string): Promise<ChatResult> => {
       setIsLoading(true);
       setError(null);
 
       // Add user message to history
       setMessages((prev) => [...prev, { role: "user", content: message }]);
 
-      try {
-        const request: AiChatRequest = {
-          message,
-          ...(conversationId ? { conversationId } : {}),
-          ...(context ? { context } : {}),
-        };
-        const response = await client.ai.chat(request);
+      // Maintain a client-side conversation id so multi-turn context is passed
+      // through to NLQ (the server no longer mints chat conversation ids).
+      const convId =
+        conversationId ??
+        `conv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-        // Track conversation ID
-        if (response.conversationId) {
-          setConversationId(response.conversationId);
-        }
+      try {
+        const request: AiNlqRequest = {
+          query: message,
+          object: objectName,
+          conversationId: convId,
+        };
+        const response = await client.ai.nlq(request);
+
+        setConversationId(convId);
+
+        const content = response.explanation ?? "I couldn't generate a response.";
+        const suggestionActions = response.suggestions?.map((s) => ({
+          type: "suggestion",
+          label: s,
+        }));
 
         // Add assistant message to history
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: response.message,
-            actions: response.actions,
+            content,
+            ...(suggestionActions ? { actions: suggestionActions } : {}),
           },
         ]);
 
-        return response;
+        return {
+          message: content,
+          conversationId: convId,
+          ...(response.confidence !== undefined ? { confidence: response.confidence } : {}),
+          ...(response.suggestions ? { suggestions: response.suggestions } : {}),
+        };
       } catch (err: unknown) {
         const aiError = err instanceof Error ? err : new Error("Chat request failed");
         setError(aiError);
@@ -128,7 +156,7 @@ export function useAI(objectName: string): UseAIResult {
         setIsLoading(false);
       }
     },
-    [client, conversationId],
+    [client, objectName, conversationId],
   );
 
   const suggest = useCallback(

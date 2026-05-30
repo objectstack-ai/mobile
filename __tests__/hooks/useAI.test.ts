@@ -5,14 +5,14 @@ import { renderHook, act } from "@testing-library/react-native";
 
 /* ---- Mock useClient from SDK ---- */
 const mockNlq = jest.fn();
-const mockChat = jest.fn();
 const mockSuggest = jest.fn();
 const mockInsights = jest.fn();
 
+// Note: platform v6 removed `client.ai.chat`; conversational chat is now
+// layered on top of `client.ai.nlq`, so the mock no longer exposes `chat`.
 const mockClient = {
   ai: {
     nlq: mockNlq,
-    chat: mockChat,
     suggest: mockSuggest,
     insights: mockInsights,
   },
@@ -26,7 +26,6 @@ import { useAI } from "~/hooks/useAI";
 
 beforeEach(() => {
   mockNlq.mockReset();
-  mockChat.mockReset();
   mockSuggest.mockReset();
   mockInsights.mockReset();
 });
@@ -85,27 +84,33 @@ describe("useAI", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("calls client.ai.chat() and maintains conversation history", async () => {
-    const chatResponse = {
-      message: "Here are your open tasks.",
-      conversationId: "conv-123",
-      actions: [{ type: "navigate", label: "View Tasks" }],
-    };
-    mockChat.mockResolvedValue(chatResponse);
+  it("chat() is NLQ-backed and maintains conversation history", async () => {
+    mockNlq.mockResolvedValue({
+      query: { object: "tasks" },
+      explanation: "Here are your open tasks.",
+      confidence: 0.9,
+      suggestions: ["Show closed tasks"],
+    });
 
     const { result } = renderHook(() => useAI("tasks"));
 
     expect(result.current.messages).toHaveLength(0);
     expect(result.current.conversationId).toBeNull();
 
+    let res: any;
     await act(async () => {
-      await result.current.chat("Show me open tasks");
+      res = await result.current.chat("Show me open tasks");
     });
 
-    expect(mockChat).toHaveBeenCalledWith({
-      message: "Show me open tasks",
-    });
-    expect(result.current.conversationId).toBe("conv-123");
+    // chat is backed by nlq, passing a client-generated conversation id
+    expect(mockNlq).toHaveBeenCalledWith(
+      expect.objectContaining({ query: "Show me open tasks", object: "tasks" }),
+    );
+    expect(mockNlq.mock.calls[0][0].conversationId).toMatch(/^conv-/);
+
+    expect(result.current.conversationId).toMatch(/^conv-/);
+    expect(res.message).toBe("Here are your open tasks.");
+    expect(res.suggestions).toEqual(["Show closed tasks"]);
     expect(result.current.messages).toHaveLength(2);
     expect(result.current.messages[0]).toEqual({
       role: "user",
@@ -114,12 +119,12 @@ describe("useAI", () => {
     expect(result.current.messages[1]).toEqual({
       role: "assistant",
       content: "Here are your open tasks.",
-      actions: [{ type: "navigate", label: "View Tasks" }],
+      actions: [{ type: "suggestion", label: "Show closed tasks" }],
     });
   });
 
   it("chat removes optimistic user message on error", async () => {
-    mockChat.mockRejectedValue(new Error("Chat failed"));
+    mockNlq.mockRejectedValue(new Error("Chat failed"));
 
     const { result } = renderHook(() => useAI("tasks"));
 
@@ -132,9 +137,9 @@ describe("useAI", () => {
   });
 
   it("clearConversation resets state", async () => {
-    mockChat.mockResolvedValue({
-      message: "Hello!",
-      conversationId: "conv-456",
+    mockNlq.mockResolvedValue({
+      query: {},
+      explanation: "Hello!",
     });
 
     const { result } = renderHook(() => useAI("tasks"));
@@ -144,7 +149,7 @@ describe("useAI", () => {
     });
 
     expect(result.current.messages).toHaveLength(2);
-    expect(result.current.conversationId).toBe("conv-456");
+    expect(result.current.conversationId).toMatch(/^conv-/);
 
     act(() => {
       result.current.clearConversation();

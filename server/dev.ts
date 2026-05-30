@@ -12,7 +12,7 @@
  */
 
 import { ObjectKernel } from "@objectstack/core";
-import { ObjectQL } from "@objectstack/objectql";
+import { ObjectQL, ObjectQLPlugin } from "@objectstack/objectql";
 import { InMemoryDriver } from "@objectstack/driver-memory";
 import { HonoServerPlugin } from "@objectstack/plugin-hono-server";
 import { AuthPlugin } from "@objectstack/plugin-auth";
@@ -31,7 +31,11 @@ async function main() {
 
   // 2. Microkernel
   const kernel = new ObjectKernel();
-  kernel.registerService("data", objectql);
+
+  // As of platform v7 the ObjectQL engine is registered as a kernel plugin
+  // (exposing the canonical `com.objectstack.engine.objectql` engine that the
+  // auth plugin depends on) rather than as a generic `registerService("data")`.
+  await kernel.use(new ObjectQLPlugin(objectql));
 
   // 3. HTTP adapter (Hono)
   await kernel.use(
