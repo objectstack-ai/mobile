@@ -1,8 +1,9 @@
 /**
  * Shared helpers for server integration tests.
  *
- * The tests in this directory are designed to run against a live HotCRM server
- * (started via `scripts/start-integration-server.sh`).
+ * The tests in this directory run against a live ObjectStack server started via
+ * the ObjectStack CLI (`scripts/start-integration-server.sh`), which boots the
+ * minimal stack in `server/integration/`.
  *
  * They are NOT part of the regular `jest` run — use `pnpm test:integration:server`.
  */
@@ -21,6 +22,11 @@ export async function api(
     ...init,
     headers: {
       "Content-Type": "application/json",
+      // better-auth (v7) enforces a CSRF origin check on state-changing auth
+      // routes. Node's fetch sends `Origin: null` for these requests, which the
+      // server rejects ("Missing or null Origin"). Send the server's own origin
+      // (a trusted origin) so register/login succeed from the test runner.
+      Origin: BASE_URL,
       ...init?.headers,
     },
   });

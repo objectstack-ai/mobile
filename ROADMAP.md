@@ -1,8 +1,34 @@
 # ObjectStack Mobile — Roadmap
 
-> **Date**: 2026-03-01
-> **SDK**: `@objectstack/client@3.1.1`, `@objectstack/client-react@3.1.1`, `@objectstack/spec@3.1.1`
-> **Tests**: ✅ 1149/1149 passing (148 suites, ~85% coverage)
+> **Date**: 2026-05-30
+> **Mobile SDK**: `@objectstack/*@7.3.0` ✅ (re-baselined from 3.1.1)
+> **Platform latest**: `@objectstack/*@7.3.0`
+> **Tests**: ✅ 1151/1151 passing on 7.3.0 (148 suites, ~85% coverage) · lint green · dev server verified end-to-end
+
+---
+
+## 0. ✅ Re-Baselined to Platform v7
+
+The platform (`objectstack-ai/framework`) shipped **four major versions** since this
+client was first built (3 → 4 → 5 → 6 → 7). The app has now been migrated to **7.3.0**.
+
+The bump was far smaller than "4 majors" implies because the **7.x client SDK keeps
+backward compatibility** for the surfaces a metadata-driven client leans on: `data.find()`
+accepts both legacy (`filter`/`select`/`sort`) and canonical (`where`/`fields`/`orderBy`)
+query options, and the `project→environment` route rename is handled inside the SDK.
+The real code changes were narrow: the removed `client.ai.chat` (now NLQ-backed), a
+better-auth Expo plugin typing cast, and registering ObjectQL as a kernel engine plugin
+in the dev server. **Verified live** against `server/dev.ts` on 7.3.0 (discovery,
+`connect()`, auth register/me, `data.find`).
+
+The `server/hotcrm` git submodule (which no longer built against 7.x) was **removed**
+and replaced with a self-contained `@objectstack/cli`-started stack under
+`server/integration/` — `pnpm test:integration:server` now passes **20/20** against a
+live 7.3.0 server.
+
+➡️ Details: **[docs/PLATFORM-V7-MIGRATION.md](./docs/PLATFORM-V7-MIGRATION.md)**.
+Remaining forward-compat polish (Action interpolation, `App.hidden`, speculative-hook
+pruning) is non-blocking.
 
 ---
 

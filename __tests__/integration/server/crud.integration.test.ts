@@ -1,12 +1,17 @@
 /**
  * Server Integration Tests — CRUD Operations
  *
- * These tests run against a real HotCRM server and validate data operations
- * through the ObjectStack REST API: create, read, update, delete records.
+ * These tests run against a real ObjectStack server (started via the
+ * ObjectStack CLI — see `scripts/start-integration-server.sh`) and validate
+ * data operations through the v7 REST API: create, read, update, delete.
+ *
+ * v7 data routes are `/api/v1/data/<object>` (object names are namespace-
+ * prefixed, e.g. `crm_account`). The integration stack lives in
+ * `server/integration/` and defines `crm_account` + `crm_contact`.
  *
  * Prerequisites:
- *   1. HotCRM server running: `./scripts/start-integration-server.sh --bg`
- *   2. Server is ready:       `./scripts/wait-for-server.sh`
+ *   1. Server running: `./scripts/start-integration-server.sh --bg`
+ *   2. Server ready:   `./scripts/wait-for-server.sh`
  *
  * Run:
  *   pnpm test:integration:server
@@ -31,12 +36,12 @@ describe("CRUD Operations", () => {
     },
   });
 
-  describe("Account object", () => {
+  describe("crm_account object", () => {
     let accountId: string;
 
     it("should create an account", async () => {
       const res = await api(
-        "/api/v1/account",
+        "/api/v1/data/crm_account",
         authed({
           method: "POST",
           body: JSON.stringify({
@@ -47,88 +52,68 @@ describe("CRUD Operations", () => {
         }),
       );
 
-      // Accept 2xx (created) or 4xx if the object doesn't exist yet in this config
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-        accountId = body.id ?? body._id ?? body.data?.id;
-      } else {
-        // 404 = object not registered, which is acceptable in a minimal server
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      accountId = body.id ?? body.record?.id ?? body.data?.id;
+      expect(accountId).toBeTruthy();
     });
 
     it("should list accounts", async () => {
-      const res = await api("/api/v1/account", authed());
+      const res = await api("/api/v1/data/crm_account?limit=10", authed());
 
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-        // Could be { records: [...] } or { data: [...] } or an array
-        const records = body.records ?? body.data ?? body;
-        expect(Array.isArray(records) || typeof records === "object").toBe(
-          true,
-        );
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      const records = body.records ?? body.data ?? body;
+      expect(Array.isArray(records)).toBe(true);
+      expect(records.length).toBeGreaterThan(0);
     });
 
     it("should retrieve a single account by ID", async () => {
       if (!accountId) return; // skip if create didn't produce an ID
 
-      const res = await api(`/api/v1/account/${accountId}`, authed());
+      const res = await api(`/api/v1/data/crm_account/${accountId}`, authed());
 
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      const record = body.record ?? body.data ?? body;
+      expect(record.name).toBe("Integration Test Corp");
     });
 
     it("should update an account", async () => {
       if (!accountId) return;
 
       const res = await api(
-        `/api/v1/account/${accountId}`,
+        `/api/v1/data/crm_account/${accountId}`,
         authed({
-          method: "PUT",
+          method: "PATCH",
           body: JSON.stringify({
             name: "Integration Test Corp (Updated)",
           }),
         }),
       );
 
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      const record = body.record ?? body.data ?? body;
+      expect(record.name).toBe("Integration Test Corp (Updated)");
     });
 
     it("should delete an account", async () => {
       if (!accountId) return;
 
       const res = await api(
-        `/api/v1/account/${accountId}`,
+        `/api/v1/data/crm_account/${accountId}`,
         authed({ method: "DELETE" }),
       );
 
-      if (res.ok) {
-        // Could return 200 or 204
-        expect(res.status).toBeLessThan(300);
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.status).toBeLessThan(300);
     });
   });
 
-  describe("Contact object", () => {
+  describe("crm_contact object", () => {
     it("should create a contact", async () => {
       const res = await api(
-        "/api/v1/contact",
+        "/api/v1/data/crm_contact",
         authed({
           method: "POST",
           body: JSON.stringify({
@@ -139,58 +124,18 @@ describe("CRUD Operations", () => {
         }),
       );
 
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      expect(body.id ?? body.record?.id).toBeTruthy();
     });
 
     it("should list contacts", async () => {
-      const res = await api("/api/v1/contact", authed());
+      const res = await api("/api/v1/data/crm_contact?limit=10", authed());
 
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
-    });
-  });
-
-  describe("Lead object", () => {
-    it("should create a lead", async () => {
-      const res = await api(
-        "/api/v1/lead",
-        authed({
-          method: "POST",
-          body: JSON.stringify({
-            first_name: "Lead",
-            last_name: "Prospect",
-            company: "Test Leads Inc",
-            status: "New",
-          }),
-        }),
-      );
-
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
-    });
-
-    it("should list leads", async () => {
-      const res = await api("/api/v1/lead", authed());
-
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      const records = body.records ?? body.data ?? body;
+      expect(Array.isArray(records)).toBe(true);
     });
   });
 });

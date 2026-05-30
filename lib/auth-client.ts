@@ -1,6 +1,19 @@
 import { createAuthClient } from "better-auth/react";
 import { expoClient } from "@better-auth/expo/client";
+import type { BetterAuthClientPlugin } from "better-auth/client";
 import * as SecureStore from "expo-secure-store";
+
+/**
+ * The Expo client plugin. better-auth's structural plugin type and the Expo
+ * plugin's inferred shape don't line up under strict checking (the `fetchPlugins`
+ * generics differ), so we assert the runtime-correct shape here in one place.
+ */
+function makeExpoPlugin(): BetterAuthClientPlugin {
+  return expoClient({
+    scheme: "objectstack",
+    storage: SecureStore,
+  }) as unknown as BetterAuthClientPlugin;
+}
 
 /**
  * The current server URL used by the auth client.
@@ -11,12 +24,7 @@ let currentBaseURL =
 
 export let authClient = createAuthClient({
   baseURL: currentBaseURL,
-  plugins: [
-    expoClient({
-      scheme: "objectstack",
-      storage: SecureStore,
-    }),
-  ],
+  plugins: [makeExpoPlugin()],
 });
 
 /**
@@ -27,12 +35,7 @@ export function reinitializeAuthClient(baseURL: string) {
   currentBaseURL = baseURL;
   authClient = createAuthClient({
     baseURL: currentBaseURL,
-    plugins: [
-      expoClient({
-        scheme: "objectstack",
-        storage: SecureStore,
-      }),
-    ],
+    plugins: [makeExpoPlugin()],
   });
 }
 

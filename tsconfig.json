@@ -17,6 +17,6 @@
   "exclude": [
     "node_modules",
     "./apps",
-    "./server/hotcrm"
+    "./server/integration/dist"
   ]
 }
