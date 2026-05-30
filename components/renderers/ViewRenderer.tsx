@@ -11,6 +11,8 @@ import type { TimelineViewRendererProps } from "./TimelineViewRenderer";
 import type { MapViewRendererProps } from "./MapViewRenderer";
 import type { ReportRendererProps } from "./ReportRenderer";
 import type { PageRendererProps } from "./PageRenderer";
+import type { GalleryViewRendererProps } from "./GalleryViewRenderer";
+import type { GanttViewRendererProps } from "./GanttViewRenderer";
 import type { ViewType } from "./types";
 
 /* ------------------------------------------------------------------ */
@@ -40,6 +42,12 @@ const LazyReport = React.lazy(() =>
 );
 const LazyPage = React.lazy(() =>
   import("./PageRenderer").then((m) => ({ default: m.PageRenderer })),
+);
+const LazyGallery = React.lazy(() =>
+  import("./GalleryViewRenderer").then((m) => ({ default: m.GalleryViewRenderer })),
+);
+const LazyGantt = React.lazy(() =>
+  import("./GanttViewRenderer").then((m) => ({ default: m.GanttViewRenderer })),
 );
 
 /* ------------------------------------------------------------------ */
@@ -77,6 +85,8 @@ const rendererMap: Record<string, React.ComponentType<any>> = {
   map: LazyMap,
   report: LazyReport,
   page: LazyPage,
+  gallery: LazyGallery,
+  gantt: LazyGantt,
 };
 
 /**
@@ -111,6 +121,8 @@ export interface ViewRendererProps {
     | MapViewRendererProps
     | ReportRendererProps
     | PageRendererProps
+    | GalleryViewRendererProps
+    | GanttViewRendererProps
     | Record<string, unknown>;
 }
 

@@ -28,6 +28,7 @@
     "@better-auth/expo": "^1.4.18",
     "@objectstack/client": "^7.3.0",
     "@objectstack/client-react": "^7.3.0",
+    "@objectstack/spec": "^7.3.0",
     "@sentry/react-native": "^7.12.0",
     "@shopify/flash-list": "^2.2.2",
     "@tanstack/react-query": "^5.90.20",

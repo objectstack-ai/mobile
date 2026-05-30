@@ -9,6 +9,8 @@ export interface AppManifest {
   icon?: string;
   version?: string;
   enabled?: boolean;
+  /** Spec v7 `App.hidden` — hidden from the app switcher (still routable by name). */
+  hidden?: boolean;
 }
 
 interface UseAppDiscoveryResult {
@@ -33,15 +35,20 @@ export function useAppDiscovery(): UseAppDiscoveryResult {
     setError(null);
     try {
       const result = await client.packages.list({ enabled: true });
-      const manifests: AppManifest[] = (result.packages ?? []).map((pkg: Record<string, unknown>) => ({
-        id: (pkg.id ?? pkg.name) as string,
-        name: pkg.name as string,
-        label: (pkg.label ?? pkg.name) as string,
-        description: pkg.description as string | undefined,
-        icon: pkg.icon as string | undefined,
-        version: pkg.version as string | undefined,
-        enabled: (pkg.enabled as boolean | undefined) ?? true,
-      }));
+      const manifests: AppManifest[] = (result.packages ?? [])
+        .map((pkg: Record<string, unknown>) => ({
+          id: (pkg.id ?? pkg.name) as string,
+          name: pkg.name as string,
+          label: (pkg.label ?? pkg.name) as string,
+          description: pkg.description as string | undefined,
+          icon: pkg.icon as string | undefined,
+          version: pkg.version as string | undefined,
+          enabled: (pkg.enabled as boolean | undefined) ?? true,
+          hidden: (pkg.hidden as boolean | undefined) ?? false,
+        }))
+        // Spec v7: apps flagged `hidden` stay routable by name but are excluded
+        // from the app switcher list.
+        .filter((app: AppManifest) => !app.hidden);
       setApps(manifests);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch apps"));

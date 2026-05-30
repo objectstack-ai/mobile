@@ -20,6 +20,11 @@ jest.mock("@better-auth/expo/client", () => ({
   })),
 }));
 
+// better-auth/client/plugins ships untransformed ESM; mock the one plugin we use.
+jest.mock("better-auth/client/plugins", () => ({
+  twoFactorClient: jest.fn(() => ({ id: "two-factor" })),
+}));
+
 jest.mock("expo-secure-store", () => ({
   getItemAsync: jest.fn(),
   setItemAsync: jest.fn(),
@@ -57,12 +62,13 @@ describe("auth-client", () => {
     );
   });
 
-  it("reinitializeAuthClient creates new client with expo plugin", () => {
+  it("reinitializeAuthClient creates new client with expo + two-factor plugins", () => {
     reinitializeAuthClient("https://another.example.com");
 
     const lastCall = (createAuthClient as jest.Mock).mock.calls.at(-1)![0];
     expect(lastCall.baseURL).toBe("https://another.example.com");
     expect(lastCall.plugins).toBeDefined();
-    expect(lastCall.plugins).toHaveLength(1);
+    expect(lastCall.plugins).toHaveLength(2);
+    expect(lastCall.plugins).toContainEqual({ id: "two-factor" });
   });
 });

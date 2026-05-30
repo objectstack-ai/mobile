@@ -28,25 +28,7 @@ export { useFileUpload } from "./useFileUpload";
 export { useAutomation } from "./useAutomation";
 export { usePackageManagement } from "./usePackageManagement";
 
-/* ---- Phase 11: AI & Intelligence ---- */
-export { useAISession } from "./useAISession";
-export { useRAG } from "./useRAG";
-export { useMCPTools } from "./useMCPTools";
-export { useAgent } from "./useAgent";
-export { useAICost } from "./useAICost";
-
-/* ---- Phase 12: Security Module ---- */
-export { useRLS } from "./useRLS";
-export { useSecurityPolicies } from "./useSecurityPolicies";
-export { useSharing } from "./useSharing";
-export { useTerritory } from "./useTerritory";
-
-/* ---- Phase 13: Advanced Platform Features ---- */
-export { useCollaboration } from "./useCollaboration";
-export { useAuditLog } from "./useAuditLog";
-
 /* ---- Phase 14: UX Foundation — Navigation & Loading ---- */
-export { useGlobalSearch } from "./useGlobalSearch";
 export { useRecentItems } from "./useRecentItems";
 export { useFavorites } from "./useFavorites";
 export { usePageTransition } from "./usePageTransition";
@@ -86,21 +68,8 @@ export { useWidgetKit } from "./useWidgetKit";
 export { useVoiceShortcuts } from "./useVoiceShortcuts";
 export { useWatchConnectivity } from "./useWatchConnectivity";
 
-/* ---- Phase 21: Spec Gap — AI DevOps/CodeGen/Predictive ---- */
-export { useDevOpsAgent } from "./useDevOpsAgent";
-export { useCodeGen } from "./useCodeGen";
-export { usePredictive } from "./usePredictive";
-
-/* ---- Phase 22: Spec Gap — ETL & Connectors ---- */
-export { useETLPipeline } from "./useETLPipeline";
-export { useConnector } from "./useConnector";
-
 /* ---- v1.4: Notification Center ---- */
 export { useNotificationCenter } from "./useNotificationCenter";
-
-/* ---- v1.5: Messaging & Channels ---- */
-export { useMessaging } from "./useMessaging";
-export { useChannels } from "./useChannels";
 
 /* ---- v1.6: Advanced Offline ---- */
 export { useSelectiveSync } from "./useSelectiveSync";

@@ -1,5 +1,6 @@
 import { createAuthClient } from "better-auth/react";
 import { expoClient } from "@better-auth/expo/client";
+import { twoFactorClient } from "better-auth/client/plugins";
 import type { BetterAuthClientPlugin } from "better-auth/client";
 import * as SecureStore from "expo-secure-store";
 
@@ -16,6 +17,15 @@ function makeExpoPlugin(): BetterAuthClientPlugin {
 }
 
 /**
+ * Plugins for the auth client. The two-factor plugin adds `authClient.twoFactor.*`
+ * (enable/verifyTotp/disable/generateBackupCodes), matching the server's
+ * `/api/v1/auth/two-factor/*` routes (the auth plugin mounts them by default).
+ */
+function makePlugins() {
+  return [makeExpoPlugin(), twoFactorClient()];
+}
+
+/**
  * The current server URL used by the auth client.
  * Updated via `reinitializeAuthClient()` after the user configures a server.
  */
@@ -24,7 +34,7 @@ let currentBaseURL =
 
 export let authClient = createAuthClient({
   baseURL: currentBaseURL,
-  plugins: [makeExpoPlugin()],
+  plugins: makePlugins(),
 });
 
 /**
@@ -35,7 +45,7 @@ export function reinitializeAuthClient(baseURL: string) {
   currentBaseURL = baseURL;
   authClient = createAuthClient({
     baseURL: currentBaseURL,
-    plugins: [makeExpoPlugin()],
+    plugins: makePlugins(),
   });
 }
 

@@ -36,13 +36,15 @@ if [ ! -f "$CLI" ]; then
   exit 1
 fi
 
-start_cmd=(
-  node "$CLI" start
-  --home "$STACK_DIR"
-  --database-driver memory
-  --auth-secret "$AUTH_SECRET"
-  -p "$PORT"
-)
+# Prefer a prebuilt artifact (deterministic, fast boot — no esbuild compile at
+# startup). CI compiles it in a dedicated step; fall back to compiling from the
+# config via --home for local runs.
+ARTIFACT="$STACK_DIR/dist/objectstack.json"
+if [ -f "$ARTIFACT" ]; then
+  start_cmd=(node "$CLI" start -a "$ARTIFACT" --database-driver memory --auth-secret "$AUTH_SECRET" -p "$PORT")
+else
+  start_cmd=(node "$CLI" start --home "$STACK_DIR" --database-driver memory --auth-secret "$AUTH_SECRET" -p "$PORT")
+fi
 
 if [ "${1:-}" = "--bg" ]; then
   echo "🚀 Starting integration server in background on port $PORT…"

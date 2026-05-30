@@ -71,7 +71,7 @@ export default function MoreScreen() {
         {/* Profile Header */}
         <TouchableOpacity
           className="flex-row items-center px-5 py-5 border-b border-border/30"
-          onPress={() => router.push("/(tabs)/profile")}
+          onPress={() => router.push("/account")}
           accessibilityLabel="View profile"
           accessibilityRole="button"
         >
@@ -106,6 +106,11 @@ export default function MoreScreen() {
 
         {/* Security */}
         <SectionHeader title="Security" />
+        <MenuItem
+          icon={<UserCircle size={20} color="#64748b" />}
+          label="Account"
+          onPress={() => router.push("/account")}
+        />
         <MenuItem
           icon={<Shield size={20} color="#64748b" />}
           label="Security & Privacy"

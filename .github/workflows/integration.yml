@@ -33,6 +33,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      # Pre-compile the stack to a JSON artifact (surfaces any compile error in
+      # its own step and lets the server boot without an esbuild compile).
+      - name: Build integration artifact
+        run: npx objectstack build
+        working-directory: server/integration
+
       # Start the ObjectStack CLI server (server/integration stack) in background
       - name: Start integration server
         run: ./scripts/start-integration-server.sh --bg
@@ -42,13 +48,18 @@ jobs:
 
       # Wait for server readiness
       - name: Wait for server
-        run: ./scripts/wait-for-server.sh http://localhost:4000/api/v1/auth/get-session 60
+        run: ./scripts/wait-for-server.sh http://localhost:4000/api/v1/auth/get-session 120
 
       # Run integration tests
       - name: Run integration tests
         run: pnpm test:integration:server
         env:
           INTEGRATION_SERVER_URL: http://localhost:4000
+
+      # Surface the server log for diagnosis if anything above failed
+      - name: Dump server log
+        if: always()
+        run: cat .integration-server.log || true
 
       # Stop server
       - name: Stop integration server

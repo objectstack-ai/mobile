@@ -53,11 +53,74 @@ replaced with a self-contained CLI-started stack:
 - **Result: `pnpm test:integration:server` → 20/20 passing** against a CLI-started
   7.3.0 server (auth register/login/session/sign-out, `crm_account` CRUD, metadata).
 
+### Hook reconciliation — speculative hooks pruned ✅
+
+Audited all hooks against the **real 7.3.0 client surface** (introspected from the SDK
+`.d.ts` and a live CLI server). The 7.x client exposes:
+`meta, data, auth, views, workflow, realtime, ai, analytics, automation, notifications,
+permissions, packages, storage, feed, i18n, projects, organizations, oauth`.
+
+**19 hooks called namespaces/methods that do not exist in 7.x** — built against 3.1.1
+schemas the platform removed in the v6 AI reset and module consolidation. They had **zero
+screen consumers** (only barrel re-exports + self-mocked tests), so their "green" tests
+proved nothing against a real server. **Deleted** (42 files: 19 hooks + 19 tests + 2 unused
+components `AgentProgress`/`CollaborationOverlay` + their tests):
+
+| Removed namespace | Deleted hooks |
+|-------------------|---------------|
+| `client.ai.{rag,mcp,agents,cost,sessions,codegen,devops,predictive}` (ai = nlq/suggest/insights only) | `useRAG`, `useMCPTools`, `useAgent`, `useAICost`, `useAISession`, `useCodeGen`, `useDevOpsAgent`, `usePredictive` |
+| `client.security.*` (no security namespace) | `useRLS`, `useSecurityPolicies`, `useSharing`, `useTerritory` |
+| `client.realtime.{channels,collaboration,messaging}` (realtime = connect/sub/presence only) | `useChannels`, `useMessaging`, `useCollaboration` |
+| `client.automation.etl` / `client.integration.*` | `useETLPipeline`, `useConnector` |
+| `client.system.audit` / `client.api.search` | `useAuditLog`, `useGlobalSearch` |
+
+Hook count **95 → 76**; every retained hook maps to a verified 7.3.0 namespace
+(`useAI`→nlq/suggest/insights, `useAnalyticsQuery`→analytics.query/explain,
+`usePermissions`→permissions.check, `useFileUpload`→storage.upload, `useWorkflowState`→
+workflow.\*, `useNotifications`→notifications.\*, `useSubscription`→realtime presence, …).
+
+> **Rebuildable later on the data API:** audit, record sharing, territory, and global
+> search were *deleted, not lost* — 7.x exposes `sys_audit_log`, `sys_record_share`,
+> `sys_department`, and multi-object `data.find`, so these can be reimplemented as real
+> features (querying data) rather than calls to namespaces that never shipped.
+
+### v7 Action protocol ✅
+
+Implemented the v7 Action/App surface in the action system (`components/actions/`):
+
+- **`Action.target` interpolation** — `${param.X}` (action params) and `${ctx.X}`
+  (`recordId`/`objectName`/`appName`/`userId`/record fields, incl. `${ctx.record.X}`),
+  with legacy `{field}` kept for back-compat (`interpolate()` in `ActionExecutor`).
+- **Flows run via `client.automation.execute(name, ctx)`** (the v7 canonical runner)
+  instead of the old `trigger` path.
+- **`Action.resultDialog`** — `executeAction` returns the dialog config; new
+  `ResultDialog` component renders it with `secret` masking + dot-path field extraction
+  (for TOTP URIs, OAuth secrets, backup codes).
+- **`App.hidden`** — `useAppDiscovery` excludes hidden apps from the switcher while
+  keeping them routable by name.
+
+### Account App ✅
+
+Self-service identity management (`app/account.tsx` + `hooks/useAccount.ts`), reachable
+from the More tab, backed by `client.auth.*`: update profile name (`updateUser`), change
+password with revoke-other-sessions (`changePassword`), verification-gated change-email
+(`changeEmail`), resend verification (`sendVerificationEmail`). Verified end-to-end
+against a live 7.3.0 server (register → update-user → change-password → sign-in with the
+new password).
+
+### Two-factor authentication ✅
+
+TOTP enrolment in the Account screen, backed by the better-auth `twoFactorClient` plugin
+(wired into `lib/auth-client.ts`) → the server's `/api/v1/auth/two-factor/*` routes via
+`hooks/useTwoFactor.ts`: enable (returns `totpURI` + one-time backup codes), confirm with
+a 6-digit code (`verifyTotp`), disable, and regenerate backup codes. Verified end-to-end
+against a live 7.3.0 server — `enable` returns a `totpURI` + 10 backup codes, and
+`verify-totp` with a real computed TOTP code returns 200.
+
 ### Still outstanding
 
-- Phases 4–5 below (Action interpolation, `App.hidden`, speculative-hook pruning)
-  are **forward-compat polish**, not blockers — the app compiles, tests pass, and
-  the core data/auth path is verified. They can be picked up incrementally.
+- Session list / revoke-other-sessions UI.
+- Optional re-builds of audit/sharing/search on the data API (see note above).
 
 ---
 
