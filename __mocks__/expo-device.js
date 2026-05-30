@@ -1,22 +1,14 @@
 // Manual mock for expo-device (auto-applied by Jest for node_modules).
 // Defaults to a physical device so push-token acquisition paths are exercised.
 //
-// `isDevice` is exposed as a getter/setter over a shared backing variable.
-// The lib imports the module as a namespace (`import * as Device`), which Babel
-// resolves via interopRequireWildcard — that COPIES property descriptors onto a
-// new namespace object. A plain value would be snapshotted at import time and
-// could never be changed by tests; a getter/setter descriptor is copied intact,
-// so both the original mock and the lib's namespace read the same closure.
-
-let _isDevice = true;
-
+// `__esModule: true` is essential: the lib imports this as a namespace
+// (`import * as Device`). Babel's interopRequireWildcard returns an ESM-flagged
+// object *by reference* (no property copy), so a test mutating `isDevice` via
+// the requireMock handle is observed by the code under test. Without the flag,
+// interop snapshots the values onto a new object and mutations are lost.
 module.exports = {
-  get isDevice() {
-    return _isDevice;
-  },
-  set isDevice(value) {
-    _isDevice = value;
-  },
+  __esModule: true,
+  isDevice: true,
   deviceName: "Test Device",
   osName: "iOS",
   osVersion: "17.0",
