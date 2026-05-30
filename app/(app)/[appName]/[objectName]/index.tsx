@@ -1,10 +1,13 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Alert } from "react-native";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { useClient, useQuery, useView, useFields } from "@objectstack/client-react";
+import { Alert, Pressable } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Plus } from "lucide-react-native";
+import { useClient, useQuery, useView } from "@objectstack/client-react";
 import { useCallback, useState } from "react";
 import { ListViewRenderer } from "~/components/renderers";
-import type { FieldDefinition, ListViewMeta } from "~/components/renderers";
+import type { ListViewMeta } from "~/components/renderers";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { useObjectMeta } from "~/hooks/useObjectMeta";
 
 export default function ObjectListScreen() {
   const { appName, objectName } = useLocalSearchParams<{
@@ -15,7 +18,7 @@ export default function ObjectListScreen() {
   const router = useRouter();
 
   const { data: viewData, isLoading: viewLoading } = useView(objectName!, "list");
-  const { data: fieldsData } = useFields(objectName!);
+  const { meta, fields } = useObjectMeta(objectName);
 
   const [filter, setFilter] = useState<unknown>(null);
   const { data, isLoading, error, refetch } = useQuery(objectName!, {
@@ -24,11 +27,15 @@ export default function ObjectListScreen() {
     enabled: !!objectName,
   });
 
+  // Prefer the object's real plural label/label from metadata; fall back to a
+  // title-cased version of the snake_case object name.
   const displayName =
-    objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Objects";
+    meta?.pluralLabel ??
+    meta?.label ??
+    objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ??
+    "Objects";
 
   const records = data?.records ?? [];
-  const fields: FieldDefinition[] = fieldsData ?? [];
   const listView: ListViewMeta | undefined = viewData ?? undefined;
 
   const handleSwipeEdit = useCallback(
@@ -66,9 +73,32 @@ export default function ObjectListScreen() {
     setFilter(f);
   }, []);
 
+  const handleCreate = useCallback(() => {
+    router.push(`/(app)/${appName}/${objectName}/new` as never);
+  }, [router, appName, objectName]);
+
+  const recordCount = records.length;
+  const countLabel = isLoading
+    ? undefined
+    : `${recordCount} record${recordCount !== 1 ? "s" : ""}`;
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <Stack.Screen options={{ title: displayName }} />
+      <ScreenHeader
+        title={displayName}
+        subtitle={countLabel}
+        right={
+          <Pressable
+            onPress={handleCreate}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Create ${displayName}`}
+            className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
+          >
+            <Plus size={24} color="#1e40af" />
+          </Pressable>
+        }
+      />
       <ListViewRenderer
         view={listView}
         fields={fields}

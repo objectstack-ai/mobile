@@ -11,10 +11,10 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: "#ffffff" },
-        headerTitleStyle: { fontWeight: "700", fontSize: 17 },
-        headerShadowVisible: false,
+        // The native tab header does not render on React Native Web and would
+        // double up with each screen's in-body title on native. Every tab
+        // screen renders its own large title instead (iOS-style root header).
+        headerShown: false,
         tabBarActiveTintColor: "#1e40af",
         tabBarInactiveTintColor: "#94a3b8",
         tabBarStyle: {

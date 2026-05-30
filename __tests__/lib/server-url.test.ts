@@ -59,13 +59,13 @@ describe("server-url", () => {
   });
 
   describe("validateServerUrl", () => {
-    it("returns true when /api/health responds OK", async () => {
+    it("returns true when /api/v1/health responds OK", async () => {
       global.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
 
       const result = await validateServerUrl("https://api.example.com");
       expect(result).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.example.com/api/health",
+        "https://api.example.com/api/v1/health",
         expect.objectContaining({ method: "GET" }),
       );
     });
@@ -75,12 +75,12 @@ describe("server-url", () => {
 
       await validateServerUrl("https://api.example.com///");
       expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.example.com/api/health",
+        "https://api.example.com/api/v1/health",
         expect.any(Object),
       );
     });
 
-    it("falls back to HEAD request when /api/health fails", async () => {
+    it("falls back to HEAD request when /api/v1/health fails", async () => {
       global.fetch = jest
         .fn()
         .mockRejectedValueOnce(new Error("health failed"))

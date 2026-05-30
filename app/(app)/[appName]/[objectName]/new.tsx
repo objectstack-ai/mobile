@@ -1,8 +1,9 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { useFields, useMutation } from "@objectstack/client-react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useMutation } from "@objectstack/client-react";
 import { FormViewRenderer } from "~/components/renderers";
-import type { FieldDefinition } from "~/components/renderers";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { useObjectMeta } from "~/hooks/useObjectMeta";
 
 export default function CreateRecordScreen() {
   const { objectName } = useLocalSearchParams<{
@@ -10,7 +11,7 @@ export default function CreateRecordScreen() {
     objectName: string;
   }>();
   const router = useRouter();
-  const { data: fieldsData } = useFields(objectName!);
+  const { meta, fields } = useObjectMeta(objectName);
   const { mutate, isLoading: isSubmitting } = useMutation(objectName!, "create", {
     onSuccess: () => {
       router.back();
@@ -18,13 +19,13 @@ export default function CreateRecordScreen() {
   });
 
   const displayName =
-    objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Record";
-
-  const fields: FieldDefinition[] = fieldsData ?? [];
+    meta?.label ??
+    objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ??
+    "Record";
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <Stack.Screen options={{ title: `New ${displayName}` }} />
+      <ScreenHeader title={`New ${displayName}`} />
       <FormViewRenderer
         fields={fields}
         onSubmit={(values) => mutate(values as Record<string, unknown>)}

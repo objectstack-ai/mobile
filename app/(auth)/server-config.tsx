@@ -12,10 +12,12 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
-import { setServerUrl, validateServerUrl } from "~/lib/server-url";
+import { validateServerUrl } from "~/lib/server-url";
+import { useServerStore } from "~/stores/server-store";
 
 export default function ServerConfigScreen() {
   const router = useRouter();
+  const connect = useServerStore((s) => s.connect);
   const [url, setUrl] = React.useState("");
   const [loading, setLoading] = React.useState(false);
 
@@ -46,8 +48,9 @@ export default function ServerConfigScreen() {
         return;
       }
 
-      await setServerUrl(trimmed);
-      // Navigate to sign-in page after successful server config
+      // Persist + re-target the auth/data clients and update the reactive
+      // store so the root layout's route guard advances past this screen.
+      await connect(trimmed);
       router.replace("/(auth)/sign-in");
     } catch {
       Alert.alert("Error", "Something went wrong. Please try again.");

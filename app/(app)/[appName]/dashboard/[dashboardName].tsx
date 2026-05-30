@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, Stack } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useClient } from "@objectstack/client-react";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { DashboardViewRenderer } from "~/components/renderers";
 import type { DashboardMeta, DashboardWidgetMeta } from "~/components/renderers";
 import type { WidgetDataPayload } from "~/components/renderers";
@@ -46,11 +47,24 @@ export default function DashboardScreen() {
     setIsLoading(true);
     (async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = await (client as any).views.get(dashboardName);
-        const meta: DashboardMeta = result?.dashboard ?? result ?? {
-          name: dashboardName,
-          widgets: [],
+        // Dashboards are metadata items at `/meta/dashboard/<name>`, not data
+        // views — `views.get` would hit the wrong route and yield no widgets.
+        const result = (await client.meta.getItem("dashboard", dashboardName)) as
+          | (DashboardMeta & { dashboard?: DashboardMeta })
+          | undefined;
+        const raw: DashboardMeta = result?.dashboard ??
+          result ?? {
+            name: dashboardName,
+            widgets: [],
+          };
+        // Spec dashboards key each widget by `id`; the renderer/data-fetcher key
+        // off `name`, so normalize once here.
+        const meta: DashboardMeta = {
+          ...raw,
+          widgets: (raw.widgets ?? []).map((w) => ({
+            ...w,
+            name: w.name ?? w.id ?? "",
+          })),
         };
         setDashboard(meta);
       } catch {
@@ -79,7 +93,7 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <Stack.Screen options={{ title: displayName }} />
+      <ScreenHeader title={displayName} />
 
       {/* Invisible data fetchers — one per widget, each calls useWidgetQuery */}
       {dashboard?.widgets.map((w) => (

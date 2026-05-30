@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
 import { authClient } from "~/lib/auth-client";
 import { useAccount } from "~/hooks/useAccount";
 import { useTwoFactor } from "~/hooks/useTwoFactor";
 import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
 
 function Field({
   label,
@@ -40,7 +39,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * resend the verification email. Backed by `useAccount` → `client.auth.*`.
  */
 export default function AccountScreen() {
-  const router = useRouter();
   const { data: session } = authClient.useSession();
   const user = session?.user;
   const { updateProfile, changePassword, changeEmail, resendVerification, isSaving } =
@@ -156,19 +154,8 @@ export default function AccountScreen() {
   const totpSecret = tfUri ? /[?&]secret=([^&]+)/.exec(tfUri)?.[1] ?? null : null;
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      {/* Header */}
-      <View className="flex-row items-center border-b border-border/30 px-3 py-2">
-        <TouchableOpacity
-          className="p-2"
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <ChevronLeft size={24} color="#64748b" />
-        </TouchableOpacity>
-        <Text className="text-lg font-bold text-foreground">Account</Text>
-      </View>
+    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+      <ScreenHeader title="Account" />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <Section title="Profile">

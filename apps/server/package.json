@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "objectstack dev",
-    "start": "objectstack serve",
+    "dev": "objectstack dev --port 3100",
+    "start": "objectstack serve --port 3100",
     "build": "objectstack compile",
     "validate": "objectstack validate",
     "typecheck": "tsc --noEmit"

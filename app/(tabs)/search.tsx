@@ -1,74 +1,124 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Search as SearchIcon, Clock, X } from "lucide-react-native";
+import { Search as SearchIcon, X, ChevronRight, FileText } from "lucide-react-native";
+import { useRouter } from "expo-router";
 import { Input } from "~/components/ui/Input";
-import { useState, useCallback } from "react";
+import { useGlobalSearch } from "~/hooks/useGlobalSearch";
 
 export default function SearchScreen() {
-  const [query, setQuery] = useState("");
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const router = useRouter();
+  const { query, setQuery, groups, isSearching, hasSearched, totalCount, objectCount } =
+    useGlobalSearch();
 
-  const clearRecent = useCallback(() => {
-    setRecentSearches([]);
-  }, []);
-
-  const removeRecent = useCallback((term: string) => {
-    setRecentSearches((prev) => prev.filter((s) => s !== term));
-  }, []);
+  const showResults = query.trim().length > 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
       <View className="px-5 pt-4">
+        <Text className="mb-3 text-2xl font-bold text-foreground">Search</Text>
         <View className="flex-row items-center rounded-xl bg-muted px-4 py-3">
           <SearchIcon size={20} color="#94a3b8" />
           <Input
             className="ml-2 flex-1 border-0 bg-transparent p-0 text-base"
-            placeholder="Search objects, records..."
+            placeholder="Search across all records…"
             value={query}
             onChangeText={setQuery}
             accessibilityLabel="Global search input"
             autoFocus
+            autoCapitalize="none"
+            autoCorrect={false}
           />
-          {query.length > 0 && (
+          {isSearching ? (
+            <ActivityIndicator size="small" color="#94a3b8" />
+          ) : query.length > 0 ? (
             <TouchableOpacity onPress={() => setQuery("")} accessibilityLabel="Clear search">
               <X size={18} color="#94a3b8" />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
       </View>
 
-      {query.length === 0 && recentSearches.length > 0 && (
-        <View className="px-5 pt-6">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-sm font-semibold text-muted-foreground">
-              Recent Searches
-            </Text>
-            <TouchableOpacity onPress={clearRecent}>
-              <Text className="text-xs text-primary">Clear All</Text>
-            </TouchableOpacity>
-          </View>
-          {recentSearches.map((term) => (
-            <View key={term} className="flex-row items-center py-2.5">
-              <Clock size={16} color="#94a3b8" />
-              <Text className="ml-3 flex-1 text-base text-foreground">{term}</Text>
-              <TouchableOpacity onPress={() => removeRecent(term)}>
-                <X size={16} color="#94a3b8" />
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {query.length === 0 && recentSearches.length === 0 && (
+      {/* Idle empty state */}
+      {!showResults && (
         <View className="flex-1 items-center justify-center px-10">
           <SearchIcon size={48} color="#cbd5e1" />
           <Text className="mt-4 text-center text-base font-medium text-muted-foreground">
-            Search across all your objects and records
+            Search across all your records
           </Text>
           <Text className="mt-2 text-center text-sm text-muted-foreground">
-            Type to start searching
+            {objectCount > 0
+              ? `Looking across ${objectCount} object${objectCount !== 1 ? "s" : ""}`
+              : "Type to start searching"}
           </Text>
         </View>
+      )}
+
+      {/* No matches */}
+      {showResults && !isSearching && hasSearched && totalCount === 0 && (
+        <View className="flex-1 items-center justify-center px-10">
+          <View className="rounded-2xl bg-muted p-6">
+            <SearchIcon size={40} color="#94a3b8" />
+          </View>
+          <Text className="mt-5 text-lg font-semibold text-foreground">No Results</Text>
+          <Text className="mt-2 text-center text-sm text-muted-foreground">
+            Nothing matched “{query.trim()}”. Try a different keyword.
+          </Text>
+        </View>
+      )}
+
+      {/* Results */}
+      {showResults && totalCount > 0 && (
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="px-5 pb-8 pt-4"
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text className="mb-3 text-xs font-medium text-muted-foreground">
+            {totalCount} result{totalCount !== 1 ? "s" : ""}
+          </Text>
+          {groups.map((group) => (
+            <View key={`${group.appName}:${group.objectName}`} className="mb-5">
+              <Text className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {group.objectLabel}
+              </Text>
+              <View className="overflow-hidden rounded-xl border border-border bg-card">
+                {group.records.map((rec, idx) => (
+                  <TouchableOpacity
+                    key={`${rec.objectName}:${rec.id}`}
+                    className={`flex-row items-center px-4 py-3 ${
+                      idx > 0 ? "border-t border-border/50" : ""
+                    }`}
+                    onPress={() =>
+                      router.push(
+                        `/(app)/${rec.appName}/${rec.objectName}/${rec.id}` as never,
+                      )
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open ${rec.title}`}
+                  >
+                    <View className="mr-3 rounded-lg bg-primary/10 p-2">
+                      <FileText size={16} color="#1e40af" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base text-foreground" numberOfLines={1}>
+                        {rec.title}
+                      </Text>
+                      {rec.subtitle ? (
+                        <Text
+                          className="mt-0.5 text-sm text-muted-foreground"
+                          numberOfLines={1}
+                        >
+                          {rec.subtitle}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <ChevronRight size={18} color="#94a3b8" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ))}
+        </ScrollView>
       )}
     </SafeAreaView>
   );

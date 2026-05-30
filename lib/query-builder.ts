@@ -173,11 +173,40 @@ export function createCompoundFilter(
 /* ------------------------------------------------------------------ */
 
 /**
- * Convert a FilterNode tree into the ObjectQL array-based AST
- * that the server expects.
+ * Map the builder's internal operator tokens to the vocabulary the data API
+ * actually parses. The server understands comparison *symbols* (`=`, `!=`,
+ * `>`, …) — NOT word tokens like `eq`/`gt`. Emitting the raw token makes the
+ * server silently ignore the condition and return every row (the classic
+ * "filter UI changes nothing" bug). Mirrors MONGO_OP_TO_AST so the builder and
+ * dashboard paths speak the same dialect.
+ */
+const AST_OP: Partial<Record<FilterOperator, string>> = {
+  eq: "=",
+  neq: "!=",
+  gt: ">",
+  gte: ">=",
+  lt: "<",
+  lte: "<=",
+  contains: "contains",
+  not_contains: "not_contains",
+  starts_with: "starts_with",
+  ends_with: "ends_with",
+  in: "in",
+  not_in: "not_in",
+};
+
+/**
+ * Convert a FilterNode tree into the ObjectQL array-based AST the server
+ * expects.
  *
- * Simple:    ['field', 'op', value]
- * Compound:  ['AND', filter1, filter2, …]
+ * Simple:    ['field', '=', value]
+ * Compound:  ['and', filter1, filter2, …]   // lowercase logic, per the API
+ *
+ * Operators are translated to the API's symbol vocabulary; the tokens with no
+ * native server form are rewritten to equivalents the server does accept:
+ *   - is_null      → ['field', '=', null]
+ *   - is_not_null  → ['field', '!=', null]
+ *   - between      → ['and', ['field','>=',a], ['field','<=',b]]
  */
 export function serializeFilter(node: FilterNode): unknown {
   if (isCompoundFilter(node)) {
@@ -186,21 +215,25 @@ export function serializeFilter(node: FilterNode): unknown {
       .filter(Boolean);
     if (children.length === 0) return null;
     if (children.length === 1) return children[0];
-    return [node.logic, ...children];
+    // The API parses a lowercase logic token (matches mongoFilterToAst).
+    return [node.logic.toLowerCase(), ...children];
   }
 
   // Simple filter
   const { field, operator, value, value2 } = node;
   if (!field) return null;
 
-  const meta = OPERATOR_META[operator];
-  if (meta.valueCount === 0) {
-    return [field, operator];
+  // Null checks: the API has no `is_null` token — express via (in)equality.
+  if (operator === "is_null") return [field, "=", null];
+  if (operator === "is_not_null") return [field, "!=", null];
+
+  // Between has no native token — expand to an inclusive AND range.
+  if (operator === "between") {
+    return ["and", [field, ">=", value], [field, "<=", value2]];
   }
-  if (meta.valueCount === 2) {
-    return [field, operator, value, value2];
-  }
-  return [field, operator, value];
+
+  const astOp = AST_OP[operator] ?? operator;
+  return [field, astOp, value];
 }
 
 /**
@@ -209,6 +242,135 @@ export function serializeFilter(node: FilterNode): unknown {
 export function serializeFilterTree(root: CompoundFilter): unknown | null {
   const result = serializeFilter(root);
   return result ?? null;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mongo-style filter → ObjectQL array AST                             */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Dashboard/view metadata authors filters in a compact Mongo-style object
+ * (`{ stage: "closed_won", close_date: { $gte: "{last_12_months}" } }`). The
+ * data API, however, only honours a filter passed as the array-based ObjectQL
+ * AST — `client.data.find` URL-encodes a plain object's *top-level* keys but
+ * stringifies any nested operator object to `"[object Object]"`, silently
+ * dropping the condition. We therefore translate to the AST the server
+ * actually parses, mapping operator tokens to the symbol vocabulary it accepts
+ * (`=`, `!=`, `>`, `>=`, `<`, `<=`, `in`, `not_in`).
+ */
+const MONGO_OP_TO_AST: Record<string, string> = {
+  $eq: "=",
+  $ne: "!=",
+  $gt: ">",
+  $gte: ">=",
+  $lt: "<",
+  $lte: "<=",
+  $in: "in",
+  $nin: "not_in",
+  $contains: "contains",
+  $startsWith: "starts_with",
+  $endsWith: "ends_with",
+};
+
+const MACRO_RE = /^\{([a-z0-9_]+)\}$/i;
+
+function startOfDay(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+/**
+ * Resolve a relative-date macro token (e.g. `{last_12_months}`, `{today}`,
+ * `{current_year_start}`) to an epoch-millisecond bound, matching how the
+ * platform stores date/datetime fields. Unknown tokens are returned verbatim.
+ */
+export function resolveFilterMacro(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const match = MACRO_RE.exec(value);
+  if (!match) return value;
+  const token = match[1].toLowerCase();
+  const now = new Date();
+  const y = now.getFullYear();
+
+  let m: RegExpExecArray | null;
+  if (token === "today") return startOfDay(now);
+  if (token === "now") return now.getTime();
+  if (token === "yesterday") return startOfDay(now) - 86_400_000;
+  if (token === "tomorrow") return startOfDay(now) + 86_400_000;
+  if ((m = /^(?:last_(\d+)_days|(\d+)_days_ago)$/.exec(token))) {
+    return now.getTime() - Number(m[1] ?? m[2]) * 86_400_000;
+  }
+  if ((m = /^(?:last_(\d+)_months|(\d+)_months_ago)$/.exec(token))) {
+    const months = Number(m[1] ?? m[2]);
+    return new Date(y, now.getMonth() - months, now.getDate()).getTime();
+  }
+  if ((m = /^(?:last_(\d+)_years?|(\d+)_years?_ago)$/.exec(token))) {
+    const years = Number(m[1] ?? m[2]);
+    return new Date(y - years, now.getMonth(), now.getDate()).getTime();
+  }
+  if (token === "current_year_start" || token === "this_year_start") {
+    return new Date(y, 0, 1).getTime();
+  }
+  if (token === "current_year_end" || token === "this_year_end") {
+    return new Date(y, 11, 31, 23, 59, 59, 999).getTime();
+  }
+  if (token === "current_month_start" || token === "this_month_start") {
+    return new Date(y, now.getMonth(), 1).getTime();
+  }
+  if (token === "current_month_end" || token === "this_month_end") {
+    return new Date(y, now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+  }
+  if (token === "current_quarter_start") {
+    return new Date(y, Math.floor(now.getMonth() / 3) * 3, 1).getTime();
+  }
+  if (token === "current_quarter_end") {
+    return new Date(y, Math.floor(now.getMonth() / 3) * 3 + 3, 0, 23, 59, 59, 999).getTime();
+  }
+  // Unknown macro — leave as-is so it's visibly inert rather than silently 0.
+  return value;
+}
+
+function resolveLeaf(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(resolveLeaf);
+  return resolveFilterMacro(value);
+}
+
+/** Build the AST node for a single field's Mongo condition. */
+function fieldToAst(field: string, condition: unknown): unknown[] {
+  // `{ field: { $gte: x, $lte: y } }` may carry multiple operators → AND them.
+  if (
+    condition !== null &&
+    typeof condition === "object" &&
+    !Array.isArray(condition) &&
+    Object.keys(condition as object).some((k) => k.startsWith("$"))
+  ) {
+    const nodes: unknown[] = [];
+    for (const [op, raw] of Object.entries(condition as Record<string, unknown>)) {
+      const astOp = MONGO_OP_TO_AST[op];
+      if (!astOp) continue;
+      nodes.push([field, astOp, resolveLeaf(raw)]);
+    }
+    if (nodes.length === 0) return [];
+    return nodes.length === 1 ? (nodes[0] as unknown[]) : ["and", ...nodes];
+  }
+  // Bare value → equality.
+  return [field, "=", resolveLeaf(condition)];
+}
+
+/**
+ * Convert a Mongo-style filter object into the ObjectQL array AST consumed by
+ * `client.data.find`. Returns `undefined` for an empty/absent filter, a single
+ * condition node for one field, or an `["and", …]` compound for several.
+ */
+export function mongoFilterToAst(
+  filter: Record<string, unknown> | null | undefined,
+): unknown[] | undefined {
+  if (!filter || typeof filter !== "object") return undefined;
+  const entries = Object.entries(filter).filter(([, v]) => v !== undefined && v !== null);
+  if (entries.length === 0) return undefined;
+
+  const nodes = entries.map(([field, cond]) => fieldToAst(field, cond)).filter((n) => n.length > 0);
+  if (nodes.length === 0) return undefined;
+  return nodes.length === 1 ? (nodes[0] as unknown[]) : ["and", ...nodes];
 }
 
 /* ------------------------------------------------------------------ */

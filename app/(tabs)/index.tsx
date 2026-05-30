@@ -1,105 +1,166 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TrendingUp, TrendingDown, Users, ShoppingCart, DollarSign, Activity } from "lucide-react-native";
-import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
+import { LayoutDashboard, ChevronRight, Inbox } from "lucide-react-native";
+import { useClient } from "@objectstack/client-react";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { Card, CardContent } from "~/components/ui/Card";
+import { useApps } from "~/hooks/useApps";
 
-interface DashboardCardMeta {
-  type: "card";
-  title: string;
-  value: string;
-  trend: string;
-  icon: string;
+interface DashboardEntry {
+  /** App name — the route segment dashboards open under. */
+  appId: string;
+  appLabel: string;
+  name: string;
+  label: string;
+  description?: string;
 }
 
-const dashboardMetadata: DashboardCardMeta[] = [
-  { type: "card", title: "Monthly Sales", value: "$120,000", trend: "+12%", icon: "dollar-sign" },
-  { type: "card", title: "Active Users", value: "8,420", trend: "+5.2%", icon: "users" },
-  { type: "card", title: "Orders", value: "1,340", trend: "-2.1%", icon: "shopping-cart" },
-  { type: "card", title: "Revenue Growth", value: "23.5%", trend: "+8.7%", icon: "activity" },
-];
-
-const iconMap: Record<string, React.ComponentType<{ size: number; color: string }>> = {
-  "dollar-sign": DollarSign,
-  users: Users,
-  "shopping-cart": ShoppingCart,
-  activity: Activity,
-};
-
-function TrendBadge({ trend }: { trend: string }) {
-  const isPositive = trend.startsWith("+");
-  const TrendIcon = isPositive ? TrendingUp : TrendingDown;
-  return (
-    <View
-      className={`flex-row items-center rounded-full px-2.5 py-1 ${
-        isPositive ? "bg-emerald-50" : "bg-red-50"
-      }`}
-    >
-      <TrendIcon size={12} color={isPositive ? "#059669" : "#dc2626"} />
-      <Text
-        className={`ml-1 text-xs font-semibold ${
-          isPositive ? "text-emerald-700" : "text-red-600"
-        }`}
-      >
-        {trend}
-      </Text>
-    </View>
-  );
-}
-
-function MetadataCardRenderer({ meta }: { meta: DashboardCardMeta }) {
-  const IconComponent = iconMap[meta.icon] ?? Activity;
-
-  return (
-    <Card className="mb-3">
-      <CardHeader className="flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {meta.title}
-        </CardTitle>
-        <View className="rounded-lg bg-primary/10 p-2">
-          <IconComponent size={18} color="#1e40af" />
-        </View>
-      </CardHeader>
-      <CardContent>
-        <Text className="text-2xl font-bold text-card-foreground">
-          {meta.value}
-        </Text>
-        <View className="mt-2">
-          <TrendBadge trend={meta.trend} />
-        </View>
-      </CardContent>
-    </Card>
-  );
-}
-
-function renderFromMetadata(metadata: DashboardCardMeta[]) {
-  return metadata.map((item, index) => {
-    switch (item.type) {
-      case "card":
-        return <MetadataCardRenderer key={index} meta={item} />;
-      default:
-        return null;
-    }
-  });
-}
-
+/**
+ * Home surfaces the real dashboards published by every installed app, fetched
+ * from `meta.getItems("dashboard", { packageId })`. Tapping a card opens the
+ * live dashboard route, whose widgets query real records. (Previously this
+ * screen rendered hardcoded sample metrics.)
+ */
 export default function HomeScreen() {
+  const client = useClient();
+  const router = useRouter();
+  const { apps, isLoading: appsLoading, refetch: refetchApps } = useApps();
+
+  const [dashboards, setDashboards] = useState<DashboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchDashboards = useCallback(async () => {
+    if (appsLoading) return;
+    if (apps.length === 0) {
+      setDashboards([]);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const perApp = await Promise.all(
+        apps.map(async (app) => {
+          try {
+            const result = await client.meta.getItems("dashboard", {
+              packageId: app.packageId,
+            });
+            const items = Array.isArray(result?.items) ? result.items : [];
+            return items.map((rawItem: unknown) => {
+              const item = rawItem as Record<string, unknown>;
+              const name = item.name as string;
+              return {
+                appId: app.name,
+                appLabel: app.label,
+                name,
+                label: (item.label ?? name) as string,
+                description: item.description as string | undefined,
+              } satisfies DashboardEntry;
+            });
+          } catch {
+            return [] as DashboardEntry[];
+          }
+        }),
+      );
+      setDashboards(perApp.flat());
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Failed to load dashboards"));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [client, apps, appsLoading]);
+
+  useEffect(() => {
+    void fetchDashboards();
+  }, [fetchDashboards]);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.all([refetchApps(), fetchDashboards()]);
+    setIsRefreshing(false);
+  }, [refetchApps, fetchDashboards]);
+
+  // Only the initial load shows the full-screen spinner; pull-to-refresh keeps
+  // the existing content in place behind the refresh indicator.
+  const loading = (appsLoading || isLoading) && !isRefreshing;
+
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-8 pt-4"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#1e40af" />
+        }
       >
         <View className="mb-5">
-          <Text className="text-2xl font-bold text-foreground">
-            Dashboard
-          </Text>
+          <Text className="text-2xl font-bold text-foreground">Dashboard</Text>
           <Text className="mt-1 text-sm text-muted-foreground">
             Welcome back. Here&apos;s your overview.
           </Text>
         </View>
 
-        {renderFromMetadata(dashboardMetadata)}
+        {loading ? (
+          <View className="items-center justify-center pt-20">
+            <ActivityIndicator size="large" color="#1e40af" />
+          </View>
+        ) : error ? (
+          <View className="items-center justify-center pt-20">
+            <Text className="text-base text-destructive">{error.message}</Text>
+          </View>
+        ) : dashboards.length === 0 ? (
+          <View className="items-center justify-center pt-20">
+            <View className="rounded-2xl bg-muted p-6">
+              <Inbox size={40} color="#94a3b8" />
+            </View>
+            <Text className="mt-5 text-lg font-semibold text-foreground">
+              No Dashboards
+            </Text>
+            <Text className="mt-2 text-center text-sm text-muted-foreground">
+              None of your installed apps publish a dashboard yet.
+            </Text>
+          </View>
+        ) : (
+          <View className="gap-3">
+            {dashboards.map((d) => (
+              <Pressable
+                key={`${d.appId}:${d.name}`}
+                onPress={() =>
+                  router.push(`/(app)/${d.appId}/dashboard/${d.name}`)
+                }
+              >
+                <Card>
+                  <CardContent className="flex-row items-center py-4">
+                    <View className="rounded-xl bg-primary/10 p-3">
+                      <LayoutDashboard size={24} color="#1e40af" />
+                    </View>
+                    <View className="ml-4 flex-1">
+                      <Text className="text-base font-semibold text-card-foreground">
+                        {d.label}
+                      </Text>
+                      <Text className="mt-0.5 text-xs font-medium text-muted-foreground">
+                        {d.appLabel}
+                      </Text>
+                      {d.description ? (
+                        <Text
+                          className="mt-1 text-sm text-muted-foreground"
+                          numberOfLines={2}
+                        >
+                          {d.description}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <ChevronRight size={20} color="#94a3b8" />
+                  </CardContent>
+                </Card>
+              </Pressable>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

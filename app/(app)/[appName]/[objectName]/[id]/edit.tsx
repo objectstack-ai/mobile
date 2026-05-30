@@ -1,10 +1,11 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, Text, ActivityIndicator, Pressable } from "react-native";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { useClient, useFields, useMutation } from "@objectstack/client-react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useClient, useMutation } from "@objectstack/client-react";
 import { useEffect, useState, useCallback } from "react";
 import { FormViewRenderer } from "~/components/renderers";
-import type { FieldDefinition } from "~/components/renderers";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { useObjectMeta } from "~/hooks/useObjectMeta";
 
 export default function EditRecordScreen() {
   const { objectName, id } = useLocalSearchParams<{
@@ -14,7 +15,7 @@ export default function EditRecordScreen() {
   }>();
   const client = useClient();
   const router = useRouter();
-  const { data: fieldsData } = useFields(objectName!);
+  const { meta, fields } = useObjectMeta(objectName);
   const { mutate, isLoading: isSubmitting } = useMutation(objectName!, "update", {
     onSuccess: () => {
       router.back();
@@ -46,14 +47,14 @@ export default function EditRecordScreen() {
   }, [fetchRecord]);
 
   const displayName =
-    objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? "Record";
-
-  const fields: FieldDefinition[] = fieldsData ?? [];
+    meta?.label ??
+    objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ??
+    "Record";
 
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-        <Stack.Screen options={{ title: `Edit ${displayName}` }} />
+        <ScreenHeader title={`Edit ${displayName}`} />
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#1e40af" />
         </View>
@@ -64,7 +65,7 @@ export default function EditRecordScreen() {
   if (loadError) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-        <Stack.Screen options={{ title: `Edit ${displayName}` }} />
+        <ScreenHeader title={`Edit ${displayName}`} />
         <View className="flex-1 items-center justify-center px-6">
           <Text className="text-base text-destructive">{loadError}</Text>
           <Pressable
@@ -80,7 +81,7 @@ export default function EditRecordScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <Stack.Screen options={{ title: `Edit ${displayName}` }} />
+      <ScreenHeader title={`Edit ${displayName}`} />
       <FormViewRenderer
         fields={fields}
         initialValues={record ?? {}}
