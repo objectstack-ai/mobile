@@ -4,10 +4,30 @@ import {
   Text,
   ScrollView,
   Pressable,
-  ActivityIndicator,
 } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { Skeleton } from "~/components/ui/Skeleton";
 import { cn } from "~/lib/utils";
+
+/** Skeleton placeholder shown while calendar events load. */
+function CalendarSkeleton() {
+  return (
+    <View className="flex-1 p-4">
+      <View className="mb-4 flex-row items-center justify-between">
+        <Skeleton className="h-8 w-8 rounded-lg" />
+        <Skeleton className="h-6 w-32 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-lg" />
+      </View>
+      <View className="flex-row flex-wrap">
+        {Array.from({ length: 35 }).map((_, i) => (
+          <View key={i} className="h-12 min-w-[14.28%] flex-1 items-center justify-center">
+            <Skeleton className="h-7 w-7 rounded-full" />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -155,11 +175,7 @@ export function CalendarViewRenderer({
   const selectedEvents = selectedDate ? eventsByDate[selectedDate] ?? [] : [];
 
   if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
-    );
+    return <CalendarSkeleton />;
   }
 
   return (

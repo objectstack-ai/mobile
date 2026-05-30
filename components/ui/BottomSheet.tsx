@@ -26,6 +26,8 @@ export function BottomSheet({
     >
       <Pressable
         className="flex-1 bg-black/50"
+        accessibilityRole="button"
+        accessibilityLabel="Close"
         onPress={() => onOpenChange(false)}
       />
 

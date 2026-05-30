@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { X } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { cn } from "~/lib/utils";
 
 type ToastVariant = "default" | "error" | "success";
@@ -43,6 +44,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const addToast = React.useCallback(
     (message: string, variant: ToastVariant) => {
       const id = ++nextId;
+      if (variant === "error") {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      } else if (variant === "success") {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
       setToasts((prev) => [...prev, { id, message, variant }]);
       setTimeout(() => dismiss(id), 3000);
     },
@@ -65,6 +71,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <View
             key={t.id}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             className={cn(
               "flex-row items-center justify-between rounded-xl px-4 py-3 shadow-lg",
               variantStyles[t.variant]
@@ -78,7 +86,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             >
               {t.message}
             </Text>
-            <Pressable onPress={() => dismiss(t.id)} hitSlop={8}>
+            <Pressable
+              onPress={() => dismiss(t.id)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss"
+              className="active:opacity-70"
+            >
               <X size={16} className={variantTextStyles[t.variant]} />
             </Pressable>
           </View>

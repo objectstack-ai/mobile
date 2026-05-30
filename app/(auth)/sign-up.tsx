@@ -5,10 +5,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  Pressable,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Boxes, Eye, EyeOff } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { authClient } from "~/lib/auth-client";
@@ -18,37 +19,41 @@ export default function SignUpScreen() {
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
   const handleSignUp = async () => {
     if (!name || !email || !password) {
-      Alert.alert("Error", "Please fill in all fields.");
+      setErrorMsg("Please fill in all fields.");
       return;
     }
     if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters.");
+      setErrorMsg("Password must be at least 8 characters.");
       return;
     }
+    setErrorMsg(null);
     setLoading(true);
     try {
       const { error } = await authClient.signUp.email({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
       });
       if (error) {
-        Alert.alert("Sign Up Failed", error.message ?? "An error occurred.");
+        setErrorMsg(error.message ?? "Sign up failed. Please try again.");
       } else {
         router.replace("/(tabs)");
       }
     } catch {
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      setErrorMsg("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSocialSignIn = async (provider: "google" | "apple") => {
+    setErrorMsg(null);
     setLoading(true);
     try {
       await authClient.signIn.social({
@@ -56,7 +61,7 @@ export default function SignUpScreen() {
         callbackURL: "/(tabs)",
       });
     } catch {
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      setErrorMsg("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -70,14 +75,18 @@ export default function SignUpScreen() {
       >
         <ScrollView
           className="flex-1"
-          contentContainerClassName="px-6 pb-8 pt-12"
+          contentContainerClassName="px-6 pb-8 pt-10"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
-          <View className="mb-10">
-            <Text className="text-3xl font-bold text-foreground">
+          <View className="mb-8 items-center">
+            <View className="mb-5 h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+              <Boxes size={32} color="rgb(30 64 175)" />
+            </View>
+            <Text className="text-center text-3xl font-bold text-foreground">
               Create account
             </Text>
-            <Text className="mt-2 text-base text-muted-foreground">
+            <Text className="mt-2 text-center text-base text-muted-foreground">
               Sign up to get started with ObjectStack.
             </Text>
           </View>
@@ -90,9 +99,14 @@ export default function SignUpScreen() {
               <Input
                 placeholder="John Doe"
                 textContentType="name"
+                autoComplete="name"
                 autoCapitalize="words"
+                returnKeyType="next"
                 value={name}
-                onChangeText={setName}
+                onChangeText={(t) => {
+                  setName(t);
+                  if (errorMsg) setErrorMsg(null);
+                }}
               />
             </View>
 
@@ -103,10 +117,15 @@ export default function SignUpScreen() {
               <Input
                 placeholder="you@company.com"
                 autoCapitalize="none"
+                autoComplete="email"
                 keyboardType="email-address"
                 textContentType="emailAddress"
+                returnKeyType="next"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => {
+                  setEmail(t);
+                  if (errorMsg) setErrorMsg(null);
+                }}
               />
             </View>
 
@@ -116,18 +135,39 @@ export default function SignUpScreen() {
               </Text>
               <Input
                 placeholder="At least 8 characters"
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 textContentType="newPassword"
+                returnKeyType="go"
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => {
+                  setPassword(t);
+                  if (errorMsg) setErrorMsg(null);
+                }}
+                onSubmitEditing={handleSignUp}
+                rightSlot={
+                  <Pressable
+                    onPress={() => setShowPassword((v) => !v)}
+                    hitSlop={10}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} color="#94a3b8" />
+                    ) : (
+                      <Eye size={20} color="#94a3b8" />
+                    )}
+                  </Pressable>
+                }
               />
             </View>
 
-            <Button
-              className="mt-2"
-              onPress={handleSignUp}
-              disabled={loading}
-            >
+            {errorMsg ? (
+              <Text className="text-sm text-destructive">{errorMsg}</Text>
+            ) : null}
+
+            <Button className="mt-2" onPress={handleSignUp} loading={loading}>
               {loading ? "Creating account…" : "Create Account"}
             </Button>
           </View>

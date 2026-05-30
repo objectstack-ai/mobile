@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { MapPin, Navigation } from "lucide-react-native";
 import { Card, CardContent } from "~/components/ui/Card";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -96,8 +97,8 @@ export function MapViewRenderer({
 }: MapViewRendererProps) {
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
+      <View className="flex-1 px-4 pt-4">
+        <ListSkeleton count={5} />
       </View>
     );
   }

@@ -4,6 +4,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
+import { Skeleton } from "~/components/ui/Skeleton";
 import { Image as ImageIcon } from "lucide-react-native";
 
 /* ------------------------------------------------------------------ */
@@ -136,6 +137,24 @@ export function GalleryViewRenderer({
     },
     [imageField, titleField, subtitleField, aspectRatio, onCardPress],
   );
+
+  if (isLoading && records.length === 0) {
+    return (
+      <View className="flex-1 flex-row flex-wrap p-2">
+        {Array.from({ length: numColumns * 3 }).map((_, i) => (
+          <View key={i} className="p-1" style={{ width: `${100 / numColumns}%` }}>
+            <View className="overflow-hidden rounded-xl border border-border bg-card">
+              <View className="w-full bg-muted" style={{ aspectRatio }} />
+              <View className="p-2">
+                <Skeleton className="h-4 w-3/4 rounded-md" />
+                <Skeleton className="mt-1.5 h-3 w-1/2 rounded-md" />
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  }
 
   if (!isLoading && records.length === 0) {
     return (

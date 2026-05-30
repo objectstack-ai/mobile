@@ -1,10 +1,12 @@
-import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from "react-native";
+import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LayoutDashboard, ChevronRight, Inbox } from "lucide-react-native";
+import { LayoutDashboard, ChevronRight, Inbox, AlertCircle } from "lucide-react-native";
 import { useClient } from "@objectstack/client-react";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Card, CardContent } from "~/components/ui/Card";
+import { PressableCard } from "~/components/ui/PressableCard";
+import { EmptyState } from "~/components/ui/EmptyState";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useApps } from "~/hooks/useApps";
 
 interface DashboardEntry {
@@ -105,59 +107,59 @@ export default function HomeScreen() {
         </View>
 
         {loading ? (
-          <View className="items-center justify-center pt-20">
-            <ActivityIndicator size="large" color="#1e40af" />
-          </View>
+          <ListSkeleton count={4} />
         ) : error ? (
-          <View className="items-center justify-center pt-20">
-            <Text className="text-base text-destructive">{error.message}</Text>
+          <View className="pt-20">
+            <EmptyState
+              icon={AlertCircle}
+              variant="error"
+              title="Couldn't Load Dashboards"
+              description={error.message}
+              actionLabel="Retry"
+              onAction={() => void fetchDashboards()}
+            />
           </View>
         ) : dashboards.length === 0 ? (
-          <View className="items-center justify-center pt-20">
-            <View className="rounded-2xl bg-muted p-6">
-              <Inbox size={40} color="#94a3b8" />
-            </View>
-            <Text className="mt-5 text-lg font-semibold text-foreground">
-              No Dashboards
-            </Text>
-            <Text className="mt-2 text-center text-sm text-muted-foreground">
-              None of your installed apps publish a dashboard yet.
-            </Text>
+          <View className="pt-20">
+            <EmptyState
+              icon={Inbox}
+              title="No Dashboards"
+              description="None of your installed apps publish a dashboard yet."
+            />
           </View>
         ) : (
           <View className="gap-3">
             {dashboards.map((d) => (
-              <Pressable
+              <PressableCard
                 key={`${d.appId}:${d.name}`}
+                className="flex-row items-center p-4"
                 onPress={() =>
                   router.push(`/(app)/${d.appId}/dashboard/${d.name}`)
                 }
+                accessibilityRole="button"
+                accessibilityLabel={`Open ${d.label} dashboard`}
               >
-                <Card>
-                  <CardContent className="flex-row items-center py-4">
-                    <View className="rounded-xl bg-primary/10 p-3">
-                      <LayoutDashboard size={24} color="#1e40af" />
-                    </View>
-                    <View className="ml-4 flex-1">
-                      <Text className="text-base font-semibold text-card-foreground">
-                        {d.label}
-                      </Text>
-                      <Text className="mt-0.5 text-xs font-medium text-muted-foreground">
-                        {d.appLabel}
-                      </Text>
-                      {d.description ? (
-                        <Text
-                          className="mt-1 text-sm text-muted-foreground"
-                          numberOfLines={2}
-                        >
-                          {d.description}
-                        </Text>
-                      ) : null}
-                    </View>
-                    <ChevronRight size={20} color="#94a3b8" />
-                  </CardContent>
-                </Card>
-              </Pressable>
+                <View className="rounded-xl bg-primary/10 p-3">
+                  <LayoutDashboard size={24} color="#1e40af" />
+                </View>
+                <View className="ml-4 flex-1">
+                  <Text className="text-base font-semibold text-card-foreground">
+                    {d.label}
+                  </Text>
+                  <Text className="mt-0.5 text-xs font-medium text-muted-foreground">
+                    {d.appLabel}
+                  </Text>
+                  {d.description ? (
+                    <Text
+                      className="mt-1 text-sm text-muted-foreground"
+                      numberOfLines={2}
+                    >
+                      {d.description}
+                    </Text>
+                  ) : null}
+                </View>
+                <ChevronRight size={20} color="#94a3b8" />
+              </PressableCard>
             ))}
           </View>
         )}

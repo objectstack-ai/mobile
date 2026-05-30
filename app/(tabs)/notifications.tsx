@@ -1,9 +1,11 @@
 import React from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Bell, CheckCheck, Circle } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { cn } from "~/lib/utils";
+import { EmptyState } from "~/components/ui/EmptyState";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useNotifications, type NotificationItem } from "~/hooks/useNotifications";
 
 /* ------------------------------------------------------------------ */
@@ -20,10 +22,12 @@ function NotificationRow({
   return (
     <Pressable
       className={cn(
-        "flex-row items-start gap-3 rounded-xl px-4 py-3",
+        "flex-row items-start gap-3 rounded-xl px-4 py-3 active:bg-muted",
         !notification.read && "bg-primary/5",
       )}
       onPress={() => onPress(notification)}
+      accessibilityRole="button"
+      accessibilityLabel={notification.title}
     >
       <View className="mt-1">
         {notification.read ? (
@@ -105,29 +109,18 @@ export default function NotificationsScreen() {
 
       {/* Loading */}
       {isLoading && notifications.length === 0 && (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#1e40af" />
+        <View className="px-5 pt-4">
+          <ListSkeleton count={6} />
         </View>
       )}
 
       {/* Empty state */}
       {!isLoading && notifications.length === 0 && (
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="px-5 pb-8 pt-4"
-        >
-          <View className="flex-1 items-center justify-center pt-20">
-            <View className="rounded-2xl bg-muted p-6">
-              <Bell size={40} color="#94a3b8" />
-            </View>
-            <Text className="mt-5 text-lg font-semibold text-foreground">
-              No Notifications
-            </Text>
-            <Text className="mt-2 text-center text-sm text-muted-foreground">
-              You&apos;re all caught up. New notifications will appear here.
-            </Text>
-          </View>
-        </ScrollView>
+        <EmptyState
+          icon={Bell}
+          title="No Notifications"
+          description="You're all caught up. New notifications will appear here."
+        />
       )}
 
       {/* Notification list */}

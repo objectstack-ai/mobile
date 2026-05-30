@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
 import { cn } from "~/lib/utils";
 
 export interface TabsProps {
@@ -47,9 +48,16 @@ export function Tabs({
             return (
               <Pressable
                 key={item.props.value}
-                onPress={() => onValueChange(item.props.value)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+                onPress={() => {
+                  if (!isActive) {
+                    void Haptics.selectionAsync();
+                    onValueChange(item.props.value);
+                  }
+                }}
                 className={cn(
-                  "px-3 pb-2",
+                  "px-3 pb-2 active:opacity-70",
                   isActive && "border-b-2 border-primary"
                 )}
               >

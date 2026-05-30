@@ -1,8 +1,10 @@
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Linking } from "react-native";
+import { View, Text, ScrollView, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Inbox, ChevronRight } from "lucide-react-native";
-import { Card, CardContent } from "~/components/ui/Card";
+import { Inbox, ChevronRight, AlertCircle } from "lucide-react-native";
+import { PressableCard } from "~/components/ui/PressableCard";
+import { EmptyState } from "~/components/ui/EmptyState";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { useApp, type NavigationItem } from "~/hooks/useApps";
 import { getIcon } from "~/lib/getIcon";
@@ -59,24 +61,23 @@ export default function AppHomeScreen() {
     const Icon = getIcon(item.icon);
     const navigable = isNavigable(item);
     return (
-      <Pressable
+      <PressableCard
         key={item.id}
         disabled={!navigable}
+        haptic={navigable}
         onPress={() => navigate(item)}
-        className={navigable ? "" : "opacity-40"}
+        className={`flex-row items-center p-3.5 ${navigable ? "" : "opacity-40"}`}
+        accessibilityRole={navigable ? "button" : undefined}
+        accessibilityLabel={item.label}
       >
-        <Card>
-          <CardContent className="flex-row items-center py-3.5">
-            <View className="rounded-xl bg-primary/10 p-2.5">
-              <Icon size={20} color="#1e40af" />
-            </View>
-            <Text className="ml-3 flex-1 text-base font-medium text-card-foreground">
-              {item.label}
-            </Text>
-            {navigable ? <ChevronRight size={18} color="#94a3b8" /> : null}
-          </CardContent>
-        </Card>
-      </Pressable>
+        <View className="rounded-xl bg-primary/10 p-2.5">
+          <Icon size={20} color="#1e40af" />
+        </View>
+        <Text className="ml-3 flex-1 text-base font-medium text-card-foreground">
+          {item.label}
+        </Text>
+        {navigable ? <ChevronRight size={18} color="#94a3b8" /> : null}
+      </PressableCard>
     );
   };
 
@@ -105,22 +106,25 @@ export default function AppHomeScreen() {
       <ScreenHeader title={displayName} backFallback="/(tabs)/apps" />
       <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8 pt-2">
         {isLoading ? (
-          <View className="flex-1 items-center justify-center pt-20">
-            <ActivityIndicator size="large" color="#1e40af" />
+          <View className="pt-3">
+            <ListSkeleton count={6} />
           </View>
         ) : error ? (
-          <View className="flex-1 items-center justify-center pt-20">
-            <Text className="text-base text-destructive">{error.message}</Text>
+          <View className="pt-20">
+            <EmptyState
+              icon={AlertCircle}
+              variant="error"
+              title="Couldn't Load App"
+              description={error.message}
+            />
           </View>
         ) : navigation.length === 0 ? (
-          <View className="flex-1 items-center justify-center pt-20">
-            <View className="rounded-2xl bg-muted p-6">
-              <Inbox size={40} color="#94a3b8" />
-            </View>
-            <Text className="mt-5 text-lg font-semibold text-foreground">No Navigation</Text>
-            <Text className="mt-2 text-center text-sm text-muted-foreground">
-              This app hasn&apos;t published a navigation menu yet.
-            </Text>
+          <View className="pt-20">
+            <EmptyState
+              icon={Inbox}
+              title="No Navigation"
+              description="This app hasn't published a navigation menu yet."
+            />
           </View>
         ) : (
           <View>

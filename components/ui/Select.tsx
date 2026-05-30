@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import { ChevronDown, Check } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { cn } from "~/lib/utils";
 
 export interface SelectOption {
@@ -36,8 +37,10 @@ export function Select({
     <>
       <Pressable
         onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={selectedLabel ?? placeholder}
         className={cn(
-          "h-12 flex-row items-center justify-between rounded-xl border border-input bg-background px-4",
+          "h-12 flex-row items-center justify-between rounded-xl border border-input bg-background px-4 active:opacity-70",
           className
         )}
       >
@@ -67,7 +70,10 @@ export function Select({
               {options.map((option) => (
                 <Pressable
                   key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: option.value === value }}
                   onPress={() => {
+                    void Haptics.selectionAsync();
                     onValueChange(option.value);
                     setOpen(false);
                   }}

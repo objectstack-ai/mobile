@@ -1,6 +1,6 @@
 import React from "react";
-import { TextInput, View } from "react-native";
-import { Search } from "lucide-react-native";
+import { Pressable, TextInput, View } from "react-native";
+import { Search, X } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 
 export interface SearchBarProps {
@@ -41,6 +41,12 @@ export function SearchBar({
     };
   }, []);
 
+  const handleClear = React.useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setLocalValue("");
+    onChangeText("");
+  }, [onChangeText]);
+
   return (
     <View
       className={cn(
@@ -55,7 +61,21 @@ export function SearchBar({
         onChangeText={handleChange}
         placeholder={placeholder}
         placeholderTextColor="#94a3b8"
+        returnKeyType="search"
+        clearButtonMode="never"
+        accessibilityLabel={placeholder}
       />
+      {localValue.length > 0 ? (
+        <Pressable
+          onPress={handleClear}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Clear search"
+          className="rounded-full p-1 active:opacity-60"
+        >
+          <X size={16} className="text-muted-foreground" />
+        </Pressable>
+      ) : null}
     </View>
   );
 }

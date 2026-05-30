@@ -1,9 +1,35 @@
 import React, { useMemo } from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
-import { Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
+import { Edit, Trash2, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { EmptyState } from "~/components/common/EmptyState";
+import { Button } from "~/components/ui/Button";
+import { Skeleton } from "~/components/ui/Skeleton";
 import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, ActionMeta } from "./types";
+
+/** Skeleton placeholder that mirrors the detail's stacked section/field layout. */
+function DetailSkeleton() {
+  return (
+    <View className="flex-1 px-4 pt-4">
+      {[0, 1].map((s) => (
+        <View
+          key={s}
+          className="mb-4 overflow-hidden rounded-xl border border-border bg-card"
+        >
+          <View className="gap-5 p-4">
+            {[0, 1, 2].map((r) => (
+              <View key={r} className="gap-2">
+                <Skeleton className="h-3 w-24 rounded-md" />
+                <Skeleton className="h-5 w-2/3 rounded-md" />
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -92,8 +118,10 @@ function DetailActionBar({
     <View className="flex-row items-center gap-2 border-b border-border bg-card px-4 py-3">
       {onEdit && (
         <Pressable
-          className="flex-row items-center gap-1.5 rounded-lg bg-primary px-4 py-2"
+          className="flex-row items-center gap-1.5 rounded-lg bg-primary px-4 py-2 active:opacity-80"
           onPress={onEdit}
+          accessibilityRole="button"
+          accessibilityLabel="Edit record"
         >
           <Edit size={16} color="#fff" />
           <Text className="text-sm font-semibold text-primary-foreground">Edit</Text>
@@ -101,8 +129,10 @@ function DetailActionBar({
       )}
       {onDelete && (
         <Pressable
-          className="flex-row items-center gap-1.5 rounded-lg bg-destructive px-4 py-2"
+          className="flex-row items-center gap-1.5 rounded-lg bg-destructive px-4 py-2 active:opacity-80"
           onPress={onDelete}
+          accessibilityRole="button"
+          accessibilityLabel="Delete record"
         >
           <Trash2 size={16} color="#fff" />
           <Text className="text-sm font-semibold text-destructive-foreground">Delete</Text>
@@ -111,8 +141,10 @@ function DetailActionBar({
       {actions?.map((action) => (
         <Pressable
           key={action.name}
-          className="flex-row items-center gap-1.5 rounded-lg border border-border px-4 py-2"
+          className="flex-row items-center gap-1.5 rounded-lg border border-border px-4 py-2 active:bg-muted"
           onPress={() => onAction?.(action)}
+          accessibilityRole="button"
+          accessibilityLabel={action.label}
         >
           <Text className="text-sm font-medium text-foreground">{action.label}</Text>
         </Pressable>
@@ -289,27 +321,28 @@ export function DetailViewRenderer({
 
   /* ---- Loading ---- */
   if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
-    );
+    return <DetailSkeleton />;
   }
 
   /* ---- Error ---- */
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-base text-destructive">{error.message}</Text>
-        {onRetry && (
-          <Pressable
-            className="mt-4 rounded-xl bg-primary px-5 py-3"
-            onPress={onRetry}
-          >
-            <Text className="font-semibold text-primary-foreground">Retry</Text>
-          </Pressable>
-        )}
-      </View>
+      <EmptyState
+        icon={
+          <View className="h-20 w-20 items-center justify-center rounded-2xl bg-destructive/10">
+            <AlertCircle size={40} color="#dc2626" />
+          </View>
+        }
+        title="Couldn't Load Record"
+        description={error.message}
+        action={
+          onRetry ? (
+            <Button size="sm" onPress={onRetry}>
+              Retry
+            </Button>
+          ) : undefined
+        }
+      />
     );
   }
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { TouchableOpacity, View, Text } from "react-native";
+import * as Haptics from "expo-haptics";
 
 export interface FABAction {
   id: string;
@@ -22,6 +23,7 @@ export function FloatingActionButton({
   const [expanded, setExpanded] = React.useState(false);
 
   const handlePress = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (actions && actions.length > 0) {
       setExpanded((prev) => !prev);
     } else if (onPress) {
@@ -37,12 +39,13 @@ export function FloatingActionButton({
           key={action.id}
           testID={`${testID}-action-${action.id}`}
           onPress={() => {
+            void Haptics.selectionAsync();
             action.onPress();
             setExpanded(false);
           }}
           accessibilityLabel={action.label}
           accessibilityRole="button"
-          className="mb-2 flex-row items-center rounded-full bg-card px-4 py-2 shadow"
+          className="mb-2 flex-row items-center rounded-full bg-card px-4 py-2 shadow active:opacity-80"
         >
           <Text className="text-sm text-foreground">{action.label}</Text>
         </TouchableOpacity>

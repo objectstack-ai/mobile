@@ -9,9 +9,29 @@ import {
   Activity,
 } from "lucide-react-native";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
+import { Skeleton } from "~/components/ui/Skeleton";
 import { WidgetChart } from "./charts/WidgetChart";
 import { formatByPattern, formatCurrency, formatNumber } from "~/lib/formatting";
 import type { DashboardMeta, DashboardWidgetMeta } from "./types";
+
+/** Skeleton grid shown while dashboard metadata + widget data load. */
+function DashboardSkeleton() {
+  return (
+    <View className="flex-1 px-4 pt-4">
+      {[0, 1, 2].map((i) => (
+        <Card key={i} className="mb-3">
+          <CardHeader className="flex-row items-center justify-between pb-2">
+            <Skeleton className="h-3 w-28 rounded-md" />
+            <Skeleton className="h-9 w-9 rounded-lg" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-8 w-1/2 rounded-md" />
+          </CardContent>
+        </Card>
+      ))}
+    </View>
+  );
+}
 
 /** Value fields whose name implies a monetary amount (for metric formatting). */
 const CURRENCY_FIELD_RE =
@@ -299,18 +319,16 @@ export function DashboardViewRenderer({
   const numColumns = screenWidth >= GRID_BREAKPOINT ? 2 : 1;
 
   if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!dashboard || !dashboard.widgets || dashboard.widgets.length === 0) {
     return (
       <View className="flex-1 items-center justify-center px-6">
-        <Activity size={48} color="#94a3b8" />
-        <Text className="mt-4 text-lg font-semibold text-foreground">No Dashboard</Text>
+        <View className="h-20 w-20 items-center justify-center rounded-2xl bg-muted">
+          <Activity size={40} color="#94a3b8" />
+        </View>
+        <Text className="mt-5 text-lg font-semibold text-foreground">No Dashboard</Text>
         <Text className="mt-2 text-center text-sm text-muted-foreground">
           No dashboard widgets have been configured.
         </Text>
