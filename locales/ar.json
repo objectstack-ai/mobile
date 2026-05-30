@@ -17,6 +17,7 @@
     "close": "إغلاق",
     "yes": "نعم",
     "no": "لا",
+    "error": "خطأ",
     "selectAll": "تحديد الكل",
     "deselectAll": "إلغاء تحديد الكل",
     "refresh": "تحديث",
@@ -53,6 +54,8 @@
     "editRecord": "تعديل سجل",
     "deleteRecord": "حذف سجل",
     "deleteConfirm": "هل أنت متأكد من أنك تريد حذف هذا السجل؟",
+    "deleteConfirmNamed": "هل أنت متأكد من أنك تريد حذف \"{{label}}\"؟",
+    "deleteFailed": "فشل حذف السجل.",
     "recordSaved": "تم حفظ السجل بنجاح.",
     "recordDeleted": "تم حذف السجل بنجاح.",
     "previous": "السابق",
@@ -81,9 +84,20 @@
   },
   "nav": {
     "home": "الرئيسية",
+    "search": "بحث",
     "apps": "التطبيقات",
     "notifications": "الإشعارات",
+    "more": "المزيد",
     "profile": "الملف الشخصي"
+  },
+  "search": {
+    "placeholder": "ابحث في الكائنات والسجلات…",
+    "inputLabel": "حقل البحث الشامل",
+    "clearLabel": "مسح البحث",
+    "recentSearches": "عمليات البحث الأخيرة",
+    "clearAll": "مسح الكل",
+    "emptyTitle": "ابحث في جميع كائناتك وسجلاتك",
+    "emptyHint": "اكتب لبدء البحث"
   },
   "offline": {
     "offlineMode": "وضع عدم الاتصال",

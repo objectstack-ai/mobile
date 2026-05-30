@@ -2,6 +2,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useClient, useQuery, useView, useFields } from "@objectstack/client-react";
+import { useTranslation } from "react-i18next";
 import { useCallback, useState } from "react";
 import { ListViewRenderer } from "~/components/renderers";
 import type { FieldDefinition, ListViewMeta } from "~/components/renderers";
@@ -13,6 +14,7 @@ export default function ObjectListScreen() {
   }>();
   const client = useClient();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { data: viewData, isLoading: viewLoading } = useView(objectName!, "list");
   const { data: fieldsData } = useFields(objectName!);
@@ -43,23 +45,23 @@ export default function ObjectListScreen() {
     (record: Record<string, unknown>) => {
       const id = (record.id ?? record._id) as string;
       const label = (record.name ?? record.label ?? record.title ?? id) as string;
-      Alert.alert("Delete Record", `Are you sure you want to delete "${label}"?`, [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(t("records.deleteRecord"), t("records.deleteConfirmNamed", { label }), [
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Delete",
+          text: t("common.delete"),
           style: "destructive",
           onPress: async () => {
             try {
               await client.data.delete(objectName!, id);
               refetch();
             } catch {
-              Alert.alert("Error", "Failed to delete the record.");
+              Alert.alert(t("common.error"), t("records.deleteFailed"));
             }
           },
         },
       ]);
     },
-    [client, objectName, refetch],
+    [client, objectName, refetch, t],
   );
 
   const handleFilterChange = useCallback((f: unknown) => {

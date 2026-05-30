@@ -2,6 +2,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useClient, useQuery, useView, useFields } from "@objectstack/client-react";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DetailViewRenderer } from "~/components/renderers";
 import type { FieldDefinition, FormViewMeta } from "~/components/renderers";
@@ -14,6 +15,7 @@ export default function ObjectDetailScreen() {
   }>();
   const client = useClient();
   const router = useRouter();
+  const { t } = useTranslation();
   const { data: viewData } = useView(objectName!, "form");
   const { data: fieldsData } = useFields(objectName!);
 
@@ -84,22 +86,22 @@ export default function ObjectDetailScreen() {
 
   /* ---- Delete handler ---- */
   const handleDelete = useCallback(() => {
-    Alert.alert("Delete Record", "Are you sure you want to delete this record?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("records.deleteRecord"), t("records.deleteConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("common.delete"),
         style: "destructive",
         onPress: async () => {
           try {
             await client.data.delete(objectName!, id!);
             router.back();
           } catch {
-            Alert.alert("Error", "Failed to delete the record.");
+            Alert.alert(t("common.error"), t("records.deleteFailed"));
           }
         },
       },
     ]);
-  }, [client, objectName, id, router]);
+  }, [client, objectName, id, router, t]);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>

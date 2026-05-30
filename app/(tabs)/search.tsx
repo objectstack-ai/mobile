@@ -1,10 +1,12 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search as SearchIcon, Clock, X } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/Input";
 import { useState, useCallback } from "react";
 
 export default function SearchScreen() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -23,14 +25,14 @@ export default function SearchScreen() {
           <SearchIcon size={20} color="#94a3b8" />
           <Input
             className="ml-2 flex-1 border-0 bg-transparent p-0 text-base"
-            placeholder="Search objects, records..."
+            placeholder={t("search.placeholder")}
             value={query}
             onChangeText={setQuery}
-            accessibilityLabel="Global search input"
+            accessibilityLabel={t("search.inputLabel")}
             autoFocus
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery("")} accessibilityLabel="Clear search">
+            <TouchableOpacity onPress={() => setQuery("")} accessibilityLabel={t("search.clearLabel")}>
               <X size={18} color="#94a3b8" />
             </TouchableOpacity>
           )}
@@ -41,10 +43,10 @@ export default function SearchScreen() {
         <View className="px-5 pt-6">
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-sm font-semibold text-muted-foreground">
-              Recent Searches
+              {t("search.recentSearches")}
             </Text>
             <TouchableOpacity onPress={clearRecent}>
-              <Text className="text-xs text-primary">Clear All</Text>
+              <Text className="text-xs text-primary">{t("search.clearAll")}</Text>
             </TouchableOpacity>
           </View>
           {recentSearches.map((term) => (
@@ -63,10 +65,10 @@ export default function SearchScreen() {
         <View className="flex-1 items-center justify-center px-10">
           <SearchIcon size={48} color="#cbd5e1" />
           <Text className="mt-4 text-center text-base font-medium text-muted-foreground">
-            Search across all your objects and records
+            {t("search.emptyTitle")}
           </Text>
           <Text className="mt-2 text-center text-sm text-muted-foreground">
-            Type to start searching
+            {t("search.emptyHint")}
           </Text>
         </View>
       )}

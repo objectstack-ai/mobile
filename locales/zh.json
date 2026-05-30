@@ -17,6 +17,7 @@
     "close": "关闭",
     "yes": "是",
     "no": "否",
+    "error": "错误",
     "selectAll": "全选",
     "deselectAll": "取消全选",
     "refresh": "刷新",
@@ -53,6 +54,8 @@
     "editRecord": "编辑记录",
     "deleteRecord": "删除记录",
     "deleteConfirm": "确定要删除此记录吗？",
+    "deleteConfirmNamed": "确定要删除“{{label}}”吗？",
+    "deleteFailed": "删除记录失败。",
     "recordSaved": "记录保存成功。",
     "recordDeleted": "记录删除成功。",
     "previous": "上一条",
@@ -81,9 +84,20 @@
   },
   "nav": {
     "home": "首页",
+    "search": "搜索",
     "apps": "应用",
     "notifications": "通知",
+    "more": "更多",
     "profile": "个人资料"
+  },
+  "search": {
+    "placeholder": "搜索对象、记录…",
+    "inputLabel": "全局搜索输入框",
+    "clearLabel": "清除搜索",
+    "recentSearches": "最近搜索",
+    "clearAll": "清除全部",
+    "emptyTitle": "搜索您的所有对象和记录",
+    "emptyHint": "输入以开始搜索"
   },
   "offline": {
     "offlineMode": "离线模式",
