@@ -60,11 +60,24 @@ filter, sort, grouping, … }` — **one** list config whose `type`
 visualization. The native engine flattens this into per-`viewType` renderers.
 `list` ≈ spec `grid`.
 
-### Phase 2 — List display parity
-Render the spec-aligned list options now present on `ListViewMeta`:
-`grouping`, `rowColor`, `rowHeight` (density), column `summary` (footer
-aggregations), `striped`/`bordered`, `searchableFields`/`filterableFields`,
-`showRecordCount`, plus `conditionalFormatting` and `inlineEdit`.
+### Phase 2 — List display parity (done)
+The RN list renderer now honours the spec-aligned options carried on
+`ListViewMeta`:
+
+- **`rowHeight`** — row density (`compact`→`extra_tall`) maps to vertical padding.
+- **`rowColor`** — per-row background resolved from a field value via the
+  `{ field, colors }` map.
+- **`grouping`** — records are bucketed by the first grouping field with a
+  count-bearing group header row (`buildListItems`).
+- **column `summary`** — a footer row renders per-column aggregations
+  (`count`, `sum`, `avg`, `min`, `max`, `count_*`, `percent_*`) via
+  `computeColumnSummary`.
+- **`striped`** / **`bordered`** — alternating row backgrounds and cell borders.
+- **`showRecordCount`** — a toolbar shows the total record count.
+
+Both pure helpers are unit-tested (`__tests__/components/ListViewRenderer.test.ts`).
+
+Still deferred: `conditionalFormatting`, `inlineEdit`, and multi-level grouping.
 
 ### Phase 3 — Missing visualizations
 `gallery` (card grid) and `gantt` are in the authoritative `VisualizationType`
