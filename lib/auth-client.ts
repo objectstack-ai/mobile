@@ -30,10 +30,18 @@ function makePlugins() {
  * Updated via `reinitializeAuthClient()` after the user configures a server.
  */
 let currentBaseURL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
+  process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3100";
+
+/**
+ * ObjectStack mounts better-auth under `/api/v1/auth`, not better-auth's
+ * default `/api/auth`. The client must use this base path so requests like
+ * `get-session`, `sign-in/email`, and the two-factor routes resolve.
+ */
+const AUTH_BASE_PATH = "/api/v1/auth";
 
 export let authClient = createAuthClient({
   baseURL: currentBaseURL,
+  basePath: AUTH_BASE_PATH,
   plugins: makePlugins(),
 });
 
@@ -45,6 +53,7 @@ export function reinitializeAuthClient(baseURL: string) {
   currentBaseURL = baseURL;
   authClient = createAuthClient({
     baseURL: currentBaseURL,
+    basePath: AUTH_BASE_PATH,
     plugins: makePlugins(),
   });
 }

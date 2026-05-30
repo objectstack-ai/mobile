@@ -9,7 +9,30 @@ import {
   Activity,
 } from "lucide-react-native";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
+import { WidgetChart } from "./charts/WidgetChart";
+import { formatByPattern, formatCurrency, formatNumber } from "~/lib/formatting";
 import type { DashboardMeta, DashboardWidgetMeta } from "./types";
+
+/** Value fields whose name implies a monetary amount (for metric formatting). */
+const CURRENCY_FIELD_RE =
+  /amount|revenue|price|cost|total|salary|value|deal|mrr|arr|budget|fee|balance/i;
+
+/** Format a metric/KPI headline value using the widget's format hints. */
+function formatMetricValue(
+  widget: DashboardWidgetMeta,
+  value: number | string | undefined,
+): string {
+  if (value == null) return "—";
+  if (typeof value !== "number" || !isFinite(value)) return String(value);
+
+  const pattern = (widget.chartConfig?.format as string | undefined) ?? undefined;
+  if (pattern) return formatByPattern(value, pattern);
+
+  if (CURRENCY_FIELD_RE.test(widget.valueField ?? "")) {
+    return formatCurrency(value, { maximumFractionDigits: 0 });
+  }
+  return formatNumber(value, { maximumFractionDigits: 2 });
+}
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -67,7 +90,7 @@ function MetricWidget({
         ) : (
           <>
             <Text className="text-2xl font-bold text-card-foreground">
-              {String(value)}
+              {formatMetricValue(widget, value === "—" ? undefined : value)}
             </Text>
             {trend && (
               <View className="mt-2 flex-row items-center">
@@ -190,6 +213,11 @@ function ChartWidget({
   data?: WidgetDataPayload;
 }) {
   const chartType = String(widget.chartConfig?.type ?? widget.type ?? "bar");
+  const colors = Array.isArray(widget.chartConfig?.colors)
+    ? (widget.chartConfig?.colors as string[])
+    : undefined;
+  const formatPattern = widget.chartConfig?.format as string | undefined;
+  const formatValue = (n: number) => formatByPattern(n, formatPattern);
 
   return (
     <Card className="mb-3">
@@ -205,43 +233,18 @@ function ChartWidget({
         {data?.isLoading ? (
           <ActivityIndicator size="small" />
         ) : data?.chartData && data.chartData.length > 0 ? (
-          /* Render inline mini-chart from analytics data */
-          <View className="gap-1 py-2">
-            {data.chartData.slice(0, 6).map((point, idx) => {
-              const maxVal = Math.max(
-                ...data.chartData!.map((p) => Number(p.value) || 0),
-                1,
-              );
-              const pct = Math.max(((Number(point.value) || 0) / maxVal) * 100, 4);
-              return (
-                <View key={point.label ?? idx} className="flex-row items-center gap-2">
-                  <Text className="w-16 text-[10px] text-muted-foreground" numberOfLines={1}>
-                    {point.label}
-                  </Text>
-                  <View className="flex-1 h-4 rounded-sm bg-muted/40">
-                    <View
-                      className="h-4 rounded-sm bg-primary/70"
-                      style={{ width: `${Math.min(pct, 100)}%` }}
-                    />
-                  </View>
-                  <Text className="w-10 text-right text-[10px] font-medium text-foreground">
-                    {String(point.value)}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+          <WidgetChart
+            type={chartType}
+            data={data.chartData.map((p) => ({ label: p.label, value: Number(p.value) || 0 }))}
+            colors={colors}
+            format={formatValue}
+          />
         ) : (
           <View className="items-center justify-center py-8">
             <BarChart3 size={48} color="#94a3b8" />
             <Text className="mt-3 text-sm text-muted-foreground">
-              Chart: {chartType}
+              No data to chart
             </Text>
-            {data?.value != null && (
-              <Text className="mt-1 text-lg font-bold text-foreground">
-                {String(data.value)}
-              </Text>
-            )}
           </View>
         )}
       </CardContent>

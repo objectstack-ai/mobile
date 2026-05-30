@@ -7,10 +7,11 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { Stack } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Package, ToggleLeft, ToggleRight, Trash2 } from "lucide-react-native";
 import { usePackageManagement } from "~/hooks/usePackageManagement";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
 
 /**
  * Package management screen – list, enable, disable, uninstall packages.
@@ -55,8 +56,8 @@ export default function PackagesScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen options={{ title: "Packages" }} />
+    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+      <ScreenHeader title="Packages" />
       <ScrollView className="flex-1 bg-background">
         {isLoading && !packages.length ? (
           <View className="flex-1 items-center justify-center py-20">
@@ -145,6 +146,6 @@ export default function PackagesScreen() {
           </View>
         )}
       </ScrollView>
-    </>
+    </SafeAreaView>
   );
 }

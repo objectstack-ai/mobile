@@ -166,12 +166,17 @@ export interface FormViewMeta {
 
 export interface DashboardWidgetMeta {
   name: string;
+  /** Spec dashboards key widgets by `id`; normalized into `name` on load. */
+  id?: string;
   object: string;
   type?: string;
   title?: string;
+  description?: string;
   valueField?: string;
   categoryField?: string;
   aggregate?: "count" | "sum" | "avg" | "min" | "max";
+  /** Query filter applied before aggregating (e.g. `{ stage: "closed_won" }`). */
+  filter?: Record<string, unknown>;
   chartConfig?: Record<string, unknown>;
   options?: unknown;
   /** Number of grid columns this widget spans (default 1) */

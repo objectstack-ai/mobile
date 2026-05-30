@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text } from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams } from "expo-router";
 import { useClient } from "@objectstack/client-react";
+import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { PageRenderer } from "~/components/renderers/PageRenderer";
 import {
   validatePageSchema,
@@ -55,8 +57,8 @@ export default function SDUIPageScreen() {
   }, [client, id]);
 
   return (
-    <>
-      <Stack.Screen options={{ title: schema?.label ?? id ?? "Page" }} />
+    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+      <ScreenHeader title={schema?.label ?? id ?? "Page"} />
       {error && !isLoading ? (
         <View className="flex-1 items-center justify-center px-6">
           <Text className="text-destructive text-center">{error.message}</Text>
@@ -70,6 +72,6 @@ export default function SDUIPageScreen() {
           error={error}
         />
       )}
-    </>
+    </SafeAreaView>
   );
 }

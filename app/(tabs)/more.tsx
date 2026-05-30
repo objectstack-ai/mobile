@@ -2,13 +2,8 @@ import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   UserCircle,
-  Settings,
-  HelpCircle,
-  Shield,
   Bell,
   Globe,
-  Palette,
-  Info,
   LogOut,
   ChevronRight,
 } from "lucide-react-native";
@@ -66,7 +61,7 @@ export default function MoreScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
+    <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <TouchableOpacity
@@ -89,46 +84,25 @@ export default function MoreScreen() {
           <ChevronRight size={18} color="#94a3b8" />
         </TouchableOpacity>
 
-        {/* Preferences */}
-        <SectionHeader title="Preferences" />
+        {/* Account */}
+        <SectionHeader title="Account" />
         <MenuItem
-          icon={<Palette size={20} color="#64748b" />}
-          label="Appearance"
-        />
-        <MenuItem
-          icon={<Globe size={20} color="#64748b" />}
-          label="Language"
+          icon={<UserCircle size={20} color="#64748b" />}
+          label="Account & Security"
+          onPress={() => router.push("/account")}
         />
         <MenuItem
           icon={<Bell size={20} color="#64748b" />}
           label="Notifications"
+          onPress={() => router.push("/(tabs)/notifications")}
         />
 
-        {/* Security */}
-        <SectionHeader title="Security" />
+        {/* Preferences */}
+        <SectionHeader title="Preferences" />
         <MenuItem
-          icon={<UserCircle size={20} color="#64748b" />}
-          label="Account"
-          onPress={() => router.push("/account")}
-        />
-        <MenuItem
-          icon={<Shield size={20} color="#64748b" />}
-          label="Security & Privacy"
-        />
-        <MenuItem
-          icon={<Settings size={20} color="#64748b" />}
-          label="Settings"
-        />
-
-        {/* Support */}
-        <SectionHeader title="Support" />
-        <MenuItem
-          icon={<HelpCircle size={20} color="#64748b" />}
-          label="Help & Support"
-        />
-        <MenuItem
-          icon={<Info size={20} color="#64748b" />}
-          label="About"
+          icon={<Globe size={20} color="#64748b" />}
+          label="Language"
+          onPress={() => router.push("/language")}
         />
 
         {/* Sign Out */}

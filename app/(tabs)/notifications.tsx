@@ -79,22 +79,29 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      {/* Header */}
-      {notifications.length > 0 && unreadCount > 0 && (
-        <View className="flex-row items-center justify-between border-b border-border px-5 py-3">
-          <Text className="text-sm text-muted-foreground">
-            {unreadCount} unread
-          </Text>
+    <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
+      {/* Title header */}
+      <View className="flex-row items-end justify-between px-5 pb-2 pt-4">
+        <View>
+          <Text className="text-2xl font-bold text-foreground">Notifications</Text>
+          {unreadCount > 0 && (
+            <Text className="mt-1 text-sm text-muted-foreground">
+              {unreadCount} unread
+            </Text>
+          )}
+        </View>
+        {unreadCount > 0 && (
           <Pressable
-            className="flex-row items-center gap-1.5 rounded-lg px-3 py-1.5"
+            className="flex-row items-center gap-1.5 rounded-lg px-3 py-1.5 active:bg-muted"
             onPress={() => void markAllRead()}
+            accessibilityRole="button"
+            accessibilityLabel="Mark all notifications read"
           >
             <CheckCheck size={14} color="#3b82f6" />
             <Text className="text-sm font-medium text-primary">Mark all read</Text>
           </Pressable>
-        </View>
-      )}
+        )}
+      </View>
 
       {/* Loading */}
       {isLoading && notifications.length === 0 && (

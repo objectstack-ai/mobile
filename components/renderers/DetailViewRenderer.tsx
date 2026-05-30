@@ -57,6 +57,24 @@ export interface RelatedListConfig {
   fields?: FieldDefinition[];
 }
 
+/**
+ * Audit/system fields the server attaches to every record. They carry no
+ * business meaning at a glance, so when we fall back to auto-laying-out a
+ * record (no curated form view) we push them into a trailing "System
+ * Information" section instead of letting them lead — otherwise "Created At /
+ * Last Modified By" bury the fields the user actually came to read.
+ */
+const SYSTEM_FIELDS = new Set([
+  "created_at",
+  "updated_at",
+  "modified_at",
+  "last_modified_at",
+  "created_by",
+  "updated_by",
+  "modified_by",
+  "last_modified_by",
+]);
+
 /* ------------------------------------------------------------------ */
 /*  Action Bar                                                         */
 /* ------------------------------------------------------------------ */
@@ -245,25 +263,25 @@ export function DetailViewRenderer({
       return viewSections;
     }
 
-    // Fallback: single section with all record fields
+    // Fallback: auto-layout, business fields first then a trailing "System
+    // Information" section for audit fields.
+    const buildSections = (allKeys: string[]): FormSection[] => {
+      const keys = allKeys.filter((k) => !k.startsWith("_") && k !== "id");
+      const business = keys.filter((k) => !SYSTEM_FIELDS.has(k));
+      const system = keys.filter((k) => SYSTEM_FIELDS.has(k));
+      const result: FormSection[] = [];
+      if (business.length > 0) result.push({ fields: business });
+      if (system.length > 0)
+        result.push({ label: "System Information", fields: system });
+      return result;
+    };
+
     if (record) {
-      return [
-        {
-          fields: Object.keys(record)
-            .filter((k) => !k.startsWith("_") && k !== "id")
-            .map((k) => k),
-        },
-      ];
+      return buildSections(Object.keys(record));
     }
 
     if (fields.length > 0) {
-      return [
-        {
-          fields: fields
-            .filter((f) => !f.name.startsWith("_") && f.name !== "id")
-            .map((f) => f.name),
-        },
-      ];
+      return buildSections(fields.map((f) => f.name));
     }
 
     return [];

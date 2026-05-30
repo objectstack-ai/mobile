@@ -100,3 +100,54 @@ export function formatCurrency(
     maximumFractionDigits: opts.maximumFractionDigits,
   }).format(value);
 }
+
+/* ------------------------------------------------------------------ */
+/*  Pattern-driven formatting                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Format a number against a numeral.js-style pattern string as published by
+ * dashboard widget `chartConfig.format` (e.g. `"$0,0"`, `"$0,0.00"`, `"0,0"`,
+ * `"0.0%"`, `"$0.0a"` for abbreviated). Only the features the platform actually
+ * emits are honoured; an unrecognized pattern falls back to a grouped number.
+ */
+export function formatByPattern(value: number, pattern?: string): string {
+  if (!isFinite(value)) return "—";
+  if (!pattern) return formatNumber(value);
+
+  const isCurrency = pattern.includes("$");
+  const isPercent = pattern.includes("%");
+  const isAbbrev = /a\b|a$/.test(pattern);
+
+  // Decimal places: count the digits after the dot in the pattern.
+  const dot = pattern.indexOf(".");
+  const fractionDigits = dot >= 0 ? (pattern.slice(dot + 1).match(/0/g)?.length ?? 0) : 0;
+
+  if (isPercent) {
+    return new Intl.NumberFormat(getLocale(), {
+      style: "percent",
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    }).format(value / 100);
+  }
+
+  if (isAbbrev) {
+    return new Intl.NumberFormat(getLocale(), {
+      notation: "compact",
+      maximumFractionDigits: fractionDigits || 1,
+      ...(isCurrency ? { style: "currency", currency: "USD" } : {}),
+    }).format(value);
+  }
+
+  if (isCurrency) {
+    return formatCurrency(value, {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    });
+  }
+
+  return formatNumber(value, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits || undefined,
+  });
+}
