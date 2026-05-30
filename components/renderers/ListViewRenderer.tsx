@@ -447,9 +447,6 @@ export function ListViewRenderer({
     },
     [
       columns,
-      // `columns` is derived from `records`, so listing it keeps the card in
-      // sync with data; `records` is included to satisfy exhaustive-deps.
-      records,
       fields,
       densityClass,
       bordered,
