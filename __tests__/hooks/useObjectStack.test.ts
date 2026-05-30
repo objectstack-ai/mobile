@@ -29,7 +29,6 @@ describe("useObjectStack (barrel exports)", () => {
   });
 
   it("re-exports Phase 14 hooks (UX Foundation)", () => {
-    expect(ObjectStackHooks.useGlobalSearch).toBeDefined();
     expect(ObjectStackHooks.useRecentItems).toBeDefined();
     expect(ObjectStackHooks.useFavorites).toBeDefined();
     expect(ObjectStackHooks.usePageTransition).toBeDefined();

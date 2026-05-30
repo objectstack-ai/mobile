@@ -26,9 +26,16 @@ and replaced with a self-contained `@objectstack/cli`-started stack under
 `server/integration/` — `pnpm test:integration:server` now passes **20/20** against a
 live 7.3.0 server.
 
+**Hook reconciliation done:** audited every hook against the real 7.3.0 client surface
+and **deleted 19 hooks** (hook count 95 → 76) that called namespaces the platform removed
+in v6 (`client.ai.{rag,mcp,agents,cost,…}`, `client.security.*`, `client.realtime.
+{channels,collaboration,messaging}`, `client.system.audit`, `client.api.search`, etc.).
+Those were unused, self-mocked dead code that overstated compliance. Every retained hook
+maps to a verified 7.x namespace.
+
 ➡️ Details: **[docs/PLATFORM-V7-MIGRATION.md](./docs/PLATFORM-V7-MIGRATION.md)**.
-Remaining forward-compat polish (Action interpolation, `App.hidden`, speculative-hook
-pruning) is non-blocking.
+Remaining forward-compat polish (v7 `Action.target` interpolation, `App.hidden`) is
+non-blocking.
 
 ---
 
@@ -38,7 +45,7 @@ The ObjectStack Mobile client has completed all core development phases (0–6),
 
 ### What's Implemented
 
-- **85 custom hooks** covering all SDK namespaces (including AI, security, UX, platform integration, messaging, offline, SDUI record pages, interaction protocols, focus/keyboard/offline/notification protocols)
+- **76 custom hooks**, each mapped to a verified 7.3.0 client namespace (CRUD/query, AI nlq/suggest/insights, analytics, permissions, workflow, notifications, realtime presence, storage, views, UX, offline, SDUI record pages, interaction/focus/keyboard protocols). 19 speculative 3.1.1 hooks calling since-removed namespaces were pruned — see the migration doc.
 - **22 view renderers / components** (List, Form, Detail, Dashboard, Kanban, Calendar, Chart, Timeline, Map, Report, Page, widgets, FlowViewer, StateMachineViewer, AgentProgress, CollaborationOverlay, Skeletons, FAB, UndoSnackbar)
 - **13 UI primitives** + 15 common components
 - **30 lib modules** (auth, cache, offline, security, analytics, haptics, accessibility, design tokens, etc.)
@@ -66,6 +73,15 @@ The ObjectStack Mobile client has completed all core development phases (0–6),
 ---
 
 ## 2. Development Phases
+
+> ⚠️ **Historical — superseded by the v7 reconciliation (§0).** The ✅ marks for
+> **Phase 11 (AI: RAG/MCP/Agents/Cost/Sessions)**, **Phase 12 (Security: RLS/Policies/
+> Sharing/Territory)**, **Phase 13 (Collaboration/Audit)**, **Phase 21 (DevOps/CodeGen/
+> Predictive)**, **Phase 22 (ETL/Connectors)**, and **v1.5 (Messaging/Channels)** were
+> built against `@objectstack/spec@3.1.1` schemas that the platform **removed in v6**.
+> Those hooks have been **deleted** from the codebase (they had no real 7.x endpoint).
+> The compliance matrix and phase tables below are kept for history; the authoritative
+> current state is **[docs/PLATFORM-V7-MIGRATION.md](./docs/PLATFORM-V7-MIGRATION.md)**.
 
 ### Phase 0–3: Foundation ✅
 
