@@ -19,8 +19,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - uses: pnpm/action-setup@v4
         with:
@@ -31,22 +29,16 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      # Install mobile app dependencies
+      # Install app + CLI dependencies
       - name: Install dependencies
         run: pnpm install
 
-      # Install HotCRM submodule dependencies and build
-      - name: Setup HotCRM server
-        run: |
-          cd server/hotcrm
-          pnpm install
-          pnpm build
-
-      # Start the server in background
-      - name: Start HotCRM server
+      # Start the ObjectStack CLI server (server/integration stack) in background
+      - name: Start integration server
         run: ./scripts/start-integration-server.sh --bg
         env:
           PORT: 4000
+          AUTH_SECRET: integration-secret-please-change-min-32-chars
 
       # Wait for server readiness
       - name: Wait for server
@@ -59,6 +51,6 @@ jobs:
           INTEGRATION_SERVER_URL: http://localhost:4000
 
       # Stop server
-      - name: Stop HotCRM server
+      - name: Stop integration server
         if: always()
         run: ./scripts/stop-integration-server.sh

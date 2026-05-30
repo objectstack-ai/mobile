@@ -33,14 +33,28 @@ What actually required code changes:
 `GET /api/v1/discovery` ✅ · `client.connect()` ✅ · `client.auth.register()` ✅ ·
 `client.auth.me()` ✅ · `client.data.find()` ✅ · `pnpm lint` ✅ · `1151/1151` tests ✅.
 
+### Integration server: `server/hotcrm` submodule → ObjectStack CLI ✅
+
+The old `server/hotcrm` git submodule no longer built against 7.x (its agent/tool
+definitions predated spec fields `version`/`async`/`requiresConfirmation`/
+`deprecated`), and the fix lived in a separate repo. It has been **removed** and
+replaced with a self-contained CLI-started stack:
+
+- **`server/integration/`** — a minimal ObjectStack project (`objectstack.config.ts`
+  + `crm_account` / `crm_contact` objects) started via the `@objectstack/cli`
+  (`objectstack start --home server/integration --database-driver memory --auth-secret …`).
+- **`scripts/start-integration-server.sh`** / **`stop-integration-server.sh`** now
+  drive the CLI instead of building a submodule; **`.github/workflows/integration.yml`**
+  drops `submodules: recursive` + the HotCRM build.
+- The integration tests were re-pointed to the **v7 REST routes**
+  (`/api/v1/data/<object>`, `/api/v1/meta/*`) and updated for two v7 behaviors:
+  better-auth's CSRF **origin check** (send `Origin`) and its **JSON-body** parse on
+  sign-out (send `{}`).
+- **Result: `pnpm test:integration:server` → 20/20 passing** against a CLI-started
+  7.3.0 server (auth register/login/session/sign-out, `crm_account` CRUD, metadata).
+
 ### Still outstanding
 
-- **Integration server (`server/hotcrm` submodule)** fails to build against 7.x
-  (its agent/tool definitions predate spec fields `version`/`async`/
-  `requiresConfirmation`/`deprecated`). That fix lives in the **separate
-  `objectstack-ai/hotcrm` repo**, not here — so the `Server Integration Tests` CI
-  job stays red until that submodule is updated. The in-repo `server/dev.ts`
-  (used for local auth/data verification) is fully working on 7.3.0.
 - Phases 4–5 below (Action interpolation, `App.hidden`, speculative-hook pruning)
   are **forward-compat polish**, not blockers — the app compiles, tests pass, and
   the core data/auth path is verified. They can be picked up incrementally.
@@ -207,11 +221,12 @@ that exists in 7.3.0.
       delete hooks whose schemas were removed.
 - [ ] Rewrite the ROADMAP "Spec Compliance Matrix" to list **only** verified 7.3.0 mappings.
 
-### Phase 6 — Tests, E2E & integration server 🟡
+### Phase 6 — Tests, E2E & integration server 🟢
 
-- [ ] Update MSW handlers + fixtures to 7.x request/response shapes.
-- [ ] Update the `server/hotcrm` submodule (or its pin) to a 7.x-compatible build;
-      re-run `server:hotcrm` integration suite.
+- [x] Replace the `server/hotcrm` submodule with a `@objectstack/cli`-started stack
+      (`server/integration/`); `pnpm test:integration:server` → 20/20 on 7.3.0.
+- [ ] Update MSW handlers + fixtures to 7.x request/response shapes (regular suite
+      already green on 7.3.0).
 - [ ] Re-run/refresh the 4 Maestro flows + Jest E2E screen tests.
 - [ ] Restore coverage target (~85%) on the **reconciled** hook set.
 

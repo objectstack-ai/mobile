@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 #
-# Stop the background HotCRM integration test server.
+# Stop the background integration test server.
 #
-# Reads the PID from .hotcrm-server.pid written by start-integration-server.sh --bg
+# Reads the PID from .integration-server.pid written by
+# start-integration-server.sh --bg
 #
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PID_FILE="$ROOT_DIR/.hotcrm-server.pid"
+PID_FILE="$ROOT_DIR/.integration-server.pid"
 
 if [ ! -f "$PID_FILE" ]; then
   echo "ℹ️  No PID file found – server may not be running."
@@ -19,7 +20,7 @@ fi
 PID="$(cat "$PID_FILE")"
 
 if kill -0 "$PID" 2>/dev/null; then
-  echo "🛑 Stopping HotCRM server (PID $PID)…"
+  echo "🛑 Stopping integration server (PID $PID)…"
   kill "$PID"
   # Wait briefly for graceful shutdown
   for _ in $(seq 1 10); do

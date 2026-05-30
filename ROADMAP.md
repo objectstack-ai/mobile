@@ -21,10 +21,14 @@ better-auth Expo plugin typing cast, and registering ObjectQL as a kernel engine
 in the dev server. **Verified live** against `server/dev.ts` on 7.3.0 (discovery,
 `connect()`, auth register/me, `data.find`).
 
+The `server/hotcrm` git submodule (which no longer built against 7.x) was **removed**
+and replaced with a self-contained `@objectstack/cli`-started stack under
+`server/integration/` — `pnpm test:integration:server` now passes **20/20** against a
+live 7.3.0 server.
+
 ➡️ Details: **[docs/PLATFORM-V7-MIGRATION.md](./docs/PLATFORM-V7-MIGRATION.md)**.
-Remaining: the `server/hotcrm` integration submodule must be updated to 7.x in its own
-repo (keeps the `Server Integration Tests` CI job red until then); forward-compat polish
-(Action interpolation, `App.hidden`, speculative-hook pruning) is non-blocking.
+Remaining forward-compat polish (Action interpolation, `App.hidden`, speculative-hook
+pruning) is non-blocking.
 
 ---
 

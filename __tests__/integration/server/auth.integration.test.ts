@@ -75,6 +75,9 @@ describe("Authentication Flow", () => {
   it("should sign out via /api/v1/auth/sign-out", async () => {
     const res = await api("/api/v1/auth/sign-out", {
       method: "POST",
+      // better-auth parses the JSON body on sign-out; send an empty object so
+      // an `application/json` request isn't an empty (unparseable) body.
+      body: JSON.stringify({}),
       headers: sessionCookie ? { Cookie: sessionCookie } : {},
     });
 

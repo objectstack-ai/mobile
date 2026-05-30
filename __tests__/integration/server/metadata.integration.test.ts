@@ -1,12 +1,13 @@
 /**
  * Server Integration Tests — Object Metadata
  *
- * These tests validate that the HotCRM server correctly exposes
- * object metadata: schemas, fields, views, and package information.
+ * Validates that the ObjectStack server (started via the ObjectStack CLI)
+ * exposes object metadata through the v7 REST API. v7 metadata routes live
+ * under `/api/v1/meta` (e.g. `/api/v1/meta/objects`, `/api/v1/meta/types`).
  *
  * Prerequisites:
- *   1. HotCRM server running: `./scripts/start-integration-server.sh --bg`
- *   2. Server is ready:       `./scripts/wait-for-server.sh`
+ *   1. Server running: `./scripts/start-integration-server.sh --bg`
+ *   2. Server ready:   `./scripts/wait-for-server.sh`
  *
  * Run:
  *   pnpm test:integration:server
@@ -30,84 +31,57 @@ describe("Object Metadata", () => {
     },
   });
 
-  describe("Packages / Apps", () => {
-    it("should list available packages", async () => {
-      const res = await api("/api/v1/packages", authed());
+  describe("Metadata types", () => {
+    it("should list available metadata types", async () => {
+      const res = await api("/api/v1/meta/types", authed());
 
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-        // HotCRM has: crm, finance, marketing, products, support, hr
-        const packages = body.packages ?? body.data ?? body;
-        if (Array.isArray(packages)) {
-          expect(packages.length).toBeGreaterThan(0);
-        }
-      } else {
-        // Endpoint might not exist in every server configuration
-        expect([404, 405, 501]).toContain(res.status);
-      }
-    });
-  });
-
-  describe("Object Fields", () => {
-    it("should return fields for the account object", async () => {
-      const res = await api("/api/v1/objects/account/fields", authed());
-
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-        const fields = body.fields ?? body.data ?? body;
-        if (Array.isArray(fields)) {
-          expect(fields.length).toBeGreaterThan(0);
-        }
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
-    });
-
-    it("should return fields for the contact object", async () => {
-      const res = await api("/api/v1/objects/contact/fields", authed());
-
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
-    });
-  });
-
-  describe("Object Views", () => {
-    it("should return views for the account object", async () => {
-      const res = await api("/api/v1/objects/account/views", authed());
-
-      if (res.ok) {
-        const body = await res.json();
-        expect(body).toBeDefined();
-        const views = body.views ?? body.data ?? body;
-        if (Array.isArray(views)) {
-          expect(views.length).toBeGreaterThan(0);
-        }
-      } else {
-        expect([404, 405, 501]).toContain(res.status);
-      }
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      expect(body).toBeDefined();
     });
   });
 
   describe("Object List", () => {
     it("should list available objects", async () => {
-      const res = await api("/api/v1/objects", authed());
+      const res = await api("/api/v1/meta/objects", authed());
 
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      // v7 shape: { type: "objects", items: [...] }
+      const objects = body.items ?? body.objects ?? body.data ?? body;
+      expect(Array.isArray(objects)).toBe(true);
+      expect(objects.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("Object schema", () => {
+    it("should return the schema for the crm_account object", async () => {
+      const res = await api("/api/v1/meta/objects?name=crm_account", authed());
+
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      expect(body).toBeDefined();
+    });
+
+    it("should return the schema for the crm_contact object", async () => {
+      const res = await api("/api/v1/meta/objects?name=crm_contact", authed());
+
+      expect(res.ok).toBe(true);
+      const body = await res.json();
+      expect(body).toBeDefined();
+    });
+  });
+
+  describe("Object Views", () => {
+    it("should return views for the crm_account object", async () => {
+      const res = await api("/api/v1/meta/views?object=crm_account", authed());
+
+      // Views are optional for a minimal stack; accept success or not-found.
       if (res.ok) {
         const body = await res.json();
         expect(body).toBeDefined();
-        const objects = body.objects ?? body.data ?? body;
-        if (Array.isArray(objects)) {
-          // HotCRM defines 65 objects across all plugins
-          expect(objects.length).toBeGreaterThan(0);
-        }
       } else {
-        expect([404, 405, 501]).toContain(res.status);
+        expect([400, 404, 405, 501]).toContain(res.status);
       }
     });
   });
