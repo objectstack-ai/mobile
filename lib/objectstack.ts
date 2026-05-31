@@ -31,6 +31,16 @@ export function setObjectStackApiUrl(url: string) {
 }
 
 /**
+ * The currently-configured API base URL (e.g. `https://cloud.objectos.app`).
+ * Used by features that call backend routes the typed SDK client doesn't
+ * surface — notably object-action execution (the `/api/v1/automation/.../trigger`
+ * and `/api/v1/actions/...` routes).
+ */
+export function getApiUrl(): string {
+  return API_URL;
+}
+
+/**
  * The scheme+host origin of the server (e.g. `https://cloud.objectos.app`),
  * derived from the configured base URL.
  */
@@ -93,6 +103,21 @@ export function createObjectStackClient(token?: string): ObjectStackClient {
     token,
     fetch: authAwareFetch,
   });
+}
+
+/**
+ * Authenticated `fetch` for backend routes outside the typed SDK surface.
+ * Accepts an absolute URL or a base-relative path (e.g. `/api/v1/...`) and
+ * carries the better-auth session + CSRF origin exactly like SDK data calls.
+ * Used for object-action execution (the `/api/v1/automation/.../trigger` and
+ * `/api/v1/actions/...` routes).
+ */
+export function apiFetch(pathOrUrl: string, init?: RequestInit): Promise<Response> {
+  const base = API_URL.replace(/\/+$/, "");
+  const url = /^https?:\/\//.test(pathOrUrl)
+    ? pathOrUrl
+    : `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
+  return authAwareFetch(url, init);
 }
 
 /**

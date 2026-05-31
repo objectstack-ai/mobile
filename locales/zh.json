@@ -63,6 +63,14 @@
     "previous": "上一条",
     "next": "下一条"
   },
+  "actions": {
+    "title": "操作",
+    "moreActions": "更多操作",
+    "required": "{{field}} 为必填项",
+    "submit": "提交",
+    "completed": "操作完成",
+    "failed": "操作失败"
+  },
   "batch": {
     "selected": "已选 {{count}} 项",
     "deleteSelected": "删除选中",

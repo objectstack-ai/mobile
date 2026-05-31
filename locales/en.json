@@ -64,6 +64,14 @@
     "previous": "Previous",
     "next": "Next"
   },
+  "actions": {
+    "title": "Actions",
+    "moreActions": "More actions",
+    "required": "{{field}} is required",
+    "submit": "Submit",
+    "completed": "Action completed",
+    "failed": "Action failed"
+  },
   "batch": {
     "selected": "{{count}} selected",
     "deleteSelected": "Delete Selected",
