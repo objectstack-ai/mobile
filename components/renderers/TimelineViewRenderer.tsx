@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import { Circle, CheckCircle2, AlertCircle, Clock, User, FileText } from "lucide-react-native";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -99,8 +100,8 @@ export function TimelineViewRenderer({
 }: TimelineViewRendererProps) {
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
+      <View className="flex-1 px-4 pt-4">
+        <ListSkeleton count={6} />
       </View>
     );
   }

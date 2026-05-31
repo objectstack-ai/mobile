@@ -1,10 +1,13 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, ActivityIndicator, Pressable } from "react-native";
+import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useClient, useMutation } from "@objectstack/client-react";
 import { useEffect, useState, useCallback } from "react";
+import { AlertCircle } from "lucide-react-native";
 import { FormViewRenderer } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { EmptyState } from "~/components/ui/EmptyState";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
 
 export default function EditRecordScreen() {
@@ -55,8 +58,8 @@ export default function EditRecordScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
         <ScreenHeader title={`Edit ${displayName}`} />
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#1e40af" />
+        <View className="px-4 pt-4">
+          <ListSkeleton count={5} />
         </View>
       </SafeAreaView>
     );
@@ -66,15 +69,14 @@ export default function EditRecordScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
         <ScreenHeader title={`Edit ${displayName}`} />
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-base text-destructive">{loadError}</Text>
-          <Pressable
-            className="mt-4 rounded-xl bg-primary px-5 py-3"
-            onPress={fetchRecord}
-          >
-            <Text className="font-semibold text-primary-foreground">Retry</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          icon={AlertCircle}
+          variant="error"
+          title="Couldn't Load Record"
+          description={loadError}
+          actionLabel="Retry"
+          onAction={fetchRecord}
+        />
       </SafeAreaView>
     );
   }

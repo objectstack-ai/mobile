@@ -5,10 +5,31 @@ import {
   ScrollView,
   FlatList,
   Pressable,
-  ActivityIndicator,
 } from "react-native";
 import { GripVertical, Plus } from "lucide-react-native";
+import { Skeleton } from "~/components/ui/Skeleton";
 import type { FieldDefinition } from "./types";
+
+/** Horizontal skeleton columns shown while the board loads. */
+function KanbanSkeleton() {
+  return (
+    <View className="flex-1 flex-row px-4 pt-3">
+      {[0, 1, 2].map((c) => (
+        <View key={c} className="mr-3 w-64 rounded-xl bg-muted/30 p-2">
+          <View className="mb-2 px-1">
+            <Skeleton className="h-4 w-24 rounded-md" />
+          </View>
+          {[0, 1, 2].map((r) => (
+            <View key={r} className="mb-2 rounded-lg border border-border bg-card p-3">
+              <Skeleton className="h-4 w-3/4 rounded-md" />
+              <Skeleton className="mt-2 h-3 w-1/2 rounded-md" />
+            </View>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -226,11 +247,7 @@ export function KanbanViewRenderer({
   }, [records, groupField, columns]);
 
   if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
-    );
+    return <KanbanSkeleton />;
   }
 
   return (

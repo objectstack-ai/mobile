@@ -1,6 +1,7 @@
 import React from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { ChevronDown, Check, X } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { cn } from "~/lib/utils";
 import type { SelectOption } from "~/components/renderers/types";
 
@@ -35,6 +36,7 @@ export function MultiSelect({
   const selectedOptions = options.filter((o) => selectedSet.has(String(o.value)));
 
   const toggle = (val: string) => {
+    void Haptics.selectionAsync();
     const next = new Set(selectedSet);
     if (next.has(val)) next.delete(val);
     else next.add(val);
@@ -45,8 +47,10 @@ export function MultiSelect({
     <>
       <Pressable
         onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={selectedOptions.length ? selectedOptions.map((o) => o.label).join(", ") : placeholder}
         className={cn(
-          "min-h-12 flex-row items-center justify-between rounded-xl border bg-background px-3 py-2",
+          "min-h-12 flex-row items-center justify-between rounded-xl border bg-background px-3 py-2 active:opacity-70",
           error ? "border-destructive" : "border-input",
           className,
         )}
@@ -86,6 +90,8 @@ export function MultiSelect({
                 return (
                   <Pressable
                     key={String(option.value)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked }}
                     onPress={() => toggle(String(option.value))}
                     className="flex-row items-center justify-between rounded-lg px-3 py-3 active:bg-accent"
                   >
@@ -96,7 +102,7 @@ export function MultiSelect({
                         checked ? "border-primary bg-primary" : "border-input bg-background",
                       )}
                     >
-                      {checked && <Check size={14} className="text-primary-foreground" />}
+                      {checked && <Check size={14} color="#ffffff" />}
                     </View>
                   </Pressable>
                 );

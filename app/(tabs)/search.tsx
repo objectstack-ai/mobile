@@ -1,9 +1,10 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Search as SearchIcon, X, ChevronRight, FileText } from "lucide-react-native";
+import { Search as SearchIcon, X, ChevronRight, FileText, SearchX } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Input } from "~/components/ui/Input";
+import { EmptyState } from "~/components/ui/EmptyState";
 import { useGlobalSearch } from "~/hooks/useGlobalSearch";
 
 export default function SearchScreen() {
@@ -42,32 +43,24 @@ export default function SearchScreen() {
 
       {/* Idle empty state */}
       {!showResults && (
-        <View className="flex-1 items-center justify-center px-10">
-          <SearchIcon size={48} color="#cbd5e1" />
-          <Text className="mt-4 text-center text-base font-medium text-muted-foreground">
-            {t("search.emptyTitle")}
-          </Text>
-          <Text className="mt-2 text-center text-sm text-muted-foreground">
-            {objectCount > 0
+        <EmptyState
+          icon={SearchIcon}
+          title={t("search.emptyTitle")}
+          description={
+            objectCount > 0
               ? t("search.lookingAcross", { count: objectCount })
-              : t("search.emptyHint")}
-          </Text>
-        </View>
+              : t("search.emptyHint")
+          }
+        />
       )}
 
       {/* No matches */}
       {showResults && !isSearching && hasSearched && totalCount === 0 && (
-        <View className="flex-1 items-center justify-center px-10">
-          <View className="rounded-2xl bg-muted p-6">
-            <SearchIcon size={40} color="#94a3b8" />
-          </View>
-          <Text className="mt-5 text-lg font-semibold text-foreground">
-            {t("search.noResultsTitle")}
-          </Text>
-          <Text className="mt-2 text-center text-sm text-muted-foreground">
-            {t("search.noResultsBody", { query: query.trim() })}
-          </Text>
-        </View>
+        <EmptyState
+          icon={SearchX}
+          title={t("search.noResultsTitle")}
+          description={t("search.noResultsBody", { query: query.trim() })}
+        />
       )}
 
       {/* Results */}

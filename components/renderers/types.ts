@@ -211,6 +211,8 @@ export interface ActionMeta {
     | "global_nav"
   )[];
   component?: "action:button" | "action:icon" | "action:menu" | "action:group";
+  /** Spec `Action.variant` — visual emphasis for the rendered control. */
+  variant?: "link" | "primary" | "secondary" | "danger" | "ghost";
   confirmText?: string;
   successMessage?: string;
   refreshAfter?: boolean;

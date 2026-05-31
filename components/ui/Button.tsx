@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  ActivityIndicator,
   Pressable,
   Text,
   type PressableProps,
@@ -34,6 +35,13 @@ const buttonTextSizes = {
   lg: "text-lg",
 } as const;
 
+const spinnerColor: Record<keyof typeof buttonVariants, string> = {
+  default: "#f8fafc",
+  destructive: "#f8fafc",
+  outline: "#64748b",
+  ghost: "#64748b",
+};
+
 export interface ButtonProps extends PressableProps {
   variant?: keyof typeof buttonVariants;
   size?: keyof typeof buttonSizes;
@@ -41,6 +49,8 @@ export interface ButtonProps extends PressableProps {
   textClassName?: string;
   children: React.ReactNode;
   style?: ViewStyle;
+  /** Shows a spinner, keeps the button sized, and blocks presses while true. */
+  loading?: boolean;
 }
 
 export function Button({
@@ -50,9 +60,12 @@ export function Button({
   textClassName,
   children,
   disabled,
+  loading = false,
   onPress,
   ...props
 }: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   const handlePress = React.useCallback(
     (e: Parameters<NonNullable<PressableProps["onPress"]>>[0]) => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -63,17 +76,22 @@ export function Button({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       className={cn(
-        "flex-row items-center justify-center",
+        "flex-row items-center justify-center gap-2 active:scale-[0.98]",
         buttonVariants[variant],
         buttonSizes[size],
-        disabled && "opacity-50",
+        isDisabled && "opacity-50",
         className
       )}
-      disabled={disabled}
+      disabled={isDisabled}
       onPress={handlePress}
       {...props}
     >
+      {loading ? (
+        <ActivityIndicator size="small" color={spinnerColor[variant]} />
+      ) : null}
       {typeof children === "string" ? (
         <Text
           className={cn(

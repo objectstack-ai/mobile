@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,6 +11,8 @@ import { Package, ToggleLeft, ToggleRight, Trash2 } from "lucide-react-native";
 import { usePackageManagement } from "~/hooks/usePackageManagement";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { EmptyState } from "~/components/ui/EmptyState";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
 
 /**
  * Package management screen – list, enable, disable, uninstall packages.
@@ -58,31 +59,29 @@ export default function PackagesScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <ScreenHeader title="Packages" />
-      <ScrollView className="flex-1 bg-background">
+      <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-4">
         {isLoading && !packages.length ? (
-          <View className="flex-1 items-center justify-center py-20">
-            <ActivityIndicator size="large" color="#1e40af" />
+          <View className="p-4">
+            <ListSkeleton count={5} />
           </View>
         ) : error ? (
-          <View className="flex-1 items-center justify-center px-6 py-20">
-            <Text className="text-destructive text-center mb-4">
-              {error.message}
-            </Text>
-            <TouchableOpacity
-              onPress={refetch}
-              className="bg-primary px-4 py-2 rounded-lg"
-            >
-              <Text className="text-primary-foreground font-medium">
-                Retry
-              </Text>
-            </TouchableOpacity>
+          <View className="pt-24">
+            <EmptyState
+              icon={Package}
+              variant="error"
+              title="Couldn't Load Packages"
+              description={error.message}
+              actionLabel="Retry"
+              onAction={refetch}
+            />
           </View>
         ) : !packages.length ? (
-          <View className="flex-1 items-center justify-center px-6 py-20">
-            <Package size={48} color="#9ca3af" />
-            <Text className="text-muted-foreground mt-4">
-              No packages installed
-            </Text>
+          <View className="pt-24">
+            <EmptyState
+              icon={Package}
+              title="No Packages"
+              description="No packages are installed yet."
+            />
           </View>
         ) : (
           <View className="p-4 gap-3">
@@ -97,6 +96,10 @@ export default function PackagesScreen() {
                     <View className="flex-row items-center gap-3">
                       <TouchableOpacity
                         onPress={() => handleToggle(pkg.id, pkg.enabled)}
+                        hitSlop={8}
+                        accessibilityRole="switch"
+                        accessibilityState={{ checked: pkg.enabled }}
+                        accessibilityLabel={`${pkg.enabled ? "Disable" : "Enable"} ${pkg.label}`}
                       >
                         {pkg.enabled ? (
                           <ToggleRight size={24} color="#16a34a" />
@@ -106,6 +109,9 @@ export default function PackagesScreen() {
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => handleUninstall(pkg.id, pkg.label)}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Uninstall ${pkg.label}`}
                       >
                         <Trash2 size={18} color="#dc2626" />
                       </TouchableOpacity>

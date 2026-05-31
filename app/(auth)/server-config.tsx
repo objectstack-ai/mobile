@@ -5,11 +5,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ServerCog } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { validateServerUrl } from "~/lib/server-url";
@@ -20,30 +19,28 @@ export default function ServerConfigScreen() {
   const connect = useServerStore((s) => s.connect);
   const [url, setUrl] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
   const handleConnect = async () => {
     const trimmed = url.trim().replace(/\/+$/, "");
     if (!trimmed) {
-      Alert.alert("Error", "Please enter a server URL.");
+      setErrorMsg("Please enter a server URL.");
       return;
     }
 
     // Basic URL format check
     if (!/^https?:\/\/.+/i.test(trimmed)) {
-      Alert.alert(
-        "Invalid URL",
-        "The URL must start with http:// or https://",
-      );
+      setErrorMsg("The URL must start with http:// or https://");
       return;
     }
 
+    setErrorMsg(null);
     setLoading(true);
     try {
       const isValid = await validateServerUrl(trimmed);
       if (!isValid) {
-        Alert.alert(
-          "Connection Failed",
-          "Could not reach the server. Please check the URL and try again.",
+        setErrorMsg(
+          "Could not reach the server. Please check the URL and try again."
         );
         return;
       }
@@ -53,7 +50,7 @@ export default function ServerConfigScreen() {
       await connect(trimmed);
       router.replace("/(auth)/sign-in");
     } catch {
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      setErrorMsg("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,10 +66,11 @@ export default function ServerConfigScreen() {
           className="flex-1"
           contentContainerClassName="px-6 pb-8 pt-16"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           <View className="mb-10 items-center">
             <View className="mb-6 h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-              <Text className="text-3xl">🔗</Text>
+              <ServerCog size={32} color="rgb(30 64 175)" />
             </View>
             <Text className="text-center text-3xl font-bold text-foreground">
               Connect to Server
@@ -93,29 +91,28 @@ export default function ServerConfigScreen() {
                 keyboardType="url"
                 textContentType="URL"
                 autoCorrect={false}
+                returnKeyType="go"
+                error={!!errorMsg}
                 value={url}
-                onChangeText={setUrl}
+                onChangeText={(t) => {
+                  setUrl(t);
+                  if (errorMsg) setErrorMsg(null);
+                }}
+                onSubmitEditing={handleConnect}
               />
-              <Text className="mt-1.5 text-xs text-muted-foreground">
-                Example: https://app.objectstack.com
-              </Text>
+              {errorMsg ? (
+                <Text className="mt-1.5 text-xs text-destructive">
+                  {errorMsg}
+                </Text>
+              ) : (
+                <Text className="mt-1.5 text-xs text-muted-foreground">
+                  Example: https://app.objectstack.com
+                </Text>
+              )}
             </View>
 
-            <Button
-              className="mt-4"
-              onPress={handleConnect}
-              disabled={loading}
-            >
-              {loading ? (
-                <View className="flex-row items-center gap-2">
-                  <ActivityIndicator size="small" color="#ffffff" />
-                  <Text className="font-semibold text-primary-foreground">
-                    Connecting…
-                  </Text>
-                </View>
-              ) : (
-                "Connect"
-              )}
+            <Button className="mt-4" onPress={handleConnect} loading={loading}>
+              {loading ? "Connecting…" : "Connect"}
             </Button>
           </View>
 

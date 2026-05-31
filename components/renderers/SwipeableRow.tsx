@@ -75,7 +75,9 @@ export function SwipeableRow({
               close();
               onEdit();
             }}
-            className="items-center justify-center bg-blue-600"
+            accessibilityRole="button"
+            accessibilityLabel="Edit"
+            className="items-center justify-center bg-blue-600 active:opacity-80"
             style={{ width: ACTION_WIDTH }}
           >
             <Edit size={20} color="#ffffff" />
@@ -89,7 +91,9 @@ export function SwipeableRow({
               close();
               onDelete();
             }}
-            className="items-center justify-center bg-red-600"
+            accessibilityRole="button"
+            accessibilityLabel="Delete"
+            className="items-center justify-center bg-red-600 active:opacity-80"
             style={{ width: ACTION_WIDTH }}
           >
             <Trash2 size={20} color="#ffffff" />

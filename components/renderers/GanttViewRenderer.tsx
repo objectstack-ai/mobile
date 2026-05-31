@@ -2,6 +2,7 @@ import React, { useMemo, useCallback } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { EmptyState } from "~/components/common/EmptyState";
 import { GanttChartSquare } from "lucide-react-native";
+import { Skeleton } from "~/components/ui/Skeleton";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -170,6 +171,32 @@ export function GanttViewRenderer({
     },
     [min, span],
   );
+
+  if (isLoading) {
+    return (
+      <View className="flex-1">
+        <View className="flex-row items-center justify-between border-b border-border px-4 py-2">
+          <Skeleton className="h-3 w-16 rounded-md" />
+          <Skeleton className="h-3 w-16 rounded-md" />
+        </View>
+        {Array.from({ length: 7 }).map((_, i) => (
+          <View
+            key={i}
+            className="flex-row items-center border-b border-border/50 px-4"
+            style={{ height: ROW_HEIGHT }}
+          >
+            <View style={{ marginLeft: (i % 4) * 40 }}>
+              <Skeleton
+                className="rounded-md"
+                width={120 + (i % 3) * 60}
+                height={ROW_HEIGHT - 12}
+              />
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  }
 
   if (!isLoading && tasks.length === 0) {
     return (

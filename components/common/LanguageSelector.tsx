@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { SUPPORTED_LANGUAGES } from "~/lib/i18n";
 import { useUIStore } from "~/stores/ui-store";
 import { cn } from "~/lib/utils";
@@ -25,11 +26,19 @@ export function LanguageSelector({ className }: { className?: string }) {
         return (
           <Pressable
             key={lang.code}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive }}
+            accessibilityLabel={lang.label}
             className={cn(
-              "flex-row items-center justify-between rounded-lg px-4 py-3",
+              "flex-row items-center justify-between rounded-lg px-4 py-3 active:opacity-70",
               isActive ? "bg-primary/10" : "bg-card",
             )}
-            onPress={() => setLanguage(lang.code)}
+            onPress={() => {
+              if (!isActive) {
+                void Haptics.selectionAsync();
+                setLanguage(lang.code);
+              }
+            }}
           >
             <Text
               className={cn(

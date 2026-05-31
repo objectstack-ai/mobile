@@ -6,10 +6,11 @@ import {
   FlatList,
   Modal,
   Pressable,
-  ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
-import { X, Download, Share2 } from "lucide-react-native";
+import { X, Download, Share2, Image as ImageIcon } from "lucide-react-native";
+import { Skeleton } from "~/components/ui/Skeleton";
+import { EmptyState } from "~/components/ui/EmptyState";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -62,6 +63,9 @@ export function ImageGallery({
     ({ item, index }: { item: GalleryImage; index: number }) => (
       <Pressable
         onPress={() => setSelectedIndex(index)}
+        accessibilityRole="imagebutton"
+        accessibilityLabel={item.label ?? `Image ${index + 1}`}
+        className="active:opacity-70"
         style={{ width: tileSize, height: tileSize, marginRight: gap, marginBottom: gap }}
       >
         <Image
@@ -76,17 +80,23 @@ export function ImageGallery({
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
+      <View className="flex-1 flex-row flex-wrap" style={{ padding }}>
+        {Array.from({ length: columns * 4 }).map((_, i) => (
+          <View key={i} style={{ marginRight: gap, marginBottom: gap }}>
+            <Skeleton width={tileSize} height={tileSize} className="rounded-lg" />
+          </View>
+        ))}
       </View>
     );
   }
 
   if (images.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-sm text-muted-foreground">No images</Text>
-      </View>
+      <EmptyState
+        icon={ImageIcon}
+        title="No Images"
+        description="There are no images to display yet."
+      />
     );
   }
 

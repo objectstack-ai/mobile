@@ -31,6 +31,30 @@ export function setObjectStackApiUrl(url: string) {
 }
 
 /**
+ * The currently-configured API base URL (e.g. `https://cloud.objectos.app`).
+ * Used by features that call backend routes the typed SDK client doesn't
+ * surface — notably object-action execution (the `/api/v1/automation/.../trigger`
+ * and `/api/v1/actions/...` routes).
+ */
+export function getApiUrl(): string {
+  return API_URL;
+}
+
+/**
+ * The scheme+host origin of the server (e.g. `https://cloud.objectos.app`),
+ * derived from the configured base URL.
+ */
+function toServerOrigin(serverUrl: string): string {
+  const trimmed = serverUrl.replace(/\/+$/, "");
+  try {
+    const u = new URL(trimmed);
+    return `${u.protocol}//${u.host}`;
+  } catch {
+    return trimmed;
+  }
+}
+
+/**
  * Fetch wrapper that carries the better-auth session to the ObjectStack data
  * API. Auth and data share the same better-auth session, but the credential
  * lives in different places per platform:
@@ -47,10 +71,21 @@ function authAwareFetch(input: RequestInfo | URL, init?: RequestInit): Promise<R
   if (isWeb) {
     next.credentials = "include";
   } else {
+    // Native carries the session as a `Cookie` header, which makes the server
+    // enforce its CSRF origin check. RN never sets `Origin` automatically and
+    // the server has no `@better-auth/expo` plugin to derive it, so stamp the
+    // server's own (always-trusted) origin to avoid a "missing origin" reject.
+    const headers: Record<string, string> = {
+      ...(init?.headers as Record<string, string>),
+    };
     const cookie = getNativeAuthCookie();
     if (cookie) {
-      next.headers = { ...(init?.headers as Record<string, string>), cookie };
+      headers.cookie = cookie;
     }
+    if (!("Origin" in headers) && !("origin" in headers)) {
+      headers.Origin = toServerOrigin(API_URL);
+    }
+    next.headers = headers;
     next.credentials = "omit";
   }
   return globalThis.fetch(input as RequestInfo, next);
@@ -68,6 +103,21 @@ export function createObjectStackClient(token?: string): ObjectStackClient {
     token,
     fetch: authAwareFetch,
   });
+}
+
+/**
+ * Authenticated `fetch` for backend routes outside the typed SDK surface.
+ * Accepts an absolute URL or a base-relative path (e.g. `/api/v1/...`) and
+ * carries the better-auth session + CSRF origin exactly like SDK data calls.
+ * Used for object-action execution (the `/api/v1/automation/.../trigger` and
+ * `/api/v1/actions/...` routes).
+ */
+export function apiFetch(pathOrUrl: string, init?: RequestInit): Promise<Response> {
+  const base = API_URL.replace(/\/+$/, "");
+  const url = /^https?:\/\//.test(pathOrUrl)
+    ? pathOrUrl
+    : `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
+  return authAwareFetch(url, init);
 }
 
 /**

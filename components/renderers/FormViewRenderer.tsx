@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   Pressable,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -262,23 +261,18 @@ export function FormViewRenderer({
               <Button
                 variant="outline"
                 onPress={onCancel}
+                disabled={isSubmitting}
                 className="flex-1"
               >
-                <Text className="text-base font-semibold text-foreground">Cancel</Text>
+                Cancel
               </Button>
             )}
             <Button
               onPress={handleSubmit}
-              disabled={isSubmitting}
+              loading={isSubmitting}
               className="flex-1"
             >
-              {isSubmitting ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text className="text-base font-semibold text-primary-foreground">
-                  {submitLabel}
-                </Text>
-              )}
+              {isSubmitting ? "Saving…" : submitLabel}
             </Button>
           </View>
         )}

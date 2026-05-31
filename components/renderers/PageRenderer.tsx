@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView } from "react-native";
+import { AlertCircle } from "lucide-react-native";
 import {
   resolvePageSchema,
   type PageSchema,
@@ -7,6 +8,8 @@ import {
   type ResolvedComponent,
 } from "~/lib/page-renderer";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
+import { Skeleton } from "~/components/ui/Skeleton";
+import { EmptyState } from "~/components/ui/EmptyState";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -242,17 +245,34 @@ export function PageRenderer({
 }: PageRendererProps) {
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center py-12">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
+      <ScrollView className="flex-1">
+        <View className="px-4 py-3">
+          <Skeleton className="h-7 w-1/2 rounded-md" />
+          <Skeleton className="mt-2 h-4 w-2/3 rounded-md" />
+        </View>
+        {[0, 1].map((i) => (
+          <Card key={i} className="mx-4 my-2">
+            <CardHeader>
+              <Skeleton className="h-5 w-32 rounded-md" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-4 w-full rounded-md" />
+              <Skeleton className="mt-2 h-4 w-3/4 rounded-md" />
+            </CardContent>
+          </Card>
+        ))}
+      </ScrollView>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center px-6 py-12">
-        <Text className="text-destructive text-center">{error.message}</Text>
-      </View>
+      <EmptyState
+        icon={AlertCircle}
+        variant="error"
+        title="Couldn't Load Page"
+        description={error.message}
+      />
     );
   }
 

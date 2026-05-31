@@ -1,9 +1,44 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
-import { Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react-native";
+import {
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  MoreHorizontal,
+} from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { getIcon } from "~/lib/getIcon";
+import { EmptyState } from "~/components/common/EmptyState";
+import { Button } from "~/components/ui/Button";
+import { BottomSheet } from "~/components/ui/BottomSheet";
+import { Skeleton } from "~/components/ui/Skeleton";
 import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, ActionMeta } from "./types";
+
+/** Skeleton placeholder that mirrors the detail's stacked section/field layout. */
+function DetailSkeleton() {
+  return (
+    <View className="flex-1 px-4 pt-4">
+      {[0, 1].map((s) => (
+        <View
+          key={s}
+          className="mb-4 overflow-hidden rounded-xl border border-border bg-card"
+        >
+          <View className="gap-5 p-4">
+            {[0, 1, 2].map((r) => (
+              <View key={r} className="gap-2">
+                <Skeleton className="h-3 w-24 rounded-md" />
+                <Skeleton className="h-5 w-2/3 rounded-md" />
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -28,8 +63,12 @@ export interface DetailViewRendererProps {
   onDelete?: () => void;
   /** Custom action handler */
   onAction?: (action: ActionMeta) => void;
-  /** Available actions */
+  /** Header (`record_header`) object actions, rendered as inline buttons. */
   actions?: ActionMeta[];
+  /** Overflow (`record_more`) object actions, rendered in a "⋯" menu. */
+  moreActions?: ActionMeta[];
+  /** Name of the action currently executing (drives the per-button spinner). */
+  busyActionName?: string | null;
   /** Related records by relationship name */
   relatedLists?: RelatedListConfig[];
   /** Handler when a related record is pressed */
@@ -79,21 +118,91 @@ const SYSTEM_FIELDS = new Set([
 /*  Action Bar                                                         */
 /* ------------------------------------------------------------------ */
 
+/** Per-variant container + label classes for a header action button. */
+const ACTION_VARIANT_BG: Record<string, string> = {
+  primary: "bg-primary active:opacity-80",
+  danger: "bg-destructive active:opacity-80",
+  secondary: "border border-border active:bg-muted",
+  ghost: "active:bg-muted",
+  link: "active:opacity-60",
+};
+const ACTION_VARIANT_TEXT: Record<string, string> = {
+  primary: "text-primary-foreground",
+  danger: "text-destructive-foreground",
+  secondary: "text-foreground",
+  ghost: "text-foreground",
+  link: "text-primary",
+};
+/** Icon tint per variant (lucide needs an explicit color, not a class). */
+const ACTION_VARIANT_ICON: Record<string, string> = {
+  primary: "#ffffff",
+  danger: "#ffffff",
+  secondary: "#0f172a",
+  ghost: "#0f172a",
+  link: "#1e40af",
+};
+
+function HeaderActionButton({
+  action,
+  onAction,
+  busy,
+}: {
+  action: ActionMeta;
+  onAction?: (action: ActionMeta) => void;
+  busy: boolean;
+}) {
+  const variant = action.variant ?? "secondary";
+  const Icon = action.icon ? getIcon(action.icon) : null;
+  return (
+    <Pressable
+      className={cn(
+        "flex-row items-center gap-1.5 rounded-lg px-4 py-2",
+        ACTION_VARIANT_BG[variant],
+        busy && "opacity-60",
+      )}
+      onPress={() => !busy && onAction?.(action)}
+      disabled={busy}
+      accessibilityRole="button"
+      accessibilityLabel={action.label}
+      accessibilityState={{ busy }}
+    >
+      {busy ? (
+        <ActivityIndicator size="small" color={ACTION_VARIANT_ICON[variant]} />
+      ) : Icon ? (
+        <Icon size={16} color={ACTION_VARIANT_ICON[variant]} />
+      ) : null}
+      <Text className={cn("text-sm font-semibold", ACTION_VARIANT_TEXT[variant])}>
+        {action.label}
+      </Text>
+    </Pressable>
+  );
+}
+
 function DetailActionBar({
   onEdit,
   onDelete,
   actions,
+  moreActions,
   onAction,
-}: Pick<DetailViewRendererProps, "onEdit" | "onDelete" | "actions" | "onAction">) {
-  const hasActions = onEdit || onDelete || (actions && actions.length > 0);
+  busyActionName,
+}: Pick<
+  DetailViewRendererProps,
+  "onEdit" | "onDelete" | "actions" | "moreActions" | "onAction" | "busyActionName"
+>) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const hasMore = !!(moreActions && moreActions.length > 0);
+  const hasActions =
+    onEdit || onDelete || (actions && actions.length > 0) || hasMore;
   if (!hasActions) return null;
 
   return (
     <View className="flex-row items-center gap-2 border-b border-border bg-card px-4 py-3">
       {onEdit && (
         <Pressable
-          className="flex-row items-center gap-1.5 rounded-lg bg-primary px-4 py-2"
+          className="flex-row items-center gap-1.5 rounded-lg bg-primary px-4 py-2 active:opacity-80"
           onPress={onEdit}
+          accessibilityRole="button"
+          accessibilityLabel="Edit record"
         >
           <Edit size={16} color="#fff" />
           <Text className="text-sm font-semibold text-primary-foreground">Edit</Text>
@@ -101,22 +210,74 @@ function DetailActionBar({
       )}
       {onDelete && (
         <Pressable
-          className="flex-row items-center gap-1.5 rounded-lg bg-destructive px-4 py-2"
+          className="flex-row items-center gap-1.5 rounded-lg bg-destructive px-4 py-2 active:opacity-80"
           onPress={onDelete}
+          accessibilityRole="button"
+          accessibilityLabel="Delete record"
         >
           <Trash2 size={16} color="#fff" />
           <Text className="text-sm font-semibold text-destructive-foreground">Delete</Text>
         </Pressable>
       )}
       {actions?.map((action) => (
-        <Pressable
+        <HeaderActionButton
           key={action.name}
-          className="flex-row items-center gap-1.5 rounded-lg border border-border px-4 py-2"
-          onPress={() => onAction?.(action)}
-        >
-          <Text className="text-sm font-medium text-foreground">{action.label}</Text>
-        </Pressable>
+          action={action}
+          onAction={onAction}
+          busy={busyActionName === action.name}
+        />
       ))}
+
+      {hasMore && (
+        <>
+          <Pressable
+            className="ml-auto h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
+            onPress={() => setMoreOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="More actions"
+          >
+            <MoreHorizontal size={20} color="#0f172a" />
+          </Pressable>
+
+          <BottomSheet open={moreOpen} onOpenChange={setMoreOpen} title="Actions">
+            {moreActions!.map((action) => {
+              const Icon = action.icon ? getIcon(action.icon) : null;
+              const busy = busyActionName === action.name;
+              const danger = action.variant === "danger";
+              return (
+                <Pressable
+                  key={action.name}
+                  className="flex-row items-center gap-3 rounded-lg px-2 py-3 active:bg-muted"
+                  onPress={() => {
+                    if (busy) return;
+                    setMoreOpen(false);
+                    onAction?.(action);
+                  }}
+                  disabled={busy}
+                  accessibilityRole="button"
+                  accessibilityLabel={action.label}
+                >
+                  {busy ? (
+                    <ActivityIndicator size="small" color={danger ? "#dc2626" : "#0f172a"} />
+                  ) : Icon ? (
+                    <Icon size={18} color={danger ? "#dc2626" : "#0f172a"} />
+                  ) : (
+                    <View className="w-[18px]" />
+                  )}
+                  <Text
+                    className={cn(
+                      "text-base",
+                      danger ? "text-destructive" : "text-foreground",
+                    )}
+                  >
+                    {action.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </BottomSheet>
+        </>
+      )}
     </View>
   );
 }
@@ -246,6 +407,8 @@ export function DetailViewRenderer({
   onDelete,
   onAction,
   actions,
+  moreActions,
+  busyActionName,
   relatedLists,
   onRelatedRecordPress,
   onPrevious,
@@ -289,27 +452,28 @@ export function DetailViewRenderer({
 
   /* ---- Loading ---- */
   if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
-    );
+    return <DetailSkeleton />;
   }
 
   /* ---- Error ---- */
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-base text-destructive">{error.message}</Text>
-        {onRetry && (
-          <Pressable
-            className="mt-4 rounded-xl bg-primary px-5 py-3"
-            onPress={onRetry}
-          >
-            <Text className="font-semibold text-primary-foreground">Retry</Text>
-          </Pressable>
-        )}
-      </View>
+      <EmptyState
+        icon={
+          <View className="h-20 w-20 items-center justify-center rounded-2xl bg-destructive/10">
+            <AlertCircle size={40} color="#dc2626" />
+          </View>
+        }
+        title="Couldn't Load Record"
+        description={error.message}
+        action={
+          onRetry ? (
+            <Button size="sm" onPress={onRetry}>
+              Retry
+            </Button>
+          ) : undefined
+        }
+      />
     );
   }
 
@@ -323,7 +487,9 @@ export function DetailViewRenderer({
         onEdit={allowEdit ? onEdit : undefined}
         onDelete={allowDelete ? onDelete : undefined}
         actions={actions}
+        moreActions={moreActions}
         onAction={onAction}
+        busyActionName={busyActionName}
       />
 
       {/* Record navigation (previous / next) */}

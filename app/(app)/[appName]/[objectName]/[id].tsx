@@ -5,9 +5,11 @@ import { useClient, useQuery, useView } from "@objectstack/client-react";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { DetailViewRenderer } from "~/components/renderers";
-import type { FormViewMeta } from "~/components/renderers";
+import type { FormViewMeta, ActionMeta } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
+import { useRecordActions } from "~/hooks/useRecordActions";
+import { isActionVisible } from "~/lib/record-actions";
 import { renderRecordTitle } from "~/lib/record-title";
 
 export default function ObjectDetailScreen() {
@@ -104,6 +106,31 @@ export default function ObjectDetailScreen() {
     ]);
   }, [client, objectName, id, router, t]);
 
+  /* ---- Object actions (record_header inline, record_more overflow) ---- */
+  const allActions = useMemo<ActionMeta[]>(
+    () => ((meta?.actions as ActionMeta[] | undefined) ?? []).filter(isActionVisible),
+    [meta],
+  );
+  const headerActions = useMemo(
+    () =>
+      allActions.filter(
+        (a) => !a.locations || a.locations.includes("record_header"),
+      ),
+    [allActions],
+  );
+  const moreActions = useMemo(
+    () => allActions.filter((a) => a.locations?.includes("record_more")),
+    [allActions],
+  );
+
+  const { runAction, busyName, modals } = useRecordActions({
+    client,
+    objectName: objectName!,
+    recordId: id!,
+    record,
+    onRefresh: fetchRecord,
+  });
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <ScreenHeader title={String(displayName)} subtitle={positionLabel} />
@@ -119,12 +146,17 @@ export default function ObjectDetailScreen() {
           router.push(`/(app)/${appName}/${objectName}/${id}/edit` as any)
         }
         onDelete={handleDelete}
+        actions={headerActions}
+        moreActions={moreActions}
+        onAction={runAction}
+        busyActionName={busyName}
         onPrevious={handlePrevious}
         onNext={handleNext}
         hasPrevious={hasPrevious}
         hasNext={hasNext}
         positionLabel={positionLabel}
       />
+      {modals}
     </SafeAreaView>
   );
 }

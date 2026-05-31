@@ -1,7 +1,9 @@
 import React, { useMemo } from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
-import { FileText } from "lucide-react-native";
+import { View, Text, ScrollView } from "react-native";
+import { FileText, AlertCircle } from "lucide-react-native";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
+import { Skeleton } from "~/components/ui/Skeleton";
+import { EmptyState } from "~/components/ui/EmptyState";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -307,25 +309,46 @@ export function ReportRenderer({
 }: ReportRendererProps) {
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center py-12">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
+      <ScrollView className="flex-1">
+        <Card className="m-4">
+          <CardHeader>
+            <Skeleton className="h-5 w-32 rounded-md" />
+            <Skeleton className="mt-2 h-3 w-24 rounded-md" />
+          </CardHeader>
+          <CardContent>
+            <View className="gap-2.5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <View key={i} className="flex-row gap-3">
+                  <Skeleton className="h-4 flex-1 rounded-md" />
+                  <Skeleton className="h-4 w-16 rounded-md" />
+                  <Skeleton className="h-4 w-16 rounded-md" />
+                </View>
+              ))}
+            </View>
+          </CardContent>
+        </Card>
+      </ScrollView>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center px-6 py-12">
-        <Text className="text-destructive text-center">{error.message}</Text>
-      </View>
+      <EmptyState
+        icon={AlertCircle}
+        variant="error"
+        title="Couldn't Load Report"
+        description={error.message}
+      />
     );
   }
 
   if (!data.length) {
     return (
-      <View className="flex-1 items-center justify-center px-6 py-12">
-        <Text className="text-muted-foreground">No report data available</Text>
-      </View>
+      <EmptyState
+        icon={FileText}
+        title="No Report Data"
+        description="There's nothing to report for the current selection."
+      />
     );
   }
 

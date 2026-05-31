@@ -68,6 +68,14 @@
     "previous": "السابق",
     "next": "التالي"
   },
+  "actions": {
+    "title": "إجراءات",
+    "moreActions": "المزيد من الإجراءات",
+    "required": "{{field}} مطلوب",
+    "submit": "إرسال",
+    "completed": "اكتمل الإجراء",
+    "failed": "فشل الإجراء"
+  },
   "batch": {
     "selected": "{{count}} محدد",
     "deleteSelected": "حذف المحدد",

@@ -166,8 +166,8 @@ export default function AccountScreen() {
             placeholder="Your name"
             autoCapitalize="words"
           />
-          <Button onPress={onSaveName} disabled={isSaving || !name.trim()}>
-            <Text className="font-semibold text-primary-foreground">Save profile</Text>
+          <Button onPress={onSaveName} loading={isSaving} disabled={!name.trim()}>
+            Save profile
           </Button>
         </Section>
 
@@ -184,11 +184,11 @@ export default function AccountScreen() {
             autoCapitalize="none"
             keyboardType="email-address"
           />
-          <Button onPress={onChangeEmail} disabled={isSaving || !newEmail.trim()}>
-            <Text className="font-semibold text-primary-foreground">Change email</Text>
+          <Button onPress={onChangeEmail} loading={isSaving} disabled={!newEmail.trim()}>
+            Change email
           </Button>
           <Button variant="outline" onPress={onResendVerification} disabled={isSaving || !user?.email}>
-            <Text className="font-semibold text-foreground">Resend verification</Text>
+            Resend verification
           </Button>
         </Section>
 
@@ -217,8 +217,8 @@ export default function AccountScreen() {
             secureTextEntry
             autoCapitalize="none"
           />
-          <Button onPress={onChangePassword} disabled={isSaving || !currentPassword || !newPassword}>
-            <Text className="font-semibold text-primary-foreground">Change password</Text>
+          <Button onPress={onChangePassword} loading={isSaving} disabled={!currentPassword || !newPassword}>
+            Change password
           </Button>
         </Section>
 
@@ -236,8 +236,8 @@ export default function AccountScreen() {
                 secureTextEntry
                 autoCapitalize="none"
               />
-              <Button variant="destructive" onPress={onDisable2FA} disabled={twoFactor.isBusy || !tfPassword}>
-                <Text className="font-semibold text-destructive-foreground">Disable 2FA</Text>
+              <Button variant="destructive" onPress={onDisable2FA} loading={twoFactor.isBusy} disabled={!tfPassword}>
+                Disable 2FA
               </Button>
             </>
           ) : tfUri ? (
@@ -271,8 +271,8 @@ export default function AccountScreen() {
                 keyboardType="number-pad"
                 maxLength={6}
               />
-              <Button onPress={onVerify2FA} disabled={twoFactor.isBusy || tfCode.length < 6}>
-                <Text className="font-semibold text-primary-foreground">Confirm &amp; enable</Text>
+              <Button onPress={onVerify2FA} loading={twoFactor.isBusy} disabled={tfCode.length < 6}>
+                Confirm &amp; enable
               </Button>
             </>
           ) : (
@@ -288,8 +288,8 @@ export default function AccountScreen() {
                 secureTextEntry
                 autoCapitalize="none"
               />
-              <Button onPress={onEnable2FA} disabled={twoFactor.isBusy || !tfPassword}>
-                <Text className="font-semibold text-primary-foreground">Enable 2FA</Text>
+              <Button onPress={onEnable2FA} loading={twoFactor.isBusy} disabled={!tfPassword}>
+                Enable 2FA
               </Button>
             </>
           )}

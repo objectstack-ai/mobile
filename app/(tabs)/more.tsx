@@ -21,7 +21,7 @@ interface MenuItemProps {
 function MenuItem({ icon, label, onPress, showChevron = true, destructive = false }: MenuItemProps) {
   return (
     <TouchableOpacity
-      className="flex-row items-center px-5 py-3.5"
+      className="flex-row items-center px-5 py-3.5 active:bg-muted"
       onPress={onPress}
       accessibilityLabel={label}
       accessibilityRole="button"
@@ -51,13 +51,20 @@ export default function MoreScreen() {
   const { data: session } = authClient.useSession();
   const router = useRouter();
 
-  const handleSignOut = async () => {
+  const performSignOut = async () => {
     try {
       await authClient.signOut();
       router.replace("/(auth)/sign-in");
     } catch {
       Alert.alert("Error", "Failed to sign out. Please try again.");
     }
+  };
+
+  const handleSignOut = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: () => void performSignOut() },
+    ]);
   };
 
   return (

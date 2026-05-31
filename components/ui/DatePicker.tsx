@@ -8,6 +8,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { cn } from "~/lib/utils";
 import { formatDate, formatDateTime } from "~/lib/formatting";
 
@@ -182,8 +183,10 @@ export function DatePicker({
     <>
       <Pressable
         onPress={openPicker}
+        accessibilityRole="button"
+        accessibilityLabel={triggerLabel}
         className={cn(
-          "h-12 flex-row items-center justify-between rounded-xl border bg-background px-4",
+          "h-12 flex-row items-center justify-between rounded-xl border bg-background px-4 active:opacity-70",
           error ? "border-destructive" : "border-input",
           className,
         )}
@@ -240,7 +243,10 @@ export function DatePicker({
                           <View className="h-10 w-10" />
                         ) : (
                           <Pressable
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isSel }}
                             onPress={() => {
+                              void Haptics.selectionAsync();
                               const picked = new Date(viewYear, viewMonth, d);
                               setDraftDay(picked);
                               if (mode === "date") {

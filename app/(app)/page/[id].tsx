@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { useClient } from "@objectstack/client-react";
+import { AlertCircle } from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { EmptyState } from "~/components/ui/EmptyState";
 import { PageRenderer } from "~/components/renderers/PageRenderer";
 import {
   validatePageSchema,
@@ -60,9 +61,12 @@ export default function SDUIPageScreen() {
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <ScreenHeader title={schema?.label ?? id ?? "Page"} />
       {error && !isLoading ? (
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-destructive text-center">{error.message}</Text>
-        </View>
+        <EmptyState
+          icon={AlertCircle}
+          variant="error"
+          title="Couldn't Load Page"
+          description={error.message}
+        />
       ) : schema ? (
         <PageRenderer schema={schema} isLoading={isLoading} />
       ) : (

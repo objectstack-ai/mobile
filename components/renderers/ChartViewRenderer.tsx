@@ -1,7 +1,9 @@
 import React, { useMemo } from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
-import { BarChart3, TrendingUp, PieChart, Activity } from "lucide-react-native";
+import { View, Text, ScrollView } from "react-native";
+import { BarChart3, TrendingUp, PieChart, Activity, AlertCircle } from "lucide-react-native";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
+import { Skeleton } from "~/components/ui/Skeleton";
+import { EmptyState } from "~/components/ui/EmptyState";
 import type { AnalyticsDataPoint } from "~/hooks/useAnalyticsQuery";
 
 /* ------------------------------------------------------------------ */
@@ -242,17 +244,40 @@ export function ChartViewRenderer({
 }: ChartViewRendererProps) {
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#1e40af" />
-      </View>
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
+        <Card>
+          <CardHeader className="flex-row items-center justify-between pb-2">
+            <Skeleton className="h-4 w-24 rounded-md" />
+            <Skeleton className="h-9 w-9 rounded-lg" />
+          </CardHeader>
+          <CardContent>
+            <View
+              style={{ height: chartHeight }}
+              className="flex-row items-end justify-around px-2 pt-4"
+            >
+              {[0.5, 0.8, 0.4, 1, 0.65, 0.3].map((h, i) => (
+                <View key={i} className="mx-0.5 flex-1 items-center justify-end">
+                  <Skeleton
+                    className="w-full max-w-[40px] rounded-t-md"
+                    height={Math.max((chartHeight - 40) * h, 8)}
+                  />
+                </View>
+              ))}
+            </View>
+          </CardContent>
+        </Card>
+      </ScrollView>
     );
   }
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-base text-destructive">{error.message}</Text>
-      </View>
+      <EmptyState
+        icon={AlertCircle}
+        variant="error"
+        title="Couldn't Load Chart"
+        description={error.message}
+      />
     );
   }
 

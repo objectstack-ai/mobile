@@ -1,4 +1,5 @@
 import "../global.css";
+import "~/lib/i18n"; // Initialize i18next before any screen calls useTranslation()
 
 import { useCallback, useEffect, useMemo } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -11,6 +12,7 @@ import { authClient } from "~/lib/auth-client";
 import { createObjectStackClient } from "~/lib/objectstack";
 import { useServerStore } from "~/stores/server-store";
 import { usePushNotifications } from "~/hooks/usePushNotifications";
+import { ToastProvider } from "~/components/ui/Toast";
 
 const queryClient = new QueryClient();
 
@@ -95,14 +97,16 @@ export default function RootLayout() {
     <ObjectStackProvider client={client}>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-          <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
-          <StatusBar style="auto" />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(app)" />
-            <Stack.Screen name="account" />
-          </Stack>
+          <ToastProvider>
+            <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
+            <StatusBar style="auto" />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="(app)" />
+              <Stack.Screen name="account" />
+            </Stack>
+          </ToastProvider>
         </SafeAreaProvider>
       </QueryClientProvider>
     </ObjectStackProvider>

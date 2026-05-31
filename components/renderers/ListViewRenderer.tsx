@@ -7,9 +7,11 @@ import {
   RefreshControl,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { ChevronDown, ChevronUp, Check, Search as SearchIcon } from "lucide-react-native";
+import { ChevronDown, ChevronUp, Check, Search as SearchIcon, AlertCircle } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
+import { ListSkeleton } from "~/components/ui/ListSkeleton";
+import { Button } from "~/components/ui/Button";
 import { SearchBar } from "~/components/common/SearchBar";
 import { BatchActionBar } from "~/components/batch/BatchActionBar";
 import { formatDisplayValue } from "./fields/FieldRenderer";
@@ -561,17 +563,22 @@ export function ListViewRenderer({
   /* ---- Error state ---- */
   if (error && !isLoading) {
     return (
-      <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-base text-destructive">{error.message}</Text>
-        {onRefresh && (
-          <Pressable
-            className="mt-4 rounded-xl bg-primary px-5 py-3"
-            onPress={onRefresh}
-          >
-            <Text className="font-semibold text-primary-foreground">Retry</Text>
-          </Pressable>
-        )}
-      </View>
+      <EmptyState
+        icon={
+          <View className="h-20 w-20 items-center justify-center rounded-2xl bg-destructive/10">
+            <AlertCircle size={40} color="#dc2626" />
+          </View>
+        }
+        title="Couldn't Load Records"
+        description={error.message}
+        action={
+          onRefresh ? (
+            <Button size="sm" onPress={() => void onRefresh()}>
+              Retry
+            </Button>
+          ) : undefined
+        }
+      />
     );
   }
 
@@ -664,12 +671,14 @@ export function ListViewRenderer({
         }
         ListEmptyComponent={
           isLoading ? (
-            <View className="items-center justify-center pt-20">
-              <ActivityIndicator size="large" color="#1e40af" />
-            </View>
+            <ListSkeleton count={6} />
           ) : (
             <EmptyState
-              icon={<SearchIcon size={40} color="#94a3b8" />}
+              icon={
+                <View className="h-20 w-20 items-center justify-center rounded-2xl bg-muted">
+                  <SearchIcon size={40} color="#94a3b8" />
+                </View>
+              }
               title="No Records"
               description="No records found for this view."
             />
