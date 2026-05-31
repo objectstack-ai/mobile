@@ -6,12 +6,19 @@ import {
   getServerUrl,
   setServerUrl,
 } from "~/lib/server-url";
+import { fetchServerAuthConfig } from "~/lib/server-auth-config";
 
 interface ServerState {
   /** The configured ObjectStack server base URL, or `null` if unset. */
   serverUrl: string | null;
   /** True once the persisted URL has been read from storage on startup. */
   isReady: boolean;
+  /**
+   * Social provider IDs enabled on the connected server (e.g. ["google"]).
+   * `null` while the config hasn't been fetched yet; empty array when the
+   * server reports none or the config endpoint is unavailable.
+   */
+  ssoProviders: string[] | null;
   /** Load the persisted server URL and point the auth/data clients at it. */
   hydrate: () => Promise<void>;
   /** Persist a new server URL and re-target the auth/data clients reactively. */
@@ -40,20 +47,25 @@ function retargetClients(url: string) {
 export const useServerStore = create<ServerState>((set) => ({
   serverUrl: null,
   isReady: false,
+  ssoProviders: null,
   hydrate: async () => {
     const url = await getServerUrl();
     if (url) {
       retargetClients(url);
+      const authConfig = await fetchServerAuthConfig(url);
+      set({ serverUrl: url, isReady: true, ssoProviders: authConfig?.socialProviders ?? [] });
+    } else {
+      set({ serverUrl: null, isReady: true, ssoProviders: [] });
     }
-    set({ serverUrl: url, isReady: true });
   },
   connect: async (url) => {
     await setServerUrl(url);
     retargetClients(url);
-    set({ serverUrl: url });
+    const authConfig = await fetchServerAuthConfig(url);
+    set({ serverUrl: url, ssoProviders: authConfig?.socialProviders ?? [] });
   },
   reset: async () => {
     await clearServerUrl();
-    set({ serverUrl: null });
+    set({ serverUrl: null, ssoProviders: null });
   },
 }));

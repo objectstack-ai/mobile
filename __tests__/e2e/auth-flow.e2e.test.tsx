@@ -35,6 +35,11 @@ jest.mock("~/lib/auth-client", () => ({
   getAuthBaseURL: () => "http://localhost:3000",
 }));
 
+jest.mock("~/stores/server-store", () => ({
+  useServerStore: (selector: (s: { ssoProviders: string[] | null }) => unknown) =>
+    selector({ ssoProviders: ["google"] }),
+}));
+
 jest.spyOn(Alert, "alert");
 
 import SignInScreen from "~/app/(auth)/sign-in";
