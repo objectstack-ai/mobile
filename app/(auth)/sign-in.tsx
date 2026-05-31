@@ -13,9 +13,21 @@ import { Boxes, Eye, EyeOff } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { authClient } from "~/lib/auth-client";
+import { useServerStore } from "~/stores/server-store";
+
+const SSO_PROVIDER_LABELS: Record<string, string> = {
+  google: "Continue with Google",
+  apple: "Continue with Apple",
+  github: "Continue with GitHub",
+};
+
+const PLATFORM_RESTRICTED: Record<string, string[]> = {
+  apple: ["ios"],
+};
 
 export default function SignInScreen() {
   const router = useRouter();
+  const ssoProviders = useServerStore((s) => s.ssoProviders);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
@@ -46,12 +58,12 @@ export default function SignInScreen() {
     }
   };
 
-  const handleSocialSignIn = async (provider: "google" | "apple") => {
+  const handleSocialSignIn = async (provider: string) => {
     setErrorMsg(null);
     setLoading(true);
     try {
       await authClient.signIn.social({
-        provider,
+        provider: provider as Parameters<typeof authClient.signIn.social>[0]["provider"],
         callbackURL: "/(tabs)",
       });
     } catch {
@@ -60,6 +72,11 @@ export default function SignInScreen() {
       setLoading(false);
     }
   };
+
+  const visibleProviders = (ssoProviders ?? []).filter((id) => {
+    const platforms = PLATFORM_RESTRICTED[id];
+    return !platforms || platforms.includes(Platform.OS);
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -150,30 +167,28 @@ export default function SignInScreen() {
             </Button>
           </View>
 
-          <View className="my-8 flex-row items-center">
-            <View className="h-px flex-1 bg-border" />
-            <Text className="mx-4 text-sm text-muted-foreground">or</Text>
-            <View className="h-px flex-1 bg-border" />
-          </View>
+          {visibleProviders.length > 0 && (
+            <>
+              <View className="my-8 flex-row items-center">
+                <View className="h-px flex-1 bg-border" />
+                <Text className="mx-4 text-sm text-muted-foreground">or</Text>
+                <View className="h-px flex-1 bg-border" />
+              </View>
 
-          <View className="gap-3">
-            <Button
-              variant="outline"
-              onPress={() => handleSocialSignIn("google")}
-              disabled={loading}
-            >
-              Continue with Google
-            </Button>
-            {Platform.OS === "ios" && (
-              <Button
-                variant="outline"
-                onPress={() => handleSocialSignIn("apple")}
-                disabled={loading}
-              >
-                Continue with Apple
-              </Button>
-            )}
-          </View>
+              <View className="gap-3">
+                {visibleProviders.map((id) => (
+                  <Button
+                    key={id}
+                    variant="outline"
+                    onPress={() => handleSocialSignIn(id)}
+                    disabled={loading}
+                  >
+                    {SSO_PROVIDER_LABELS[id] ?? `Continue with ${id}`}
+                  </Button>
+                ))}
+              </View>
+            </>
+          )}
 
           <View className="mt-8 flex-row justify-center">
             <Text className="text-sm text-muted-foreground">
