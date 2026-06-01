@@ -9,8 +9,13 @@ import type { FormViewMeta, ActionMeta } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
 import { useRecordActions } from "~/hooks/useRecordActions";
-import { useRecordStateMachines } from "~/hooks/useStateMachines";
+import {
+  useRecordStateMachines,
+  type RecordStateMachine,
+  type SMTransition,
+} from "~/hooks/useStateMachines";
 import { RecordStateMachines } from "~/components/workflow/RecordStateMachines";
+import { useToast } from "~/components/ui/Toast";
 import { isActionVisible } from "~/lib/record-actions";
 import { renderRecordTitle } from "~/lib/record-title";
 
@@ -135,6 +140,41 @@ export default function ObjectDetailScreen() {
 
   /* ---- Lifecycle / state machine diagram(s) ---- */
   const stateMachines = useRecordStateMachines(meta, fields, record);
+  const { toastSuccess, toastError } = useToast();
+  const [pendingEvent, setPendingEvent] = useState<string | null>(null);
+
+  const handleTransition = useCallback(
+    (machine: RecordStateMachine, transition: SMTransition) => {
+      if (!machine.field || !objectName || !id) return;
+      const toLabel =
+        machine.states.find((s) => s.name === transition.to)?.label ?? transition.to;
+      Alert.alert(
+        t("workflow.updateStatus"),
+        t("workflow.moveToConfirm", { state: toLabel }),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("common.confirm"),
+            onPress: async () => {
+              setPendingEvent(`${machine.key}:${transition.event}`);
+              try {
+                await client.data.update(objectName, id, {
+                  [machine.field!]: transition.to,
+                });
+                await fetchRecord();
+                toastSuccess(t("workflow.statusUpdated"));
+              } catch {
+                toastError(t("workflow.statusUpdateFailed"));
+              } finally {
+                setPendingEvent(null);
+              }
+            },
+          },
+        ],
+      );
+    },
+    [client, objectName, id, t, fetchRecord, toastSuccess, toastError],
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
@@ -162,7 +202,11 @@ export default function ObjectDetailScreen() {
         positionLabel={positionLabel}
         footer={
           stateMachines.length > 0 ? (
-            <RecordStateMachines machines={stateMachines} />
+            <RecordStateMachines
+              machines={stateMachines}
+              onTransition={handleTransition}
+              pendingEvent={pendingEvent}
+            />
           ) : undefined
         }
       />

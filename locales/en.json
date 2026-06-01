@@ -64,6 +64,13 @@
     "previous": "Previous",
     "next": "Next"
   },
+  "workflow": {
+    "availableActions": "Available Actions",
+    "updateStatus": "Update Status",
+    "moveToConfirm": "Move this record to \"{{state}}\"?",
+    "statusUpdated": "Status updated.",
+    "statusUpdateFailed": "Failed to update status."
+  },
   "actions": {
     "title": "Actions",
     "moreActions": "More actions",
