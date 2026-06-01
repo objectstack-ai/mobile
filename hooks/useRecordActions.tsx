@@ -7,7 +7,7 @@
  * per-button spinners, and `modals` JSX the screen must render once.
  */
 import React from "react";
-import { Alert, Modal, ScrollView, Text, TextInput, View } from "react-native";
+import { Modal, ScrollView, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import type { ObjectStackClient } from "@objectstack/client";
@@ -17,6 +17,7 @@ import { Select } from "~/components/ui/Select";
 import { Switch } from "~/components/ui/Switch";
 import { DatePicker } from "~/components/ui/DatePicker";
 import { useToast } from "~/components/ui/Toast";
+import { useConfirm } from "~/components/ui/ConfirmDialog";
 import type { ActionMeta, ActionParamMeta } from "~/components/renderers/types";
 import { runRecordAction, type ActionRunContext } from "~/lib/record-actions";
 
@@ -80,15 +81,10 @@ export function useRecordActions({
   const [paramValues, setParamValues] = React.useState<Record<string, unknown>>({});
   const [resultState, setResultState] = React.useState<ResultState | null>(null);
 
+  const showConfirm = useConfirm();
   const confirm = React.useCallback(
-    (message: string) =>
-      new Promise<boolean>((resolve) => {
-        Alert.alert("", message, [
-          { text: t("common.cancel"), style: "cancel", onPress: () => resolve(false) },
-          { text: t("common.ok"), onPress: () => resolve(true) },
-        ]);
-      }),
-    [t],
+    (message: string) => showConfirm({ title: t("common.confirm"), message }),
+    [showConfirm, t],
   );
 
   const collectParams = React.useCallback(
@@ -162,12 +158,12 @@ export function useRecordActions({
       (p) => p.required && (paramValues[p.name] == null || paramValues[p.name] === ""),
     );
     if (missing) {
-      Alert.alert("", t("actions.required", { field: missing.label }));
+      toastError(t("actions.required", { field: missing.label }));
       return;
     }
     setParamState(null);
     state.resolve(paramValues);
-  }, [paramState, paramValues, t]);
+  }, [paramState, paramValues, t, toastError]);
 
   const cancelParams = React.useCallback(() => {
     const state = paramState;

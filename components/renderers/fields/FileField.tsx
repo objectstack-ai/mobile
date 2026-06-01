@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import {
   Camera,
   Upload,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react-native";
 import type { FieldDefinition } from "../types";
 import type { FileUploadResult } from "~/hooks/useFileUpload";
+import { useToast } from "~/components/ui/Toast";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -80,6 +81,7 @@ export function FileField({
   error,
 }: FileFieldProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const { toastError } = useToast();
   const fileInfo = resolveFileInfo(value);
 
   const handleUpload = useCallback(
@@ -92,12 +94,12 @@ export function FileField({
           onChange?.(result);
         }
       } catch {
-        Alert.alert("Upload Failed", "Could not upload the file. Please try again.");
+        toastError("Could not upload the file. Please try again.");
       } finally {
         setIsUploading(false);
       }
     },
-    [onChange],
+    [onChange, toastError],
   );
 
   /* ---- Read-only ---- */

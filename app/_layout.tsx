@@ -13,6 +13,7 @@ import { createObjectStackClient } from "~/lib/objectstack";
 import { useServerStore } from "~/stores/server-store";
 import { usePushNotifications } from "~/hooks/usePushNotifications";
 import { ToastProvider } from "~/components/ui/Toast";
+import { ConfirmProvider } from "~/components/ui/ConfirmDialog";
 
 const queryClient = new QueryClient();
 
@@ -98,15 +99,17 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <ToastProvider>
-            <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
-            <StatusBar style="auto" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="(app)" />
-              <Stack.Screen name="account" />
-              <Stack.Screen name="flows" />
-            </Stack>
+            <ConfirmProvider>
+              <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
+              <StatusBar style="auto" />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(app)" />
+                <Stack.Screen name="account" />
+                <Stack.Screen name="flows" />
+              </Stack>
+            </ConfirmProvider>
           </ToastProvider>
         </SafeAreaProvider>
       </QueryClientProvider>

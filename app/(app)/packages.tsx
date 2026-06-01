@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Package, ToggleLeft, ToggleRight, Trash2 } from "lucide-react-native";
@@ -13,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
+import { useConfirm } from "~/components/ui/ConfirmDialog";
 
 /**
  * Package management screen – list, enable, disable, uninstall packages.
@@ -22,6 +22,7 @@ import { ListSkeleton } from "~/components/ui/ListSkeleton";
 export default function PackagesScreen() {
   const { packages, isLoading, error, refetch, enable, disable, uninstall } =
     usePackageManagement();
+  const confirm = useConfirm();
 
   const handleToggle = async (id: string, enabled: boolean) => {
     try {
@@ -35,25 +36,19 @@ export default function PackagesScreen() {
     }
   };
 
-  const handleUninstall = (id: string, name: string) => {
-    Alert.alert(
-      "Uninstall Package",
-      `Are you sure you want to uninstall "${name}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Uninstall",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await uninstall(id);
-            } catch {
-              // Error is already set in the hook
-            }
-          },
-        },
-      ],
-    );
+  const handleUninstall = async (id: string, name: string) => {
+    const ok = await confirm({
+      title: "Uninstall Package",
+      message: `Are you sure you want to uninstall "${name}"?`,
+      confirmLabel: "Uninstall",
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await uninstall(id);
+    } catch {
+      // Error is already set in the hook
+    }
   };
 
   return (
