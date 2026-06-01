@@ -68,6 +68,13 @@
     "previous": "السابق",
     "next": "التالي"
   },
+  "workflow": {
+    "availableActions": "الإجراءات المتاحة",
+    "updateStatus": "تحديث الحالة",
+    "moveToConfirm": "نقل هذا السجل إلى \"{{state}}\"؟",
+    "statusUpdated": "تم تحديث الحالة.",
+    "statusUpdateFailed": "فشل تحديث الحالة."
+  },
   "actions": {
     "title": "إجراءات",
     "moreActions": "المزيد من الإجراءات",
