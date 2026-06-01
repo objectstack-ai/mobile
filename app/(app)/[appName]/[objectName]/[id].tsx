@@ -9,6 +9,8 @@ import type { FormViewMeta, ActionMeta } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
 import { useRecordActions } from "~/hooks/useRecordActions";
+import { useRecordStateMachines } from "~/hooks/useStateMachines";
+import { RecordStateMachines } from "~/components/workflow/RecordStateMachines";
 import { isActionVisible } from "~/lib/record-actions";
 import { renderRecordTitle } from "~/lib/record-title";
 
@@ -131,6 +133,9 @@ export default function ObjectDetailScreen() {
     onRefresh: fetchRecord,
   });
 
+  /* ---- Lifecycle / state machine diagram(s) ---- */
+  const stateMachines = useRecordStateMachines(meta, fields, record);
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <ScreenHeader title={String(displayName)} subtitle={positionLabel} />
@@ -155,6 +160,11 @@ export default function ObjectDetailScreen() {
         hasPrevious={hasPrevious}
         hasNext={hasNext}
         positionLabel={positionLabel}
+        footer={
+          stateMachines.length > 0 ? (
+            <RecordStateMachines machines={stateMachines} />
+          ) : undefined
+        }
       />
       {modals}
     </SafeAreaView>
