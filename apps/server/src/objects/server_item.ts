@@ -1,9 +1,8 @@
 import * as Data from '@objectstack/spec/data';
 
-const serverItem: Data.Object = {
+const serverItem: Data.ServiceObjectInput = {
   name: 'server_item',
   label: 'Server Item',
-  ownership: 'own',
   fields: {
     name: {
       type: 'text',

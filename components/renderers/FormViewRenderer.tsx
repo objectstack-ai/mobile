@@ -29,6 +29,37 @@ function isEntryField(f: FieldDefinition): boolean {
   return true;
 }
 
+/**
+ * Coerce form values into the wire format the data API expects before submit.
+ *
+ * `date`/`datetime` fields flow through the form (and the DatePicker) as
+ * epoch-ms numbers, but the ObjectStack data API requires ISO-8601 strings and
+ * rejects raw epochs with a `invalid_date` validation error. Convert any
+ * number / `Date` / numeric-string value on a date field to ISO-8601; leave
+ * `time` ("HH:MM"), already-ISO strings, and empty values untouched.
+ */
+function normalizeForSubmit(
+  values: Record<string, unknown>,
+  fields: FieldDefinition[],
+): Record<string, unknown> {
+  const dateFields = new Set(
+    fields.filter((f) => f.type === "date" || f.type === "datetime").map((f) => f.name),
+  );
+  if (dateFields.size === 0) return values;
+
+  const out: Record<string, unknown> = { ...values };
+  for (const name of dateFields) {
+    const v = out[name];
+    if (v == null || v === "") continue;
+    let d: Date | null = null;
+    if (v instanceof Date) d = v;
+    else if (typeof v === "number") d = new Date(v);
+    else if (typeof v === "string" && /^\d+$/.test(v.trim())) d = new Date(Number(v.trim()));
+    if (d && !isNaN(d.getTime())) out[name] = d.toISOString();
+  }
+  return out;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
 /* ------------------------------------------------------------------ */
@@ -227,7 +258,7 @@ export function FormViewRenderer({
       return;
     }
 
-    onSubmit?.(values);
+    onSubmit?.(normalizeForSubmit(values, fields));
   }, [sections, fields, values, onSubmit]);
 
   /* ---- Render ---- */
