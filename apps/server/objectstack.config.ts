@@ -1,7 +1,7 @@
-import { defineStack } from '@objectstack/spec';
+import { defineStack, type ObjectStackDefinition } from '@objectstack/spec';
 import * as objects from './src/objects';
 
-export default defineStack({
+const stack: ObjectStackDefinition = defineStack({
   manifest: {
     id: 'com.example.server',
     namespace: 'server',
@@ -13,3 +13,5 @@ export default defineStack({
 
   objects: Object.values(objects),
 });
+
+export default stack;
