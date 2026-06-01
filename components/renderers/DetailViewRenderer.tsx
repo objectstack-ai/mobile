@@ -87,6 +87,8 @@ export interface DetailViewRendererProps {
   allowEdit?: boolean;
   /** Permission: hide delete button when false */
   allowDelete?: boolean;
+  /** Extra content rendered at the end of the scroll body (e.g. lifecycle diagram). */
+  footer?: React.ReactNode;
 }
 
 export interface RelatedListConfig {
@@ -418,6 +420,7 @@ export function DetailViewRenderer({
   positionLabel,
   allowEdit = true,
   allowDelete = true,
+  footer,
 }: DetailViewRendererProps) {
   /* ---- Build sections ---- */
   const sections: FormSection[] = useMemo(() => {
@@ -556,6 +559,9 @@ export function DetailViewRenderer({
             onRecordPress={onRelatedRecordPress}
           />
         ))}
+
+        {/* Extra content (e.g. lifecycle / state machine diagram) */}
+        {footer}
       </ScrollView>
     </View>
   );
