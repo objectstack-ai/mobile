@@ -6,6 +6,7 @@ import {
   Globe,
   LogOut,
   ChevronRight,
+  Workflow,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { authClient } from "~/lib/auth-client";
@@ -102,6 +103,14 @@ export default function MoreScreen() {
           icon={<Bell size={20} color="#64748b" />}
           label="Notifications"
           onPress={() => router.push("/(tabs)/notifications")}
+        />
+
+        {/* Automation */}
+        <SectionHeader title="Automation" />
+        <MenuItem
+          icon={<Workflow size={20} color="#64748b" />}
+          label="Flows"
+          onPress={() => router.push("/flows")}
         />
 
         {/* Preferences */}
