@@ -98,6 +98,35 @@ async function readJson(res: Response): Promise<Record<string, unknown> | null> 
   }
 }
 
+/**
+ * Interpret a server response envelope into an {@link ActionResult}.
+ *
+ * Automation / action routes wrap the handler's own result, so a transport-level
+ * 200 with `{ success: true }` can still carry an INNER `{ success: false,
+ * error }` in `data` (e.g. "Action 'x' not found"). Checking only the outer
+ * flag reports those failures as success — so we unwrap one level and honour the
+ * inner `success` too, lifting the inner `error` for display.
+ */
+export function interpretEnvelope(
+  res: Pick<Response, "ok" | "status">,
+  json: Record<string, unknown> | null,
+  fallbackError: string,
+  reload: boolean,
+): ActionResult {
+  if (!res.ok || json?.success === false) {
+    return { success: false, error: (json?.error as string) ?? fallbackError };
+  }
+  const inner = json?.data;
+  if (inner && typeof inner === "object" && (inner as { success?: unknown }).success === false) {
+    const innerObj = inner as { error?: unknown };
+    return {
+      success: false,
+      error: typeof innerObj.error === "string" ? innerObj.error : fallbackError,
+    };
+  }
+  return { success: true, data: inner, reload };
+}
+
 /* ---- Per-type dispatch ------------------------------------------------- */
 
 async function dispatchUrl(
@@ -136,13 +165,12 @@ async function dispatchFlow(
     },
   );
   const json = await readJson(res);
-  if (!res.ok || json?.success === false) {
-    return {
-      success: false,
-      error: (json?.error as string) ?? `Flow "${flowName}" failed (HTTP ${res.status})`,
-    };
-  }
-  return { success: true, data: json?.data, reload: action.refreshAfter !== false };
+  return interpretEnvelope(
+    res,
+    json,
+    `Flow "${flowName}" failed (HTTP ${res.status})`,
+    action.refreshAfter !== false,
+  );
 }
 
 async function dispatchApi(
@@ -160,13 +188,12 @@ async function dispatchApi(
       body: JSON.stringify(params),
     });
     const json = await readJson(res);
-    if (!res.ok || json?.success === false) {
-      return {
-        success: false,
-        error: (json?.error as string) ?? `Request failed (HTTP ${res.status})`,
-      };
-    }
-    return { success: true, data: json?.data, reload: action.refreshAfter !== false };
+    return interpretEnvelope(
+      res,
+      json,
+      `Request failed (HTTP ${res.status})`,
+      action.refreshAfter !== false,
+    );
   }
   // Generic record mutation with the collected params.
   if (Object.keys(params).length > 0) {
@@ -191,13 +218,12 @@ async function dispatchServerAction(
     },
   );
   const json = await readJson(res);
-  if (!res.ok || json?.success === false) {
-    return {
-      success: false,
-      error: (json?.error as string) ?? `Action "${target}" failed (HTTP ${res.status})`,
-    };
-  }
-  return { success: true, data: json?.data, reload: action.refreshAfter === true };
+  return interpretEnvelope(
+    res,
+    json,
+    `Action "${target}" failed (HTTP ${res.status})`,
+    action.refreshAfter === true,
+  );
 }
 
 /* ---- Lifecycle --------------------------------------------------------- */
