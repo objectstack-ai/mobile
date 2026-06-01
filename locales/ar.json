@@ -73,7 +73,15 @@
     "updateStatus": "تحديث الحالة",
     "moveToConfirm": "نقل هذا السجل إلى \"{{state}}\"؟",
     "statusUpdated": "تم تحديث الحالة.",
-    "statusUpdateFailed": "فشل تحديث الحالة."
+    "statusUpdateFailed": "فشل تحديث الحالة.",
+    "runFlow": "تشغيل التدفق",
+    "runConfirm": "تشغيل \"{{flow}}\" الآن؟",
+    "runStarted": "بدأ تشغيل التدفق.",
+    "runFailed": "فشل تشغيل التدفق.",
+    "runHistory": "سجل التشغيل",
+    "noRuns": "لا توجد عمليات تشغيل بعد.",
+    "steps": "الخطوات",
+    "runLabel": "تشغيل"
   },
   "actions": {
     "title": "إجراءات",

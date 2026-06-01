@@ -69,7 +69,15 @@
     "updateStatus": "Update Status",
     "moveToConfirm": "Move this record to \"{{state}}\"?",
     "statusUpdated": "Status updated.",
-    "statusUpdateFailed": "Failed to update status."
+    "statusUpdateFailed": "Failed to update status.",
+    "runFlow": "Run Flow",
+    "runConfirm": "Run \"{{flow}}\" now?",
+    "runStarted": "Flow run started.",
+    "runFailed": "Flow run failed.",
+    "runHistory": "Run History",
+    "noRuns": "No runs yet.",
+    "steps": "Steps",
+    "runLabel": "Run"
   },
   "actions": {
     "title": "Actions",
