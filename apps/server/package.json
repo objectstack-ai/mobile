@@ -14,7 +14,10 @@
     "@objectstack/spec": "^7.5.0",
     "@objectstack/runtime": "^7.5.0",
     "@objectstack/objectql": "^7.5.0",
-    "@objectstack/driver-memory": "^7.5.0"
+    "@objectstack/driver-memory": "^7.5.0",
+    "@objectstack/service-automation": "^7.5.0",
+    "@objectstack/plugin-trigger-record-change": "^7.5.0",
+    "@objectstack/plugin-trigger-schedule": "^7.5.0"
   },
   "devDependencies": {
     "@objectstack/cli": "^7.5.0",
