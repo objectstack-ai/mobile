@@ -1,5 +1,5 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Alert, Pressable } from "react-native";
+import { Pressable } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
 import { useClient, useQuery, useView } from "@objectstack/client-react";
@@ -8,6 +8,8 @@ import { useCallback, useState } from "react";
 import { ListViewRenderer } from "~/components/renderers";
 import type { ListViewMeta } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { useToast } from "~/components/ui/Toast";
+import { useConfirm } from "~/components/ui/ConfirmDialog";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
 
 export default function ObjectListScreen() {
@@ -18,6 +20,8 @@ export default function ObjectListScreen() {
   const client = useClient();
   const router = useRouter();
   const { t } = useTranslation();
+  const { toastError } = useToast();
+  const confirm = useConfirm();
 
   const { data: viewData, isLoading: viewLoading } = useView(objectName!, "list");
   const { meta, fields } = useObjectMeta(objectName);
@@ -49,26 +53,24 @@ export default function ObjectListScreen() {
   );
 
   const handleSwipeDelete = useCallback(
-    (record: Record<string, unknown>) => {
+    async (record: Record<string, unknown>) => {
       const id = (record.id ?? record._id) as string;
       const label = (record.name ?? record.label ?? record.title ?? id) as string;
-      Alert.alert(t("records.deleteRecord"), t("records.deleteConfirmNamed", { label }), [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await client.data.delete(objectName!, id);
-              refetch();
-            } catch {
-              Alert.alert(t("common.error"), t("records.deleteFailed"));
-            }
-          },
-        },
-      ]);
+      const ok = await confirm({
+        title: t("records.deleteRecord"),
+        message: t("records.deleteConfirmNamed", { label }),
+        confirmLabel: t("common.delete"),
+        destructive: true,
+      });
+      if (!ok) return;
+      try {
+        await client.data.delete(objectName!, id);
+        refetch();
+      } catch {
+        toastError(t("records.deleteFailed"));
+      }
     },
-    [client, objectName, refetch, t],
+    [confirm, client, objectName, refetch, t, toastError],
   );
 
   const handleFilterChange = useCallback((f: unknown) => {

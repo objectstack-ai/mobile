@@ -1,5 +1,4 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Alert } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useClient, useQuery, useView } from "@objectstack/client-react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +15,7 @@ import {
 } from "~/hooks/useStateMachines";
 import { RecordStateMachines } from "~/components/workflow/RecordStateMachines";
 import { useToast } from "~/components/ui/Toast";
+import { useConfirm } from "~/components/ui/ConfirmDialog";
 import { isActionVisible } from "~/lib/record-actions";
 import { renderRecordTitle } from "~/lib/record-title";
 
@@ -28,6 +28,8 @@ export default function ObjectDetailScreen() {
   const client = useClient();
   const router = useRouter();
   const { t } = useTranslation();
+  const { toastSuccess, toastError } = useToast();
+  const confirm = useConfirm();
   const { data: viewData } = useView(objectName!, "form");
   const { meta, fields } = useObjectMeta(objectName);
 
@@ -95,23 +97,21 @@ export default function ObjectDetailScreen() {
     currentIndex >= 0 ? `${currentIndex + 1} of ${recordIds.length}` : undefined;
 
   /* ---- Delete handler ---- */
-  const handleDelete = useCallback(() => {
-    Alert.alert(t("records.deleteRecord"), t("records.deleteConfirm"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await client.data.delete(objectName!, id!);
-            router.back();
-          } catch {
-            Alert.alert(t("common.error"), t("records.deleteFailed"));
-          }
-        },
-      },
-    ]);
-  }, [client, objectName, id, router, t]);
+  const handleDelete = useCallback(async () => {
+    const ok = await confirm({
+      title: t("records.deleteRecord"),
+      message: t("records.deleteConfirm"),
+      confirmLabel: t("common.delete"),
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await client.data.delete(objectName!, id!);
+      router.back();
+    } catch {
+      toastError(t("records.deleteFailed"));
+    }
+  }, [confirm, client, objectName, id, router, t, toastError]);
 
   /* ---- Object actions (record_header inline, record_more overflow) ---- */
   const allActions = useMemo<ActionMeta[]>(
@@ -140,40 +140,32 @@ export default function ObjectDetailScreen() {
 
   /* ---- Lifecycle / state machine diagram(s) ---- */
   const stateMachines = useRecordStateMachines(meta, fields, record);
-  const { toastSuccess, toastError } = useToast();
   const [pendingEvent, setPendingEvent] = useState<string | null>(null);
 
   const handleTransition = useCallback(
-    (machine: RecordStateMachine, transition: SMTransition) => {
+    async (machine: RecordStateMachine, transition: SMTransition) => {
       if (!machine.field || !objectName || !id) return;
       const toLabel =
         machine.states.find((s) => s.name === transition.to)?.label ?? transition.to;
-      Alert.alert(
-        t("workflow.updateStatus"),
-        t("workflow.moveToConfirm", { state: toLabel }),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("common.confirm"),
-            onPress: async () => {
-              setPendingEvent(`${machine.key}:${transition.event}`);
-              try {
-                await client.data.update(objectName, id, {
-                  [machine.field!]: transition.to,
-                });
-                await fetchRecord();
-                toastSuccess(t("workflow.statusUpdated"));
-              } catch {
-                toastError(t("workflow.statusUpdateFailed"));
-              } finally {
-                setPendingEvent(null);
-              }
-            },
-          },
-        ],
-      );
+      const ok = await confirm({
+        title: t("workflow.updateStatus"),
+        message: t("workflow.moveToConfirm", { state: toLabel }),
+      });
+      if (!ok) return;
+      setPendingEvent(`${machine.key}:${transition.event}`);
+      try {
+        await client.data.update(objectName, id, {
+          [machine.field]: transition.to,
+        });
+        await fetchRecord();
+        toastSuccess(t("workflow.statusUpdated"));
+      } catch {
+        toastError(t("workflow.statusUpdateFailed"));
+      } finally {
+        setPendingEvent(null);
+      }
     },
-    [client, objectName, id, t, fetchRecord, toastSuccess, toastError],
+    [confirm, client, objectName, id, t, fetchRecord, toastSuccess, toastError],
   );
 
   return (

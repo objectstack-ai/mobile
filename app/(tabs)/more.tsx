@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   UserCircle,
@@ -10,6 +10,8 @@ import {
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { authClient } from "~/lib/auth-client";
+import { useToast } from "~/components/ui/Toast";
+import { useConfirm } from "~/components/ui/ConfirmDialog";
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -51,21 +53,26 @@ function SectionHeader({ title }: { title: string }) {
 export default function MoreScreen() {
   const { data: session } = authClient.useSession();
   const router = useRouter();
+  const { toastError } = useToast();
+  const confirm = useConfirm();
 
   const performSignOut = async () => {
     try {
       await authClient.signOut();
       router.replace("/(auth)/sign-in");
     } catch {
-      Alert.alert("Error", "Failed to sign out. Please try again.");
+      toastError("Failed to sign out. Please try again.");
     }
   };
 
-  const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: () => void performSignOut() },
-    ]);
+  const handleSignOut = async () => {
+    const ok = await confirm({
+      title: "Sign Out",
+      message: "Are you sure you want to sign out?",
+      confirmLabel: "Sign Out",
+      destructive: true,
+    });
+    if (ok) void performSignOut();
   };
 
   return (

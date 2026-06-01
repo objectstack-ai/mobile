@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Alert } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { authClient } from "~/lib/auth-client";
 import { useAccount } from "~/hooks/useAccount";
@@ -7,6 +7,7 @@ import { useTwoFactor } from "~/hooks/useTwoFactor";
 import { Input } from "~/components/ui/Input";
 import { Button } from "~/components/ui/Button";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
+import { useToast } from "~/components/ui/Toast";
 
 function Field({
   label,
@@ -58,9 +59,10 @@ export default function AccountScreen() {
   const [tfBackupCodes, setTfBackupCodes] = useState<string[]>([]);
   const [tfCode, setTfCode] = useState("");
 
-  const notify = (msg: string) => Alert.alert("Account", msg);
+  const { toastSuccess, toastError } = useToast();
+  const notify = (msg: string) => toastSuccess(msg);
   const fail = (e: unknown) =>
-    Alert.alert("Account", e instanceof Error ? e.message : "Something went wrong");
+    toastError(e instanceof Error ? e.message : "Something went wrong");
 
   const onSaveName = async () => {
     if (!name.trim()) return;
