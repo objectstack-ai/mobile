@@ -6,11 +6,21 @@ import React from "react";
 import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const mockFind = jest.fn();
-const mockUpdate = jest.fn();
+const mockListRequests = jest.fn();
+const mockGetRequest = jest.fn();
+const mockApprove = jest.fn();
+const mockReject = jest.fn();
 const mockGet = jest.fn();
 jest.mock("@objectstack/client-react", () => ({
-  useClient: () => ({ data: { find: mockFind, update: mockUpdate, get: mockGet } }),
+  useClient: () => ({
+    approvals: {
+      listRequests: mockListRequests,
+      getRequest: mockGetRequest,
+      approve: mockApprove,
+      reject: mockReject,
+    },
+    data: { get: mockGet },
+  }),
 }));
 
 import {
@@ -36,26 +46,24 @@ const REQ: ApprovalRequest = {
 };
 
 beforeEach(() => {
-  mockFind.mockReset();
-  mockUpdate.mockReset().mockResolvedValue({});
+  mockListRequests.mockReset();
+  mockGetRequest.mockReset();
+  mockApprove.mockReset().mockResolvedValue({ finalized: true, decision: "approve", resumed: true });
+  mockReject.mockReset().mockResolvedValue({ finalized: true, decision: "reject", resumed: true });
   mockGet.mockReset();
 });
 
 describe("useApprovals", () => {
-  it("queries pending requests and returns the rows", async () => {
-    mockFind.mockResolvedValue({ records: [REQ] });
+  it("lists pending requests via the approvals service", async () => {
+    mockListRequests.mockResolvedValue([REQ]);
     const { result } = renderHook(() => useApprovals(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockFind).toHaveBeenCalledWith("sys_approval_request", {
-      filter: ["status", "=", "pending"],
-      sort: "created_at desc",
-      top: 50,
-    });
+    expect(mockListRequests).toHaveBeenCalledWith({ status: "pending" });
     expect(result.current.data).toEqual([REQ]);
   });
 
-  it("returns an empty list when there are no records", async () => {
-    mockFind.mockResolvedValue({});
+  it("returns an empty list when the service returns none", async () => {
+    mockListRequests.mockResolvedValue([]);
     const { result } = renderHook(() => useApprovals(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([]);
@@ -64,10 +72,10 @@ describe("useApprovals", () => {
 
 describe("useApproval", () => {
   it("fetches a single request by id", async () => {
-    mockGet.mockResolvedValue({ record: REQ });
+    mockGetRequest.mockResolvedValue(REQ);
     const { result } = renderHook(() => useApproval("ar1"), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockGet).toHaveBeenCalledWith("sys_approval_request", "ar1");
+    expect(mockGetRequest).toHaveBeenCalledWith("ar1");
     expect(result.current.data).toEqual(REQ);
   });
 });
@@ -92,29 +100,26 @@ describe("useApprovalTarget", () => {
 });
 
 describe("useDecideApproval", () => {
-  it("approve sets status=approved on the request row", async () => {
+  it("approve calls approvals.approve (which resumes the flow)", async () => {
     const { result } = renderHook(() => useDecideApproval(), { wrapper });
     let res: { ok: boolean } = { ok: false };
     await act(async () => {
       res = await result.current.approve(REQ);
     });
     expect(res.ok).toBe(true);
-    expect(mockUpdate).toHaveBeenCalledWith("sys_approval_request", "ar1", { status: "approved" });
+    expect(mockApprove).toHaveBeenCalledWith("ar1", undefined);
   });
 
-  it("reject sets status=rejected and appends the reason to the comment", async () => {
+  it("reject calls approvals.reject with the reason as comment", async () => {
     const { result } = renderHook(() => useDecideApproval(), { wrapper });
     await act(async () => {
       await result.current.reject(REQ, "Over budget");
     });
-    expect(mockUpdate).toHaveBeenCalledWith("sys_approval_request", "ar1", {
-      status: "rejected",
-      submitter_comment: "Please approve.\n— Over budget",
-    });
+    expect(mockReject).toHaveBeenCalledWith("ar1", { comment: "Over budget" });
   });
 
-  it("reports an error when the update fails", async () => {
-    mockUpdate.mockRejectedValue(new Error("nope"));
+  it("reports an error when the decision fails", async () => {
+    mockApprove.mockRejectedValue(new Error("nope"));
     const { result } = renderHook(() => useDecideApproval(), { wrapper });
     let res: { ok: boolean; error?: string } = { ok: true };
     await act(async () => {

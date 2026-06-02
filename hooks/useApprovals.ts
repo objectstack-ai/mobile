@@ -41,12 +41,9 @@ export function useApprovals(): UseQueryResult<ApprovalRequest[], Error> {
   return useQuery({
     queryKey: PENDING_KEY,
     queryFn: async (): Promise<ApprovalRequest[]> => {
-      const res = await client.data.find<ApprovalRequest>("sys_approval_request", {
-        filter: ["status", "=", "pending"],
-        sort: "created_at desc",
-        top: 50,
-      });
-      return res?.records ?? [];
+      // `approvals` service returns `[]` when no approvals plugin is loaded.
+      const rows = await client.approvals.listRequests({ status: "pending" });
+      return (rows ?? []) as ApprovalRequest[];
     },
   });
 }
@@ -60,8 +57,8 @@ export function useApproval(
     queryKey: ["approval", id],
     enabled: !!id,
     queryFn: async () => {
-      const res = await client.data.get<ApprovalRequest>("sys_approval_request", id!);
-      return (res?.record ?? null) as ApprovalRequest | null;
+      const row = await client.approvals.getRequest(id!);
+      return (row ?? null) as ApprovalRequest | null;
     },
   });
 }
@@ -91,14 +88,11 @@ export function useApprovalTarget(req: ApprovalRequest | null | undefined): {
 /* ------------------------------------------------------------------ */
 
 /**
- * Approve / reject a pending request by recording the decision on the
- * `sys_approval_request` row (`status` → `approved` / `rejected`), which drops
- * it from the pending inbox. The reject reason is appended to the row's comment
- * for an audit trail. The pending list is refreshed afterwards regardless of
- * outcome.
- *
- * Note: this records the decision; resuming a flow that's blocked on the request
- * is handled server-side by the approval/workflow service when present.
+ * Approve / reject a pending request via the approvals service
+ * (`client.approvals.approve|reject`). The server records the decision AND
+ * resumes the owning flow run down the matching `approve` / `reject` edge
+ * (ADR-0019) — unlike a bare `status` write, which would leave the flow blocked.
+ * The pending list + single-request caches are refreshed afterwards.
  */
 export function useDecideApproval(): {
   approve: (req: ApprovalRequest, comment?: string) => Promise<DecisionResult>;
@@ -112,18 +106,16 @@ export function useDecideApproval(): {
   const decide = useCallback(
     async (
       req: ApprovalRequest,
-      status: "approved" | "rejected",
-      note?: string,
+      decision: "approve" | "reject",
+      comment?: string,
     ): Promise<DecisionResult> => {
       setPendingId(req.id);
       try {
-        const patch: Record<string, unknown> = { status };
-        if (note) {
-          patch.submitter_comment = req.submitter_comment
-            ? `${req.submitter_comment}\n— ${note}`
-            : note;
+        if (decision === "approve") {
+          await client.approvals.approve(req.id, comment ? { comment } : undefined);
+        } else {
+          await client.approvals.reject(req.id, comment ? { comment } : undefined);
         }
-        await client.data.update("sys_approval_request", req.id, patch);
         return { ok: true };
       } catch (err) {
         return { ok: false, error: err instanceof Error ? err.message : "Decision failed" };
@@ -137,11 +129,11 @@ export function useDecideApproval(): {
   );
 
   const approve = useCallback(
-    (req: ApprovalRequest, comment?: string) => decide(req, "approved", comment),
+    (req: ApprovalRequest, comment?: string) => decide(req, "approve", comment),
     [decide],
   );
   const reject = useCallback(
-    (req: ApprovalRequest, reason: string) => decide(req, "rejected", reason),
+    (req: ApprovalRequest, reason: string) => decide(req, "reject", reason),
     [decide],
   );
 
