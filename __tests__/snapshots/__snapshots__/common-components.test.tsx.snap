@@ -99,10 +99,13 @@ exports[`SearchBar snapshots renders with custom placeholder 1`] = `
     size={18}
   />
   <TextInput
+    accessibilityLabel="Find records…"
     className="h-12 flex-1 text-base text-foreground placeholder:text-muted-foreground"
+    clearButtonMode="never"
     onChangeText={[Function]}
     placeholder="Find records…"
     placeholderTextColor="#94a3b8"
+    returnKeyType="search"
     value=""
   />
 </View>
@@ -117,10 +120,13 @@ exports[`SearchBar snapshots renders with default placeholder 1`] = `
     size={18}
   />
   <TextInput
+    accessibilityLabel="Search…"
     className="h-12 flex-1 text-base text-foreground placeholder:text-muted-foreground"
+    clearButtonMode="never"
     onChangeText={[Function]}
     placeholder="Search…"
     placeholderTextColor="#94a3b8"
+    returnKeyType="search"
     value=""
   />
 </View>
@@ -135,11 +141,54 @@ exports[`SearchBar snapshots renders with value 1`] = `
     size={18}
   />
   <TextInput
+    accessibilityLabel="Search…"
     className="h-12 flex-1 text-base text-foreground placeholder:text-muted-foreground"
+    clearButtonMode="never"
     onChangeText={[Function]}
     placeholder="Search…"
     placeholderTextColor="#94a3b8"
+    returnKeyType="search"
     value="test query"
   />
+  <View
+    accessibilityLabel="Clear search"
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    className="rounded-full p-1 active:opacity-60"
+    collapsable={false}
+    focusable={true}
+    hitSlop={8}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+  >
+    <View
+      className="text-muted-foreground"
+      size={16}
+    />
+  </View>
 </View>
 `;

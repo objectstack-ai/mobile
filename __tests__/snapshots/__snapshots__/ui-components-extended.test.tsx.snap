@@ -58,7 +58,7 @@ exports[`Checkbox snapshots renders checked 1`] = `
     {
       "busy": undefined,
       "checked": true,
-      "disabled": undefined,
+      "disabled": false,
       "expanded": undefined,
       "selected": undefined,
     }
@@ -72,9 +72,10 @@ exports[`Checkbox snapshots renders checked 1`] = `
     }
   }
   accessible={true}
-  className="h-5 w-5 items-center justify-center rounded border border-primary bg-primary"
+  className="h-5 w-5 items-center justify-center rounded border border-primary bg-primary active:opacity-70"
   collapsable={false}
   focusable={true}
+  hitSlop={8}
   onBlur={[Function]}
   onClick={[Function]}
   onFocus={[Function]}
@@ -87,7 +88,7 @@ exports[`Checkbox snapshots renders checked 1`] = `
   role="checkbox"
 >
   <View
-    className="text-primary-foreground"
+    color="#ffffff"
     size={14}
   />
 </View>
@@ -116,6 +117,7 @@ exports[`Checkbox snapshots renders disabled 1`] = `
   className="h-5 w-5 items-center justify-center rounded border border-input bg-background opacity-50"
   collapsable={false}
   focusable={true}
+  hitSlop={8}
   onBlur={[Function]}
   onClick={[Function]}
   onFocus={[Function]}
@@ -135,7 +137,7 @@ exports[`Checkbox snapshots renders unchecked 1`] = `
     {
       "busy": undefined,
       "checked": false,
-      "disabled": undefined,
+      "disabled": false,
       "expanded": undefined,
       "selected": undefined,
     }
@@ -149,9 +151,10 @@ exports[`Checkbox snapshots renders unchecked 1`] = `
     }
   }
   accessible={true}
-  className="h-5 w-5 items-center justify-center rounded border border-input bg-background"
+  className="h-5 w-5 items-center justify-center rounded border border-input bg-background active:opacity-70"
   collapsable={false}
   focusable={true}
+  hitSlop={8}
   onBlur={[Function]}
   onClick={[Function]}
   onFocus={[Function]}
@@ -167,10 +170,10 @@ exports[`Checkbox snapshots renders unchecked 1`] = `
 
 exports[`Input snapshots renders default input 1`] = `
 <View
-  className="rounded-xl border border-input bg-background px-4"
+  className="h-12 flex-row items-center rounded-xl border border-input bg-background px-4"
 >
   <TextInput
-    className="h-12 text-base text-foreground placeholder:text-muted-foreground"
+    className="h-full flex-1 text-base text-foreground placeholder:text-muted-foreground"
     onBlur={[Function]}
     onFocus={[Function]}
     placeholder="Enter text"
@@ -181,10 +184,10 @@ exports[`Input snapshots renders default input 1`] = `
 
 exports[`Input snapshots renders with custom class 1`] = `
 <View
-  className="rounded-xl border border-input px-4 bg-red-50"
+  className="h-12 flex-row items-center rounded-xl border border-input px-4 bg-red-50"
 >
   <TextInput
-    className="h-12 text-base text-foreground placeholder:text-muted-foreground"
+    className="h-full flex-1 text-base text-foreground placeholder:text-muted-foreground"
     onBlur={[Function]}
     onFocus={[Function]}
     placeholder="Search"
@@ -223,7 +226,7 @@ exports[`Switch snapshots renders checked 1`] = `
     {
       "busy": undefined,
       "checked": true,
-      "disabled": undefined,
+      "disabled": false,
       "expanded": undefined,
       "selected": undefined,
     }
@@ -237,9 +240,10 @@ exports[`Switch snapshots renders checked 1`] = `
     }
   }
   accessible={true}
-  className="h-7 w-12 rounded-full justify-center bg-primary"
+  className="h-7 w-12 rounded-full justify-center bg-primary active:opacity-80"
   collapsable={false}
   focusable={true}
+  hitSlop={6}
   onBlur={[Function]}
   onClick={[Function]}
   onFocus={[Function]}
@@ -289,6 +293,7 @@ exports[`Switch snapshots renders disabled 1`] = `
   className="h-7 w-12 rounded-full justify-center bg-input opacity-50"
   collapsable={false}
   focusable={true}
+  hitSlop={6}
   onBlur={[Function]}
   onClick={[Function]}
   onFocus={[Function]}
@@ -321,7 +326,7 @@ exports[`Switch snapshots renders unchecked 1`] = `
     {
       "busy": undefined,
       "checked": false,
-      "disabled": undefined,
+      "disabled": false,
       "expanded": undefined,
       "selected": undefined,
     }
@@ -335,9 +340,10 @@ exports[`Switch snapshots renders unchecked 1`] = `
     }
   }
   accessible={true}
-  className="h-7 w-12 rounded-full justify-center bg-input"
+  className="h-7 w-12 rounded-full justify-center bg-input active:opacity-80"
   collapsable={false}
   focusable={true}
+  hitSlop={6}
   onBlur={[Function]}
   onClick={[Function]}
   onFocus={[Function]}
