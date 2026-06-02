@@ -51,6 +51,41 @@ export function useApprovals(): UseQueryResult<ApprovalRequest[], Error> {
   });
 }
 
+/** Fetch a single approval request by id. */
+export function useApproval(
+  id: string | undefined,
+): UseQueryResult<ApprovalRequest | null, Error> {
+  const client = useClient();
+  return useQuery({
+    queryKey: ["approval", id],
+    enabled: !!id,
+    queryFn: async () => {
+      const res = await client.data.get<ApprovalRequest>("sys_approval_request", id!);
+      return (res?.record ?? null) as ApprovalRequest | null;
+    },
+  });
+}
+
+/** The business record an approval request is about, plus its object metadata. */
+export function useApprovalTarget(req: ApprovalRequest | null | undefined): {
+  record: Record<string, unknown> | null;
+  isLoading: boolean;
+  error: Error | null;
+} {
+  const client = useClient();
+  const object = req?.object_name;
+  const recordId = req?.record_id;
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["approval-target", object, recordId],
+    enabled: !!object && !!recordId,
+    queryFn: async () => {
+      const res = await client.data.get<Record<string, unknown>>(object!, recordId!);
+      return (res?.record ?? res ?? null) as Record<string, unknown> | null;
+    },
+  });
+  return { record: data ?? null, isLoading, error: error ?? null };
+}
+
 /* ------------------------------------------------------------------ */
 /*  Decide                                                            */
 /* ------------------------------------------------------------------ */
@@ -95,6 +130,7 @@ export function useDecideApproval(): {
       } finally {
         setPendingId(null);
         void queryClient.invalidateQueries({ queryKey: PENDING_KEY });
+        void queryClient.invalidateQueries({ queryKey: ["approval"] });
       }
     },
     [client, queryClient],

@@ -92,7 +92,8 @@
     "rejected": "Rejected.",
     "decisionFailed": "Decision failed.",
     "rejectReason": "Provide a reason for rejection.",
-    "rejectReasonPlaceholder": "Reason…"
+    "rejectReasonPlaceholder": "Reason…",
+    "review": "Review"
   },
   "actions": {
     "title": "Actions",
