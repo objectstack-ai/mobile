@@ -79,6 +79,21 @@
     "steps": "Steps",
     "runLabel": "Run"
   },
+  "approvals": {
+    "title": "Approvals",
+    "pendingCount": "{{count}} pending",
+    "empty": "No pending approvals",
+    "emptyHint": "You're all caught up.",
+    "loadError": "Couldn't load approvals",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveConfirm": "Approve \"{{name}}\"?",
+    "approved": "Approved.",
+    "rejected": "Rejected.",
+    "decisionFailed": "Decision failed.",
+    "rejectReason": "Provide a reason for rejection.",
+    "rejectReasonPlaceholder": "Reason…"
+  },
   "actions": {
     "title": "Actions",
     "moreActions": "More actions",

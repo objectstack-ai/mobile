@@ -307,6 +307,9 @@ importers:
       '@objectstack/objectql':
         specifier: ^7.5.0
         version: 7.5.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/plugin-approvals':
+        specifier: ^7.5.0
+        version: 7.5.0(ai@6.0.193(zod@4.4.3))
       '@objectstack/plugin-trigger-record-change':
         specifier: ^7.5.0
         version: 7.5.0(ai@6.0.193(zod@4.4.3))
