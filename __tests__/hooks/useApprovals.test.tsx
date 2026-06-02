@@ -8,11 +8,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const mockFind = jest.fn();
 const mockUpdate = jest.fn();
+const mockGet = jest.fn();
 jest.mock("@objectstack/client-react", () => ({
-  useClient: () => ({ data: { find: mockFind, update: mockUpdate } }),
+  useClient: () => ({ data: { find: mockFind, update: mockUpdate, get: mockGet } }),
 }));
 
-import { useApprovals, useDecideApproval, type ApprovalRequest } from "~/hooks/useApprovals";
+import {
+  useApprovals,
+  useApproval,
+  useApprovalTarget,
+  useDecideApproval,
+  type ApprovalRequest,
+} from "~/hooks/useApprovals";
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -31,6 +38,7 @@ const REQ: ApprovalRequest = {
 beforeEach(() => {
   mockFind.mockReset();
   mockUpdate.mockReset().mockResolvedValue({});
+  mockGet.mockReset();
 });
 
 describe("useApprovals", () => {
@@ -51,6 +59,35 @@ describe("useApprovals", () => {
     const { result } = renderHook(() => useApprovals(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([]);
+  });
+});
+
+describe("useApproval", () => {
+  it("fetches a single request by id", async () => {
+    mockGet.mockResolvedValue({ record: REQ });
+    const { result } = renderHook(() => useApproval("ar1"), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockGet).toHaveBeenCalledWith("sys_approval_request", "ar1");
+    expect(result.current.data).toEqual(REQ);
+  });
+});
+
+describe("useApprovalTarget", () => {
+  it("fetches the business record named by the request", async () => {
+    mockGet.mockResolvedValue({ record: { id: "opp1", name: "Acme Deal" } });
+    const { result } = renderHook(() => useApprovalTarget(REQ), { wrapper });
+    await waitFor(() => expect(result.current.record).toBeTruthy());
+    expect(mockGet).toHaveBeenCalledWith("crm_opportunity", "opp1");
+    expect(result.current.record).toEqual({ id: "opp1", name: "Acme Deal" });
+  });
+
+  it("does not fetch when the request has no target", async () => {
+    const { result } = renderHook(() => useApprovalTarget({ id: "x", status: "pending" }), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(result.current.record).toBeNull();
   });
 });
 

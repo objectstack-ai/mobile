@@ -1,126 +1,71 @@
-import { useState } from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Inbox, Check, X } from "lucide-react-native";
+import { Inbox, ChevronRight } from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { Badge } from "~/components/ui/Badge";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
-import { useToast } from "~/components/ui/Toast";
-import { useConfirm } from "~/components/ui/ConfirmDialog";
-import { RejectReasonDialog } from "~/components/approvals/RejectReasonDialog";
+import { PressableCard } from "~/components/ui/PressableCard";
+import { ApprovalActions } from "~/components/approvals/ApprovalActions";
 import { formatDateTime } from "~/lib/formatting";
-import {
-  useApprovals,
-  useDecideApproval,
-  type ApprovalRequest,
-} from "~/hooks/useApprovals";
+import { useApprovals, type ApprovalRequest } from "~/hooks/useApprovals";
 
-function ApprovalCard({
-  req,
-  busy,
-  onApprove,
-  onReject,
-}: {
-  req: ApprovalRequest;
-  busy: boolean;
-  onApprove: () => void;
-  onReject: () => void;
-}) {
+function humanize(token: string): string {
+  return token.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function ApprovalCard({ req, onOpen }: { req: ApprovalRequest; onOpen: () => void }) {
   const { t } = useTranslation();
   return (
     <View className="mb-3 rounded-xl border border-border bg-card p-4">
-      <View className="flex-row items-start justify-between gap-2">
-        <Text className="flex-1 text-base font-semibold text-foreground">
-          {req.process_name ?? t("approvals.title")}
-        </Text>
-        {req.current_step ? <Badge variant="secondary">{req.current_step}</Badge> : null}
-      </View>
-      {req.object_name && req.record_id ? (
-        <Text className="mt-0.5 text-xs text-muted-foreground">
-          {req.object_name} · {req.record_id}
-        </Text>
-      ) : null}
-      {req.submitter_comment ? (
-        <Text className="mt-2 text-sm text-foreground">{req.submitter_comment}</Text>
-      ) : null}
-      {req.created_at ? (
-        <Text className="mt-2 text-xs text-muted-foreground">{formatDateTime(req.created_at)}</Text>
-      ) : null}
-
-      <View className="mt-3 flex-row gap-2">
-        <Pressable
-          onPress={onApprove}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel={`${t("approvals.approve")} ${req.process_name ?? req.id}`}
-          className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 ${
-            busy ? "opacity-50" : "active:opacity-80"
-          }`}
-        >
-          {busy ? (
-            <ActivityIndicator size="small" color="#ffffff" />
-          ) : (
-            <Check size={16} color="#ffffff" />
-          )}
-          <Text className="text-sm font-medium text-primary-foreground">
-            {t("approvals.approve")}
+      <PressableCard
+        onPress={onOpen}
+        className="flex-row items-start gap-2"
+        accessibilityLabel={`${t("approvals.review")} ${req.process_name ?? req.id}`}
+      >
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-foreground">
+            {req.process_name ?? t("approvals.title")}
           </Text>
-        </Pressable>
-        <Pressable
-          onPress={onReject}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel={`${t("approvals.reject")} ${req.process_name ?? req.id}`}
-          className={`flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-destructive px-3 py-2.5 ${
-            busy ? "opacity-50" : "active:bg-destructive/10"
-          }`}
-        >
-          <X size={16} color="#dc2626" />
-          <Text className="text-sm font-medium text-destructive">{t("approvals.reject")}</Text>
-        </Pressable>
+          {req.object_name ? (
+            <Text className="mt-0.5 text-xs text-muted-foreground">{humanize(req.object_name)}</Text>
+          ) : null}
+          {req.submitter_comment ? (
+            <Text className="mt-2 text-sm text-foreground" numberOfLines={2}>
+              {req.submitter_comment}
+            </Text>
+          ) : null}
+          {req.created_at ? (
+            <Text className="mt-2 text-xs text-muted-foreground">
+              {formatDateTime(req.created_at)}
+            </Text>
+          ) : null}
+        </View>
+        <View className="flex-row items-center gap-1">
+          {req.current_step ? <Badge variant="secondary">{req.current_step}</Badge> : null}
+          <ChevronRight size={18} color="#94a3b8" />
+        </View>
+      </PressableCard>
+
+      <View className="mt-3">
+        <ApprovalActions req={req} />
       </View>
     </View>
   );
 }
 
 /**
- * Approvals inbox — lists the current user's pending approval requests and lets
- * them approve (with an optional comment) or reject (with a required reason).
- * Surfaces the previously-unused workflow approve/reject API.
+ * Approvals inbox — the current user's pending requests. Each row links to a
+ * review screen (the record under approval) and offers quick approve / reject.
  */
 export default function ApprovalsScreen() {
   const { t } = useTranslation();
-  const { toastSuccess, toastError } = useToast();
-  const confirm = useConfirm();
+  const router = useRouter();
   const { data: requests, isLoading, error, refetch, isRefetching } = useApprovals();
-  const { approve, reject, pendingId } = useDecideApproval();
-
-  const [rejectTarget, setRejectTarget] = useState<ApprovalRequest | null>(null);
 
   const count = requests?.length ?? 0;
-
-  const handleApprove = async (req: ApprovalRequest) => {
-    const ok = await confirm({
-      title: t("approvals.approve"),
-      message: t("approvals.approveConfirm", { name: req.process_name ?? req.id }),
-      confirmLabel: t("approvals.approve"),
-    });
-    if (!ok) return;
-    const res = await approve(req);
-    if (res.ok) toastSuccess(t("approvals.approved"));
-    else toastError(res.error ?? t("approvals.decisionFailed"));
-  };
-
-  const handleReject = async (reason: string) => {
-    const req = rejectTarget;
-    setRejectTarget(null);
-    if (!req) return;
-    const res = await reject(req, reason);
-    if (res.ok) toastSuccess(t("approvals.rejected"));
-    else toastError(res.error ?? t("approvals.decisionFailed"));
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
@@ -148,20 +93,11 @@ export default function ApprovalsScreen() {
             <ApprovalCard
               key={req.id}
               req={req}
-              busy={pendingId === req.id}
-              onApprove={() => void handleApprove(req)}
-              onReject={() => setRejectTarget(req)}
+              onOpen={() => router.push(`/approvals/${encodeURIComponent(req.id)}`)}
             />
           ))}
         </ScrollView>
       )}
-
-      <RejectReasonDialog
-        open={!!rejectTarget}
-        isSubmitting={!!rejectTarget && pendingId === rejectTarget.id}
-        onCancel={() => setRejectTarget(null)}
-        onReject={(reason) => void handleReject(reason)}
-      />
     </SafeAreaView>
   );
 }

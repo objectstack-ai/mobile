@@ -96,7 +96,8 @@
     "rejected": "تم الرفض.",
     "decisionFailed": "فشلت العملية.",
     "rejectReason": "يرجى تقديم سبب الرفض.",
-    "rejectReasonPlaceholder": "السبب…"
+    "rejectReasonPlaceholder": "السبب…",
+    "review": "مراجعة"
   },
   "actions": {
     "title": "إجراءات",
