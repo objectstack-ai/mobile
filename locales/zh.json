@@ -78,6 +78,21 @@
     "steps": "步骤",
     "runLabel": "运行"
   },
+  "approvals": {
+    "title": "审批",
+    "pendingCount": "{{count}} 项待审批",
+    "empty": "暂无待审批",
+    "emptyHint": "你已全部处理完。",
+    "loadError": "加载审批失败",
+    "approve": "批准",
+    "reject": "驳回",
+    "approveConfirm": "批准“{{name}}”？",
+    "approved": "已批准。",
+    "rejected": "已驳回。",
+    "decisionFailed": "操作失败。",
+    "rejectReason": "请填写驳回理由。",
+    "rejectReasonPlaceholder": "理由…"
+  },
   "actions": {
     "title": "操作",
     "moreActions": "更多操作",

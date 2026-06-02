@@ -83,6 +83,21 @@
     "steps": "الخطوات",
     "runLabel": "تشغيل"
   },
+  "approvals": {
+    "title": "الموافقات",
+    "pendingCount": "{{count}} قيد الانتظار",
+    "empty": "لا توجد موافقات معلقة",
+    "emptyHint": "لقد أنجزت كل شيء.",
+    "loadError": "تعذّر تحميل الموافقات",
+    "approve": "موافقة",
+    "reject": "رفض",
+    "approveConfirm": "الموافقة على \"{{name}}\"؟",
+    "approved": "تمت الموافقة.",
+    "rejected": "تم الرفض.",
+    "decisionFailed": "فشلت العملية.",
+    "rejectReason": "يرجى تقديم سبب الرفض.",
+    "rejectReasonPlaceholder": "السبب…"
+  },
   "actions": {
     "title": "إجراءات",
     "moreActions": "المزيد من الإجراءات",
