@@ -9,8 +9,10 @@ import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useToast } from "~/components/ui/Toast";
 import { useConfirm } from "~/components/ui/ConfirmDialog";
+import { useState } from "react";
 import { FlowViewer } from "~/components/automation/FlowViewer";
 import { FlowRunList } from "~/components/automation/FlowRunList";
+import { FlowRunDialog } from "~/components/automation/FlowRunDialog";
 import { useFlow } from "~/hooks/useFlows";
 import { useFlowRuns, useTriggerFlow } from "~/hooks/useFlowRuns";
 
@@ -35,21 +37,32 @@ export default function FlowDetailScreen() {
   const { trigger, isTriggering } = useTriggerFlow();
 
   const runs = runsData?.runs ?? [];
+  const [runDialogOpen, setRunDialogOpen] = useState(false);
 
-  const handleRun = async () => {
+  const runFlow = async (params?: Record<string, unknown>) => {
     if (!flow) return;
-    const ok = await confirm({
-      title: t("workflow.runFlow"),
-      message: t("workflow.runConfirm", { flow: flow.label }),
-      confirmLabel: t("workflow.runLabel"),
-    });
-    if (!ok) return;
-    const result = await trigger(flow.name);
+    const result = await trigger(flow.name, params ? { params } : undefined);
     if (result.ok) {
       toastSuccess(t("workflow.runStarted"));
     } else {
       toastError(result.error ?? t("workflow.runFailed"));
     }
+  };
+
+  const handleRun = async () => {
+    if (!flow) return;
+    // Input-driven flows collect their variables first; field-less flows just
+    // confirm and run.
+    if (flow.variables.some((v) => v.isInput)) {
+      setRunDialogOpen(true);
+      return;
+    }
+    const ok = await confirm({
+      title: t("workflow.runFlow"),
+      message: t("workflow.runConfirm", { flow: flow.label }),
+      confirmLabel: t("workflow.runLabel"),
+    });
+    if (ok) await runFlow();
   };
 
   if (isLoading) {
@@ -149,6 +162,18 @@ export default function FlowDetailScreen() {
           )}
         </View>
       </ScrollView>
+
+      <FlowRunDialog
+        open={runDialogOpen}
+        flowLabel={flow.label}
+        inputs={inputs}
+        isRunning={isTriggering}
+        onCancel={() => setRunDialogOpen(false)}
+        onRun={async (params) => {
+          setRunDialogOpen(false);
+          await runFlow(params);
+        }}
+      />
     </SafeAreaView>
   );
 }
