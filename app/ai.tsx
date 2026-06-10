@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
-import { Send, Sparkles, Trash2, Copy, Check, RotateCcw } from "lucide-react-native";
+import { Send, Sparkles, Trash2, Copy, Check, RotateCcw, Square } from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/common/EmptyState";
 import { MarkdownText } from "~/components/ui/MarkdownText";
@@ -93,7 +93,7 @@ function MessageBubble({ message }: { message: AIChatMessage }) {
 /* ------------------------------------------------------------------ */
 
 export default function AIAssistantScreen() {
-  const { messages, isLoading, error, send, retry, clear } = useAIChat();
+  const { messages, isLoading, error, send, retry, stop, clear } = useAIChat();
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<ScrollView>(null);
 
@@ -207,19 +207,30 @@ export default function AIAssistantScreen() {
             blurOnSubmit={false}
             accessibilityLabel="Message"
           />
-          <Pressable
-            onPress={() => submit(draft)}
-            disabled={!canSend}
-            className={cn(
-              "h-11 w-11 items-center justify-center rounded-full",
-              canSend ? "bg-primary active:opacity-80" : "bg-muted",
-            )}
-            accessibilityRole="button"
-            accessibilityLabel="Send"
-            accessibilityState={{ disabled: !canSend }}
-          >
-            <Send size={18} color={canSend ? "#ffffff" : "#94a3b8"} />
-          </Pressable>
+          {isLoading ? (
+            <Pressable
+              onPress={stop}
+              className="h-11 w-11 items-center justify-center rounded-full bg-foreground active:opacity-80"
+              accessibilityRole="button"
+              accessibilityLabel="Stop generating"
+            >
+              <Square size={16} color="#ffffff" fill="#ffffff" />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => submit(draft)}
+              disabled={!canSend}
+              className={cn(
+                "h-11 w-11 items-center justify-center rounded-full",
+                canSend ? "bg-primary active:opacity-80" : "bg-muted",
+              )}
+              accessibilityRole="button"
+              accessibilityLabel="Send"
+              accessibilityState={{ disabled: !canSend }}
+            >
+              <Send size={18} color={canSend ? "#ffffff" : "#94a3b8"} />
+            </Pressable>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
