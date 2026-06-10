@@ -9,7 +9,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   icon: "./assets/icon.png",
   scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "objectstack",
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
+  // SDK 55 dropped legacy architecture — New Architecture is always on, so the
+  // `newArchEnabled` flag was removed from ExpoConfig.
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
@@ -24,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#ffffff",
     },
-    edgeToEdgeEnabled: true,
+    // SDK 55 removed `edgeToEdgeEnabled` — edge-to-edge is always on now.
     package: "com.objectstack.mobile",
   },
   web: {
