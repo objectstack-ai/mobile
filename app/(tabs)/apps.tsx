@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useCallback, useState } from "react";
 import { LayoutGrid, ChevronRight } from "lucide-react-native";
 import { PressableCard } from "~/components/ui/PressableCard";
@@ -13,6 +14,7 @@ import { getUserErrorMessage } from "~/lib/error-handling";
 export default function AppsScreen() {
   const { apps, isLoading, error, refetch } = useApps();
   const router = useRouter();
+  const { t } = useTranslation();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleAppPress = (appName: string) => {
@@ -38,11 +40,11 @@ export default function AppsScreen() {
         }
       >
         <View className="mb-4">
-          <Text className="text-2xl font-bold text-foreground">Apps</Text>
+          <Text className="text-2xl font-bold text-foreground">{t("apps.title")}</Text>
           <Text className="mt-1 text-sm text-muted-foreground">
             {showSkeleton
-              ? "Loading your apps…"
-              : `${apps.length} app${apps.length !== 1 ? "s" : ""} installed`}
+              ? t("apps.loading")
+              : t("apps.installed", { count: apps.length })}
           </Text>
         </View>
 
@@ -53,9 +55,9 @@ export default function AppsScreen() {
             <EmptyState
               icon={LayoutGrid}
               variant="error"
-              title="Unable to Load Apps"
+              title={t("apps.loadErrorTitle")}
               description={getUserErrorMessage(error)}
-              actionLabel="Retry"
+              actionLabel={t("common.retry")}
               onAction={refetch}
             />
           </View>
@@ -63,8 +65,8 @@ export default function AppsScreen() {
           <View className="pt-24">
             <EmptyState
               icon={LayoutGrid}
-              title="No Apps"
-              description="Your enterprise applications will appear here once installed."
+              title={t("apps.emptyTitle")}
+              description={t("apps.emptyDesc")}
             />
           </View>
         ) : (
@@ -77,7 +79,7 @@ export default function AppsScreen() {
                   className="flex-row items-center p-4"
                   onPress={() => handleAppPress(app.name)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Open ${app.label}`}
+                  accessibilityLabel={t("apps.openA11y", { name: app.label })}
                 >
                   <View className="rounded-xl bg-primary/10 p-3">
                     <Icon size={24} color="#1e40af" />
