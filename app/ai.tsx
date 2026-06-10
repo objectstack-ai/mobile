@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import { webContentMaxWidth } from "~/lib/responsive";
 import * as Clipboard from "expo-clipboard";
 import {
   Send,
@@ -305,6 +306,7 @@ export default function AIAssistantScreen() {
           ref={scrollRef}
           className="flex-1"
           contentContainerClassName="px-4 py-4"
+          contentContainerStyle={webContentMaxWidth}
           keyboardShouldPersistTaps="handled"
         >
           {messages.length === 0 ? (
@@ -356,8 +358,11 @@ export default function AIAssistantScreen() {
           )}
         </ScrollView>
 
-        {/* Input bar */}
-        <View className="flex-row items-end gap-2 border-t border-border bg-card px-3 py-2.5">
+        {/* Input bar — capped + centered on web to align with the message column */}
+        <View
+          className="w-full flex-row items-end gap-2 border-t border-border bg-card px-3 py-2.5"
+          style={webContentMaxWidth}
+        >
           <TextInput
             className="max-h-28 flex-1 rounded-2xl border border-input bg-background px-4 py-2.5 text-base text-foreground"
             value={draft}

@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { webContentMaxWidth } from "~/lib/responsive";
 import {
   LayoutDashboard,
   ChevronRight,
@@ -115,6 +116,7 @@ export default function HomeScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-8 pt-4"
+        contentContainerStyle={webContentMaxWidth}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#1e40af" />
