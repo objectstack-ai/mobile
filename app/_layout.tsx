@@ -83,6 +83,10 @@ export default function RootLayout() {
   // module-level API URL that `connect()`/`hydrate()` updates.
   const client = useMemo(
     () => createObjectStackClient(token),
+    // `serverUrl` is an intentional recompute trigger: the client snapshots the
+    // module-level API URL (updated by hydrate/connect when serverUrl changes)
+    // rather than reading serverUrl directly, so the rule can't see the link.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [token, serverUrl],
   );
 
