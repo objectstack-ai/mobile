@@ -500,3 +500,17 @@ export function isFieldRequiredByCondition(
 ): boolean {
   return evaluateCondition(field?.requiredWhen, context, false);
 }
+
+/**
+ * Whether a form/detail section should be shown, from its `visibleOn`
+ * expression (spec `FormSection.visibleOn`). The string is evaluated as a
+ * cel/js expression, so it supports both a bare field name (`is_active` →
+ * truthy check) and a full predicate (`status == 'active'`). Default: visible.
+ */
+export function isSectionVisible(
+  visibleOn: string | undefined | null,
+  context: Record<string, unknown>,
+): boolean {
+  if (!visibleOn) return true;
+  return evaluateCondition({ source: visibleOn }, context, true);
+}

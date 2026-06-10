@@ -13,6 +13,7 @@ import {
   isFieldVisible,
   isFieldReadonlyByCondition,
   isFieldRequiredByCondition,
+  isSectionVisible,
   type ConditionHolder,
 } from "~/lib/conditional-fields";
 import { FieldRenderer } from "./fields/FieldRenderer";
@@ -265,6 +266,8 @@ export function FormViewRenderer({
     // Basic validation
     const newErrors: Record<string, string> = {};
     for (const section of sections) {
+      // A field inside a hidden section can't block the save.
+      if (!isSectionVisible(section.visibleOn, values)) continue;
       for (const f of section.fields) {
         const fieldName = typeof f === "string" ? f : f.field;
         const meta: FormFieldMeta = typeof f === "string" ? { field: f } : f;
@@ -309,18 +312,22 @@ export function FormViewRenderer({
         contentContainerClassName="px-4 pb-8 pt-4"
         keyboardShouldPersistTaps="handled"
       >
-        {sections.map((section, idx) => (
-          <FormSectionView
-            key={section.label ?? `section-${idx}`}
-            section={section}
-            fields={fields}
-            values={values}
-            errors={errors}
-            onChange={handleChange}
-            readonly={readonly}
-            fieldPermissions={fieldPermissions}
-          />
-        ))}
+        {sections.map((section, idx) => {
+          // Conditional section visibility (spec `FormSection.visibleOn`).
+          if (!isSectionVisible(section.visibleOn, values)) return null;
+          return (
+            <FormSectionView
+              key={section.label ?? `section-${idx}`}
+              section={section}
+              fields={fields}
+              values={values}
+              errors={errors}
+              onChange={handleChange}
+              readonly={readonly}
+              fieldPermissions={fieldPermissions}
+            />
+          );
+        })}
 
         {/* Action buttons */}
         {!readonly && onSubmit && (

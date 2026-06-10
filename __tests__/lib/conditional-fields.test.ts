@@ -3,6 +3,7 @@ import {
   isFieldVisible,
   isFieldReadonlyByCondition,
   isFieldRequiredByCondition,
+  isSectionVisible,
 } from "~/lib/conditional-fields";
 
 /** Build a cel/js condition expression from a source string. */
@@ -146,5 +147,18 @@ describe("field condition helpers", () => {
     expect(isFieldRequiredByCondition(undefined, {})).toBe(false);
     expect(isFieldRequiredByCondition({ requiredWhen: cel("type == 'invoice'") }, { type: "invoice" })).toBe(true);
     expect(isFieldRequiredByCondition({ requiredWhen: cel("type == 'invoice'") }, { type: "po" })).toBe(false);
+  });
+
+  it("isSectionVisible treats visibleOn as an expression (bare field or predicate)", () => {
+    expect(isSectionVisible(undefined, {})).toBe(true);
+    expect(isSectionVisible("", {})).toBe(true);
+    // bare field name → truthy check
+    expect(isSectionVisible("is_active", { is_active: true })).toBe(true);
+    expect(isSectionVisible("is_active", { is_active: false })).toBe(false);
+    // full predicate
+    expect(isSectionVisible("stage == 'closed'", { stage: "closed" })).toBe(true);
+    expect(isSectionVisible("stage == 'closed'", { stage: "open" })).toBe(false);
+    // malformed → visible (fallback)
+    expect(isSectionVisible("stage ==", { stage: "open" })).toBe(true);
   });
 });

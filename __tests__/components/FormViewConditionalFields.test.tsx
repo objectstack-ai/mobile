@@ -99,3 +99,50 @@ describe("FormViewRenderer — conditional fields", () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("FormViewRenderer — conditional sections", () => {
+  const fields: FieldDefinition[] = [
+    { name: "kind", label: "Kind", type: "text" },
+    { name: "tax_id", label: "Tax ID", type: "text", required: true },
+  ];
+
+  // The whole "Business" section only shows for business records.
+  const view: FormViewMeta = {
+    sections: [
+      { fields: ["kind"] },
+      { label: "Business", visibleOn: "kind == 'business'", fields: ["tax_id"] },
+    ],
+  };
+
+  it("hides a section whose visibleOn is false", () => {
+    const { queryByText } = render(
+      <FormViewRenderer view={view} fields={fields} initialValues={{ kind: "personal" }} />,
+    );
+    expect(queryByText("Business")).toBeNull();
+    expect(queryByText(/Tax ID/)).toBeNull();
+  });
+
+  it("shows a section whose visibleOn is true", () => {
+    const { queryByText } = render(
+      <FormViewRenderer view={view} fields={fields} initialValues={{ kind: "business" }} />,
+    );
+    expect(queryByText("Business")).toBeTruthy();
+    expect(queryByText(/Tax ID/)).toBeTruthy();
+  });
+
+  it("does not validate required fields inside a hidden section", () => {
+    const onSubmit = jest.fn();
+    const { getByText } = render(
+      <FormViewRenderer
+        view={view}
+        fields={fields}
+        initialValues={{ kind: "personal" }}
+        onSubmit={onSubmit}
+        submitLabel="Save"
+      />,
+    );
+    // tax_id is required but its section is hidden → must not block save.
+    fireEvent.press(getByText("Save"));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+});
