@@ -25,6 +25,7 @@ function mockChat(overrides: Partial<ReturnType<typeof useAIChat>> = {}) {
     error: null,
     send: jest.fn().mockResolvedValue(undefined),
     retry: jest.fn(),
+    stop: jest.fn(),
     clear: jest.fn(),
     ...overrides,
   };
@@ -96,6 +97,14 @@ describe("AIAssistantScreen", () => {
     });
     const { getByText } = renderScreen();
     expect(getByText("Thinking…")).toBeTruthy();
+  });
+
+  it("shows a Stop button while generating and calls stop()", () => {
+    const chat = mockChat({ isLoading: true, messages: [{ role: "user", content: "x" }] });
+    const { getByLabelText, queryByLabelText } = renderScreen();
+    expect(queryByLabelText("Send")).toBeNull();
+    fireEvent.press(getByLabelText("Stop generating"));
+    expect(chat.stop).toHaveBeenCalled();
   });
 
   it("clears the conversation from the header action", () => {

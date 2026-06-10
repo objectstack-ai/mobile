@@ -211,18 +211,27 @@ export async function streamAiChat(
     }
   };
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let nl: number;
-    while ((nl = buffer.indexOf("\n")) >= 0) {
-      drainLine(buffer.slice(0, nl));
-      buffer = buffer.slice(nl + 1);
+  try {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let nl: number;
+      while ((nl = buffer.indexOf("\n")) >= 0) {
+        drainLine(buffer.slice(0, nl));
+        buffer = buffer.slice(nl + 1);
+      }
+    }
+    if (buffer.trim() !== "") drainLine(buffer);
+  } catch (err) {
+    // A user-initiated stop (AbortController) keeps whatever streamed so far;
+    // any other read error after partial text also degrades to the partial.
+    if (!signal?.aborted) {
+      void reader.cancel().catch(() => {});
+      if (acc.text === "") throw err;
     }
   }
-  if (buffer.trim() !== "") drainLine(buffer);
 
   return acc;
 }
