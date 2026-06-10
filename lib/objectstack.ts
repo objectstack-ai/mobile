@@ -1,9 +1,36 @@
-import { ObjectStackClient } from "@objectstack/client";
+import { ObjectStackClient, type ClientConfig } from "@objectstack/client";
 import { Platform } from "react-native";
 
 let API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3100";
 
 const isWeb = Platform.OS === "web";
+
+/**
+ * A clean logger for the SDK client. The SDK's default logger formats messages
+ * with ANSI colour codes + timestamps meant for a Node terminal; in React
+ * Native / web those escape codes leak as literal `[31m…` garbage into the
+ * console and the dev error overlay. This routes SDK logs through plain
+ * `console` calls (no ANSI), and silences debug/info noise outside dev.
+ *
+ * `child`/`withTrace` return the same logger (we don't need scoped context);
+ * `destroy` is a no-op. Typed loosely to satisfy `ClientConfig["logger"]`
+ * without depending on the core logger's exact class shape.
+ */
+const clientLogger = (() => {
+  const dev = typeof __DEV__ !== "undefined" && __DEV__;
+  const self = {
+    debug: (m: string, meta?: unknown) => dev && console.log("[objectstack]", m, meta ?? ""),
+    info: (m: string, meta?: unknown) => dev && console.log("[objectstack]", m, meta ?? ""),
+    warn: (m: string, meta?: unknown) => console.warn("[objectstack]", m, meta ?? ""),
+    error: (m: string, err?: unknown) => console.warn("[objectstack]", m, err ?? ""),
+    fatal: (m: string, err?: unknown) => console.error("[objectstack]", m, err ?? ""),
+    log: (m: string, ...args: unknown[]) => dev && console.log("[objectstack]", m, ...args),
+    child: () => self,
+    withTrace: () => self,
+    destroy: async () => {},
+  };
+  return self as unknown as NonNullable<ClientConfig["logger"]>;
+})();
 
 /**
  * Read the better-auth session cookie for native requests. Lazily required so
@@ -121,6 +148,7 @@ export function createObjectStackClient(token?: string): ObjectStackClient {
     baseUrl: API_URL,
     token,
     fetch: authAwareFetch,
+    logger: clientLogger,
   });
 }
 
@@ -143,6 +171,7 @@ export function getObjectStackClient(): ObjectStackClient {
   return new ObjectStackClient({
     baseUrl: API_URL,
     fetch: authAwareFetch,
+    logger: clientLogger,
   });
 }
 
@@ -152,4 +181,5 @@ export function getObjectStackClient(): ObjectStackClient {
 export const objectStackClient = new ObjectStackClient({
   baseUrl: API_URL,
   fetch: authAwareFetch,
+  logger: clientLogger,
 });
