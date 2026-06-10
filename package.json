@@ -20,14 +20,14 @@
     "release": "changeset publish"
   },
   "dependencies": {
-    "@better-auth/expo": "^1.4.18",
+    "@better-auth/expo": "^1.6.15",
     "@objectstack/client": "^8.0.1",
     "@objectstack/client-react": "^8.0.1",
     "@objectstack/spec": "^8.0.1",
     "@sentry/react-native": "^7.12.0",
     "@shopify/flash-list": "^2.2.2",
     "@tanstack/react-query": "^5.101.0",
-    "better-auth": "^1.4.18",
+    "better-auth": "^1.6.15",
     "clsx": "^2.1.1",
     "expo": "~54.0.33",
     "expo-background-fetch": "^14.0.9",
