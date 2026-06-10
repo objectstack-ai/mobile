@@ -14,7 +14,7 @@ import type { FieldDefinition } from "~/components/renderers/types";
 describe("OptionBadge", () => {
   const statusField: FieldDefinition = {
     name: "status",
-    type: "status",
+    type: "select",
     options: [
       { value: "completed", label: "Completed", color: "#10B981" },
       { value: "blocked", label: "Blocked", color: "red" },
