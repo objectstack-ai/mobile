@@ -12,14 +12,14 @@ importers:
         specifier: ^1.4.18
         version: 1.4.18(@better-auth/core@1.4.18(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.29.2)(nanostores@1.3.0))(better-auth@1.4.18(better-sqlite3@12.10.0)(mongodb@7.2.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(expo-constants@18.0.13)(expo-linking@8.0.11)(expo-network@8.0.8(expo@54.0.33)(react@19.1.0))(expo-web-browser@15.0.10(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))
       '@objectstack/client':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.3.6))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/client-react':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.3.6))(react@19.1.0)
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.4.3))(react@19.1.0)
       '@objectstack/spec':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.3.6))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@sentry/react-native':
         specifier: ^7.12.0
         version: 7.12.0(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -172,23 +172,23 @@ importers:
         specifier: ^2.29.8
         version: 2.29.8(@types/node@25.2.2)
       '@objectstack/cli':
-        specifier: 7.6.0
-        version: 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: 8.0.1
+        version: 8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@objectstack/core':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.3.6))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/driver-memory':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.3.6))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/objectql':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.3.6))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/plugin-auth':
-        specifier: ^7.6.0
-        version: 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^8.0.1
+        version: 8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@objectstack/plugin-hono-server':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.3.6))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@testing-library/jest-native':
         specifier: ^5.4.3
         version: 5.4.3(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react-test-renderer@19.1.0(react@19.1.0))(react@19.1.0)
@@ -239,7 +239,7 @@ importers:
         version: 19.1.0(react@19.1.0)
       ts-jest:
         specifier: ^29.4.6
-        version: 29.4.6(@babel/core@7.29.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.29.0))(jest-util@29.7.0)(jest@29.7.0(@types/node@25.2.2))(typescript@5.9.3)
+        version: 29.4.6(@babel/core@7.29.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.29.0))(esbuild@0.28.0)(jest-util@29.7.0)(jest@29.7.0(@types/node@25.2.2))(typescript@5.9.3)
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
@@ -302,33 +302,33 @@ importers:
   apps/server:
     dependencies:
       '@objectstack/driver-memory':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.4.3))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/objectql':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.4.3))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/plugin-approvals':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.4.3))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/plugin-trigger-record-change':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.4.3))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/plugin-trigger-schedule':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.4.3))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
       '@objectstack/runtime':
-        specifier: ^7.6.0
-        version: 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^8.0.1
+        version: 8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@objectstack/service-automation':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.4.3))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.4.3))
       '@objectstack/spec':
-        specifier: ^7.6.0
-        version: 7.6.0(ai@6.0.193(zod@4.4.3))
+        specifier: ^8.0.1
+        version: 8.0.1(ai@6.0.193(zod@4.3.6))
     devDependencies:
       '@objectstack/cli':
-        specifier: ^7.6.0
-        version: 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^8.0.1
+        version: 8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
@@ -1795,14 +1795,6 @@ packages:
       '@types/node':
         optional: true
 
-  '@isaacs/balanced-match@4.0.1':
-    resolution: {integrity: sha512-yzMTt9lEb8Gv7zRioUilSglI0c0smZ9k5D65677DLWLtWJaXIS3CqcGyUFByYKlnUj6TkjLVs54fBl6+TiGQDQ==}
-    engines: {node: 20 || >=22}
-
-  '@isaacs/brace-expansion@5.0.1':
-    resolution: {integrity: sha512-WMz71T1JS624nWj2n2fnYAuPovhv7EUhk69R6i9dsVyzxt5eM3bjwvgk9L+APE1TRscGysAVMANkB0jh0LQZrQ==}
-    engines: {node: 20 || >=22}
-
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
@@ -2037,41 +2029,41 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@objectstack/account@7.6.0':
-    resolution: {integrity: sha512-8SF6lcqlEDSvSAjbd7yDV8ZG6qGdSy745fGqSr2GOsDlUm8/nqy73knI81CieMlE8hlm0bi9Jr9IGqqKBvIh3Q==}
+  '@objectstack/account@8.0.1':
+    resolution: {integrity: sha512-hio0SB54+dZJDVkpjU1OZ6Sft3Y1/6gBw0XLZmTqpKxRD6L5Upc/WJ9iL0o55hLvlFKB1d+PotaAtPFK9V6YWg==}
 
-  '@objectstack/cli@7.6.0':
-    resolution: {integrity: sha512-mIm8UHJ8buBRkKDjVjBqZrVQ7cy0ULUPDTv97kKkh5Mhn7al27UzOlod3I4LKvAXIbDM2sb7r8Eg3Cy3VEp41g==}
+  '@objectstack/cli@8.0.1':
+    resolution: {integrity: sha512-aMuZHCcLQ3ZB19utH8Rf5lMch9q1LfqMbpBwAawhl79P7QcDR+bX/xMprASM81m2kYhTT+La0dMadM6gkwgjnA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  '@objectstack/client-react@7.6.0':
-    resolution: {integrity: sha512-tkMS8AkS390x3IjMB9n19iqDE9VUOz7EdUx6qLDLgwSNGFvpe9rq15dJR7uq0ndZPf7A/HjR0BUA+YXQ57R7eQ==}
+  '@objectstack/client-react@8.0.1':
+    resolution: {integrity: sha512-cpkqGcopUrNvfqE9pOlnZLwvzXnolmb2MhG7d7M1XaRg3bX2TXpO0QNPoIieuZjE/O0IKCU0ug8vQR0wvo5PmA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: '>=18.0.0'
 
-  '@objectstack/client@7.6.0':
-    resolution: {integrity: sha512-m6l8Lu5pAUuKpGb4VegIVqbf1M2lpFpg2xKWlukaYCxjBxRdcTTDDXjuPGmT/hkJaZ/StBK+c0qqklV5e2w7oQ==}
+  '@objectstack/client@8.0.1':
+    resolution: {integrity: sha512-fLObUYXfa6XmoutgLK5SRthROKM16PTbMyOntiIoGI76zOHbsbZNa8FyDnSV7kEnjWERjBlEedjgT9201Pvnyg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/console@7.6.0':
-    resolution: {integrity: sha512-sc/zANPglFDHcUr5kr1JljVo5uolD8ppUPlvXLU1Ff1ZpX0264QWxwQjKYCDOoQHxA+clQ+wJ9+Qa+HShSrCWQ==}
+  '@objectstack/console@8.0.1':
+    resolution: {integrity: sha512-d4I0hLRgJKV45MZanPWsCEyXxj7zzZMcjxdIBAc/g+CYWxS8i/dMgi5cuGnQxxPyopmElyadxoFav2tA3kScaA==}
 
-  '@objectstack/core@7.6.0':
-    resolution: {integrity: sha512-JuvVF3t0X80TNFZ2l+ySQ0Crcn5tW2gPxHsX4vGJv176JOIumx6IaqdKWsuF7wMhDkWgEn4pksMILPIW4ifZsA==}
+  '@objectstack/core@8.0.1':
+    resolution: {integrity: sha512-222khmv9KMBCI1dfjy2jknK9kpv/+RD9kcmNCrRApEzRQ5/TbE75UCM+T245yse61K7ez8CV0py/Yr5KJNj6FA==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/driver-memory@7.6.0':
-    resolution: {integrity: sha512-UzPnSKFwe5jTWCkX8LVev1UJxewsWx8ch11bE2MKg43scyFN+z2B1to3Y+g7it09ip3UlgtkIb9k1nf6w28b/Q==}
+  '@objectstack/driver-memory@8.0.1':
+    resolution: {integrity: sha512-rl3arNAOPotnlRi3PIkcN+597PBUXFdizfijjDOIMbi18KCCaMnFJY+rbk9ASfJv+kfN6L18S2EKSF6CnYoA6w==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/driver-mongodb@7.6.0':
-    resolution: {integrity: sha512-oTIJm2tz9KUBUW+KUW4MrtdbcTVZa+jWdxBXFtX6/0fjPv+hO6EDsUwLNLsMWMzlz4DRNxan1iUxL/41Hnn79Q==}
+  '@objectstack/driver-mongodb@8.0.1':
+    resolution: {integrity: sha512-+qdeMt2gYT2NUO7WzoFYbZMvOLjy6n9N7Cs0QRGHFyNOAR9HRlGe/V97dpsmzDAiRDRXDsqdM3Z/shrEJykxZg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/driver-sql@7.6.0':
-    resolution: {integrity: sha512-KOjJoPCSieII7HY862TF8oLNlSFW094Ugkv5f9kJlMWinTHuvsI6hUuJg7c1LIMM0jxdEb12nDxEqlJwKzpP3Q==}
+  '@objectstack/driver-sql@8.0.1':
+    resolution: {integrity: sha512-2kT8VSqDQK1P1hQ2P84FE38fLrD75O9VxZZdLr20IfJI/kUn+klx0KLiu7dGCog7nDic3iSIxamsfxxh3fbSAA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       mysql2: ^3.0.0
@@ -2088,15 +2080,19 @@ packages:
       tedious:
         optional: true
 
-  '@objectstack/driver-sqlite-wasm@7.6.0':
-    resolution: {integrity: sha512-eMoZ+3b7rqiRvBm0GMZGEAWgPW7e24S13Ja2lxmZGSbAIFlwRn5ovl+CmuFSHQx3N8bNcHIhNY7jR0l5Ne3SUQ==}
+  '@objectstack/driver-sqlite-wasm@8.0.1':
+    resolution: {integrity: sha512-C0bFYRRRyJJB5nJNCoreLWINf4qVEMaZivnioKFkex2Ycb3uwydFedyV7JwAertTjFXXoFaSI54KAXMV+4/Qfg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/formula@7.6.0':
-    resolution: {integrity: sha512-hRztIqND4GphY80LDhhhkiZ6WOy81Ir0UMasPPkQWrmjTwOhsGfo47KS/hYhN3tFi1vy8GmI3jMB8ZAUWJFA2w==}
+  '@objectstack/formula@8.0.1':
+    resolution: {integrity: sha512-e/CfchRGxnJW4JB1sDAaNKCAj0kbM83fSpzDmn3UMppG89aW9gSyMiB9TvaOnB35iOxsyhTeZ8R9E/rwEEfmfg==}
 
-  '@objectstack/metadata-core@7.6.0':
-    resolution: {integrity: sha512-EIMq+4saBS9VZXumt5Dn7+l94ml6KtXRNV3G6T44oNJLS0QwI/bqOP62AeuGjv7c4KXo9XpVWgwK/AF8QX/L7g==}
+  '@objectstack/mcp@8.0.1':
+    resolution: {integrity: sha512-KjJftJySVYvC0E4545iCDXgQLAo0FoxEQbXrXNpy1Yp5DtAYsEZESQodkqy0EJppxmtnXAqLD31k1fgjJUESjQ==}
+    engines: {node: '>=18.0.0'}
+
+  '@objectstack/metadata-core@8.0.1':
+    resolution: {integrity: sha512-VWrtvYm1pFoYXR2szmFXshNP6LSJ9sXiQPXtoOuKdZ6092Lt1wnSRrKR5RH5TpSaavXEdsidBffGI4NPp2Ej9A==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       vitest: ^4.0.0
@@ -2104,83 +2100,79 @@ packages:
       vitest:
         optional: true
 
-  '@objectstack/metadata-fs@7.6.0':
-    resolution: {integrity: sha512-xCmMcZBvBmSjpwZIhIguO4uur3ifZHeYnN37RRrSezDy+pW+w0TpFuFZnMpCaPr2mNKGpCzvPLXlt3XUb1IGnA==}
+  '@objectstack/metadata-fs@8.0.1':
+    resolution: {integrity: sha512-SdVofg5Bj21U5ZkCwSuHAAMjQqtto5SXZNnSrxzvJfh5Cq3AwG2d3RbWaJ+ev/dZeRJG5yuHiEhpdQJP+eOHGw==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/metadata@7.6.0':
-    resolution: {integrity: sha512-OCsINrsPiSD/Q7+0vTKwbNZ+TkZQghBZN2qBKxzuu9pBVJDkBvDW8TGZFdbynO3f2JrZT8SI/FtJ26sV4UtO9g==}
+  '@objectstack/metadata@8.0.1':
+    resolution: {integrity: sha512-wR6xSJbpSEDPRNMSBbLUyi+NtWsa0TVttgNJrZHqkb1+yLDGUc4K9NT0Et59nVqvVj5AjuC00Mk5uwzLxcxhPA==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/objectql@7.6.0':
-    resolution: {integrity: sha512-1aBWRRL86uxejekZu+BlaxPE0MbiWRe9n/XV+zEcG+RsCukWHb/gvqLuojJn5p306zwJHsadf3kHAZnRoSftqA==}
+  '@objectstack/objectql@8.0.1':
+    resolution: {integrity: sha512-c/n6OLYxC6rfipQjyVXy51u/N7wnWYp9hyllfv6kmujwK56yWKkY8iycAqboyCErgmPahuqW1LLdHjE1gmUiGw==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/observability@7.6.0':
-    resolution: {integrity: sha512-rjdQT0TcLnccwRpaj82XkfRR50nvPEIUWKoAKNnPxn6A0VbtyolPO6CjxGokASdfAe5yNoaCfj+z6SZFL+EDMA==}
+  '@objectstack/observability@8.0.1':
+    resolution: {integrity: sha512-XwUu5ZzcbJ+AwQ9Nyw17KfIq+WWsIBgAfqrTaTlqEB4tGHXUHEwGIgYcLS9eGDwS9H92ZhrTOY4kh9n7CdLhDg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/platform-objects@7.6.0':
-    resolution: {integrity: sha512-ttq9dW9AgBaNM7KzvIlD/OC9sUruVIhy99SGpFDH+OOwsU621M8woQFkpMWpiP5ZoDOMI/FnkCvpZJTBj1RgqQ==}
+  '@objectstack/platform-objects@8.0.1':
+    resolution: {integrity: sha512-3qOTeedtN78oyA4Oe/G21Lrf/H8nKa0oGsb8VoscS0nwdKmqRG4vlKplv998voEqro1HwIjvf5KZvQ1HBomVKw==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-approvals@7.6.0':
-    resolution: {integrity: sha512-p6EPaQsuFPMRxn3F9hz4YJoZIMs5ScXRQEPDFVsVr9igC8YZ20+XSHyzU0/BbxNKHLovh4pBGQ8GXv1pZuwWmw==}
+  '@objectstack/plugin-approvals@8.0.1':
+    resolution: {integrity: sha512-PCrqaTeEgQK+kDfEx4PUsaba9u9Ry/HFPrsx1xWkNS1sglfJG+LFqQEPHxUCDXIlap7hcj6gQtXJl42vVgZnPg==}
 
-  '@objectstack/plugin-audit@7.6.0':
-    resolution: {integrity: sha512-nFK5OB2n4oqHXPMNwMKEWn1YV1cwO5IbM34+LqCKwOoBNMMN9gWAIwjj3gnbOYsaPz4tqxg+hBVNhNmxVQupuQ==}
+  '@objectstack/plugin-audit@8.0.1':
+    resolution: {integrity: sha512-VqeC1xnLz1SPVo6+jOnPiWgJaiOPdXipyS6leS/wIVO6h+BcHR4e9XnQefYlB+ikVUeZwl6WM2iVHE48IatNuQ==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-auth@7.6.0':
-    resolution: {integrity: sha512-Co/LHevLXkyduL4oXexKgFJ45WXXEl3Gp2IPMaftRuMlFmBQ3cA+29UiipNqL6ujnPKFJsCQvCPX2ZPTi72jMg==}
+  '@objectstack/plugin-auth@8.0.1':
+    resolution: {integrity: sha512-nLk3/lentF5qZ72X0c/fC5b8Ne/COg6dgwgUUscN8QQIR3EvHPsSWAeLOsrBVqb74v/ShxE81GkbxC0pK81fOQ==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-email@7.6.0':
-    resolution: {integrity: sha512-hnR9jarGdiHPLunYZIvkJM7lzPUUKLJ53UmS5XWGjqmpspbhVQVtc+yVKe6AYo1tLp5Vu2jZY/GOLbB2519TqQ==}
+  '@objectstack/plugin-email@8.0.1':
+    resolution: {integrity: sha512-psYJmJDp3LCYWCOk8b1ygVbjcYfYw+BVDeXAEl0LvkMPrPa/ugxAIcDINPSmZluTdL1BjionOSb/ohboHr/g+Q==}
 
-  '@objectstack/plugin-hono-server@7.6.0':
-    resolution: {integrity: sha512-qKvnuMAZANf77KBdvSSckJNKPGroP3iUMnXS0rqCMXwBy6hpyFnc5ZB4pNKxJt8jeh9z4ruRAeH3f+gvQuOpZg==}
+  '@objectstack/plugin-hono-server@8.0.1':
+    resolution: {integrity: sha512-l2RKsunYIzxIU9emWxGVDOonoDDItiE/PDEA0qoBwUG2jUH4pkEahIaUKVgri9NZetKtp9ulKnHTHcDlzqpe7g==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-mcp-server@7.6.0':
-    resolution: {integrity: sha512-In4sI4QkOMs5knt7fVNys7fUfGFgKJmmqwbPEdnojxiNGEHA3DFMXjZg2xi8UNIQ4j1SfBIta2Y+5wBeRdXaew==}
+  '@objectstack/plugin-org-scoping@8.0.1':
+    resolution: {integrity: sha512-PrrOzZbwW61AiPvDylSsSduR8Fi19l1pRjKk4e4VMSoJUiM9H+mdYxVtiANT+rpdEUxmjCl4tA1uv5WrGbkksA==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-org-scoping@7.6.0':
-    resolution: {integrity: sha512-6iX3idyMyDFifl8W/DlR9nAIS+RtkYEsYQN6UbTcxaJJq39sQSsyzjQE90Nl6U0/32oGTFxOzW1kGw6r1kUzEA==}
+  '@objectstack/plugin-reports@8.0.1':
+    resolution: {integrity: sha512-500DjcpmmjtmvOUsrfwK+faGshBfoRAaXdfxzEjwHoFZfXTBX1Uc12YoTySoxQyuXoXE3Lw9OBARAyYiELss8Q==}
+
+  '@objectstack/plugin-security@8.0.1':
+    resolution: {integrity: sha512-NaEozXRvGH06UhFz2CVoKq8YoPc5OTTeoMk3IQ+kiUMz1w0Ky4dwTkXJzd9zW9aWL8cMQ9ezpC1oNQBVcaMo4Q==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-reports@7.6.0':
-    resolution: {integrity: sha512-AnMFxSMMQKiDJnxz7RwCq5c8CeJuy04zDPPUo7ef5UssSVH4hBdsvrHWu0UjhtQZDYY5eOk85XB3AxSDMvPMCw==}
+  '@objectstack/plugin-sharing@8.0.1':
+    resolution: {integrity: sha512-7vpjAG1uV0cgcxhnEB05WyjGhwlYT7ezufo+83ya9kxJdORnyo8wPHsQ5bnuntOdz0aTtn5WTvS4nQVlZoxkaw==}
 
-  '@objectstack/plugin-security@7.6.0':
-    resolution: {integrity: sha512-DYxraAVkQi4CLZY+za7T5A6+8AZCU2bTqGpukg6TdTw7rX+eF9ZRp8mvA6l8/r9ly0BT6LVvY/FwI3VhThwL8A==}
+  '@objectstack/plugin-trigger-record-change@8.0.1':
+    resolution: {integrity: sha512-dvedWALQ78q6cqfwVskZmwcml4f7FsifgqYosNkQWVDW4yE+6em4Gro3ert8XmMBQomFl85SttHf6VdiOiZoYg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-sharing@7.6.0':
-    resolution: {integrity: sha512-fH/u+e8coDT+ftsA6ga8IqmZaaaygzqpuaJB6dkPdreCPL4USGG7JVVkun7iL4K6EiNkJlFb9ZG5NHtRGVZtpA==}
-
-  '@objectstack/plugin-trigger-record-change@7.6.0':
-    resolution: {integrity: sha512-YhrDN2ILAs6r6Cv9o/qPZBLItIhPactL33QtWl7+i8NqxQWZCEwKTfTPCI1kq0iDq81tz3Sjqb8akWx01cbEYg==}
+  '@objectstack/plugin-trigger-schedule@8.0.1':
+    resolution: {integrity: sha512-xMiICt1+v/afoTZ8hy/e1Wyi2NEYFQkLxtqxMC72AtIYT6caHJFJLAvzn15Y1nQeMs4tQAJh8t23n1+6hZ8cxQ==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-trigger-schedule@7.6.0':
-    resolution: {integrity: sha512-khvIMoU5dFcTjdj1CNv280WY8ZpbqTkF44dxGdcoT7YJE/NrDDZfs/rOqe7SMhWlm6vzA3toeNAwJWUTXyEYHg==}
+  '@objectstack/plugin-webhooks@8.0.1':
+    resolution: {integrity: sha512-UMzvj2UDm2wJcKQ4yCdOnWxQj/rL/rni90ZkDFwJaVqdstRWmNE/gVUssPvPKTNuA2HxC4+rQdIUfXRQMZvmtQ==}
+
+  '@objectstack/rest@8.0.1':
+    resolution: {integrity: sha512-YA05taXQs3Rzz/DHlF5XBb9BKcmevDHhSA+YmXX8gTIwsuxWQgYG1YyrnWAPBNByyTwCHXqaT/bcBOE0IZ2Wlg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/plugin-webhooks@7.6.0':
-    resolution: {integrity: sha512-n8wcFmZnLdOqEhIi+j+LobqFtV8u/kBNHDYNi4EcU08i5HK54yvluvLnMQklZH22ZK9IyxR0kz7fS/NsiNI5Qg==}
-
-  '@objectstack/rest@7.6.0':
-    resolution: {integrity: sha512-fLR1/fn5vRqW+M0pD95zQEO5137dj/OrzJrTAQLUuLoxWcSn93Z32K+02GznxYbTazD6faTeGK0aqEqfewg7PQ==}
+  '@objectstack/runtime@8.0.1':
+    resolution: {integrity: sha512-fY5DtKCexgM5AjQnd363wamvLPS88SrDeK7mF84YDoVksD7JmCyeoMzeLQAGm3kOj3dX2F5uEE39m64pUeL+4w==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/runtime@7.6.0':
-    resolution: {integrity: sha512-GxJJDEwjuITjDlOv86ohodBpgOk4VgUsB/tE6Z0F/w6De92A3SdESACCHyZ1FJrSZJWSQLEZQ0gfj121IY1Rlg==}
-    engines: {node: '>=18.0.0'}
-
-  '@objectstack/service-ai@7.6.0':
-    resolution: {integrity: sha512-eJZLi/A8lC212mu3cRuUJLhL51k3PuD5hnOdr2/VeAgJRFhf3hMWe2boku59Jf5e0tUe4EWfsfCU2ZKYjsT98A==}
+  '@objectstack/service-ai@8.0.1':
+    resolution: {integrity: sha512-i1dj3BV8O/C8ENFDmEzEgIQ7iVt7WPetmRUz5JRYFM+ubeErVwaJAm1JAn/HJ6SRQl7i7fO+fgjWSLvlUr6THA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@ai-sdk/anthropic': ^3.0.0
@@ -2197,58 +2189,58 @@ packages:
       '@ai-sdk/openai':
         optional: true
 
-  '@objectstack/service-analytics@7.6.0':
-    resolution: {integrity: sha512-f19WvNVcGbofw+1bfzydJJiO8uzJpPC1Eqe2S3KZoYRLnD4eG0ou8Nm8PHKp8VV0eX2X4Dnhk/Vr/MNjqDLw/A==}
+  '@objectstack/service-analytics@8.0.1':
+    resolution: {integrity: sha512-3DWT/kmeM/U4wOzrk2yO1vyrlkij8KLhQIuhbDCth+Xwwj94U4YaPs8JbdmfsSEfec+D5YGnfGaagdk0Q87ejw==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-automation@7.6.0':
-    resolution: {integrity: sha512-tu10VzdbY8qSfCMc+ZPmpdxjHH7pWxzCUe29JTtenNgkgv0L6oxLmifYCT9Khltotk02gEIn+aGVoJ0ilOEjRg==}
+  '@objectstack/service-automation@8.0.1':
+    resolution: {integrity: sha512-eiZQH/FGh5Mj1I5EYtn8FGRibWTusM9+SbiE90F02BJ4CSC56PlJ5lXJofyktme+EQf+yQsS/Ck30fAkMZpXYg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-cache@7.6.0':
-    resolution: {integrity: sha512-P98gXqjkB9U7lMWl2u0OLs1XlY++XHno7QnP4AQPwlTt8dzZ6ieb8S9gulbblUWhk+6RMhMHqBVy8kJTsBL/aw==}
+  '@objectstack/service-cache@8.0.1':
+    resolution: {integrity: sha512-ZZzseZzvflsa2NyC1JUvGUVbq/BYBdQpop3jqZ4W7lqquueiHkN3ffbHGnSf7HJL++/fkwMKKZiDahSecCg7kA==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-cluster@7.6.0':
-    resolution: {integrity: sha512-3anyL9TRg8YYOr+06kl6lD7Jw+4WCsHVITaAwR9c/EN7TUtZWPmZ4lzAS45oiHQx64LEa6TwF3cfGcJRAtu3GA==}
+  '@objectstack/service-cluster@8.0.1':
+    resolution: {integrity: sha512-FR8cHaM/45Ez9VICsp8B1KtwBNlyotqmuazgnT7vJ7FySMRyGKjcWw03Ua8pgYQFYwSpKOl73esgljBCeOuAXw==}
 
-  '@objectstack/service-datasource@7.6.0':
-    resolution: {integrity: sha512-HIHt2Vtww2s6Y4/gjSOdOsjMZpqWfT6H90l3z+bzRG5BCZo9257gRs+wjSzSoNW93y5CwHw9Dl8FFova/3WBMg==}
+  '@objectstack/service-datasource@8.0.1':
+    resolution: {integrity: sha512-kKR0m3YlUw9/Kk4YfjLWqixKYLg5an0G/yNIJxBSrTSAz/9c9XNzfyon5QWvhJg5EPoY/01VKvlGxbcqh1guVA==}
 
-  '@objectstack/service-feed@7.6.0':
-    resolution: {integrity: sha512-/3bUqaCWOHjoqHKfFHTbuvE7IkfCDPHlH3G7tc1zlg1TU4aBOacF2AVrR68ceanNPuFcJaTSzw985iaM9j9euQ==}
+  '@objectstack/service-feed@8.0.1':
+    resolution: {integrity: sha512-nGIxnV5qXpp9dL7njuTXq/TA2dAZMFddAcRHhdH9q8qyVdO2DcOi8n4MSaaqdALUnNbwTCLImEuhVTxF+Yo15A==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-i18n@7.6.0':
-    resolution: {integrity: sha512-v4hhSVZGaiMOHGjYPsDMuSpyXPvkw3ZJ08x8oSz1ilc/6PXp8eLD8oStgWXlIyrMBCAo47JxuCgfMjQh+/6fug==}
+  '@objectstack/service-i18n@8.0.1':
+    resolution: {integrity: sha512-h1YjPxHURiLyIc3Mf7dOJ1pgVtnkHxh3ppWuW650pXYo4F4Ys5gbsNNxUD1fuJhGQiQaycBPfADw/0BdK+wv+Q==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-job@7.6.0':
-    resolution: {integrity: sha512-V9VUa41fDOcjK2CLdiP8b18AFNes7mGLd9HXm2asJhdHl+dR1pJR1Ec455aYNL3ZRea0Y4D7sUfmQ+9GFc7qww==}
+  '@objectstack/service-job@8.0.1':
+    resolution: {integrity: sha512-KlTBzR/RL8yIMp4qxpkaoZYYsktAedq1GbgNxTDCWL9wbRGL7S0GNvvG1/dPbg71jgDNIzYUdFjfWCwj5upHkg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-messaging@7.6.0':
-    resolution: {integrity: sha512-pVeyMacT1UyFHNyg4j1Sn2dx2Lb9yhdfpOUiZjKnsfSWbgxzzRnERiUctR7ApFf6DyjF9uzH61HcvrTx590paA==}
+  '@objectstack/service-messaging@8.0.1':
+    resolution: {integrity: sha512-k3q4RyxOEy3U0NxYfVCGcQsi2cNXsvqjNrvUMrMh9Fuew6WHOeuUJ3ftChfOR8EzYHdT/OH/8VYzQjxmKVxNwQ==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-package@7.6.0':
-    resolution: {integrity: sha512-gB9PA2GR4fbyLNTAahpwt2xYIVIvwHbaNmcuctBHQpWOTE7U5i54lgxEWzoD6JF4dneAX2x6oq2Q3+4bgjBJCQ==}
+  '@objectstack/service-package@8.0.1':
+    resolution: {integrity: sha512-hTxON2MnrFAHDRNKXYudG0qoSOYbTvpYG7qeo19NnT+lWvvMGcL/9v02SQzjIWZEaV+wsubF0bArdaD2qI5vyQ==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-queue@7.6.0':
-    resolution: {integrity: sha512-eTCnpL15KhuBtiHiM8MhU+gPB8zAtUFvLd+s9axWRObu+LR0Ui29p7ABQcp0YvDepvGB+kihfXAVmGCqNmgolA==}
+  '@objectstack/service-queue@8.0.1':
+    resolution: {integrity: sha512-WoOvd+3IQODws99OIwIXQ4armhW0N7JiRQG8Vip6y6s+OFQkZgB5/IG7xtxPHQAAgfmdSDKsNvteeZd2MTK5kg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-realtime@7.6.0':
-    resolution: {integrity: sha512-3dd/3LWn+MI4ywwxvqJ0cnEq/wfzJ/nAfs+Cv2aI6ABcuJf8Q0GKm0P25YjZjl9HAN/qqahDXR0QK9VPkRPnEw==}
+  '@objectstack/service-realtime@8.0.1':
+    resolution: {integrity: sha512-btZGq/ap0Gzl7Ftd886XgMbLclqTbIuAi4B1g1mpAQja8fHQahRiYo/5UW6UXiWlSf4mKOidRrWpmQpjACVR4A==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-settings@7.6.0':
-    resolution: {integrity: sha512-esWI25N5tBKg9XsQZPWBit9srkajge9FnTjwreMn3LRxsTnOE3GdwJ3P6O6ujqUTRuYBSEt5oT9LeyZhnm9l/g==}
+  '@objectstack/service-settings@8.0.1':
+    resolution: {integrity: sha512-/Kco/IfvdeMzioPP7UrkqTTVHatrtoHDr2R0VTDvC7jMV2HZORqdFgBWGVmLdY9xUF59I1OP/FxgwtfoT6ixAg==}
     engines: {node: '>=18.0.0'}
 
-  '@objectstack/service-storage@7.6.0':
-    resolution: {integrity: sha512-ehmTUvlCQrO9Kq0MZysJBljqFYGJuk3sl8geN2iLmm5RECWNUCBkXODI3KrghUcQ5LDjLa2xaQllFf3gNFmEbA==}
+  '@objectstack/service-storage@8.0.1':
+    resolution: {integrity: sha512-SOnvpditPPf4AdaqKCXHPxqQXGw0k3UD67RDTHouk2N+JKoa+Sx0osS0TzhkhrVwha4Kxdvu0M+tyWh0DAGbcA==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.0.0
@@ -2259,8 +2251,8 @@ packages:
       '@aws-sdk/s3-request-presigner':
         optional: true
 
-  '@objectstack/spec@7.6.0':
-    resolution: {integrity: sha512-R1RHMbkPxbygMkMZf7MixYlNte8V6kMr5fN2gc8nHeSZXjrxGeyUSnQ6m0pFt8ae1TKFMzbKE8raPlHJa68RFA==}
+  '@objectstack/spec@8.0.1':
+    resolution: {integrity: sha512-ZTHxY0TJIGDGNNd+i5Jzl8KQEA4wxgm46WTICrrYEybdsUnSkuOEKSW3lH0IBB8vI9Dx8/yUtKw77Di9NDfkAw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       ai: ^6.0.0
@@ -2268,8 +2260,8 @@ packages:
       ai:
         optional: true
 
-  '@objectstack/types@7.6.0':
-    resolution: {integrity: sha512-RZcgJP5bep38AYXToJr6WbSacqujMpjybFfL1H49w39e/TFaTys30I90241hRl/yR2bswqkxH1rlb46z9CYqOg==}
+  '@objectstack/types@8.0.1':
+    resolution: {integrity: sha512-1oA7/z2k9UkdopRCmEHLVj5bpQJxBZt3qBI8TxN81LhDzTBibI4Bl5qBJiUPc7ClNQuCQHrUjRD/NTadSkq7Dw==}
     engines: {node: '>=18.0.0'}
 
   '@oclif/core@4.11.4':
@@ -3044,6 +3036,7 @@ packages:
 
   '@testing-library/react-native@12.9.0':
     resolution: {integrity: sha512-wIn/lB1FjV2N4Q7i9PWVRck3Ehwq5pkhAef5X5/bmQ78J/NoOsGbVY2/DG5Y9Lxw+RfE+GvSEh/fe5Tz6sKSvw==}
+    deprecated: React Native Testing Library v12 is no longer maintained. Please upgrade to v13 or v14.
     peerDependencies:
       jest: '>=28.0.0'
       react: '>=16.8.0'
@@ -3218,6 +3211,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@urql/core@5.2.0':
     resolution: {integrity: sha512-/n0ieD0mvvDnVAXEQgX/7qJiVcvYvNkOHeBvkwtylfjydar123caCXcl58PXFY11oU1oquJocVXHxLAbtv4x1A==}
@@ -3234,6 +3228,7 @@ packages:
   '@xmldom/xmldom@0.8.11':
     resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   abab@2.0.6:
     resolution: {integrity: sha512-j2afSsaIENvHZN2B8GOpF566vZ5WVk5opAiMTvWgaQT8DkbOqsTfvNAvHoRGU2zzP8cPoqys+xHTRDWW8L+/BA==}
@@ -6418,10 +6413,6 @@ packages:
   mingo@7.2.1:
     resolution: {integrity: sha512-MEIQPOSJS2sVCueyQeE2rzgEeW3HpIIhizPbeuwD4v7+miVj7NI3ZVPqqw8t3YPIWCivpIaXA4KsoRI7koyNOA==}
 
-  minimatch@10.1.2:
-    resolution: {integrity: sha512-fu656aJ0n2kcXwsnwnv9g24tkU5uSmOlTjd6WyyaKm2Z+h1qmY6bAjrcaIxF/BslFqbZ8UBtbJi7KgQOZD2PTw==}
-    engines: {node: 20 || >=22}
-
   minimatch@10.2.5:
     resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
     engines: {node: 18 || 20 || >=22}
@@ -7873,6 +7864,7 @@ packages:
   tar@7.5.7:
     resolution: {integrity: sha512-fov56fJiRuThVFXD6o6/Q354S7pnWMJIVlDBYijsTNx6jKSE4pvrDTs6lUnmGvNyfJwFQQwWy3owKz1ucIhveQ==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   tarn@3.0.2:
     resolution: {integrity: sha512-51LAVKUSZSVfI05vjPESNc5vwqqZpbXCsU+/+wxlOrUjk2SnFTt97v9ZgQrD4YmxYW1Px6w2KjaDitCfkvgxMQ==}
@@ -8219,6 +8211,7 @@ packages:
 
   uuid@7.0.3:
     resolution: {integrity: sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-to-istanbul@9.3.0:
@@ -8422,11 +8415,6 @@ packages:
     resolution: {integrity: sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==}
     engines: {node: '>=18'}
 
-  yaml@2.8.2:
-    resolution: {integrity: sha512-mplynKqc1C2hTVYxd0PU2xQAc22TI1vShAYGksCCfxbn/dFwnHTNi1bvYsBTkhdUNtGIf5xNOg938rrSSYvS9A==}
-    engines: {node: '>= 14.6'}
-    hasBin: true
-
   yaml@2.9.0:
     resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
     engines: {node: '>= 14.6'}
@@ -8486,28 +8474,12 @@ snapshots:
     optionalDependencies:
       graphql: 16.12.0
 
-  '@ai-sdk/gateway@3.0.121(zod@4.3.6)':
-    dependencies:
-      '@ai-sdk/provider': 3.0.10
-      '@ai-sdk/provider-utils': 4.0.27(zod@4.3.6)
-      '@vercel/oidc': 3.2.0
-      zod: 4.3.6
-    optional: true
-
   '@ai-sdk/gateway@3.0.121(zod@4.4.3)':
     dependencies:
       '@ai-sdk/provider': 3.0.10
       '@ai-sdk/provider-utils': 4.0.27(zod@4.4.3)
       '@vercel/oidc': 3.2.0
       zod: 4.4.3
-
-  '@ai-sdk/provider-utils@4.0.27(zod@4.3.6)':
-    dependencies:
-      '@ai-sdk/provider': 3.0.10
-      '@standard-schema/spec': 1.1.0
-      eventsource-parser: 3.1.0
-      zod: 4.3.6
-    optional: true
 
   '@ai-sdk/provider-utils@4.0.27(zod@4.4.3)':
     dependencies:
@@ -10120,12 +10092,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 25.2.2
 
-  '@isaacs/balanced-match@4.0.1': {}
-
-  '@isaacs/brace-expansion@5.0.1':
-    dependencies:
-      '@isaacs/balanced-match': 4.0.1
-
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.2
@@ -10479,53 +10445,53 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@objectstack/account@7.6.0': {}
+  '@objectstack/account@8.0.1': {}
 
-  '@objectstack/cli@7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@objectstack/cli@8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@ai-sdk/gateway': 3.0.121(zod@4.4.3)
-      '@objectstack/account': 7.6.0
-      '@objectstack/client': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/console': 7.6.0
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-memory': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-mongodb': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-sql': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-sqlite-wasm': 7.6.0(ai@6.0.193(zod@4.3.6))(better-sqlite3@12.10.0)
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/objectql': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-approvals': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-audit': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-auth': 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@objectstack/plugin-email': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-hono-server': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-mcp-server': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-org-scoping': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-reports': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-security': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-sharing': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-trigger-record-change': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-trigger-schedule': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-webhooks': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/rest': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/runtime': 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@objectstack/service-ai': 7.6.0(@ai-sdk/gateway@3.0.121(zod@4.4.3))
-      '@objectstack/service-analytics': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-automation': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-cache': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-datasource': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-feed': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-job': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-messaging': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-package': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-queue': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-realtime': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-settings': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-storage': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/account': 8.0.1
+      '@objectstack/client': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/console': 8.0.1
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-memory': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-mongodb': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-sql': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-sqlite-wasm': 8.0.1(ai@6.0.193(zod@4.3.6))(better-sqlite3@12.10.0)
+      '@objectstack/formula': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/mcp': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/objectql': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/observability': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-approvals': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-audit': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-auth': 8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@objectstack/plugin-email': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-hono-server': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-org-scoping': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-reports': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-security': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-sharing': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-trigger-record-change': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-trigger-schedule': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-webhooks': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/rest': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/runtime': 8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@objectstack/service-ai': 8.0.1(@ai-sdk/gateway@3.0.121(zod@4.4.3))
+      '@objectstack/service-analytics': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-automation': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-cache': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-datasource': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-feed': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-job': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-messaging': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/service-package': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/service-queue': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-realtime': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-settings': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/service-storage': 8.0.1(ai@6.0.193(zod@4.4.3))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
       '@oclif/core': 4.11.4
       bundle-require: 5.1.0(esbuild@0.28.0)
       chalk: 5.6.2
@@ -10585,169 +10551,43 @@ snapshots:
       - vitest
       - vue
 
-  '@objectstack/cli@7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@objectstack/client-react@8.0.1(ai@6.0.193(zod@4.4.3))(react@19.1.0)':
     dependencies:
-      '@ai-sdk/gateway': 3.0.121(zod@4.4.3)
-      '@objectstack/account': 7.6.0
-      '@objectstack/client': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/console': 7.6.0
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-memory': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-mongodb': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-sql': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-sqlite-wasm': 7.6.0(ai@6.0.193(zod@4.4.3))(better-sqlite3@12.10.0)
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/objectql': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-approvals': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-audit': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-auth': 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@objectstack/plugin-email': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-hono-server': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-mcp-server': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-org-scoping': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-reports': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-security': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-sharing': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-trigger-record-change': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-trigger-schedule': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-webhooks': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/rest': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/runtime': 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@objectstack/service-ai': 7.6.0(@ai-sdk/gateway@3.0.121(zod@4.4.3))
-      '@objectstack/service-analytics': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-automation': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-cache': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-datasource': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-feed': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-job': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-messaging': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-package': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-queue': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-realtime': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-settings': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-storage': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@oclif/core': 4.11.4
-      bundle-require: 5.1.0(esbuild@0.28.0)
-      chalk: 5.6.2
-      chokidar: 5.0.0
-      dotenv-flow: 4.1.0
-      esbuild: 0.28.0
-      ts-morph: 28.0.0
-      tsx: 4.22.4
-      yaml: 2.9.0
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - '@ai-sdk/anthropic'
-      - '@ai-sdk/google'
-      - '@ai-sdk/openai'
-      - '@aws-sdk/client-s3'
-      - '@aws-sdk/credential-providers'
-      - '@aws-sdk/s3-request-presigner'
-      - '@better-auth/utils'
-      - '@better-fetch/fetch'
-      - '@cfworker/json-schema'
-      - '@cloudflare/workers-types'
-      - '@lynx-js/react'
-      - '@mongodb-js/zstd'
-      - '@opentelemetry/api'
-      - '@prisma/client'
-      - '@sveltejs/kit'
-      - '@tanstack/react-start'
-      - '@tanstack/solid-start'
-      - ai
-      - better-call
-      - better-sqlite3
-      - drizzle-kit
-      - drizzle-orm
-      - gcp-metadata
-      - jose
-      - kerberos
-      - kysely
-      - mongodb
-      - mongodb-client-encryption
-      - mysql
-      - mysql2
-      - nanostores
-      - next
-      - pg
-      - pg-native
-      - pg-query-stream
-      - prisma
-      - react
-      - react-dom
-      - snappy
-      - socks
-      - solid-js
-      - sqlite3
-      - supports-color
-      - svelte
-      - tedious
-      - vitest
-      - vue
-
-  '@objectstack/client-react@7.6.0(ai@6.0.193(zod@4.3.6))(react@19.1.0)':
-    dependencies:
-      '@objectstack/client': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/client': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       react: 19.1.0
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/client@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/client@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/client@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
+  '@objectstack/console@8.0.1': {}
 
-  '@objectstack/console@7.6.0': {}
-
-  '@objectstack/core@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/core@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       zod: 4.4.3
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/core@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/driver-memory@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/driver-memory@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       mingo: 7.2.1
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/driver-memory@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/driver-mongodb@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      mingo: 7.2.1
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/driver-mongodb@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       mongodb: 7.2.0
       nanoid: 5.1.11
     transitivePeerDependencies:
@@ -10760,26 +10600,10 @@ snapshots:
       - snappy
       - socks
 
-  '@objectstack/driver-mongodb@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/driver-sql@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      mongodb: 7.2.0
-      nanoid: 5.1.11
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@mongodb-js/zstd'
-      - ai
-      - gcp-metadata
-      - kerberos
-      - mongodb-client-encryption
-      - snappy
-      - socks
-
-  '@objectstack/driver-sql@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       knex: 3.2.10(better-sqlite3@12.10.0)
       nanoid: 5.1.11
     optionalDependencies:
@@ -10791,26 +10615,11 @@ snapshots:
       - pg-query-stream
       - supports-color
 
-  '@objectstack/driver-sql@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/driver-sqlite-wasm@8.0.1(ai@6.0.193(zod@4.3.6))(better-sqlite3@12.10.0)':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      knex: 3.2.10(better-sqlite3@12.10.0)
-      nanoid: 5.1.11
-    optionalDependencies:
-      better-sqlite3: 12.10.0
-    transitivePeerDependencies:
-      - ai
-      - mysql
-      - pg-native
-      - pg-query-stream
-      - supports-color
-
-  '@objectstack/driver-sqlite-wasm@7.6.0(ai@6.0.193(zod@4.3.6))(better-sqlite3@12.10.0)':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-sql': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-sql': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       knex: 3.2.10(better-sqlite3@12.10.0)
       nanoid: 5.1.11
       sql.js: 1.14.1
@@ -10826,59 +10635,48 @@ snapshots:
       - supports-color
       - tedious
 
-  '@objectstack/driver-sqlite-wasm@7.6.0(ai@6.0.193(zod@4.4.3))(better-sqlite3@12.10.0)':
+  '@objectstack/formula@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-sql': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      knex: 3.2.10(better-sqlite3@12.10.0)
-      nanoid: 5.1.11
-      sql.js: 1.14.1
+      '@marcbachmann/cel-js': 7.6.1
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
-      - better-sqlite3
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - pg-query-stream
-      - sqlite3
+
+  '@objectstack/mcp@8.0.1(ai@6.0.193(zod@4.3.6))':
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
+      zod: 4.4.3
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - ai
       - supports-color
-      - tedious
 
-  '@objectstack/formula@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/metadata-core@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@marcbachmann/cel-js': 7.6.1
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/formula@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@marcbachmann/cel-js': 7.6.1
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/metadata-core@7.6.0':
-    dependencies:
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       zod: 4.4.3
+    transitivePeerDependencies:
+      - ai
 
-  '@objectstack/metadata-fs@7.6.0':
+  '@objectstack/metadata-fs@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/metadata-core': 7.6.0
+      '@objectstack/metadata-core': 8.0.1(ai@6.0.193(zod@4.3.6))
       chokidar: 5.0.0
     transitivePeerDependencies:
+      - ai
       - vitest
 
-  '@objectstack/metadata@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/metadata@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/metadata-core': 7.6.0
-      '@objectstack/metadata-fs': 7.6.0
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/metadata-core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/metadata-fs': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
       chokidar: 5.0.0
       glob: 13.0.6
       js-yaml: 4.2.0
@@ -10887,119 +10685,62 @@ snapshots:
       - ai
       - vitest
 
-  '@objectstack/metadata@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/objectql@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/metadata-core': 7.6.0
-      '@objectstack/metadata-fs': 7.6.0
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-      chokidar: 5.0.0
-      glob: 13.0.6
-      js-yaml: 4.2.0
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - ai
-      - vitest
-
-  '@objectstack/objectql@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/metadata-core': 7.6.0
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/formula': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/metadata-core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
       ajv: 8.20.0
       zod: 4.4.3
     transitivePeerDependencies:
       - ai
       - vitest
 
-  '@objectstack/objectql@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/observability@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/metadata-core': 7.6.0
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-      ajv: 8.20.0
-      zod: 4.4.3
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+    transitivePeerDependencies:
+      - ai
+
+  '@objectstack/platform-objects@8.0.1(ai@6.0.193(zod@4.3.6))':
+    dependencies:
+      '@objectstack/metadata-core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
       - vitest
 
-  '@objectstack/observability@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/plugin-approvals@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/observability@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/platform-objects@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/platform-objects@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-approvals@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/metadata-core': 7.6.0
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/formula': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/metadata-core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
       - vitest
 
-  '@objectstack/plugin-approvals@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/plugin-audit@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/metadata-core': 7.6.0
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
       - vitest
 
-  '@objectstack/plugin-audit@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-audit@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-auth@7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@objectstack/plugin-auth@8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@better-auth/core': 1.6.13(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.29.2)(nanostores@1.3.0)
       '@better-auth/oauth-provider': 1.6.13(@better-auth/core@1.6.13(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.29.2)(nanostores@1.3.0))(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(better-auth@1.6.13(@opentelemetry/api@1.9.1)(better-sqlite3@12.10.0)(mongodb@7.2.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(better-call@1.3.5(zod@4.3.6))
       '@noble/hashes': 2.2.0
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
       better-auth: 1.6.13(@opentelemetry/api@1.9.1)(better-sqlite3@12.10.0)(mongodb@7.2.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - '@better-auth/utils'
@@ -11031,258 +10772,115 @@ snapshots:
       - vitest
       - vue
 
-  '@objectstack/plugin-auth@7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@objectstack/plugin-email@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@better-auth/core': 1.6.13(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.29.2)(nanostores@1.3.0)
-      '@better-auth/oauth-provider': 1.6.13(@better-auth/core@1.6.13(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.29.2)(nanostores@1.3.0))(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(better-auth@1.6.13(@opentelemetry/api@1.9.1)(better-sqlite3@12.10.0)(mongodb@7.2.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(better-call@1.3.5(zod@4.3.6))
-      '@noble/hashes': 2.2.0
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-      better-auth: 1.6.13(@opentelemetry/api@1.9.1)(better-sqlite3@12.10.0)(mongodb@7.2.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
-      - '@better-auth/utils'
-      - '@better-fetch/fetch'
-      - '@cloudflare/workers-types'
-      - '@lynx-js/react'
-      - '@opentelemetry/api'
-      - '@prisma/client'
-      - '@sveltejs/kit'
-      - '@tanstack/react-start'
-      - '@tanstack/solid-start'
       - ai
-      - better-call
-      - better-sqlite3
-      - drizzle-kit
-      - drizzle-orm
-      - jose
-      - kysely
-      - mongodb
-      - mysql2
-      - nanostores
-      - next
-      - pg
-      - prisma
-      - react
-      - react-dom
-      - solid-js
-      - svelte
       - vitest
-      - vue
 
-  '@objectstack/plugin-email@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-email@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-hono-server@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/plugin-hono-server@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
       '@hono/node-server': 2.0.4(hono@4.12.23)
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
       hono: 4.12.23
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/plugin-hono-server@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/plugin-org-scoping@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@hono/node-server': 2.0.4(hono@4.12.23)
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-      hono: 4.12.23
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-mcp-server@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - '@cfworker/json-schema'
-      - ai
-      - supports-color
-
-  '@objectstack/plugin-mcp-server@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - '@cfworker/json-schema'
-      - ai
-      - supports-color
-
-  '@objectstack/plugin-org-scoping@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-org-scoping@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-reports@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-reports@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-security@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-security@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-sharing@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/objectql': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
       - vitest
 
-  '@objectstack/plugin-sharing@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/plugin-reports@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/objectql': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
       - vitest
 
-  '@objectstack/plugin-trigger-record-change@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/plugin-security@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+    transitivePeerDependencies:
+      - ai
+      - vitest
+
+  '@objectstack/plugin-sharing@8.0.1(ai@6.0.193(zod@4.3.6))':
+    dependencies:
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/objectql': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+    transitivePeerDependencies:
+      - ai
+      - vitest
+
+  '@objectstack/plugin-trigger-record-change@8.0.1(ai@6.0.193(zod@4.3.6))':
+    dependencies:
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/plugin-trigger-record-change@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/plugin-trigger-schedule@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/plugin-trigger-schedule@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/plugin-webhooks@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/service-messaging': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/plugin-trigger-schedule@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/rest@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-webhooks@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-messaging': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/plugin-webhooks@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-messaging': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/rest@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-package': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/service-package': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       zod: 4.4.3
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/rest@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/runtime@8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-package': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/runtime@7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-memory': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-sql': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/driver-sqlite-wasm': 7.6.0(ai@6.0.193(zod@4.3.6))(better-sqlite3@12.10.0)
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/metadata': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/objectql': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-auth': 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@objectstack/plugin-org-scoping': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/plugin-security': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/rest': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-cluster': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/service-i18n': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-memory': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-sql': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-sqlite-wasm': 8.0.1(ai@6.0.193(zod@4.3.6))(better-sqlite3@12.10.0)
+      '@objectstack/formula': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/metadata': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/objectql': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/observability': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-auth': 8.0.1(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.3.6))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@objectstack/plugin-org-scoping': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/plugin-security': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/rest': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/service-cluster': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/service-i18n': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
       quickjs-emscripten: 0.32.0
       zod: 4.4.3
     optionalDependencies:
-      '@objectstack/driver-mongodb': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/driver-mongodb': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - '@aws-sdk/credential-providers'
       - '@better-auth/utils'
@@ -11326,320 +10924,139 @@ snapshots:
       - vitest
       - vue
 
-  '@objectstack/runtime@7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-memory': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-sql': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/driver-sqlite-wasm': 7.6.0(ai@6.0.193(zod@4.4.3))(better-sqlite3@12.10.0)
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/metadata': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/objectql': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-auth': 7.6.0(@better-auth/utils@0.4.1)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(ai@6.0.193(zod@4.4.3))(better-call@1.3.5(zod@4.3.6))(better-sqlite3@12.10.0)(jose@6.1.3)(kysely@0.29.2)(mongodb@7.2.0)(nanostores@1.3.0)(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      '@objectstack/plugin-org-scoping': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/plugin-security': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/rest': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-cluster': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/service-i18n': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-      quickjs-emscripten: 0.32.0
-      zod: 4.4.3
-    optionalDependencies:
-      '@objectstack/driver-mongodb': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - '@aws-sdk/credential-providers'
-      - '@better-auth/utils'
-      - '@better-fetch/fetch'
-      - '@cloudflare/workers-types'
-      - '@lynx-js/react'
-      - '@mongodb-js/zstd'
-      - '@opentelemetry/api'
-      - '@prisma/client'
-      - '@sveltejs/kit'
-      - '@tanstack/react-start'
-      - '@tanstack/solid-start'
-      - ai
-      - better-call
-      - better-sqlite3
-      - drizzle-kit
-      - drizzle-orm
-      - gcp-metadata
-      - jose
-      - kerberos
-      - kysely
-      - mongodb
-      - mongodb-client-encryption
-      - mysql
-      - mysql2
-      - nanostores
-      - next
-      - pg
-      - pg-native
-      - pg-query-stream
-      - prisma
-      - react
-      - react-dom
-      - snappy
-      - socks
-      - solid-js
-      - sqlite3
-      - supports-color
-      - svelte
-      - tedious
-      - vitest
-      - vue
-
-  '@objectstack/service-ai@7.6.0(@ai-sdk/gateway@3.0.121(zod@4.4.3))':
+  '@objectstack/service-ai@8.0.1(@ai-sdk/gateway@3.0.121(zod@4.4.3))':
     dependencies:
       '@ai-sdk/provider': 3.0.10
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/formula': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
       ai: 6.0.193(zod@4.4.3)
       zod: 4.4.3
     optionalDependencies:
       '@ai-sdk/gateway': 3.0.121(zod@4.4.3)
 
-  '@objectstack/service-analytics@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/service-analytics@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-analytics@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/service-automation@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/formula': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-automation@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/service-cache@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/observability': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-automation@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/service-cluster@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/formula': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-cache@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/service-datasource@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-cache@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/service-feed@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-cluster@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/service-i18n@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-cluster@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/service-job@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-datasource@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-datasource@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-feed@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-feed@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-i18n@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-i18n@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-job@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
       croner: 10.0.1
     transitivePeerDependencies:
       - ai
+      - vitest
 
-  '@objectstack/service-job@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/service-messaging@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      croner: 10.0.1
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-messaging@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/service-package@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-messaging@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/service-queue@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
+      - vitest
 
-  '@objectstack/service-package@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/service-realtime@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
+      - vitest
 
-  '@objectstack/service-package@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-queue@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-queue@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-realtime@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-realtime@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-settings@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/service-settings@8.0.1(ai@6.0.193(zod@4.4.3))':
     dependencies:
       '@noble/ciphers': 2.2.0
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.3.6))
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/platform-objects': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/types': 8.0.1(ai@6.0.193(zod@4.3.6))
+    transitivePeerDependencies:
+      - ai
+      - vitest
+
+  '@objectstack/service-storage@8.0.1(ai@6.0.193(zod@4.4.3))':
+    dependencies:
+      '@objectstack/core': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/observability': 8.0.1(ai@6.0.193(zod@4.3.6))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
-  '@objectstack/service-settings@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@noble/ciphers': 2.2.0
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/platform-objects': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/types': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-storage@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.3.6))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/service-storage@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/core': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/observability': 7.6.0(ai@6.0.193(zod@4.4.3))
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/spec@7.6.0(ai@6.0.193(zod@4.3.6))':
-    dependencies:
-      zod: 4.4.3
-    optionalDependencies:
-      ai: 6.0.193(zod@4.3.6)
-
-  '@objectstack/spec@7.6.0(ai@6.0.193(zod@4.4.3))':
+  '@objectstack/spec@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
       zod: 4.4.3
     optionalDependencies:
       ai: 6.0.193(zod@4.4.3)
 
-  '@objectstack/types@7.6.0(ai@6.0.193(zod@4.3.6))':
+  '@objectstack/types@8.0.1(ai@6.0.193(zod@4.3.6))':
     dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.3.6))
-    transitivePeerDependencies:
-      - ai
-
-  '@objectstack/types@7.6.0(ai@6.0.193(zod@4.4.3))':
-    dependencies:
-      '@objectstack/spec': 7.6.0(ai@6.0.193(zod@4.4.3))
+      '@objectstack/spec': 8.0.1(ai@6.0.193(zod@4.3.6))
     transitivePeerDependencies:
       - ai
 
@@ -12945,15 +12362,6 @@ snapshots:
       - supports-color
 
   agent-base@7.1.4: {}
-
-  ai@6.0.193(zod@4.3.6):
-    dependencies:
-      '@ai-sdk/gateway': 3.0.121(zod@4.3.6)
-      '@ai-sdk/provider': 3.0.10
-      '@ai-sdk/provider-utils': 4.0.27(zod@4.3.6)
-      '@opentelemetry/api': 1.9.1
-      zod: 4.3.6
-    optional: true
 
   ai@6.0.193(zod@4.4.3):
     dependencies:
@@ -14952,7 +14360,7 @@ snapshots:
 
   glob@13.0.1:
     dependencies:
-      minimatch: 10.1.2
+      minimatch: 10.2.5
       minipass: 7.1.2
       path-scurry: 2.0.1
 
@@ -16395,7 +15803,7 @@ snapshots:
       metro-cache: 0.83.3
       metro-core: 0.83.3
       metro-runtime: 0.83.3
-      yaml: 2.8.2
+      yaml: 2.9.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -16832,10 +16240,6 @@ snapshots:
   min-indent@1.0.1: {}
 
   mingo@7.2.1: {}
-
-  minimatch@10.1.2:
-    dependencies:
-      '@isaacs/brace-expansion': 5.0.1
 
   minimatch@10.2.5:
     dependencies:
@@ -18634,7 +18038,7 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-jest@29.4.6(@babel/core@7.29.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.29.0))(jest-util@29.7.0)(jest@29.7.0(@types/node@25.2.2))(typescript@5.9.3):
+  ts-jest@29.4.6(@babel/core@7.29.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.29.0))(esbuild@0.28.0)(jest-util@29.7.0)(jest@29.7.0(@types/node@25.2.2))(typescript@5.9.3):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
@@ -18652,6 +18056,7 @@ snapshots:
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
       babel-jest: 29.7.0(@babel/core@7.29.0)
+      esbuild: 0.28.0
       jest-util: 29.7.0
 
   ts-morph@28.0.0:
@@ -19077,8 +18482,6 @@ snapshots:
   yallist@3.1.1: {}
 
   yallist@5.0.0: {}
-
-  yaml@2.8.2: {}
 
   yaml@2.9.0: {}
 
