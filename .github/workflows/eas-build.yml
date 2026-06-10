@@ -31,6 +31,9 @@ jobs:
   build:
     name: EAS Build (${{ inputs.platform || 'all' }})
     runs-on: ubuntu-latest
+    # Skip (neutral, not failed) when no Expo token is configured — EAS needs an
+    # account credential this repo can't provide by default.
+    if: ${{ secrets.EXPO_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

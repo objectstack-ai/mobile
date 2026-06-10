@@ -20,27 +20,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The integration stack (server/integration) is optional and not always
+      # present in the repo. Detect it up front and skip the server steps when
+      # absent so this job is a clean no-op instead of a hard failure on the
+      # missing working directory.
+      - name: Check for integration stack
+        id: stack
+        run: |
+          if [ -d server/integration ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::server/integration not present — skipping server integration tests."
+          fi
+
       - uses: pnpm/action-setup@v4
+        if: steps.stack.outputs.present == 'true'
         with:
           version: 10
 
       - uses: actions/setup-node@v4
+        if: steps.stack.outputs.present == 'true'
         with:
           node-version: 20
           cache: pnpm
 
       # Install app + CLI dependencies
       - name: Install dependencies
+        if: steps.stack.outputs.present == 'true'
         run: pnpm install
 
       # Pre-compile the stack to a JSON artifact (surfaces any compile error in
       # its own step and lets the server boot without an esbuild compile).
       - name: Build integration artifact
+        if: steps.stack.outputs.present == 'true'
         run: npx objectstack build
         working-directory: server/integration
 
       # Start the ObjectStack CLI server (server/integration stack) in background
       - name: Start integration server
+        if: steps.stack.outputs.present == 'true'
         run: ./scripts/start-integration-server.sh --bg
         env:
           PORT: 4000
@@ -48,20 +67,22 @@ jobs:
 
       # Wait for server readiness
       - name: Wait for server
+        if: steps.stack.outputs.present == 'true'
         run: ./scripts/wait-for-server.sh http://localhost:4000/api/v1/auth/get-session 120
 
       # Run integration tests
       - name: Run integration tests
+        if: steps.stack.outputs.present == 'true'
         run: pnpm test:integration:server
         env:
           INTEGRATION_SERVER_URL: http://localhost:4000
 
       # Surface the server log for diagnosis if anything above failed
       - name: Dump server log
-        if: always()
+        if: always() && steps.stack.outputs.present == 'true'
         run: cat .integration-server.log || true
 
       # Stop server
       - name: Stop integration server
-        if: always()
+        if: always() && steps.stack.outputs.present == 'true'
         run: ./scripts/stop-integration-server.sh
