@@ -299,6 +299,9 @@ export function resolveFilterMacro(value: unknown): unknown {
   if ((m = /^(?:last_(\d+)_days|(\d+)_days_ago)$/.exec(token))) {
     return now.getTime() - Number(m[1] ?? m[2]) * 86_400_000;
   }
+  if ((m = /^(?:last_(\d+)_weeks?|(\d+)_weeks?_ago)$/.exec(token))) {
+    return now.getTime() - Number(m[1] ?? m[2]) * 7 * 86_400_000;
+  }
   if ((m = /^(?:last_(\d+)_months|(\d+)_months_ago)$/.exec(token))) {
     const months = Number(m[1] ?? m[2]);
     return new Date(y, now.getMonth() - months, now.getDate()).getTime();
@@ -312,6 +315,11 @@ export function resolveFilterMacro(value: unknown): unknown {
   }
   if (token === "current_year_end" || token === "this_year_end") {
     return new Date(y, 11, 31, 23, 59, 59, 999).getTime();
+  }
+  if (token === "current_week_start" || token === "this_week_start") {
+    // Week starts Monday (ISO): shift back to the most recent Monday.
+    const dow = (now.getDay() + 6) % 7; // 0 = Monday … 6 = Sunday
+    return startOfDay(now) - dow * 86_400_000;
   }
   if (token === "current_month_start" || token === "this_month_start") {
     return new Date(y, now.getMonth(), 1).getTime();

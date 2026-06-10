@@ -4,9 +4,13 @@ import { useLocalSearchParams } from "expo-router";
 import { useClient } from "@objectstack/client-react";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { DashboardViewRenderer } from "~/components/renderers";
-import type { DashboardMeta, DashboardWidgetMeta } from "~/components/renderers";
+import type {
+  DashboardMeta,
+  DashboardWidgetMeta,
+  DatasetMeta,
+} from "~/components/renderers";
 import type { WidgetDataPayload } from "~/components/renderers";
-import { useWidgetQuery } from "~/hooks/useDashboardData";
+import { resolveDatasetWidget, useWidgetQuery } from "~/hooks/useDashboardData";
 
 /* ------------------------------------------------------------------ */
 /*  Widget data fetcher (calls hook per-widget, reports via callback)  */
@@ -59,12 +63,42 @@ export default function DashboardScreen() {
           };
         // Spec dashboards key each widget by `id`; the renderer/data-fetcher key
         // off `name`, so normalize once here.
+        const widgets = (raw.widgets ?? []).map((w) => ({
+          ...w,
+          name: w.name ?? w.id ?? "",
+        }));
+
+        // 8.0-spec widgets reference an analytics `dataset` instead of a raw
+        // `object`. Fetch each distinct dataset's metadata (an analytics view
+        // over a base object) once, then resolve every widget into the
+        // object-query shape the data hook understands.
+        const datasetNames = [
+          ...new Set(
+            widgets
+              .map((w) => w.dataset)
+              .filter((d): d is string => typeof d === "string" && d.length > 0),
+          ),
+        ];
+        const datasets = new Map<string, DatasetMeta>();
+        await Promise.all(
+          datasetNames.map(async (name) => {
+            try {
+              const ds = (await client.meta.getItem("dataset", name)) as
+                | (DatasetMeta & { dataset?: DatasetMeta })
+                | undefined;
+              const resolved = ds?.dataset ?? ds;
+              if (resolved?.object) datasets.set(name, resolved);
+            } catch {
+              // Dataset metadata unavailable — widget falls back to empty state.
+            }
+          }),
+        );
+
         const meta: DashboardMeta = {
           ...raw,
-          widgets: (raw.widgets ?? []).map((w) => ({
-            ...w,
-            name: w.name ?? w.id ?? "",
-          })),
+          widgets: widgets.map((w) =>
+            resolveDatasetWidget(w, w.dataset ? datasets.get(w.dataset) : undefined),
+          ),
         };
         setDashboard(meta);
       } catch {
