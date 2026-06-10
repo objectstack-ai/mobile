@@ -73,7 +73,7 @@ describe("remote-config", () => {
     });
 
     it("refresh fetches and merges with defaults", async () => {
-      global.fetch = jest.fn().mockResolvedValue({
+      globalThis.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ theme: "dark", newKey: true }),
       }) as jest.Mock;
@@ -90,7 +90,7 @@ describe("remote-config", () => {
     });
 
     it("refresh keeps existing config on failure", async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error("offline")) as jest.Mock;
+      globalThis.fetch = jest.fn().mockRejectedValue(new Error("offline")) as jest.Mock;
 
       const mgr = createRemoteConfigManager({
         endpoint: "https://api.example.com/config",

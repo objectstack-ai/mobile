@@ -13,7 +13,7 @@ const isWeb = Platform.OS === "web";
  */
 function getNativeAuthCookie(): string {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const { authClient } = require("~/lib/auth-client") as {
       authClient: { getCookie?: () => string };
     };
