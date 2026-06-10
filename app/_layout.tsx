@@ -2,6 +2,7 @@ import "../global.css";
 import "~/lib/i18n"; // Initialize i18next before any screen calls useTranslation()
 
 import { useCallback, useEffect, useMemo } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
@@ -62,17 +63,15 @@ function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
   }, [session, isPending, segments, serverUrl, isReady, router]);
 }
 
-export default function RootLayout() {
-  const serverUrl = useServerStore((s) => s.serverUrl);
-  const isReady = useServerStore((s) => s.isReady);
-  const hydrate = useServerStore((s) => s.hydrate);
-
-  // On mount, load the persisted server URL and reinitialize clients
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
-
-  useProtectedRoute(serverUrl, isReady);
+/**
+ * The signed-in app shell. Mounted only after `hydrate()` has re-targeted the
+ * auth/data clients at the persisted server URL — so the very first
+ * `useSession()` (and every screen data hook) hits the configured server, not
+ * the default API host. Mounting any of this earlier fires a storm of
+ * connection-refused requests (and a dev-overlay error) on every cold start.
+ */
+function AppShell({ serverUrl }: { serverUrl: string | null }) {
+  useProtectedRoute(serverUrl, true);
 
   const { data: session } = authClient.useSession();
   const sessionRecord = session as Record<string, unknown> | null;
@@ -101,22 +100,43 @@ export default function RootLayout() {
   return (
     <ObjectStackProvider client={client}>
       <QueryClientProvider client={queryClient}>
-        <SafeAreaProvider>
-          <ToastProvider>
-            <ConfirmProvider>
-              <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
-              <StatusBar style="auto" />
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(app)" />
-                <Stack.Screen name="account" />
-                <Stack.Screen name="ai" />
-              </Stack>
-            </ConfirmProvider>
-          </ToastProvider>
-        </SafeAreaProvider>
+        <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(app)" />
+          <Stack.Screen name="account" />
+          <Stack.Screen name="ai" />
+        </Stack>
       </QueryClientProvider>
     </ObjectStackProvider>
+  );
+}
+
+export default function RootLayout() {
+  const serverUrl = useServerStore((s) => s.serverUrl);
+  const isReady = useServerStore((s) => s.isReady);
+  const hydrate = useServerStore((s) => s.hydrate);
+
+  // On mount, load the persisted server URL and reinitialize clients
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
+
+  return (
+    <SafeAreaProvider>
+      <ToastProvider>
+        <ConfirmProvider>
+          <StatusBar style="auto" />
+          {isReady ? (
+            <AppShell serverUrl={serverUrl} />
+          ) : (
+            <View className="flex-1 items-center justify-center bg-background">
+              <ActivityIndicator size="large" />
+            </View>
+          )}
+        </ConfirmProvider>
+      </ToastProvider>
+    </SafeAreaProvider>
   );
 }

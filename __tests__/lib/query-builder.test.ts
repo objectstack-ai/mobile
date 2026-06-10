@@ -8,6 +8,7 @@ import {
   serializeFilterTree,
   buildProjection,
   OPERATOR_META,
+  resolveFilterMacro,
   type FilterOperator,
 } from "~/lib/query-builder";
 
@@ -204,5 +205,32 @@ describe("OPERATOR_META", () => {
       expect(OPERATOR_META[op as keyof typeof OPERATOR_META]).toHaveProperty("label");
       expect(OPERATOR_META[op as keyof typeof OPERATOR_META]).toHaveProperty("valueCount");
     });
+  });
+});
+
+describe("resolveFilterMacro — week tokens", () => {
+  const DAY = 86_400_000;
+
+  it("resolves {current_week_start} to the most recent Monday, start of day", () => {
+    const v = resolveFilterMacro("{current_week_start}");
+    expect(typeof v).toBe("number");
+    const d = new Date(v as number);
+    expect(d.getDay()).toBe(1); // Monday
+    expect([d.getHours(), d.getMinutes(), d.getSeconds()]).toEqual([0, 0, 0]);
+    expect(v as number).toBeLessThanOrEqual(Date.now());
+  });
+
+  it("resolves {N_weeks_ago} and {last_N_weeks} to N*7 days before now", () => {
+    const before = Date.now();
+    const ago = resolveFilterMacro("{4_weeks_ago}") as number;
+    const after = Date.now();
+    // Within the window [before - 28d, after - 28d].
+    expect(ago).toBeGreaterThanOrEqual(before - 28 * DAY - 5);
+    expect(ago).toBeLessThanOrEqual(after - 28 * DAY + 5);
+    expect(typeof resolveFilterMacro("{last_2_weeks}")).toBe("number");
+  });
+
+  it("leaves an unknown macro untouched (visibly inert, not silently zero)", () => {
+    expect(resolveFilterMacro("{not_a_real_macro}")).toBe("{not_a_real_macro}");
   });
 });
