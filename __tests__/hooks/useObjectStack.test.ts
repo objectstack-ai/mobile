@@ -21,7 +21,6 @@ describe("useObjectStack (barrel exports)", () => {
     expect(ObjectStackHooks.useBatchMutation).toBeDefined();
     expect(ObjectStackHooks.usePackages).toBeDefined();
     expect(ObjectStackHooks.useSavedViews).toBeDefined();
-    expect(ObjectStackHooks.useAI).toBeDefined();
     expect(ObjectStackHooks.useServerTranslations).toBeDefined();
     expect(ObjectStackHooks.useAnalyticsQuery).toBeDefined();
     expect(ObjectStackHooks.useAnalyticsMeta).toBeDefined();

@@ -18,7 +18,6 @@ export {
 export { useBatchMutation } from "./useBatchMutation";
 export { usePackages } from "./usePackages";
 export { useSavedViews } from "./useSavedViews";
-export { useAI } from "./useAI";
 export { useServerTranslations } from "./useServerTranslations";
 export { useAnalyticsQuery } from "./useAnalyticsQuery";
 export { useAnalyticsMeta } from "./useAnalyticsMeta";
