@@ -131,6 +131,18 @@
     "more": "更多",
     "profile": "个人资料"
   },
+  "home": {
+    "greetingMorning": "早上好",
+    "greetingAfternoon": "下午好",
+    "greetingEvening": "晚上好",
+    "subtitle": "这是你的概览。",
+    "assistantTitle": "AI 助手",
+    "assistantSubtitle": "随时询问与你数据相关的问题",
+    "dashboardsTitle": "仪表盘",
+    "noDashboardsTitle": "暂无仪表盘",
+    "noDashboardsDesc": "你已安装的应用尚未发布任何仪表盘。",
+    "loadErrorTitle": "无法加载仪表盘"
+  },
   "search": {
     "title": "搜索",
     "placeholder": "搜索所有记录…",

@@ -132,6 +132,18 @@
     "more": "More",
     "profile": "Profile"
   },
+  "home": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "subtitle": "Here's your overview.",
+    "assistantTitle": "AI Assistant",
+    "assistantSubtitle": "Ask anything about your data",
+    "dashboardsTitle": "Dashboards",
+    "noDashboardsTitle": "No Dashboards",
+    "noDashboardsDesc": "None of your installed apps publish a dashboard yet.",
+    "loadErrorTitle": "Couldn't Load Dashboards"
+  },
   "search": {
     "title": "Search",
     "placeholder": "Search across all records…",
