@@ -9,8 +9,26 @@ import {
 } from "react-native";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
+import {
+  isFieldVisible,
+  isFieldReadonlyByCondition,
+  isFieldRequiredByCondition,
+  type ConditionHolder,
+} from "~/lib/conditional-fields";
 import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, FormFieldMeta } from "./types";
+
+/**
+ * Merge a field's conditional-field expressions (ObjectStack 8.0). A per-form
+ * `FormFieldMeta` override wins over the field definition's own expression.
+ */
+function fieldConditions(meta: FormFieldMeta, fieldDef?: FieldDefinition): ConditionHolder {
+  return {
+    visibleWhen: meta.visibleWhen ?? fieldDef?.visibleWhen,
+    readonlyWhen: meta.readonlyWhen ?? fieldDef?.readonlyWhen,
+    requiredWhen: meta.requiredWhen ?? fieldDef?.requiredWhen,
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /*  Entry-field filter                                                 */
@@ -145,14 +163,23 @@ function FormSectionView({
       {!collapsed && (
         <View className="gap-4 p-4">
           {resolvedFields.map(({ fieldDef, meta }) => {
-            // Conditional visibility
-            if (meta.visibleOn) {
-              const depValue = values[meta.visibleOn];
-              if (!depValue) return null;
-            }
+            const conds = fieldConditions(meta, fieldDef);
 
-            const isFieldReadonly = readonly || meta.readonly ||
-              (fieldPermissions?.[fieldDef.name] && !fieldPermissions[fieldDef.name].editable);
+            // Conditional visibility: legacy `visibleOn` (truthy dep) + 8.0
+            // `visibleWhen` expression. Either hiding the field skips it.
+            if (meta.visibleOn && !values[meta.visibleOn]) return null;
+            if (!isFieldVisible(conds, values)) return null;
+
+            const isFieldReadonly =
+              readonly ||
+              !!meta.readonly ||
+              isFieldReadonlyByCondition(conds, values) ||
+              (!!fieldPermissions?.[fieldDef.name] &&
+                !fieldPermissions[fieldDef.name].editable);
+
+            const isRequired =
+              (meta.required ?? fieldDef.required ?? false) ||
+              isFieldRequiredByCondition(conds, values);
 
             return (
               <FieldRenderer
@@ -160,7 +187,7 @@ function FormSectionView({
                 field={{
                   ...fieldDef,
                   label: meta.label ?? fieldDef.label,
-                  required: meta.required ?? fieldDef.required,
+                  required: isRequired,
                 }}
                 value={values[fieldDef.name]}
                 onChange={
@@ -242,7 +269,17 @@ export function FormViewRenderer({
         const fieldName = typeof f === "string" ? f : f.field;
         const meta: FormFieldMeta = typeof f === "string" ? { field: f } : f;
         const fieldDef = fields.find((fd) => fd.name === fieldName);
-        const isRequired = meta.required ?? fieldDef?.required;
+        const conds = fieldConditions(meta, fieldDef);
+
+        // Don't validate a field the user can't see — a hidden (or
+        // conditionally-hidden) required field must never block the save.
+        if (meta.hidden) continue;
+        if (meta.visibleOn && !values[meta.visibleOn]) continue;
+        if (!isFieldVisible(conds, values)) continue;
+
+        const isRequired =
+          (meta.required ?? fieldDef?.required ?? false) ||
+          isFieldRequiredByCondition(conds, values);
         if (isRequired) {
           const val = values[fieldName];
           if (val == null || val === "") {

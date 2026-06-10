@@ -14,6 +14,7 @@ import { EmptyState } from "~/components/common/EmptyState";
 import { Button } from "~/components/ui/Button";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { Skeleton } from "~/components/ui/Skeleton";
+import { isFieldVisible } from "~/lib/conditional-fields";
 import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, ActionMeta } from "./types";
 
@@ -528,6 +529,13 @@ export function DetailViewRenderer({
                 if (meta?.hidden) return null;
 
                 const fieldDef = fields.find((fd) => fd.name === fieldName);
+
+                // Conditional visibility (ObjectStack 8.0 `visibleWhen`),
+                // evaluated against the record. A `FormFieldMeta` override
+                // wins over the field definition's own expression.
+                const visibleWhen = meta?.visibleWhen ?? fieldDef?.visibleWhen;
+                if (!isFieldVisible({ visibleWhen }, record)) return null;
+
                 const label =
                   meta?.label ??
                   fieldDef?.label ??
