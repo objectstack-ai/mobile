@@ -38,6 +38,17 @@ module.exports = {
         "@typescript-eslint/no-require-imports": "off",
       },
     },
+    {
+      // Jest manual mocks are CommonJS modules (module.exports / require) that
+      // run in the Node test environment — give them the right globals so the
+      // `no-undef` / require rules don't flag legitimate mock plumbing.
+      files: ["__mocks__/**"],
+      env: { node: true, jest: true },
+      rules: {
+        "@typescript-eslint/no-require-imports": "off",
+        "@typescript-eslint/no-var-requires": "off",
+      },
+    },
   ],
   ignorePatterns: ["node_modules/", ".expo/", "dist/", "*.config.js", "babel.config.js", "server/hotcrm/"],
 };

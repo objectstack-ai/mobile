@@ -13,5 +13,11 @@ module.exports = {
   ...baseConfig,
   testMatch: ["**/__tests__/e2e/**/*.e2e.test.(ts|tsx)"],
   testPathIgnorePatterns: ["/node_modules/", "<rootDir>/server/hotcrm/"],
+  // Initialize i18n on top of the base setup so rendered screens show their
+  // real copy instead of raw translation keys.
+  setupFilesAfterEnv: [
+    ...baseConfig.setupFilesAfterEnv,
+    "<rootDir>/__tests__/e2e/e2e.setup.ts",
+  ],
   testTimeout: 10_000,
 };

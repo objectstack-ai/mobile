@@ -9,6 +9,7 @@ import {
   buildProjection,
   OPERATOR_META,
   resolveFilterMacro,
+  mongoFilterToAst,
   type FilterOperator,
 } from "~/lib/query-builder";
 
@@ -232,5 +233,86 @@ describe("resolveFilterMacro — week tokens", () => {
 
   it("leaves an unknown macro untouched (visibly inert, not silently zero)", () => {
     expect(resolveFilterMacro("{not_a_real_macro}")).toBe("{not_a_real_macro}");
+  });
+
+  it("passes through non-string and non-macro values unchanged", () => {
+    expect(resolveFilterMacro(42)).toBe(42);
+    expect(resolveFilterMacro("literal")).toBe("literal");
+  });
+
+  it("resolves day/relative tokens", () => {
+    const day = 86_400_000;
+    const today = resolveFilterMacro("{today}") as number;
+    expect(typeof today).toBe("number");
+    expect(resolveFilterMacro("{yesterday}")).toBe(today - day);
+    expect(resolveFilterMacro("{tomorrow}")).toBe(today + day);
+    expect(typeof resolveFilterMacro("{now}")).toBe("number");
+    const ago = resolveFilterMacro("{3_days_ago}") as number;
+    expect(ago).toBeLessThan(Date.now());
+    expect(typeof resolveFilterMacro("{last_2_months}")).toBe("number");
+    expect(typeof resolveFilterMacro("{1_year_ago}")).toBe("number");
+  });
+
+  it("resolves period-boundary tokens", () => {
+    for (const tok of [
+      "{current_year_start}",
+      "{current_year_end}",
+      "{current_month_start}",
+      "{current_month_end}",
+      "{current_quarter_start}",
+      "{current_quarter_end}",
+    ]) {
+      expect(typeof resolveFilterMacro(tok)).toBe("number");
+    }
+  });
+});
+
+describe("mongoFilterToAst", () => {
+  it("returns undefined for an empty or absent filter", () => {
+    expect(mongoFilterToAst(undefined)).toBeUndefined();
+    expect(mongoFilterToAst(null)).toBeUndefined();
+    expect(mongoFilterToAst({})).toBeUndefined();
+  });
+
+  it("translates a bare value to an equality node", () => {
+    expect(mongoFilterToAst({ status: "open" })).toEqual(["status", "=", "open"]);
+  });
+
+  it("translates Mongo operators to the AST symbol vocabulary", () => {
+    expect(mongoFilterToAst({ age: { $gte: 18 } })).toEqual(["age", ">=", 18]);
+    expect(mongoFilterToAst({ tag: { $in: ["a", "b"] } })).toEqual([
+      "tag",
+      "in",
+      ["a", "b"],
+    ]);
+  });
+
+  it("ANDs multiple operators on one field", () => {
+    expect(mongoFilterToAst({ age: { $gte: 18, $lte: 65 } })).toEqual([
+      "and",
+      ["age", ">=", 18],
+      ["age", "<=", 65],
+    ]);
+  });
+
+  it("ANDs multiple fields into a compound node", () => {
+    expect(
+      mongoFilterToAst({ is_completed: true, priority: "high" }),
+    ).toEqual([
+      "and",
+      ["is_completed", "=", true],
+      ["priority", "=", "high"],
+    ]);
+  });
+
+  it("resolves date macros inside conditions", () => {
+    const ast = mongoFilterToAst({ created_at: { $gte: "{today}" } }) as unknown[];
+    expect(ast[0]).toBe("created_at");
+    expect(ast[1]).toBe(">=");
+    expect(typeof ast[2]).toBe("number");
+  });
+
+  it("skips unknown operators", () => {
+    expect(mongoFilterToAst({ x: { $weird: 1 } })).toBeUndefined();
   });
 });

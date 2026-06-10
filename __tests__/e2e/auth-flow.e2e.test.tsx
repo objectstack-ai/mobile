@@ -6,7 +6,6 @@
  */
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { Alert } from "react-native";
 
 /* ---- Mocks ---- */
 
@@ -40,8 +39,6 @@ jest.mock("~/stores/server-store", () => ({
     selector({ ssoProviders: ["google"] }),
 }));
 
-jest.spyOn(Alert, "alert");
-
 import SignInScreen from "~/app/(auth)/sign-in";
 
 describe("E2E: Authentication Flow", () => {
@@ -67,10 +64,8 @@ describe("E2E: Authentication Flow", () => {
 
     fireEvent.press(getByText("Sign In"));
 
-    expect(Alert.alert).toHaveBeenCalledWith(
-      "Error",
-      "Please fill in all fields.",
-    );
+    // The screen surfaces an inline error rather than a native Alert.
+    expect(getByText("Please enter your email and password.")).toBeTruthy();
     expect(mockSignInEmail).not.toHaveBeenCalled();
   });
 
@@ -119,10 +114,7 @@ describe("E2E: Authentication Flow", () => {
     fireEvent.press(getByText("Sign In"));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        "Sign In Failed",
-        "Invalid credentials",
-      );
+      expect(getByText("Invalid credentials")).toBeTruthy();
     });
     expect(mockReplace).not.toHaveBeenCalled();
   });
@@ -143,10 +135,7 @@ describe("E2E: Authentication Flow", () => {
     fireEvent.press(getByText("Sign In"));
 
     await waitFor(() => {
-      expect(Alert.alert).toHaveBeenCalledWith(
-        "Error",
-        "Something went wrong. Please try again.",
-      );
+      expect(getByText("Something went wrong. Please try again.")).toBeTruthy();
     });
   });
 

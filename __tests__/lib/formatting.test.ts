@@ -4,6 +4,7 @@ import {
   formatNumber,
   formatPercent,
   formatCurrency,
+  formatByPattern,
 } from "~/lib/formatting";
 
 describe("formatDate", () => {
@@ -64,5 +65,44 @@ describe("formatCurrency", () => {
     const result = formatCurrency(100, { currency: "EUR" });
     expect(result).toContain("100");
     expect(result).toMatch(/€|EUR/);
+  });
+});
+
+describe("formatDateTime — invalid input", () => {
+  it("returns the raw value for an unparseable date", () => {
+    expect(formatDateTime("nope")).toBe("nope");
+  });
+});
+
+describe("formatByPattern", () => {
+  it("falls back to a grouped number when no pattern is given", () => {
+    expect(formatByPattern(1234)).toBe("1,234");
+  });
+
+  it("returns an em dash for non-finite values", () => {
+    expect(formatByPattern(Infinity, "$0,0")).toBe("—");
+    expect(formatByPattern(NaN)).toBe("—");
+  });
+
+  it("formats a percent pattern with the declared fraction digits", () => {
+    expect(formatByPattern(50, "0%")).toBe("50%");
+    expect(formatByPattern(12.5, "0.0%")).toBe("12.5%");
+  });
+
+  it("formats a currency pattern", () => {
+    expect(formatByPattern(1000, "$0,0")).toContain("$");
+    expect(formatByPattern(1000, "$0,0")).toContain("1,000");
+    expect(formatByPattern(9.99, "$0,0.00")).toContain("9.99");
+  });
+
+  it("abbreviates with a compact notation pattern", () => {
+    expect(formatByPattern(1500, "0a")).toMatch(/1\.5\s?K/i);
+    const m = formatByPattern(1_500_000, "$0.0a");
+    expect(m).toContain("$");
+    expect(m).toMatch(/1\.5\s?M/i);
+  });
+
+  it("honours fraction digits in a plain decimal pattern", () => {
+    expect(formatByPattern(1234.5, "0,0.0")).toBe("1,234.5");
   });
 });

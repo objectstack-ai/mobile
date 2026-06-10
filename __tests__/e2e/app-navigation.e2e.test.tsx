@@ -73,13 +73,17 @@ import SearchScreen from "~/app/(tabs)/search";
 import AppsScreen from "~/app/(tabs)/apps";
 import NotificationsScreen from "~/app/(tabs)/notifications";
 import MoreScreen from "~/app/(tabs)/more";
+import { ToastProvider } from "~/components/ui/Toast";
+import { ConfirmProvider } from "~/components/ui/ConfirmDialog";
 
 describe("E2E: App Navigation — Tab Screens", () => {
   it("renders Home tab header and empty dashboards state", async () => {
     const { getByText, findByText } = render(<HomeScreen />);
 
-    expect(getByText("Dashboard")).toBeTruthy();
-    expect(getByText("Welcome back. Here's your overview.")).toBeTruthy();
+    // Home leads with a time-of-day greeting (asserted via the stable subtitle)
+    // and surfaces the AI assistant entry.
+    expect(getByText("Here's your overview.")).toBeTruthy();
+    expect(getByText("AI Assistant")).toBeTruthy();
     // Apps publish no dashboards in this mock, so Home shows its empty state.
     expect(await findByText("No Dashboards")).toBeTruthy();
   });
@@ -87,12 +91,8 @@ describe("E2E: App Navigation — Tab Screens", () => {
   it("renders Search tab with search input", () => {
     const { getByPlaceholderText, getByText } = render(<SearchScreen />);
 
-    expect(
-      getByPlaceholderText("Search objects, records..."),
-    ).toBeTruthy();
-    expect(
-      getByText("Search across all your objects and records"),
-    ).toBeTruthy();
+    expect(getByPlaceholderText("Search across all records…")).toBeTruthy();
+    expect(getByText("Search across all your records")).toBeTruthy();
     expect(getByText("Type to start searching")).toBeTruthy();
   });
 
@@ -118,19 +118,26 @@ describe("E2E: App Navigation — Tab Screens", () => {
   });
 
   it("renders More tab with menu sections", () => {
-    const { getByText } = render(<MoreScreen />);
+    // MoreScreen consumes the Toast + Confirm contexts (sign-out flow).
+    const { getByText } = render(
+      <ToastProvider>
+        <ConfirmProvider>
+          <MoreScreen />
+        </ConfirmProvider>
+      </ToastProvider>,
+    );
 
     expect(getByText("Test User")).toBeTruthy();
     expect(getByText("test@example.com")).toBeTruthy();
+    // Section headers.
+    expect(getByText("Account")).toBeTruthy();
+    expect(getByText("Assistant")).toBeTruthy();
+    expect(getByText("Automation")).toBeTruthy();
     expect(getByText("Preferences")).toBeTruthy();
-    expect(getByText("Appearance")).toBeTruthy();
+    // Menu items.
+    expect(getByText("Account & Security")).toBeTruthy();
+    expect(getByText("AI Assistant")).toBeTruthy();
     expect(getByText("Language")).toBeTruthy();
-    expect(getByText("Security")).toBeTruthy();
-    expect(getByText("Security & Privacy")).toBeTruthy();
-    expect(getByText("Settings")).toBeTruthy();
-    expect(getByText("Support")).toBeTruthy();
-    expect(getByText("Help & Support")).toBeTruthy();
-    expect(getByText("About")).toBeTruthy();
     expect(getByText("Sign Out")).toBeTruthy();
   });
 });

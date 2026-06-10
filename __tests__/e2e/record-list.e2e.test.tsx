@@ -27,8 +27,8 @@ let mockAppDiscoveryReturn: {
   refetch: jest.Mock;
 };
 
-jest.mock("~/hooks/useAppDiscovery", () => ({
-  useAppDiscovery: () => mockAppDiscoveryReturn,
+jest.mock("~/hooks/useApps", () => ({
+  useApps: () => mockAppDiscoveryReturn,
 }));
 
 import AppsScreen from "~/app/(tabs)/apps";
@@ -93,7 +93,7 @@ describe("E2E: Record List — App Discovery & Navigation", () => {
 
     const { getByText } = render(<AppsScreen />);
 
-    expect(getByText("Loading apps…")).toBeTruthy();
+    expect(getByText("Loading your apps…")).toBeTruthy();
   });
 
   it("shows error state with retry button", () => {
