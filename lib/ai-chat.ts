@@ -43,6 +43,8 @@ export interface ToolInvocation {
 export interface ParsedAiStream {
   /** Concatenated assistant text (from `text-delta` / `text` events). */
   text: string;
+  /** Concatenated reasoning/thinking text (from `reasoning-delta` events). */
+  reasoning: string;
   /** Names of tools the agent invoked (back-compat; see `tools` for detail). */
   toolCalls: string[];
   /** Structured tool invocations (name + input + output + state). */
@@ -74,6 +76,12 @@ function applyEvent(event: Record<string, unknown>, acc: ParsedAiStream): void {
     case "text":
       // Some servers emit a single full-text event instead of deltas.
       if (typeof event.text === "string") acc.text += event.text;
+      break;
+    case "reasoning-delta":
+      if (typeof event.delta === "string") acc.reasoning += event.delta;
+      break;
+    case "reasoning":
+      if (typeof event.text === "string") acc.reasoning += event.text;
       break;
     case "tool-input-available":
       if (typeof event.toolName === "string") {
@@ -124,7 +132,7 @@ function parseEventLine(line: string): Record<string, unknown> | null {
 }
 
 export function parseAiSdkStream(raw: string): ParsedAiStream {
-  const result: ParsedAiStream = { text: "", toolCalls: [], tools: [] };
+  const result: ParsedAiStream = { text: "", reasoning: "", toolCalls: [], tools: [] };
   if (!raw) return result;
   for (const line of raw.split("\n")) {
     const event = parseEventLine(line);
@@ -188,8 +196,8 @@ function errorMessageFromBody(raw: string, status: number): string {
 
 export interface StreamAiChatOptions {
   signal?: AbortSignal;
-  /** Called as text accumulates, with the full reply so far + tools seen. */
-  onUpdate?: (text: string, tools: ToolInvocation[]) => void;
+  /** Called as text accumulates, with the full reply so far + tools + reasoning. */
+  onUpdate?: (text: string, tools: ToolInvocation[], reasoning: string) => void;
   /** Bind the turn to a server conversation (for server-side persistence). */
   conversationId?: string;
 }
@@ -232,24 +240,25 @@ export async function streamAiChat(
     // Streaming not supported in this runtime — read it whole.
     const raw = await res.text();
     const parsed = parseAiSdkStream(raw);
-    onUpdate?.(parsed.text, parsed.tools);
+    onUpdate?.(parsed.text, parsed.tools, parsed.reasoning);
     return parsed;
   }
 
   const reader = body.getReader();
   const decoder = new TextDecoder();
-  const acc: ParsedAiStream = { text: "", toolCalls: [], tools: [] };
+  const acc: ParsedAiStream = { text: "", reasoning: "", toolCalls: [], tools: [] };
   let buffer = "";
 
-  // A cheap signature so onUpdate fires on text deltas, new tool calls, and a
-  // tool's state flipping to `done` (output arriving).
-  const sig = () => `${acc.text.length}|${acc.tools.map((t) => t.id + t.state).join(",")}`;
+  // A cheap signature so onUpdate fires on text/reasoning deltas, new tool
+  // calls, and a tool's state flipping to `done` (output arriving).
+  const sig = () =>
+    `${acc.text.length}|${acc.reasoning.length}|${acc.tools.map((t) => t.id + t.state).join(",")}`;
   const drainLine = (line: string) => {
     const event = parseEventLine(line);
     if (!event) return;
     const before = sig();
     applyEvent(event, acc);
-    if (sig() !== before) onUpdate?.(acc.text, acc.tools);
+    if (sig() !== before) onUpdate?.(acc.text, acc.tools, acc.reasoning);
   };
 
   try {

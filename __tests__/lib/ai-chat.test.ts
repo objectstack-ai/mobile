@@ -83,6 +83,19 @@ describe("parseAiSdkStream", () => {
     expect(parseAiSdkStream(raw).toolCalls).toEqual(["list_objects", "query_data"]);
   });
 
+  it("accumulates reasoning-delta events into the reasoning field", () => {
+    const raw = [
+      `data: {"type":"reasoning-start","id":"r0"}`,
+      `data: {"type":"reasoning-delta","id":"r0","delta":"Let me "}`,
+      `data: {"type":"reasoning-delta","id":"r0","delta":"think."}`,
+      `data: {"type":"reasoning-end","id":"r0"}`,
+      `data: {"type":"text-delta","delta":"Answer."}`,
+    ].join("\n");
+    const parsed = parseAiSdkStream(raw);
+    expect(parsed.reasoning).toBe("Let me think.");
+    expect(parsed.text).toBe("Answer.");
+  });
+
   it("captures structured tool invocations (input, output, state) by toolCallId", () => {
     const raw = [
       `data: {"type":"tool-input-available","toolCallId":"tc1","toolName":"query_data","input":{"request":"count"}}`,
@@ -109,7 +122,7 @@ describe("parseAiSdkStream", () => {
   });
 
   it("returns an empty result for empty input", () => {
-    expect(parseAiSdkStream("")).toEqual({ text: "", toolCalls: [], tools: [] });
+    expect(parseAiSdkStream("")).toEqual({ text: "", reasoning: "", toolCalls: [], tools: [] });
   });
 });
 
