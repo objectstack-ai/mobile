@@ -23,10 +23,17 @@ function mockChat(overrides: Partial<ReturnType<typeof useAIChat>> = {}) {
     messages: [],
     isLoading: false,
     error: null,
+    serverBacked: false,
+    conversationId: null,
+    conversations: [],
+    init: jest.fn().mockResolvedValue(undefined),
     send: jest.fn().mockResolvedValue(undefined),
     retry: jest.fn(),
     stop: jest.fn(),
     clear: jest.fn(),
+    newConversation: jest.fn().mockResolvedValue(undefined),
+    loadConversation: jest.fn().mockResolvedValue(undefined),
+    removeConversation: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   };
   mockUseAIChat.mockReturnValue(base);
@@ -132,5 +139,46 @@ describe("AIAssistantScreen", () => {
     const { getByLabelText } = renderScreen();
     fireEvent.press(getByLabelText("Copy message"));
     expect(mockSetString).toHaveBeenCalledWith("**Hello** there");
+  });
+
+  it("calls init() on mount", () => {
+    const chat = mockChat();
+    renderScreen();
+    expect(chat.init).toHaveBeenCalled();
+  });
+
+  describe("server-backed mode (conversation history)", () => {
+    it("shows New chat + history actions instead of Clear", () => {
+      const chat = mockChat({ serverBacked: true, messages: [{ role: "user", content: "hi" }] });
+      const { getByLabelText, queryByLabelText } = renderScreen();
+      expect(queryByLabelText("Clear conversation")).toBeNull();
+      fireEvent.press(getByLabelText("New chat"));
+      expect(chat.newConversation).toHaveBeenCalled();
+    });
+
+    it("loads a conversation from the drawer", () => {
+      const chat = mockChat({
+        serverBacked: true,
+        conversations: [
+          { id: "c1", title: "First chat" },
+          { id: "c2", title: "Second chat" },
+        ],
+      });
+      const { getByLabelText, getByText } = renderScreen();
+      fireEvent.press(getByLabelText("Conversation history"));
+      fireEvent.press(getByText("First chat"));
+      expect(chat.loadConversation).toHaveBeenCalledWith("c1");
+    });
+
+    it("deletes a conversation from the drawer", () => {
+      const chat = mockChat({
+        serverBacked: true,
+        conversations: [{ id: "c1", title: "First chat" }],
+      });
+      const { getByLabelText } = renderScreen();
+      fireEvent.press(getByLabelText("Conversation history"));
+      fireEvent.press(getByLabelText("Delete conversation"));
+      expect(chat.removeConversation).toHaveBeenCalledWith("c1");
+    });
   });
 });

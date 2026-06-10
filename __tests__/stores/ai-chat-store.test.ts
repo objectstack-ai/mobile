@@ -1,12 +1,22 @@
 jest.mock("~/lib/ai-chat", () => ({ streamAiChat: jest.fn() }));
+jest.mock("~/lib/ai-conversations", () => ({
+  conversationsAvailable: jest.fn(),
+  listConversations: jest.fn(),
+  createConversation: jest.fn(),
+  getConversation: jest.fn(),
+  deleteConversation: jest.fn(),
+  addMessage: jest.fn(),
+}));
 import { streamAiChat } from "~/lib/ai-chat";
+import * as conv from "~/lib/ai-conversations";
 import { useAIChatStore } from "~/stores/ai-chat-store";
 
 const mockStream = streamAiChat as jest.Mock;
 
 function reset() {
-  // clear() also wipes the persisted (MMKV) thread, which is module-level and
-  // would otherwise leak between tests.
+  // Reset to local mode first, then clear() wipes the persisted (MMKV) thread,
+  // which is module-level and would otherwise leak between tests.
+  useAIChatStore.setState({ serverBacked: false, conversationId: null, conversations: [] });
   useAIChatStore.getState().clear();
   useAIChatStore.setState({ isLoading: false, error: null });
 }
@@ -116,6 +126,76 @@ describe("ai-chat-store", () => {
       mockStream.mockRejectedValueOnce(new Error("boom"));
       await get().send("will fail");
       get().hydrate();
+      expect(get().messages).toEqual([]);
+    });
+  });
+
+  describe("server-backed mode (conversations)", () => {
+    beforeEach(() => useAIChatStore.setState({ serverBacked: true }));
+
+    it("creates a conversation on the first send and persists both messages", async () => {
+      (conv.createConversation as jest.Mock).mockResolvedValue({ id: "c1", messages: [] });
+      (conv.addMessage as jest.Mock).mockResolvedValue(undefined);
+      (conv.listConversations as jest.Mock).mockResolvedValue([{ id: "c1", title: undefined }]);
+      mockStream.mockResolvedValue({ text: "the answer", toolCalls: [] });
+
+      await get().send("a question");
+
+      expect(conv.createConversation).toHaveBeenCalledTimes(1);
+      expect(get().conversationId).toBe("c1");
+      // user + assistant persisted to the server
+      expect(conv.addMessage).toHaveBeenCalledWith("c1", { role: "user", content: "a question" });
+      expect(conv.addMessage).toHaveBeenCalledWith("c1", { role: "assistant", content: "the answer" });
+      // the chat turn carried the conversationId
+      expect(mockStream).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ conversationId: "c1" }),
+      );
+    });
+
+    it("reuses the active conversation on later sends", async () => {
+      useAIChatStore.setState({ conversationId: "existing" });
+      (conv.addMessage as jest.Mock).mockResolvedValue(undefined);
+      (conv.listConversations as jest.Mock).mockResolvedValue([]);
+      mockStream.mockResolvedValue({ text: "reply", toolCalls: [] });
+
+      await get().send("hi again");
+      expect(conv.createConversation).not.toHaveBeenCalled();
+      expect(conv.addMessage).toHaveBeenCalledWith("existing", { role: "user", content: "hi again" });
+    });
+
+    it("loadConversation hydrates messages from the server", async () => {
+      (conv.getConversation as jest.Mock).mockResolvedValue({
+        id: "c2",
+        title: "Old chat",
+        messages: [
+          { role: "user", content: "earlier q" },
+          { role: "assistant", content: "earlier a" },
+        ],
+      });
+      await get().loadConversation("c2");
+      expect(get().conversationId).toBe("c2");
+      expect(get().messages.map((m) => m.content)).toEqual(["earlier q", "earlier a"]);
+    });
+
+    it("removeConversation drops it and resets when active", async () => {
+      useAIChatStore.setState({
+        conversationId: "c3",
+        messages: [{ role: "user", content: "x" }],
+        conversations: [{ id: "c3", title: "Doomed" }],
+      });
+      (conv.deleteConversation as jest.Mock).mockResolvedValue(undefined);
+      await get().removeConversation("c3");
+      expect(conv.deleteConversation).toHaveBeenCalledWith("c3");
+      expect(get().conversations).toEqual([]);
+      expect(get().conversationId).toBeNull();
+      expect(get().messages).toEqual([]);
+    });
+
+    it("newConversation clears the active thread + id", async () => {
+      useAIChatStore.setState({ conversationId: "c4", messages: [{ role: "user", content: "x" }] });
+      await get().newConversation();
+      expect(get().conversationId).toBeNull();
       expect(get().messages).toEqual([]);
     });
   });

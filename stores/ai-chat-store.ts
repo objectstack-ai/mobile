@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import { createMMKV } from "react-native-mmkv";
 import { streamAiChat, type AiChatMessage } from "~/lib/ai-chat";
+import {
+  conversationsAvailable,
+  listConversations,
+  createConversation,
+  getConversation,
+  deleteConversation,
+  addMessage,
+  type ConversationSummary,
+} from "~/lib/ai-conversations";
 
 /** A chat message plus the tool activity that produced an assistant reply. */
 export interface AIChatMessage {
@@ -11,18 +20,21 @@ export interface AIChatMessage {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Disk persistence (MMKV)                                            */
+/*  Local cache (MMKV)                                                 */
 /* ------------------------------------------------------------------ */
 
 /**
- * The conversation is persisted to MMKV so it **survives an app restart**, not
- * just navigation. (Server-backed multi-conversation history — the objectui
- * `/api/v1/ai/conversations` model — is a follow-up that needs the server to
- * expose that API; published service-ai 8.0.1 does not.)
+ * Two-tier persistence:
+ *  - **Server-backed** (`conversationsAvailable()` true): conversations live on
+ *    the server under the user — multi-conversation, cross-device — mirroring
+ *    the web. The active conversation id is cached locally so the thread
+ *    resumes on app open.
+ *  - **Local fallback** (server lacks `/conversations`, e.g. service-ai 8.0.1):
+ *    the single active thread is cached to MMKV so it survives a restart.
  */
 const storage = createMMKV({ id: "objectstack-ai-chat" });
 const MESSAGES_KEY = "messages";
-/** Don't let an unbounded thread bloat storage. */
+const ACTIVE_ID_KEY = "active-conversation-id";
 const MAX_PERSISTED = 200;
 
 function loadPersistedMessages(): AIChatMessage[] {
@@ -52,48 +64,108 @@ function persistMessages(messages: AIChatMessage[]): void {
   }
 }
 
+function rememberActiveId(id: string | null): void {
+  try {
+    if (id) storage.set(ACTIVE_ID_KEY, id);
+    else storage.remove(ACTIVE_ID_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function recallActiveId(): string | null {
+  try {
+    return storage.getString(ACTIVE_ID_KEY) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Store                                                              */
+/* ------------------------------------------------------------------ */
+
 interface AIChatState {
   messages: AIChatMessage[];
   isLoading: boolean;
   error: Error | null;
-  /** Send a user message; appends the user turn then the streamed reply. */
+  /** True once the server is known to expose the conversation API. */
+  serverBacked: boolean;
+  /** The active server conversation id (server-backed mode), else null. */
+  conversationId: string | null;
+  /** All of the user's conversations (server-backed mode). */
+  conversations: ConversationSummary[];
+
+  /** Probe the server + restore the last thread. Idempotent. */
+  init: () => Promise<void>;
   send: (text: string) => Promise<void>;
-  /** Re-send the message from the last failed turn (no-op if none). */
   retry: () => void;
-  /** Stop the in-flight generation, keeping whatever streamed so far. */
   stop: () => void;
-  /** Reset the conversation. */
+  /** Clear the active thread (server-backed: just unloads; local: wipes cache). */
   clear: () => void;
-  /** Reload the persisted thread from disk (used on cold start / restore). */
+  /** Start a brand-new conversation. */
+  newConversation: () => Promise<void>;
+  /** Load an existing server conversation by id. */
+  loadConversation: (id: string) => Promise<void>;
+  /** Delete a server conversation; resets the view if it was active. */
+  removeConversation: (id: string) => Promise<void>;
+  /** Refresh the conversation list from the server. */
+  refreshConversations: () => Promise<void>;
+  /** Reload the local cached thread (cold-start restore in local mode). */
   hydrate: () => void;
 }
 
-// Non-reactive internals (don't belong in render state).
+// Non-reactive internals.
 let inFlight = false;
 let lastFailed: string | null = null;
 let controller: AbortController | null = null;
+let initialized = false;
 
-/**
- * Conversation state for the AI assistant, kept in a module-level store so the
- * thread **survives screen navigation** (leaving `/ai` and returning keeps the
- * conversation) — addressing the "lose my chat on exit" gap. Backed by the
- * `/api/v1/ai/chat` streaming agent (see `lib/ai-chat`).
- */
 export const useAIChatStore = create<AIChatState>((set, get) => ({
-  // Restore the persisted thread on cold start.
+  // In local mode this restores the cached thread immediately; in server mode
+  // `init()` replaces it with the resumed conversation.
   messages: loadPersistedMessages(),
   isLoading: false,
   error: null,
+  serverBacked: false,
+  conversationId: null,
+  conversations: [],
+
+  init: async () => {
+    if (initialized) return;
+    initialized = true;
+    let available = false;
+    try {
+      available = await conversationsAvailable();
+    } catch {
+      available = false;
+    }
+    set({ serverBacked: available });
+    if (!available) return; // local-cache mode keeps the MMKV-restored thread
+
+    // Server mode: don't show a stale local thread.
+    set({ messages: [] });
+    try {
+      const list = await listConversations();
+      set({ conversations: list });
+      // Resume the cached active conversation if it still exists.
+      const cached = recallActiveId();
+      const resume = cached && list.some((c) => c.id === cached) ? cached : undefined;
+      if (resume) await get().loadConversation(resume);
+    } catch {
+      /* best-effort; an empty list is fine */
+    }
+  },
 
   send: async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || inFlight) return;
     inFlight = true;
 
+    const serverBacked = get().serverBacked;
     const history = [...get().messages, { role: "user" as const, content: trimmed }];
     const wire: AiChatMessage[] = history.map((m) => ({ role: m.role, content: m.content }));
 
-    // Append the user turn + an empty assistant placeholder the stream fills in.
     set({ messages: [...history, { role: "assistant", content: "" }], isLoading: true, error: null });
 
     const patchAssistant = (content: string, toolCalls: string[]) => {
@@ -107,11 +179,25 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
       });
     };
 
+    // Ensure a server conversation exists before the turn (server mode).
+    let conversationId = get().conversationId;
+    if (serverBacked && !conversationId) {
+      try {
+        const conv = await createConversation();
+        conversationId = conv.id;
+        set({ conversationId });
+        rememberActiveId(conversationId);
+      } catch {
+        /* fall back to a non-persisted turn */
+      }
+    }
+
     controller = new AbortController();
     try {
       let lastPatch = 0;
       const result = await streamAiChat(wire, {
         signal: controller.signal,
+        conversationId: conversationId ?? undefined,
         onUpdate: (t, tools) => {
           const now = Date.now();
           if (now - lastPatch >= 80) {
@@ -130,13 +216,22 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
             : "I couldn't generate a response.");
       patchAssistant(content, result.toolCalls);
       lastFailed = null;
-      persistMessages(get().messages);
+
+      if (serverBacked && conversationId) {
+        // Explicit persistence (reliable across server builds).
+        await addMessage(conversationId, { role: "user", content: trimmed }).catch(() => {});
+        if (!result.error) {
+          await addMessage(conversationId, { role: "assistant", content }).catch(() => {});
+        }
+        void get().refreshConversations();
+      } else {
+        persistMessages(get().messages);
+      }
     } catch (err) {
       set({ error: err instanceof Error ? err : new Error("Chat request failed") });
       lastFailed = trimmed;
-      // Roll back the optimistic user turn + assistant placeholder.
       set((state) => ({ messages: state.messages.slice(0, -2) }));
-      persistMessages(get().messages);
+      if (!serverBacked) persistMessages(get().messages);
     } finally {
       set({ isLoading: false });
       inFlight = false;
@@ -160,7 +255,57 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
     controller?.abort();
     lastFailed = null;
     set({ messages: [], error: null });
-    persistMessages([]);
+    if (get().serverBacked) {
+      set({ conversationId: null });
+      rememberActiveId(null);
+    } else {
+      persistMessages([]);
+    }
+  },
+
+  newConversation: async () => {
+    controller?.abort();
+    lastFailed = null;
+    set({ messages: [], error: null, conversationId: null });
+    rememberActiveId(null);
+    // The conversation row is created lazily on the first message (send()).
+  },
+
+  loadConversation: async (id: string) => {
+    try {
+      const conv = await getConversation(id);
+      if (!conv) {
+        // Gone on the server — drop it from the list.
+        set((s) => ({ conversations: s.conversations.filter((c) => c.id !== id) }));
+        return;
+      }
+      set({
+        conversationId: conv.id,
+        messages: conv.messages.map((m) => ({ role: m.role, content: m.content })),
+        error: null,
+      });
+      rememberActiveId(conv.id);
+    } catch {
+      /* leave the current view as-is on a transient error */
+    }
+  },
+
+  removeConversation: async (id: string) => {
+    await deleteConversation(id);
+    set((s) => ({ conversations: s.conversations.filter((c) => c.id !== id) }));
+    if (get().conversationId === id) {
+      set({ messages: [], conversationId: null });
+      rememberActiveId(null);
+    }
+  },
+
+  refreshConversations: async () => {
+    if (!get().serverBacked) return;
+    try {
+      set({ conversations: await listConversations() });
+    } catch {
+      /* ignore */
+    }
   },
 
   hydrate: () => set({ messages: loadPersistedMessages() }),
