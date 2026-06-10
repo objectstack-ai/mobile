@@ -148,7 +148,9 @@
     "markAllRead": "Mark all read",
     "markAllReadA11y": "Mark all notifications read",
     "emptyTitle": "No Notifications",
-    "emptyDesc": "You're all caught up. New notifications will appear here."
+    "emptyDesc": "You're all caught up. New notifications will appear here.",
+    "unavailableTitle": "Notifications Unavailable",
+    "unavailableDesc": "We couldn't reach the notifications service. Pull to refresh or try again."
   },
   "more": {
     "profileFallbackName": "User",

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Bell, CheckCheck, Circle } from "lucide-react-native";
+import { Bell, CheckCheck, Circle, WifiOff } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
@@ -68,8 +68,10 @@ export default function NotificationsScreen() {
     notifications,
     unreadCount,
     isLoading,
+    error,
     markRead,
     markAllRead,
+    refetch,
   } = useNotifications();
   const router = useRouter();
   const { t } = useTranslation();
@@ -116,8 +118,22 @@ export default function NotificationsScreen() {
         </View>
       )}
 
-      {/* Empty state */}
-      {!isLoading && notifications.length === 0 && (
+      {/* Service-unavailable state — distinct from a genuinely empty inbox so a
+          failed fetch (e.g. the notifications service isn't mounted) doesn't
+          masquerade as "you're all caught up". */}
+      {!isLoading && notifications.length === 0 && error && (
+        <EmptyState
+          icon={WifiOff}
+          variant="error"
+          title={t("notifications.unavailableTitle")}
+          description={t("notifications.unavailableDesc")}
+          actionLabel={t("common.retry")}
+          onAction={() => void refetch()}
+        />
+      )}
+
+      {/* Empty state — genuinely no notifications */}
+      {!isLoading && notifications.length === 0 && !error && (
         <EmptyState
           icon={Bell}
           title={t("notifications.emptyTitle")}

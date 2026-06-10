@@ -44,4 +44,47 @@ describe("DetailViewRenderer — fallback field filtering", () => {
     // A field the metadata marks hidden is filtered out of the fallback too.
     expect(queryByText("Secret Token")).toBeNull();
   });
+
+  it("collapses empty-valued fields in the auto-layout", () => {
+    const sparse = {
+      id: "rec_2",
+      subject: "Has a subject",
+      description: "", // empty string
+      due_date: null, // null
+      tags: [], // empty array
+    };
+    const sparseFields: FieldDefinition[] = [
+      { name: "subject", label: "Subject", type: "text" },
+      { name: "description", label: "Description", type: "textarea" },
+      { name: "due_date", label: "Due Date", type: "date" },
+      { name: "tags", label: "Tags", type: "tags" },
+    ];
+    const { queryByText, getByText } = render(
+      <DetailViewRenderer record={sparse} fields={sparseFields} />,
+    );
+
+    // Populated field shows; empty ones are collapsed (no row of "—").
+    expect(getByText("Subject")).toBeTruthy();
+    expect(queryByText("Description")).toBeNull();
+    expect(queryByText("Due Date")).toBeNull();
+    expect(queryByText("Tags")).toBeNull();
+  });
+
+  it("keeps every field (even empty) when a curated view lists them", () => {
+    const sparse = { id: "rec_3", subject: "S", description: "" };
+    const sparseFields: FieldDefinition[] = [
+      { name: "subject", label: "Subject", type: "text" },
+      { name: "description", label: "Description", type: "textarea" },
+    ];
+    const { getByText } = render(
+      <DetailViewRenderer
+        record={sparse}
+        fields={sparseFields}
+        view={{ sections: [{ fields: ["subject", "description"] }] }}
+      />,
+    );
+    // Curated view honours the author's choice — empty Description still shows.
+    expect(getByText("Subject")).toBeTruthy();
+    expect(getByText("Description")).toBeTruthy();
+  });
 });

@@ -146,7 +146,9 @@
     "markAllRead": "全部标为已读",
     "markAllReadA11y": "将所有通知标为已读",
     "emptyTitle": "暂无通知",
-    "emptyDesc": "你已全部处理完毕。新通知将显示在这里。"
+    "emptyDesc": "你已全部处理完毕。新通知将显示在这里。",
+    "unavailableTitle": "通知不可用",
+    "unavailableDesc": "无法连接通知服务。下拉刷新或稍后重试。"
   },
   "more": {
     "profileFallbackName": "用户",
