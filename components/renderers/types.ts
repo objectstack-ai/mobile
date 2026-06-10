@@ -182,7 +182,12 @@ export interface DashboardWidgetMeta {
   name: string;
   /** Spec dashboards key widgets by `id`; normalized into `name` on load. */
   id?: string;
-  object: string;
+  /**
+   * Data source object. Optional because 8.0 spec widgets declare a `dataset`
+   * (an analytics view) instead; `resolveDatasetWidget` resolves the dataset's
+   * base object into this field before the widget is queried.
+   */
+  object?: string;
   type?: string;
   title?: string;
   description?: string;
@@ -195,6 +200,48 @@ export interface DashboardWidgetMeta {
   options?: unknown;
   /** Number of grid columns this widget spans (default 1) */
   span?: number;
+  /* --- 8.0 spec dashboard widget shape (resolved via `dataset` metadata) --- */
+  /** Analytics dataset this widget aggregates over (8.0 spec). */
+  dataset?: string;
+  /** Measure names selected from the dataset (8.0 spec); first drives the value. */
+  values?: string[];
+  /** Dimension names to group by (8.0 spec); first drives the chart category. */
+  dimensions?: string[];
+  /** Grid placement (8.0 spec): `{ x, y, w, h }` in a 12-column grid. */
+  layout?: { x?: number; y?: number; w?: number; h?: number };
+}
+
+/** A measure (aggregation) declared by an analytics dataset (8.0 spec). */
+export interface DatasetMeasure {
+  name: string;
+  label?: string;
+  aggregate?: "count" | "sum" | "avg" | "min" | "max";
+  /** Source object field the aggregate runs over (absent for `count`). */
+  field?: string;
+  format?: string;
+}
+
+/** A dimension (groupable field) declared by an analytics dataset (8.0 spec). */
+export interface DatasetDimension {
+  name: string;
+  label?: string;
+  /** Source object field this dimension maps to. */
+  field?: string;
+  type?: string;
+}
+
+/**
+ * Analytics dataset metadata (8.0 spec, served at `/meta/dataset/<name>`).
+ * A dataset is an analytics view over a base `object`, exposing groupable
+ * `dimensions` and aggregatable `measures`.
+ */
+export interface DatasetMeta {
+  name: string;
+  label?: string;
+  description?: string;
+  object: string;
+  dimensions?: DatasetDimension[];
+  measures?: DatasetMeasure[];
 }
 
 export interface DashboardMeta {

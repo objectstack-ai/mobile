@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { useQuery } from "@objectstack/client-react";
 import { mongoFilterToAst } from "~/lib/query-builder";
-import type { DashboardWidgetMeta } from "~/components/renderers/types";
+import type {
+  DashboardWidgetMeta,
+  DatasetMeta,
+} from "~/components/renderers/types";
 import type { WidgetDataPayload } from "~/components/renderers/DashboardViewRenderer";
 
 /* ------------------------------------------------------------------ */
@@ -119,7 +122,7 @@ function buildChartData(
 ): Array<{ label: string; value: number }> {
   if (!categoryField || records.length === 0) return [];
 
-  const buckets = new Map<string, { label: string; nums: number[] }>();
+  const buckets = new Map<string, { label: string; nums: number[]; count: number }>();
   let isDateCategory = false;
 
   for (const rec of records) {
@@ -127,9 +130,10 @@ function buildChartData(
     if (isDate) isDateCategory = true;
     let bucket = buckets.get(key);
     if (!bucket) {
-      bucket = { label, nums: [] };
+      bucket = { label, nums: [], count: 0 };
       buckets.set(key, bucket);
     }
+    bucket.count += 1;
     if (valueField) {
       const n = Number(rec[valueField]);
       if (!isNaN(n)) bucket.nums.push(n);
@@ -139,7 +143,9 @@ function buildChartData(
   const series = Array.from(buckets.entries()).map(([key, b]) => ({
     key,
     label: b.label,
-    value: applyAggregate(aggregate, b.nums),
+    // `count` aggregates over rows, not a value field — use the bucket size so
+    // count charts (the common dataset case, no `valueField`) aren't all zero.
+    value: aggregate === "count" ? b.count : applyAggregate(aggregate, b.nums),
   }));
 
   if (isDateCategory) {
@@ -153,6 +159,59 @@ function buildChartData(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Dataset → object-query resolution (8.0 spec)                        */
+/* ------------------------------------------------------------------ */
+
+/** Map a grid column width (12-col system) to the renderer's 1–2 span. */
+function spanFromLayoutWidth(w: number | undefined): number {
+  return typeof w === "number" && w >= 8 ? 2 : 1;
+}
+
+/**
+ * Resolve an 8.0-spec dashboard widget — which references an analytics
+ * `dataset` plus `values` (measures) / `dimensions` — into the object-query
+ * shape (`object` / `aggregate` / `valueField` / `categoryField`) the widget
+ * data hook already understands. The dataset is an analytics view over a base
+ * object, so we aggregate the base object's rows client-side rather than
+ * depending on a server analytics endpoint (which the published runtime may
+ * not mount). Widgets without a `dataset` pass through unchanged.
+ */
+export function resolveDatasetWidget(
+  widget: DashboardWidgetMeta,
+  dataset: DatasetMeta | undefined,
+): DashboardWidgetMeta {
+  if (!widget.dataset || !dataset) return widget;
+
+  const measureName = widget.values?.[0];
+  const measure = measureName
+    ? dataset.measures?.find((m) => m.name === measureName)
+    : undefined;
+  const dimensionName = widget.dimensions?.[0];
+  const dimension = dimensionName
+    ? dataset.dimensions?.find((d) => d.name === dimensionName)
+    : undefined;
+
+  const options = (widget.options ?? {}) as Record<string, unknown>;
+  const color = typeof options.color === "string" ? options.color : undefined;
+
+  return {
+    ...widget,
+    object: dataset.object,
+    aggregate: measure?.aggregate ?? "count",
+    // `count` measures have no source field — count rows instead.
+    valueField:
+      measure && measure.aggregate !== "count" ? measure.field : undefined,
+    categoryField: dimension?.field,
+    span: widget.span ?? spanFromLayoutWidth(widget.layout?.w),
+    chartConfig: {
+      ...options,
+      ...(color ? { colors: [color] } : null),
+      ...(measure?.format ? { format: measure.format } : null),
+    },
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Hook                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -162,6 +221,11 @@ function buildChartData(
  * Each widget declares an `object` (the data source) and optional
  * `aggregate`, `valueField`, and `categoryField` hints.  This hook
  * runs a live query that keeps the widget up-to-date.
+ *
+ * A widget with no resolvable `object` (e.g. a dataset whose metadata failed
+ * to load) returns a terminal empty payload rather than a perpetual loading
+ * state — `useQuery` leaves `isLoading: true` forever when disabled, which
+ * would otherwise spin the widget indefinitely.
  */
 export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
   const type = widget.type ?? "metric";
@@ -189,13 +253,19 @@ export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
     [filterKey],
   );
 
-  const { data, isLoading } = useQuery(widget.object, {
+  const { data, isLoading } = useQuery(widget.object ?? "", {
     top,
     filters: astFilter,
     enabled: !!widget.object,
   });
 
   return useMemo(() => {
+    // No data source to query — `useQuery` is disabled and its `isLoading`
+    // stays `true` forever, so short-circuit to a terminal empty state.
+    if (!widget.object) {
+      return { value: undefined, records: [], isLoading: false };
+    }
+
     const records: Record<string, unknown>[] = data?.records ?? [];
 
     if (isLoading) {

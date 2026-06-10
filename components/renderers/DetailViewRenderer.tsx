@@ -135,6 +135,14 @@ const SYSTEM_FIELDS = new Set([
   "last_modified_by",
 ]);
 
+/**
+ * Internal plumbing fields the server injects onto every record (multi-tenancy
+ * / sharding keys). They aren't part of the object's declared fields, carry no
+ * business meaning, and must never surface in the auto-layout — unlike the
+ * audit fields above, they don't even belong in "System Information".
+ */
+const INTERNAL_FIELDS = new Set(["organization_id", "tenant_id", "space_id"]);
+
 /* ------------------------------------------------------------------ */
 /*  Action Bar                                                         */
 /* ------------------------------------------------------------------ */
@@ -458,8 +466,26 @@ export function DetailViewRenderer({
 
     // Fallback: auto-layout, business fields first then a trailing "System
     // Information" section for audit fields.
+    // Fields whose object metadata marks them hidden/system — the curated form
+    // view filters these via `isEntryField`; the fallback must match so a
+    // hidden field never leaks into the detail layout.
+    const hiddenByMeta = new Set(
+      fields
+        .filter((f) => {
+          const flag = (k: string) => (f as Record<string, unknown>)[k] === true;
+          return flag("hidden") || flag("system");
+        })
+        .map((f) => f.name),
+    );
+
     const buildSections = (allKeys: string[]): FormSection[] => {
-      const keys = allKeys.filter((k) => !k.startsWith("_") && k !== "id");
+      const keys = allKeys.filter(
+        (k) =>
+          !k.startsWith("_") &&
+          k !== "id" &&
+          !INTERNAL_FIELDS.has(k) &&
+          !hiddenByMeta.has(k),
+      );
       const business = keys.filter((k) => !SYSTEM_FIELDS.has(k));
       const system = keys.filter((k) => SYSTEM_FIELDS.has(k));
       const result: FormSection[] = [];
