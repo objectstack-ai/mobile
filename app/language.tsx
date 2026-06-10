@@ -1,4 +1,4 @@
-import { View, ScrollView } from "react-native";
+import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { LanguageSelector } from "~/components/common/LanguageSelector";

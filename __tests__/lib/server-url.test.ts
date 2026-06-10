@@ -60,28 +60,28 @@ describe("server-url", () => {
 
   describe("validateServerUrl", () => {
     it("returns true when /api/v1/health responds OK", async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
+      globalThis.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
 
       const result = await validateServerUrl("https://api.example.com");
       expect(result).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         "https://api.example.com/api/v1/health",
         expect.objectContaining({ method: "GET" }),
       );
     });
 
     it("strips trailing slashes", async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
+      globalThis.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
 
       await validateServerUrl("https://api.example.com///");
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         "https://api.example.com/api/v1/health",
         expect.any(Object),
       );
     });
 
     it("falls back to HEAD request when /api/v1/health fails", async () => {
-      global.fetch = jest
+      globalThis.fetch = jest
         .fn()
         .mockRejectedValueOnce(new Error("health failed"))
         .mockResolvedValueOnce({ status: 200 }) as any;
@@ -91,7 +91,7 @@ describe("server-url", () => {
     });
 
     it("returns false when both health and HEAD fail", async () => {
-      global.fetch = jest
+      globalThis.fetch = jest
         .fn()
         .mockRejectedValueOnce(new Error("health failed"))
         .mockRejectedValueOnce(new Error("HEAD failed")) as any;
@@ -101,7 +101,7 @@ describe("server-url", () => {
     });
 
     it("returns false when HEAD returns 500+", async () => {
-      global.fetch = jest
+      globalThis.fetch = jest
         .fn()
         .mockRejectedValueOnce(new Error("health failed"))
         .mockResolvedValueOnce({ status: 500 }) as any;
@@ -111,7 +111,7 @@ describe("server-url", () => {
     });
 
     it("returns true when HEAD returns non-500 status", async () => {
-      global.fetch = jest
+      globalThis.fetch = jest
         .fn()
         .mockRejectedValueOnce(new Error("health failed"))
         .mockResolvedValueOnce({ status: 404 }) as any;

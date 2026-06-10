@@ -155,7 +155,7 @@ describe("feature-flags", () => {
 
     it("refresh fetches from endpoint", async () => {
       const mockFlags = [{ key: "remote", enabled: true }];
-      global.fetch = jest.fn().mockResolvedValue({
+      globalThis.fetch = jest.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockFlags),
       }) as jest.Mock;
@@ -165,13 +165,13 @@ describe("feature-flags", () => {
       });
       await mgr.refresh();
       expect(mgr.getFlags()).toEqual(mockFlags);
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         "https://api.example.com/flags",
       );
     });
 
     it("refresh keeps existing flags on fetch failure", async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error("network")) as jest.Mock;
+      globalThis.fetch = jest.fn().mockRejectedValue(new Error("network")) as jest.Mock;
 
       const mgr = createFeatureFlagManager({
         endpoint: "https://api.example.com/flags",

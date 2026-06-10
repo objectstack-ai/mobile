@@ -69,7 +69,7 @@ function arcPath(
   ].join(" ");
 }
 
-function DonutChart({ data, colors, format = identity }: WidgetChartProps) {
+function DonutChart({ data, colors }: WidgetChartProps) {
   const size = 160;
   const cx = size / 2;
   const cy = size / 2;
@@ -133,7 +133,7 @@ function DonutChart({ data, colors, format = identity }: WidgetChartProps) {
 /*  Bar (vertical)                                                     */
 /* ------------------------------------------------------------------ */
 
-function BarChart({ data, colors, format = identity }: WidgetChartProps) {
+function BarChart({ data, colors }: WidgetChartProps) {
   const width = 280;
   const height = 150;
   const padBottom = 22;
@@ -169,7 +169,7 @@ function BarChart({ data, colors, format = identity }: WidgetChartProps) {
 /*  Line / Area                                                        */
 /* ------------------------------------------------------------------ */
 
-function LineAreaChart({ data, colors, type, format = identity }: WidgetChartProps) {
+function LineAreaChart({ data, colors, type }: WidgetChartProps) {
   const width = 280;
   const height = 150;
   const padBottom = 22;

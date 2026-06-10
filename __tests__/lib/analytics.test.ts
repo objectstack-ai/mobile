@@ -64,7 +64,7 @@ describe("analytics", () => {
     });
 
     it("auto-flushes when batchSize is reached", async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true }) as jest.Mock;
+      globalThis.fetch = jest.fn().mockResolvedValue({ ok: true }) as jest.Mock;
 
       const tracker = createAnalyticsTracker({
         endpoint: "https://api.example.com/events",
@@ -77,7 +77,7 @@ describe("analytics", () => {
       // Wait a tick for the flush
       await new Promise((r) => setTimeout(r, 0));
 
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         "https://api.example.com/events",
         expect.objectContaining({
           method: "POST",
@@ -87,7 +87,7 @@ describe("analytics", () => {
     });
 
     it("flush sends events and clears queue", async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true }) as jest.Mock;
+      globalThis.fetch = jest.fn().mockResolvedValue({ ok: true }) as jest.Mock;
 
       const tracker = createAnalyticsTracker({
         endpoint: "https://api.example.com/events",
@@ -99,14 +99,14 @@ describe("analytics", () => {
       await tracker.flush();
 
       expect(tracker.getQueue()).toEqual([]);
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(1);
 
-      const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+      const body = JSON.parse((globalThis.fetch as jest.Mock).mock.calls[0][1].body);
       expect(body.events).toHaveLength(2);
     });
 
     it("flush re-enqueues events on failure", async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error("offline")) as jest.Mock;
+      globalThis.fetch = jest.fn().mockRejectedValue(new Error("offline")) as jest.Mock;
 
       const tracker = createAnalyticsTracker({
         endpoint: "https://api.example.com/events",
