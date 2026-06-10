@@ -23,6 +23,27 @@ const serverItem: Data.ServiceObjectInput = {
       ],
       defaultValue: 'draft',
     },
+    // Conditional fields (ObjectStack 8.0): the mobile form/detail renderers
+    // evaluate these live against the record's values. See
+    // `lib/conditional-fields.ts`.
+    archived_reason: {
+      type: 'textarea',
+      label: 'Archived Reason',
+      // Only shown — and only required — once the item is archived.
+      visibleWhen: "status == 'archived'",
+      requiredWhen: "status == 'archived'",
+    },
+    locked: {
+      type: 'boolean',
+      label: 'Locked',
+      defaultValue: false,
+    },
+    name_locked_note: {
+      type: 'text',
+      label: 'Lock Note',
+      // Editable until the record is locked.
+      readonlyWhen: 'locked == true',
+    },
   },
 };
 
