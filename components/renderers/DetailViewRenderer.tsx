@@ -14,7 +14,7 @@ import { EmptyState } from "~/components/common/EmptyState";
 import { Button } from "~/components/ui/Button";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { isFieldVisible } from "~/lib/conditional-fields";
+import { isFieldVisible, isSectionVisible } from "~/lib/conditional-fields";
 import { FieldRenderer } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, ActionMeta } from "./types";
 
@@ -510,7 +510,10 @@ export function DetailViewRenderer({
         contentContainerClassName="px-4 pb-8 pt-4"
       >
         {/* Field sections */}
-        {sections.map((section, idx) => (
+        {sections.map((section, idx) => {
+          // Conditional section visibility (spec `FormSection.visibleOn`).
+          if (!isSectionVisible(section.visibleOn, record)) return null;
+          return (
           <View
             key={section.label ?? `section-${idx}`}
             className="mb-4 rounded-xl border border-border bg-card overflow-hidden"
@@ -557,7 +560,8 @@ export function DetailViewRenderer({
               })}
             </View>
           </View>
-        ))}
+          );
+        })}
 
         {/* Related lists */}
         {relatedLists?.map((rl) => (
