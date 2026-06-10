@@ -8,6 +8,8 @@ import {
   getConversation,
   deleteConversation,
   addMessage,
+  renameConversation,
+  deriveConversationTitle,
 } from "~/lib/ai-conversations";
 
 const mockApiFetch = apiFetch as jest.Mock;
@@ -110,5 +112,35 @@ describe("conversation CRUD", () => {
       "/api/v1/ai/conversations/c1",
       expect.objectContaining({ method: "DELETE" }),
     );
+  });
+
+  it("renames a conversation via PATCH", async () => {
+    mockApiFetch.mockResolvedValue(res({ status: 200 }));
+    await renameConversation("c1", "Renamed");
+    expect(mockApiFetch).toHaveBeenCalledWith(
+      "/api/v1/ai/conversations/c1",
+      expect.objectContaining({ method: "PATCH", body: JSON.stringify({ title: "Renamed" }) }),
+    );
+  });
+});
+
+describe("deriveConversationTitle", () => {
+  it("uses a short first message verbatim, collapsing whitespace", () => {
+    expect(deriveConversationTitle("  How many   orders? ")).toBe("How many orders?");
+  });
+
+  it("truncates long messages at a word boundary with an ellipsis", () => {
+    const msg = "Show me everything that happened across all of the projects this past quarter please";
+    const title = deriveConversationTitle(msg);
+    expect(title.length).toBeLessThanOrEqual(49);
+    expect(title.endsWith("…")).toBe(true);
+    const stem = title.slice(0, -1); // drop the ellipsis
+    expect(msg.startsWith(stem)).toBe(true); // a real prefix of the message
+    // the very next char in the message is whitespace → we cut on a word boundary
+    expect(/\s/.test(msg[stem.length])).toBe(true);
+  });
+
+  it("falls back for empty input", () => {
+    expect(deriveConversationTitle("   ")).toBe("New conversation");
   });
 });

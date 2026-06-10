@@ -134,3 +134,25 @@ export async function addMessage(id: string, message: ConversationMessage): Prom
     body: JSON.stringify(message),
   });
 }
+
+export async function renameConversation(id: string, title: string): Promise<void> {
+  await apiFetch(`${BASE}/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title }),
+  }).catch(() => {});
+}
+
+/**
+ * A human title for a conversation derived from its first user message — the
+ * same first-message fallback the web (`objectui`) uses for display. The
+ * server's LLM auto-titling only fires on its own chat-persist path (which the
+ * mobile client bypasses), so we set this at creation instead.
+ */
+export function deriveConversationTitle(firstMessage: string): string {
+  const oneLine = firstMessage.replace(/\s+/g, " ").trim();
+  if (oneLine === "") return "New conversation";
+  if (oneLine.length <= 48) return oneLine;
+  // Trim to a word boundary under the cap.
+  return oneLine.slice(0, 48).replace(/\s+\S*$/, "").trimEnd() + "…";
+}
