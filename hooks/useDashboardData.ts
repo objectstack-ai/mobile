@@ -270,7 +270,7 @@ export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
         };
       }
     }
-  }, [data, isLoading, widget]);
+  }, [data, isLoading, widget, type]);
 }
 
 /**
