@@ -14,6 +14,7 @@
  */
 
 import type { FieldType, SelectOption } from "@objectstack/spec/data";
+import type { ConditionExpression } from "~/lib/conditional-fields";
 import type {
   ListColumn,
   RowHeight,
@@ -71,6 +72,14 @@ export interface FieldDefinition {
   type: FieldType;
   required?: boolean;
   options?: SelectOption[];
+  /**
+   * Conditional-field expressions (ObjectStack 8.0). Evaluated against the
+   * record's current values to drive visibility / editability / validation
+   * live in the form. See `~/lib/conditional-fields`.
+   */
+  visibleWhen?: ConditionExpression;
+  readonlyWhen?: ConditionExpression;
+  requiredWhen?: ConditionExpression;
   [key: string]: unknown;
 }
 
@@ -133,6 +142,11 @@ export interface FormFieldMeta {
   widget?: string;
   dependsOn?: string;
   visibleOn?: string;
+  /** Conditional-field expressions (ObjectStack 8.0); override the field
+   *  definition's own when present. See `~/lib/conditional-fields`. */
+  visibleWhen?: ConditionExpression;
+  readonlyWhen?: ConditionExpression;
+  requiredWhen?: ConditionExpression;
 }
 
 /**
