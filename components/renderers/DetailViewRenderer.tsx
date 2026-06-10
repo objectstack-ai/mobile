@@ -97,6 +97,24 @@ export interface RelatedListConfig {
   objectName: string;
   records: Record<string, unknown>[];
   fields?: FieldDefinition[];
+  /** Columns to display per record (ObjectStack 8.0 `relatedListColumns`). */
+  columns?: string[];
+}
+
+/** Humanize a field name for a column header: `due_date` → `Due Date`. */
+function humanizeField(name: string): string {
+  return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Best-effort display name when no columns are configured. */
+function recordDisplayName(rec: Record<string, unknown>, index: number): string {
+  return String(
+    (rec.name as string) ??
+      (rec.label as string) ??
+      (rec.title as string) ??
+      (rec.subject as string) ??
+      `Record ${index + 1}`,
+  );
 }
 
 /**
@@ -309,23 +327,31 @@ function RelatedListSection({
             No related records
           </Text>
         ) : (
-          config.records.map((rec, idx) => {
-            const displayName =
-              (rec.name as string) ??
-              (rec.label as string) ??
-              (rec.title as string) ??
-              (rec.subject as string) ??
-              `Record ${idx + 1}`;
-            return (
-              <Pressable
-                key={(rec.id as string) ?? idx}
-                className="rounded-lg px-3 py-3 active:bg-muted/50"
-                onPress={() => onRecordPress?.(config.objectName, rec)}
-              >
-                <Text className="text-base text-card-foreground">{String(displayName)}</Text>
-              </Pressable>
-            );
-          })
+          config.records.map((rec, idx) => (
+            <Pressable
+              key={(rec.id as string) ?? idx}
+              className="rounded-lg px-3 py-3 active:bg-muted/50"
+              onPress={() => onRecordPress?.(config.objectName, rec)}
+            >
+              {config.columns && config.columns.length > 0 ? (
+                // 8.0 `relatedListColumns`: a labelled value per configured column.
+                <View className="gap-0.5">
+                  {config.columns.map((col) => (
+                    <View key={col} className="flex-row justify-between gap-3">
+                      <Text className="text-xs text-muted-foreground">{humanizeField(col)}</Text>
+                      <Text className="flex-1 text-right text-sm text-card-foreground" numberOfLines={1}>
+                        {rec[col] == null ? "—" : String(rec[col])}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text className="text-base text-card-foreground">
+                  {recordDisplayName(rec, idx)}
+                </Text>
+              )}
+            </Pressable>
+          ))
         )}
       </View>
     </View>

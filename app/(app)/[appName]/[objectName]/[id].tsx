@@ -8,6 +8,7 @@ import type { FormViewMeta, ActionMeta } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
 import { useRecordActions } from "~/hooks/useRecordActions";
+import { useRelatedLists } from "~/hooks/useRelatedLists";
 import {
   useRecordStateMachines,
   type RecordStateMachine,
@@ -138,6 +139,18 @@ export default function ObjectDetailScreen() {
     onRefresh: fetchRecord,
   });
 
+  /* ---- Related lists (8.0): child records referencing this one ---- */
+  const { relatedLists } = useRelatedLists(client, objectName, record ? id : undefined);
+  const handleRelatedRecordPress = useCallback(
+    (childObject: string, rec: Record<string, unknown>) => {
+      const childId = String(rec.id ?? rec._id ?? "");
+      if (!childId) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      router.push(`/(app)/${appName}/${childObject}/${childId}` as any);
+    },
+    [router, appName],
+  );
+
   /* ---- Lifecycle / state machine diagram(s) ---- */
   const stateMachines = useRecordStateMachines(meta, fields, record);
   const [pendingEvent, setPendingEvent] = useState<string | null>(null);
@@ -187,6 +200,8 @@ export default function ObjectDetailScreen() {
         moreActions={moreActions}
         onAction={runAction}
         busyActionName={busyName}
+        relatedLists={relatedLists}
+        onRelatedRecordPress={handleRelatedRecordPress}
         onPrevious={handlePrevious}
         onNext={handleNext}
         hasPrevious={hasPrevious}
