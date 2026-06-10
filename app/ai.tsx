@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import * as Clipboard from "expo-clipboard";
 import {
   Send,
@@ -34,18 +35,13 @@ import { Reasoning } from "~/components/ui/Reasoning";
 import { cn } from "~/lib/utils";
 import { useAIChat, type AIChatMessage } from "~/hooks/useAIChat";
 
-const EXAMPLE_PROMPTS = [
-  "What objects can I ask about?",
-  "Show me the most recent records",
-  "Summarize what's in my workspace",
-];
-
 /* ------------------------------------------------------------------ */
 /*  Message bubble                                                     */
 /* ------------------------------------------------------------------ */
 
 /** Copy-to-clipboard affordance shown under an assistant message. */
 function CopyButton({ text }: { text: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const onCopy = useCallback(() => {
     void Clipboard.setStringAsync(text).then(() => {
@@ -57,18 +53,19 @@ function CopyButton({ text }: { text: string }) {
     <Pressable
       onPress={onCopy}
       accessibilityRole="button"
-      accessibilityLabel={copied ? "Copied" : "Copy message"}
+      accessibilityLabel={copied ? t("ai.copied") : t("ai.copyA11y")}
       className="mt-1 flex-row items-center gap-1 self-start rounded-md px-1.5 py-1 active:bg-muted"
     >
       {copied ? <Check size={13} color="#16a34a" /> : <Copy size={13} color="#94a3b8" />}
       <Text className={cn("text-xs", copied ? "text-green-600" : "text-muted-foreground")}>
-        {copied ? "Copied" : "Copy"}
+        {copied ? t("ai.copied") : t("ai.copy")}
       </Text>
     </Pressable>
   );
 }
 
 function MessageBubble({ message }: { message: AIChatMessage }) {
+  const { t } = useTranslation();
   const isUser = message.role === "user";
   // An assistant turn with no text yet = the reply is still streaming in.
   const isPending = !isUser && message.content.trim() === "";
@@ -91,7 +88,7 @@ function MessageBubble({ message }: { message: AIChatMessage }) {
         ) : isPending ? (
           <View className="flex-row items-center gap-2">
             <ActivityIndicator size="small" color="#64748b" />
-            <Text className="text-sm text-muted-foreground">Thinking…</Text>
+            <Text className="text-sm text-muted-foreground">{t("ai.thinking")}</Text>
           </View>
         ) : (
           // Assistant replies are markdown (bold, lists, code, links).
@@ -125,6 +122,9 @@ export default function AIAssistantScreen() {
     removeConversation,
     renameConversation,
   } = useAIChat();
+  const { t } = useTranslation();
+  const rawExamples = t("ai.examples", { returnObjects: true });
+  const examplePrompts: string[] = Array.isArray(rawExamples) ? rawExamples : [];
   const [draft, setDraft] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [renaming, setRenaming] = useState<{ id: string; title: string } | null>(null);
@@ -157,7 +157,7 @@ export default function AIAssistantScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <ScreenHeader
-        title="AI Assistant"
+        title={t("ai.title")}
         right={
           <View className="flex-row items-center">
             {serverBacked ? (
@@ -165,7 +165,7 @@ export default function AIAssistantScreen() {
                 <Pressable
                   onPress={() => void newConversation()}
                   accessibilityRole="button"
-                  accessibilityLabel="New chat"
+                  accessibilityLabel={t("ai.newChat")}
                   className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
                 >
                   <SquarePen size={18} color="#64748b" />
@@ -173,7 +173,7 @@ export default function AIAssistantScreen() {
                 <Pressable
                   onPress={() => setDrawerOpen(true)}
                   accessibilityRole="button"
-                  accessibilityLabel="Conversation history"
+                  accessibilityLabel={t("ai.history")}
                   className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
                 >
                   <MessagesSquare size={18} color="#64748b" />
@@ -184,7 +184,7 @@ export default function AIAssistantScreen() {
                 <Pressable
                   onPress={clear}
                   accessibilityRole="button"
-                  accessibilityLabel="Clear conversation"
+                  accessibilityLabel={t("ai.clear")}
                   className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
                 >
                   <Trash2 size={18} color="#64748b" />
@@ -196,7 +196,7 @@ export default function AIAssistantScreen() {
       />
 
       {/* Conversations drawer (server-backed mode) */}
-      <BottomSheet open={drawerOpen} onOpenChange={setDrawerOpen} title="Conversations">
+      <BottomSheet open={drawerOpen} onOpenChange={setDrawerOpen} title={t("ai.conversations")}>
         <Pressable
           className="mb-1 flex-row items-center gap-3 rounded-lg px-2 py-3 active:bg-muted"
           onPress={() => {
@@ -204,14 +204,14 @@ export default function AIAssistantScreen() {
             void newConversation();
           }}
           accessibilityRole="button"
-          accessibilityLabel="Start a new chat"
+          accessibilityLabel={t("ai.startNewChat")}
         >
           <SquarePen size={18} color="#2563eb" />
-          <Text className="text-base font-medium text-primary">New chat</Text>
+          <Text className="text-base font-medium text-primary">{t("ai.newChat")}</Text>
         </Pressable>
         {conversations.length === 0 ? (
           <Text className="px-2 py-4 text-center text-sm text-muted-foreground">
-            No saved conversations yet.
+            {t("ai.noConversations")}
           </Text>
         ) : (
           conversations.map((c) => (
@@ -226,10 +226,10 @@ export default function AIAssistantScreen() {
                   void loadConversation(c.id);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={c.title ?? "Untitled conversation"}
+                accessibilityLabel={c.title ?? t("ai.untitledA11y")}
               >
                 <Text className="text-base text-foreground" numberOfLines={1}>
-                  {c.title ?? "New conversation"}
+                  {c.title ?? t("ai.newConversation")}
                 </Text>
               </Pressable>
               <Pressable
@@ -238,7 +238,7 @@ export default function AIAssistantScreen() {
                   setRenaming({ id: c.id, title: c.title ?? "" });
                 }}
                 accessibilityRole="button"
-                accessibilityLabel="Rename conversation"
+                accessibilityLabel={t("ai.rename")}
                 className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
               >
                 <Pencil size={15} color="#94a3b8" />
@@ -246,7 +246,7 @@ export default function AIAssistantScreen() {
               <Pressable
                 onPress={() => void removeConversation(c.id)}
                 accessibilityRole="button"
-                accessibilityLabel="Delete conversation"
+                accessibilityLabel={t("ai.delete")}
                 className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
               >
                 <Trash2 size={16} color="#94a3b8" />
@@ -260,15 +260,15 @@ export default function AIAssistantScreen() {
       <Dialog
         open={renaming !== null}
         onOpenChange={(o) => !o && setRenaming(null)}
-        title="Rename conversation"
+        title={t("ai.rename")}
       >
         {renaming && (
           <View className="gap-3">
             <TextInput
               className="rounded-lg border border-input bg-background px-3 py-2.5 text-base text-foreground"
               value={renaming.title}
-              onChangeText={(t) => setRenaming({ ...renaming, title: t })}
-              placeholder="Conversation title"
+              onChangeText={(text) => setRenaming({ ...renaming, title: text })}
+              placeholder={t("ai.titlePlaceholder")}
               placeholderTextColor="#9ca3af"
               autoFocus
               onSubmitEditing={() => {
@@ -276,11 +276,11 @@ export default function AIAssistantScreen() {
                 setRenaming(null);
                 void renameConversation(r.id, r.title);
               }}
-              accessibilityLabel="Conversation title"
+              accessibilityLabel={t("ai.titlePlaceholder")}
             />
             <View className="flex-row justify-end gap-2">
               <Button variant="outline" onPress={() => setRenaming(null)}>
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 onPress={() => {
@@ -289,7 +289,7 @@ export default function AIAssistantScreen() {
                   void renameConversation(r.id, r.title);
                 }}
               >
-                Save
+                {t("common.save")}
               </Button>
             </View>
           </View>
@@ -315,11 +315,11 @@ export default function AIAssistantScreen() {
                     <Sparkles size={36} color="#2563eb" />
                   </View>
                 }
-                title="Ask the assistant"
-                description="Ask a question in plain language and the assistant will answer using your data."
+                title={t("ai.emptyTitle")}
+                description={t("ai.emptyDesc")}
               />
               <View className="mt-2 gap-2">
-                {EXAMPLE_PROMPTS.map((p) => (
+                {examplePrompts.map((p) => (
                   <Pressable
                     key={p}
                     className="rounded-xl border border-border bg-card px-4 py-3 active:bg-muted"
@@ -346,11 +346,11 @@ export default function AIAssistantScreen() {
               <Pressable
                 onPress={retry}
                 accessibilityRole="button"
-                accessibilityLabel="Retry"
+                accessibilityLabel={t("ai.retryA11y")}
                 className="flex-row items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 active:bg-muted"
               >
                 <RotateCcw size={14} color="#64748b" />
-                <Text className="text-sm font-medium text-foreground">Retry</Text>
+                <Text className="text-sm font-medium text-foreground">{t("common.retry")}</Text>
               </Pressable>
             </View>
           )}
@@ -362,19 +362,19 @@ export default function AIAssistantScreen() {
             className="max-h-28 flex-1 rounded-2xl border border-input bg-background px-4 py-2.5 text-base text-foreground"
             value={draft}
             onChangeText={setDraft}
-            placeholder="Ask a question…"
+            placeholder={t("ai.inputPlaceholder")}
             placeholderTextColor="#9ca3af"
             multiline
             onSubmitEditing={() => submit(draft)}
             blurOnSubmit={false}
-            accessibilityLabel="Message"
+            accessibilityLabel={t("ai.message")}
           />
           {isLoading ? (
             <Pressable
               onPress={stop}
               className="h-11 w-11 items-center justify-center rounded-full bg-foreground active:opacity-80"
               accessibilityRole="button"
-              accessibilityLabel="Stop generating"
+              accessibilityLabel={t("ai.stop")}
             >
               <Square size={16} color="#ffffff" fill="#ffffff" />
             </Pressable>
@@ -387,7 +387,7 @@ export default function AIAssistantScreen() {
                 canSend ? "bg-primary active:opacity-80" : "bg-muted",
               )}
               accessibilityRole="button"
-              accessibilityLabel="Send"
+              accessibilityLabel={t("ai.send")}
               accessibilityState={{ disabled: !canSend }}
             >
               <Send size={18} color={canSend ? "#ffffff" : "#94a3b8"} />

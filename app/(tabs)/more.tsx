@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { authClient } from "~/lib/auth-client";
 import { useToast } from "~/components/ui/Toast";
 import { useConfirm } from "~/components/ui/ConfirmDialog";
@@ -55,6 +56,7 @@ function SectionHeader({ title }: { title: string }) {
 export default function MoreScreen() {
   const { data: session } = authClient.useSession();
   const router = useRouter();
+  const { t } = useTranslation();
   const { toastError } = useToast();
   const confirm = useConfirm();
 
@@ -63,15 +65,15 @@ export default function MoreScreen() {
       await authClient.signOut();
       router.replace("/(auth)/sign-in");
     } catch {
-      toastError("Failed to sign out. Please try again.");
+      toastError(t("more.signOutFailed"));
     }
   };
 
   const handleSignOut = async () => {
     const ok = await confirm({
-      title: "Sign Out",
-      message: "Are you sure you want to sign out?",
-      confirmLabel: "Sign Out",
+      title: t("more.signOutTitle"),
+      message: t("more.signOutConfirm"),
+      confirmLabel: t("more.signOutTitle"),
       destructive: true,
     });
     if (ok) void performSignOut();
@@ -84,7 +86,7 @@ export default function MoreScreen() {
         <TouchableOpacity
           className="flex-row items-center px-5 py-5 border-b border-border/30"
           onPress={() => router.push("/account")}
-          accessibilityLabel="View profile"
+          accessibilityLabel={t("more.viewProfile")}
           accessibilityRole="button"
         >
           <View className="rounded-full bg-muted p-3">
@@ -92,54 +94,54 @@ export default function MoreScreen() {
           </View>
           <View className="ml-3 flex-1">
             <Text className="text-lg font-bold text-foreground">
-              {session?.user.name ?? "User"}
+              {session?.user.name ?? t("more.profileFallbackName")}
             </Text>
             <Text className="text-sm text-muted-foreground">
-              {session?.user.email ?? "View profile"}
+              {session?.user.email ?? t("more.viewProfile")}
             </Text>
           </View>
           <ChevronRight size={18} color="#94a3b8" />
         </TouchableOpacity>
 
         {/* Account */}
-        <SectionHeader title="Account" />
+        <SectionHeader title={t("more.sectionAccount")} />
         <MenuItem
           icon={<UserCircle size={20} color="#64748b" />}
-          label="Account & Security"
+          label={t("more.accountSecurity")}
           onPress={() => router.push("/account")}
         />
         <MenuItem
           icon={<Bell size={20} color="#64748b" />}
-          label="Notifications"
+          label={t("more.notifications")}
           onPress={() => router.push("/(tabs)/notifications")}
         />
 
         {/* Assistant */}
-        <SectionHeader title="Assistant" />
+        <SectionHeader title={t("more.sectionAssistant")} />
         <MenuItem
           icon={<Sparkles size={20} color="#64748b" />}
-          label="AI Assistant"
+          label={t("more.aiAssistant")}
           onPress={() => router.push("/ai")}
         />
 
         {/* Automation */}
-        <SectionHeader title="Automation" />
+        <SectionHeader title={t("more.sectionAutomation")} />
         <MenuItem
           icon={<Inbox size={20} color="#64748b" />}
-          label="Approvals"
+          label={t("more.approvals")}
           onPress={() => router.push("/approvals")}
         />
         <MenuItem
           icon={<Workflow size={20} color="#64748b" />}
-          label="Flows"
+          label={t("more.flows")}
           onPress={() => router.push("/flows")}
         />
 
         {/* Preferences */}
-        <SectionHeader title="Preferences" />
+        <SectionHeader title={t("more.sectionPreferences")} />
         <MenuItem
           icon={<Globe size={20} color="#64748b" />}
-          label="Language"
+          label={t("more.language")}
           onPress={() => router.push("/language")}
         />
 
@@ -147,7 +149,7 @@ export default function MoreScreen() {
         <View className="mt-4 border-t border-border/30">
           <MenuItem
             icon={<LogOut size={20} color="#dc2626" />}
-            label="Sign Out"
+            label={t("more.signOut")}
             onPress={handleSignOut}
             showChevron={false}
             destructive

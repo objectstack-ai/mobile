@@ -8,6 +8,30 @@ jest.mock("~/hooks/useAIChat");
 import { useAIChat } from "~/hooks/useAIChat";
 const mockUseAIChat = useAIChat as jest.Mock;
 
+// Resolve `t(key)` against the real English bundle so the screen renders its
+// actual copy (the assertions below match the English strings) without spinning
+// up the full i18n runtime that `_layout` initializes.
+jest.mock("react-i18next", () => {
+  const en = jest.requireActual("~/locales/en.json") as Record<string, unknown>;
+  const lookup = (key: string): unknown =>
+    key.split(".").reduce<unknown>(
+      (o, k) => (o as Record<string, unknown> | undefined)?.[k],
+      en,
+    );
+  return {
+    useTranslation: () => ({
+      t: (key: string, opts?: Record<string, unknown>) => {
+        const value = lookup(key);
+        if (opts?.returnObjects) return Array.isArray(value) ? value : [];
+        if (typeof value !== "string") return key;
+        return opts
+          ? value.replace(/\{\{(\w+)\}\}/g, (_m, name) => String(opts[name] ?? ""))
+          : value;
+      },
+    }),
+  };
+});
+
 const mockSetString = jest.fn().mockResolvedValue(undefined);
 jest.mock("expo-clipboard", () => ({
   setStringAsync: (...args: unknown[]) => mockSetString(...args),

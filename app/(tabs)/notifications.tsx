@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Bell, CheckCheck, Circle } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
@@ -71,6 +72,7 @@ export default function NotificationsScreen() {
     markAllRead,
   } = useNotifications();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handlePress = (n: NotificationItem) => {
     if (!n.read) {
@@ -87,10 +89,10 @@ export default function NotificationsScreen() {
       {/* Title header */}
       <View className="flex-row items-end justify-between px-5 pb-2 pt-4">
         <View>
-          <Text className="text-2xl font-bold text-foreground">Notifications</Text>
+          <Text className="text-2xl font-bold text-foreground">{t("notifications.title")}</Text>
           {unreadCount > 0 && (
             <Text className="mt-1 text-sm text-muted-foreground">
-              {unreadCount} unread
+              {t("notifications.unread", { count: unreadCount })}
             </Text>
           )}
         </View>
@@ -99,10 +101,10 @@ export default function NotificationsScreen() {
             className="flex-row items-center gap-1.5 rounded-lg px-3 py-1.5 active:bg-muted"
             onPress={() => void markAllRead()}
             accessibilityRole="button"
-            accessibilityLabel="Mark all notifications read"
+            accessibilityLabel={t("notifications.markAllReadA11y")}
           >
             <CheckCheck size={14} color="#3b82f6" />
-            <Text className="text-sm font-medium text-primary">Mark all read</Text>
+            <Text className="text-sm font-medium text-primary">{t("notifications.markAllRead")}</Text>
           </Pressable>
         )}
       </View>
@@ -118,8 +120,8 @@ export default function NotificationsScreen() {
       {!isLoading && notifications.length === 0 && (
         <EmptyState
           icon={Bell}
-          title="No Notifications"
-          description="You're all caught up. New notifications will appear here."
+          title={t("notifications.emptyTitle")}
+          description={t("notifications.emptyDesc")}
         />
       )}
 
