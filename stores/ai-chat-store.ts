@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createMMKV } from "react-native-mmkv";
-import { streamAiChat, type AiChatMessage } from "~/lib/ai-chat";
+import { streamAiChat, type AiChatMessage, type ToolInvocation } from "~/lib/ai-chat";
 import {
   conversationsAvailable,
   listConversations,
@@ -15,8 +15,8 @@ import {
 export interface AIChatMessage {
   role: "user" | "assistant";
   content: string;
-  /** Tools the agent ran to produce this reply (assistant messages only). */
-  toolCalls?: string[];
+  /** Structured tool invocations the agent ran (assistant messages only). */
+  tools?: ToolInvocation[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -168,12 +168,12 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
 
     set({ messages: [...history, { role: "assistant", content: "" }], isLoading: true, error: null });
 
-    const patchAssistant = (content: string, toolCalls: string[]) => {
+    const patchAssistant = (content: string, tools: ToolInvocation[]) => {
       set((state) => {
         const next = [...state.messages];
         const last = next.length - 1;
         if (last >= 0 && next[last].role === "assistant") {
-          next[last] = { role: "assistant", content, ...(toolCalls.length > 0 ? { toolCalls } : {}) };
+          next[last] = { role: "assistant", content, ...(tools.length > 0 ? { tools } : {}) };
         }
         return { messages: next };
       });
@@ -214,7 +214,7 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
           : stopped
             ? "(stopped)"
             : "I couldn't generate a response.");
-      patchAssistant(content, result.toolCalls);
+      patchAssistant(content, result.tools);
       lastFailed = null;
 
       if (serverBacked && conversationId) {

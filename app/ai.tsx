@@ -26,6 +26,7 @@ import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/common/EmptyState";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { MarkdownText } from "~/components/ui/MarkdownText";
+import { ToolInvocations } from "~/components/ui/ToolInvocations";
 import { cn } from "~/lib/utils";
 import { useAIChat, type AIChatMessage } from "~/hooks/useAIChat";
 
@@ -70,11 +71,9 @@ function MessageBubble({ message }: { message: AIChatMessage }) {
 
   return (
     <View className={cn("mb-3 max-w-[85%]", isUser ? "self-end" : "self-start")}>
-      {/* Tool activity caption (assistant only) */}
-      {!isUser && message.toolCalls && message.toolCalls.length > 0 && (
-        <Text className="mb-1 ml-1 text-xs text-muted-foreground">
-          Ran {message.toolCalls.join(", ")}
-        </Text>
+      {/* Structured tool activity (assistant only) */}
+      {!isUser && message.tools && message.tools.length > 0 && (
+        <ToolInvocations tools={message.tools} />
       )}
       <View
         className={cn(
