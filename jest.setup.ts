@@ -9,6 +9,15 @@ jest.mock("react-native-css-interop", () => ({
   remapProps: jest.fn(),
 }));
 
+/* ---- expo/fetch (streaming fetch — native module, unloadable in Node) ---- */
+jest.mock("expo/fetch", () => ({ fetch: jest.fn() }));
+
+/* ---- expo-clipboard ---- */
+jest.mock("expo-clipboard", () => ({
+  setStringAsync: jest.fn().mockResolvedValue(true),
+  getStringAsync: jest.fn().mockResolvedValue(""),
+}));
+
 /* ---- expo-localization ---- */
 jest.mock("expo-localization", () => ({
   getLocales: () => [{ languageCode: "en", regionCode: "US" }],

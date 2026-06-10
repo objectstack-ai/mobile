@@ -66,7 +66,13 @@ function toServerOrigin(serverUrl: string): string {
  *   `authClient.getCookie()`; we forward it as a `Cookie` header (mirroring how
  *   the expo plugin authenticates its own requests, with `credentials: "omit"`).
  */
-function authAwareFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+/**
+ * Apply the better-auth session credentials to a `RequestInit` (cookie + CSRF
+ * origin on native, `credentials: "include"` on web). Exported so streaming
+ * callers (e.g. the AI chat over `expo/fetch`) can authenticate identically to
+ * {@link apiFetch} without going through `globalThis.fetch`.
+ */
+export function buildAuthInit(init?: RequestInit): RequestInit {
   const next: RequestInit = { ...init };
   if (isWeb) {
     next.credentials = "include";
@@ -88,7 +94,20 @@ function authAwareFetch(input: RequestInfo | URL, init?: RequestInit): Promise<R
     next.headers = headers;
     next.credentials = "omit";
   }
-  return globalThis.fetch(input as RequestInfo, next);
+  return next;
+}
+
+/** Resolve a base-relative path (`/api/v1/...`) or absolute URL against the
+ *  configured API base. */
+export function resolveApiUrl(pathOrUrl: string): string {
+  const base = API_URL.replace(/\/+$/, "");
+  return /^https?:\/\//.test(pathOrUrl)
+    ? pathOrUrl
+    : `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
+}
+
+function authAwareFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return globalThis.fetch(input as RequestInfo, buildAuthInit(init));
 }
 
 /**
@@ -113,11 +132,7 @@ export function createObjectStackClient(token?: string): ObjectStackClient {
  * `/api/v1/actions/...` routes).
  */
 export function apiFetch(pathOrUrl: string, init?: RequestInit): Promise<Response> {
-  const base = API_URL.replace(/\/+$/, "");
-  const url = /^https?:\/\//.test(pathOrUrl)
-    ? pathOrUrl
-    : `${base}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
-  return authAwareFetch(url, init);
+  return authAwareFetch(resolveApiUrl(pathOrUrl), init);
 }
 
 /**

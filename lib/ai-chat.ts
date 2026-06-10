@@ -16,7 +16,8 @@
  * incremental accumulation.)
  */
 
-import { apiFetch } from "~/lib/objectstack";
+import { fetch as expoFetch } from "expo/fetch";
+import { apiFetch, buildAuthInit, resolveApiUrl } from "~/lib/objectstack";
 
 /** A single conversation turn, as sent to `/ai/chat`. */
 export interface AiChatMessage {
@@ -48,48 +49,53 @@ export interface ParsedAiStream {
  * Tolerant by design: unknown event types and unparseable lines are skipped,
  * so a protocol addition never throws.
  */
+/** Apply one parsed SSE event to the running accumulator. */
+function applyEvent(event: Record<string, unknown>, acc: ParsedAiStream): void {
+  switch (event.type) {
+    case "text-delta":
+      if (typeof event.delta === "string") acc.text += event.delta;
+      break;
+    case "text":
+      // Some servers emit a single full-text event instead of deltas.
+      if (typeof event.text === "string") acc.text += event.text;
+      break;
+    case "tool-input-available":
+      if (typeof event.toolName === "string") acc.toolCalls.push(event.toolName);
+      break;
+    case "error":
+      acc.error =
+        (typeof event.errorText === "string" && event.errorText) ||
+        (typeof event.error === "string" && event.error) ||
+        "The assistant encountered an error.";
+      break;
+    case "finish":
+      if (typeof event.finishReason === "string") acc.finishReason = event.finishReason;
+      break;
+    default:
+      break; // start, start-step, text-start/-end, tool-output-available, finish-step, …
+  }
+}
+
+/** Parse a single `data: {json}` SSE line; returns the event or null. */
+function parseEventLine(line: string): Record<string, unknown> | null {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("data:")) return null;
+  const payload = trimmed.slice("data:".length).trim();
+  if (payload === "" || payload === "[DONE]") return null;
+  try {
+    return JSON.parse(payload);
+  } catch {
+    return null; // skip malformed event lines
+  }
+}
+
 export function parseAiSdkStream(raw: string): ParsedAiStream {
   const result: ParsedAiStream = { text: "", toolCalls: [] };
   if (!raw) return result;
-
   for (const line of raw.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("data:")) continue;
-    const payload = trimmed.slice("data:".length).trim();
-    if (payload === "" || payload === "[DONE]") continue;
-
-    let event: Record<string, unknown>;
-    try {
-      event = JSON.parse(payload);
-    } catch {
-      continue; // skip malformed event lines
-    }
-
-    switch (event.type) {
-      case "text-delta":
-        if (typeof event.delta === "string") result.text += event.delta;
-        break;
-      case "text":
-        // Some servers emit a single full-text event instead of deltas.
-        if (typeof event.text === "string") result.text += event.text;
-        break;
-      case "tool-input-available":
-        if (typeof event.toolName === "string") result.toolCalls.push(event.toolName);
-        break;
-      case "error":
-        result.error =
-          (typeof event.errorText === "string" && event.errorText) ||
-          (typeof event.error === "string" && event.error) ||
-          "The assistant encountered an error.";
-        break;
-      case "finish":
-        if (typeof event.finishReason === "string") result.finishReason = event.finishReason;
-        break;
-      default:
-        break; // start, start-step, text-start/-end, tool-output-available, finish-step, …
-    }
+    const event = parseEventLine(line);
+    if (event) applyEvent(event, result);
   }
-
   return result;
 }
 
@@ -119,16 +125,104 @@ export async function sendAiChat(
   const raw = await res.text();
 
   if (!res.ok) {
-    // The server may return a JSON error body rather than an SSE stream.
-    let message = `AI chat failed (${res.status})`;
-    try {
-      const body = JSON.parse(raw);
-      message = body?.error?.message ?? body?.error ?? body?.message ?? message;
-    } catch {
-      /* keep default */
-    }
-    throw new Error(typeof message === "string" ? message : `AI chat failed (${res.status})`);
+    throw new Error(errorMessageFromBody(raw, res.status));
   }
 
   return parseAiSdkStream(raw);
+}
+
+function errorMessageFromBody(raw: string, status: number): string {
+  // The server may return a JSON error body rather than an SSE stream.
+  try {
+    const body = JSON.parse(raw);
+    const message = body?.error?.message ?? body?.error ?? body?.message;
+    if (typeof message === "string") return message;
+  } catch {
+    /* fall through */
+  }
+  return `AI chat failed (${status})`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Streaming request                                                  */
+/* ------------------------------------------------------------------ */
+
+export interface StreamAiChatOptions {
+  signal?: AbortSignal;
+  /** Called as text accumulates, with the full reply so far + tools seen. */
+  onUpdate?: (text: string, toolCalls: string[]) => void;
+}
+
+/**
+ * Stream the conversation from `/api/v1/ai/chat`, invoking `onUpdate` as text
+ * arrives so the UI can render the reply token-by-token. Uses `expo/fetch`
+ * (whose response body is a real readable stream on native; on web it maps to
+ * the standard streaming fetch). Falls back to the buffered {@link sendAiChat}
+ * if streaming is unavailable (no body, no `TextDecoder`, or an early error),
+ * so a turn never fails just because streaming couldn't start.
+ */
+export async function streamAiChat(
+  messages: AiChatMessage[],
+  options: StreamAiChatOptions = {},
+): Promise<ParsedAiStream> {
+  const { signal, onUpdate } = options;
+
+  let res: Awaited<ReturnType<typeof expoFetch>>;
+  try {
+    res = await expoFetch(resolveApiUrl("/api/v1/ai/chat"), {
+      ...buildAuthInit({
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+        body: JSON.stringify({ messages }),
+      }),
+      ...(signal ? { signal } : {}),
+    } as Parameters<typeof expoFetch>[1]);
+  } catch {
+    return sendAiChat(messages, signal ? { signal } : {});
+  }
+
+  if (!res.ok) {
+    const raw = await res.text().catch(() => "");
+    throw new Error(errorMessageFromBody(raw, res.status));
+  }
+
+  const body = (res as unknown as { body?: ReadableStream<Uint8Array> }).body;
+  if (!body || typeof TextDecoder === "undefined") {
+    // Streaming not supported in this runtime — read it whole.
+    const raw = await res.text();
+    const parsed = parseAiSdkStream(raw);
+    onUpdate?.(parsed.text, parsed.toolCalls);
+    return parsed;
+  }
+
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  const acc: ParsedAiStream = { text: "", toolCalls: [] };
+  let buffer = "";
+
+  const drainLine = (line: string) => {
+    const event = parseEventLine(line);
+    if (!event) return;
+    const before = acc.text;
+    const toolsBefore = acc.toolCalls.length;
+    applyEvent(event, acc);
+    if (acc.text !== before || acc.toolCalls.length !== toolsBefore) {
+      onUpdate?.(acc.text, acc.toolCalls);
+    }
+  };
+
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buffer.indexOf("\n")) >= 0) {
+      drainLine(buffer.slice(0, nl));
+      buffer = buffer.slice(nl + 1);
+    }
+  }
+  if (buffer.trim() !== "") drainLine(buffer);
+
+  return acc;
 }
