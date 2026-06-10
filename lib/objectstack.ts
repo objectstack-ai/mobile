@@ -164,8 +164,18 @@ export function apiFetch(pathOrUrl: string, init?: RequestInit): Promise<Respons
 }
 
 /**
- * Get a singleton client for unauthenticated/discovery requests.
- * For authenticated requests, use the provider which creates a token-aware client.
+ * Build a client for unauthenticated/discovery requests against the
+ * **currently-configured** server. Returns a fresh instance each call so it
+ * always reflects the latest {@link setObjectStackApiUrl} — never hold the
+ * result across a server switch, or it will talk to the old host.
+ *
+ * For authenticated requests, prefer the React provider's client (recreated on
+ * server/token change); this is for non-React call sites.
+ *
+ * NOTE: there is deliberately no module-level singleton. `ObjectStackClient`
+ * snapshots `baseUrl` at construction, so a long-lived instance created at
+ * import time would freeze on the initial URL and silently talk to the wrong
+ * server after the user connects elsewhere (a split-brain bug).
  */
 export function getObjectStackClient(): ObjectStackClient {
   return new ObjectStackClient({
@@ -174,12 +184,3 @@ export function getObjectStackClient(): ObjectStackClient {
     logger: clientLogger,
   });
 }
-
-/**
- * Legacy singleton — prefer `getObjectStackClient()` for current URL.
- */
-export const objectStackClient = new ObjectStackClient({
-  baseUrl: API_URL,
-  fetch: authAwareFetch,
-  logger: clientLogger,
-});
