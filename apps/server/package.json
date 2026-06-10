@@ -11,17 +11,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@objectstack/spec": "^7.6.0",
-    "@objectstack/runtime": "^7.6.0",
-    "@objectstack/objectql": "^7.6.0",
-    "@objectstack/driver-memory": "^7.6.0",
-    "@objectstack/service-automation": "^7.6.0",
-    "@objectstack/plugin-trigger-record-change": "^7.6.0",
-    "@objectstack/plugin-trigger-schedule": "^7.6.0",
-    "@objectstack/plugin-approvals": "^7.6.0"
+    "@objectstack/spec": "^8.0.1",
+    "@objectstack/runtime": "^8.0.1",
+    "@objectstack/objectql": "^8.0.1",
+    "@objectstack/driver-memory": "^8.0.1",
+    "@objectstack/service-automation": "^8.0.1",
+    "@objectstack/plugin-trigger-record-change": "^8.0.1",
+    "@objectstack/plugin-trigger-schedule": "^8.0.1",
+    "@objectstack/plugin-approvals": "^8.0.1"
   },
   "devDependencies": {
-    "@objectstack/cli": "^7.6.0",
+    "@objectstack/cli": "^8.0.1",
     "typescript": "^5.3.0"
   }
 }
