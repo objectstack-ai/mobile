@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { webContentMaxWidth } from "~/lib/responsive";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { useCallback, useState } from "react";
@@ -34,6 +35,7 @@ export default function AppsScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-8 pt-4"
+        contentContainerStyle={webContentMaxWidth}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#1e40af" />

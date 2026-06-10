@@ -7,6 +7,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
+import { webContentMaxWidth } from "~/lib/responsive";
 import { ChevronDown, ChevronUp, Check, Search as SearchIcon, AlertCircle } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
@@ -392,7 +393,10 @@ export function ListViewRenderer({
 
       const rowContent = (
         <Pressable
-          style={customBg ? { backgroundColor: customBg } : undefined}
+          // Cap + center each row on wide web so the list reads as a column,
+          // not edge-to-edge (no-op on native). Per-row keeps FlashList's
+          // virtualization intact — its contentContainerStyle is padding-only.
+          style={[webContentMaxWidth, customBg ? { backgroundColor: customBg } : null]}
           className={cn(
             "mb-2 rounded-xl px-4 active:bg-muted/50",
             densityClass,

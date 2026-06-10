@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { webContentMaxWidth } from "~/lib/responsive";
 import { Bell, CheckCheck, Circle, WifiOff } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -146,6 +147,7 @@ export default function NotificationsScreen() {
         <ScrollView
           className="flex-1"
           contentContainerClassName="px-1 pb-8 pt-2"
+        contentContainerStyle={webContentMaxWidth}
         >
           {notifications.map((n) => (
             <NotificationRow key={n.id} notification={n} onPress={handlePress} />

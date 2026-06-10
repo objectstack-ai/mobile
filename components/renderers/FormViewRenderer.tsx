@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
+import { webContentMaxWidth } from "~/lib/responsive";
 import {
   isFieldVisible,
   isFieldReadonlyByCondition,
@@ -310,6 +311,7 @@ export function FormViewRenderer({
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-4 pb-8 pt-4"
+        contentContainerStyle={webContentMaxWidth}
         keyboardShouldPersistTaps="handled"
       >
         {sections.map((section, idx) => {

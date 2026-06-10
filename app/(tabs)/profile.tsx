@@ -1,5 +1,6 @@
 import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { webContentMaxWidth } from "~/lib/responsive";
 import { UserCircle } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { Button } from "~/components/ui/Button";
@@ -37,6 +38,7 @@ export default function ProfileScreen() {
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-8 pt-4"
+        contentContainerStyle={webContentMaxWidth}
       >
         <View className="items-center pt-10">
           <View className="rounded-full bg-muted p-5">

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { webContentMaxWidth } from "~/lib/responsive";
 import {
   Edit,
   Trash2,
@@ -567,6 +568,7 @@ export function DetailViewRenderer({
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-4 pb-8 pt-4"
+        contentContainerStyle={webContentMaxWidth}
       >
         {/* Field sections */}
         {sections.map((section, idx) => {

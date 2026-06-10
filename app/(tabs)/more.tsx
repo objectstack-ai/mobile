@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { webContentMaxWidth } from "~/lib/responsive";
 import {
   UserCircle,
   Bell,
@@ -81,7 +82,11 @@ export default function MoreScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={webContentMaxWidth}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Header */}
         <TouchableOpacity
           className="flex-row items-center px-5 py-5 border-b border-border/30"

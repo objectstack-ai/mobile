@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { webContentMaxWidth } from "~/lib/responsive";
 import { Search as SearchIcon, X, ChevronRight, FileText, SearchX } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -68,6 +69,7 @@ export default function SearchScreen() {
         <ScrollView
           className="flex-1"
           contentContainerClassName="px-5 pb-8 pt-4"
+        contentContainerStyle={webContentMaxWidth}
           keyboardShouldPersistTaps="handled"
         >
           <Text className="mb-3 text-xs font-medium text-muted-foreground">
