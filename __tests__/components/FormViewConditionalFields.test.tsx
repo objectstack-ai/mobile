@@ -98,6 +98,22 @@ describe("FormViewRenderer — conditional fields", () => {
     fireEvent.press(getByText("Save"));
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
+
+  it("reveals a field live when the driving value changes", () => {
+    const { queryByText, getByPlaceholderText } = render(
+      <FormViewRenderer view={view} fields={fields} initialValues={{ type: "po" }} />,
+    );
+    // Hidden initially (type === "po").
+    expect(queryByText(/Invoice No/)).toBeNull();
+
+    // Type "invoice" into the Type field → invoice_no should appear.
+    fireEvent.changeText(getByPlaceholderText("Type"), "invoice");
+    expect(queryByText(/Invoice No/)).toBeTruthy();
+
+    // Change it back → invoice_no hides again.
+    fireEvent.changeText(getByPlaceholderText("Type"), "po");
+    expect(queryByText(/Invoice No/)).toBeNull();
+  });
 });
 
 describe("FormViewRenderer — conditional sections", () => {

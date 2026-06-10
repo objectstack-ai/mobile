@@ -442,6 +442,25 @@ function truthy(v: unknown): boolean {
 const BOOLEAN_DIALECTS = new Set(["cel", "js", undefined]);
 
 /**
+ * Sources we've already warned about, so a condition that fails to parse on a
+ * field re-render doesn't spam the console every frame. Dev-only.
+ */
+const warnedSources = new Set<string>();
+
+function warnOnce(source: string, err: unknown): void {
+  // `__DEV__` is the React Native dev flag; guard for non-RN/test runtimes.
+  const isDev = typeof __DEV__ !== "undefined" && __DEV__;
+  if (!isDev || warnedSources.has(source)) return;
+  warnedSources.add(source);
+  const reason = err instanceof Error ? err.message : String(err);
+  // eslint-disable-next-line no-console
+  console.warn(
+    `[conditional-fields] could not evaluate condition "${source}" (${reason}); ` +
+      `falling back to the default state.`,
+  );
+}
+
+/**
  * Evaluate a conditional-field expression to a boolean against `context`
  * (the record's current field values).
  *
@@ -463,7 +482,8 @@ export function evaluateCondition(
   try {
     const ast = new Parser(tokenize(source)).parse();
     return truthy(evalNode(ast, context ?? {}));
-  } catch {
+  } catch (err) {
+    warnOnce(source, err);
     return fallback;
   }
 }
