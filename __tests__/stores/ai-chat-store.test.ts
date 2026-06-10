@@ -1,5 +1,7 @@
 jest.mock("~/lib/ai-chat", () => ({ streamAiChat: jest.fn() }));
 jest.mock("~/lib/ai-conversations", () => ({
+  // Keep the pure helpers (deriveConversationTitle) real; stub the network ones.
+  ...jest.requireActual("~/lib/ai-conversations"),
   conversationsAvailable: jest.fn(),
   listConversations: jest.fn(),
   createConversation: jest.fn(),
@@ -146,6 +148,8 @@ describe("ai-chat-store", () => {
       await get().send("a question");
 
       expect(conv.createConversation).toHaveBeenCalledTimes(1);
+      // titled from the first message
+      expect(conv.createConversation).toHaveBeenCalledWith("a question");
       expect(get().conversationId).toBe("c1");
       // user + assistant persisted to the server
       expect(conv.addMessage).toHaveBeenCalledWith("c1", { role: "user", content: "a question" });

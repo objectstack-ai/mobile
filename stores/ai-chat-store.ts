@@ -8,6 +8,7 @@ import {
   getConversation,
   deleteConversation,
   addMessage,
+  deriveConversationTitle,
   type ConversationSummary,
 } from "~/lib/ai-conversations";
 
@@ -183,7 +184,9 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
     let conversationId = get().conversationId;
     if (serverBacked && !conversationId) {
       try {
-        const conv = await createConversation();
+        // Title the conversation from its first message (the server's LLM
+        // auto-titling only runs on its own persist path, which we bypass).
+        const conv = await createConversation(deriveConversationTitle(trimmed));
         conversationId = conv.id;
         set({ conversationId });
         rememberActiveId(conversationId);
