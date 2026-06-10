@@ -11,9 +11,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
-import { Send, Sparkles, Trash2, Copy, Check, RotateCcw, Square } from "lucide-react-native";
+import {
+  Send,
+  Sparkles,
+  Trash2,
+  Copy,
+  Check,
+  RotateCcw,
+  Square,
+  SquarePen,
+  MessagesSquare,
+} from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/common/EmptyState";
+import { BottomSheet } from "~/components/ui/BottomSheet";
 import { MarkdownText } from "~/components/ui/MarkdownText";
 import { cn } from "~/lib/utils";
 import { useAIChat, type AIChatMessage } from "~/hooks/useAIChat";
@@ -93,9 +104,30 @@ function MessageBubble({ message }: { message: AIChatMessage }) {
 /* ------------------------------------------------------------------ */
 
 export default function AIAssistantScreen() {
-  const { messages, isLoading, error, send, retry, stop, clear } = useAIChat();
+  const {
+    messages,
+    isLoading,
+    error,
+    serverBacked,
+    conversations,
+    conversationId,
+    init,
+    send,
+    retry,
+    stop,
+    clear,
+    newConversation,
+    loadConversation,
+    removeConversation,
+  } = useAIChat();
   const [draft, setDraft] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+
+  // Probe the server + restore the last conversation on first mount.
+  useEffect(() => {
+    void init();
+  }, [init]);
 
   const submit = useCallback(
     (text: string) => {
@@ -121,18 +153,91 @@ export default function AIAssistantScreen() {
       <ScreenHeader
         title="AI Assistant"
         right={
-          messages.length > 0 ? (
-            <Pressable
-              onPress={clear}
-              accessibilityRole="button"
-              accessibilityLabel="Clear conversation"
-              className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
-            >
-              <Trash2 size={18} color="#64748b" />
-            </Pressable>
-          ) : undefined
+          <View className="flex-row items-center">
+            {serverBacked ? (
+              <>
+                <Pressable
+                  onPress={() => void newConversation()}
+                  accessibilityRole="button"
+                  accessibilityLabel="New chat"
+                  className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
+                >
+                  <SquarePen size={18} color="#64748b" />
+                </Pressable>
+                <Pressable
+                  onPress={() => setDrawerOpen(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Conversation history"
+                  className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
+                >
+                  <MessagesSquare size={18} color="#64748b" />
+                </Pressable>
+              </>
+            ) : (
+              messages.length > 0 && (
+                <Pressable
+                  onPress={clear}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear conversation"
+                  className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
+                >
+                  <Trash2 size={18} color="#64748b" />
+                </Pressable>
+              )
+            )}
+          </View>
         }
       />
+
+      {/* Conversations drawer (server-backed mode) */}
+      <BottomSheet open={drawerOpen} onOpenChange={setDrawerOpen} title="Conversations">
+        <Pressable
+          className="mb-1 flex-row items-center gap-3 rounded-lg px-2 py-3 active:bg-muted"
+          onPress={() => {
+            setDrawerOpen(false);
+            void newConversation();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Start a new chat"
+        >
+          <SquarePen size={18} color="#2563eb" />
+          <Text className="text-base font-medium text-primary">New chat</Text>
+        </Pressable>
+        {conversations.length === 0 ? (
+          <Text className="px-2 py-4 text-center text-sm text-muted-foreground">
+            No saved conversations yet.
+          </Text>
+        ) : (
+          conversations.map((c) => (
+            <View key={c.id} className="flex-row items-center">
+              <Pressable
+                className={cn(
+                  "flex-1 rounded-lg px-2 py-3 active:bg-muted",
+                  c.id === conversationId && "bg-muted/60",
+                )}
+                onPress={() => {
+                  setDrawerOpen(false);
+                  void loadConversation(c.id);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={c.title ?? "Untitled conversation"}
+              >
+                <Text className="text-base text-foreground" numberOfLines={1}>
+                  {c.title ?? "New conversation"}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void removeConversation(c.id)}
+                accessibilityRole="button"
+                accessibilityLabel="Delete conversation"
+                className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
+              >
+                <Trash2 size={16} color="#94a3b8" />
+              </Pressable>
+            </View>
+          ))
+        )}
+      </BottomSheet>
 
       <KeyboardAvoidingView
         className="flex-1"

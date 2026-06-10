@@ -105,6 +105,8 @@ export function parseAiSdkStream(raw: string): ParsedAiStream {
 
 export interface SendAiChatOptions {
   signal?: AbortSignal;
+  /** Bind the turn to a server conversation (for server-side persistence). */
+  conversationId?: string;
 }
 
 /**
@@ -118,7 +120,10 @@ export async function sendAiChat(
   const res = await apiFetch("/api/v1/ai/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({
+      messages,
+      ...(options.conversationId ? { conversationId: options.conversationId } : {}),
+    }),
     ...(options.signal ? { signal: options.signal } : {}),
   });
 
@@ -151,6 +156,8 @@ export interface StreamAiChatOptions {
   signal?: AbortSignal;
   /** Called as text accumulates, with the full reply so far + tools seen. */
   onUpdate?: (text: string, toolCalls: string[]) => void;
+  /** Bind the turn to a server conversation (for server-side persistence). */
+  conversationId?: string;
 }
 
 /**
@@ -165,7 +172,7 @@ export async function streamAiChat(
   messages: AiChatMessage[],
   options: StreamAiChatOptions = {},
 ): Promise<ParsedAiStream> {
-  const { signal, onUpdate } = options;
+  const { signal, onUpdate, conversationId } = options;
 
   let res: Awaited<ReturnType<typeof expoFetch>>;
   try {
@@ -173,12 +180,12 @@ export async function streamAiChat(
       ...buildAuthInit({
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ messages, ...(conversationId ? { conversationId } : {}) }),
       }),
       ...(signal ? { signal } : {}),
     } as Parameters<typeof expoFetch>[1]);
   } catch {
-    return sendAiChat(messages, signal ? { signal } : {});
+    return sendAiChat(messages, { ...(signal ? { signal } : {}), ...(conversationId ? { conversationId } : {}) });
   }
 
   if (!res.ok) {
