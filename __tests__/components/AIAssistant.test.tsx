@@ -81,17 +81,24 @@ describe("AIAssistantScreen", () => {
     expect(chat.send).toHaveBeenCalledWith("Show me the most recent records");
   });
 
-  it("renders the conversation and tool activity", () => {
+  it("renders the conversation and structured tool activity", () => {
     mockChat({
       messages: [
         { role: "user", content: "how many?" },
-        { role: "assistant", content: "There are 5.", toolCalls: ["query_data"] },
+        {
+          role: "assistant",
+          content: "There are 5.",
+          tools: [{ id: "t1", name: "query_data", input: { q: "count" }, output: "5", state: "done" }],
+        },
       ],
     });
-    const { getByText } = renderScreen();
+    const { getByText, getByLabelText } = renderScreen();
     expect(getByText("how many?")).toBeTruthy();
     expect(getByText("There are 5.")).toBeTruthy();
-    expect(getByText("Ran query_data")).toBeTruthy();
+    // The tool row shows the humanized tool name; expanding reveals input/result.
+    expect(getByText("Query Data")).toBeTruthy();
+    fireEvent.press(getByLabelText("Tool query_data, done"));
+    expect(getByText("Result")).toBeTruthy();
   });
 
   it("shows the thinking indicator for an empty (streaming) assistant turn", () => {

@@ -83,6 +83,19 @@ describe("parseAiSdkStream", () => {
     expect(parseAiSdkStream(raw).toolCalls).toEqual(["list_objects", "query_data"]);
   });
 
+  it("captures structured tool invocations (input, output, state) by toolCallId", () => {
+    const raw = [
+      `data: {"type":"tool-input-available","toolCallId":"tc1","toolName":"query_data","input":{"request":"count"}}`,
+      `data: {"type":"tool-output-available","toolCallId":"tc1","output":{"type":"text","value":"5 rows"}}`,
+      `data: {"type":"tool-input-available","toolCallId":"tc2","toolName":"list_objects","input":{}}`,
+    ].join("\n");
+    const { tools } = parseAiSdkStream(raw);
+    expect(tools).toEqual([
+      { id: "tc1", name: "query_data", input: { request: "count" }, output: "5 rows", state: "done" },
+      { id: "tc2", name: "list_objects", input: {}, state: "running" },
+    ]);
+  });
+
   it("is tolerant of malformed lines, blanks, and [DONE]", () => {
     const raw = [
       `: comment`,
@@ -96,7 +109,7 @@ describe("parseAiSdkStream", () => {
   });
 
   it("returns an empty result for empty input", () => {
-    expect(parseAiSdkStream("")).toEqual({ text: "", toolCalls: [] });
+    expect(parseAiSdkStream("")).toEqual({ text: "", toolCalls: [], tools: [] });
   });
 });
 

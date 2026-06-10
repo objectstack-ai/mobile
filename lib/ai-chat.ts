@@ -25,12 +25,28 @@ export interface AiChatMessage {
   content: string;
 }
 
+/** A tool the agent ran, with its input + output (AI-SDK tool part). */
+export interface ToolInvocation {
+  /** `toolCallId` (or a synthetic id when the server omits one). */
+  id: string;
+  /** Tool name, e.g. `query_data`, `list_objects`. */
+  name: string;
+  /** The arguments the agent passed (shape is tool-specific). */
+  input?: unknown;
+  /** The tool result once it arrives. */
+  output?: unknown;
+  /** `running` until the output event lands, then `done`. */
+  state: "running" | "done";
+}
+
 /** The result of parsing an AI-SDK UI message stream. */
 export interface ParsedAiStream {
   /** Concatenated assistant text (from `text-delta` / `text` events). */
   text: string;
-  /** Names of tools the agent invoked (for optional "thinking" UI). */
+  /** Names of tools the agent invoked (back-compat; see `tools` for detail). */
   toolCalls: string[];
+  /** Structured tool invocations (name + input + output + state). */
+  tools: ToolInvocation[];
   /** Error text from an `error` event, if the run failed. */
   error?: string;
   /** The model's finish reason (`stop`, `length`, …), if present. */
@@ -60,8 +76,26 @@ function applyEvent(event: Record<string, unknown>, acc: ParsedAiStream): void {
       if (typeof event.text === "string") acc.text += event.text;
       break;
     case "tool-input-available":
-      if (typeof event.toolName === "string") acc.toolCalls.push(event.toolName);
+      if (typeof event.toolName === "string") {
+        acc.toolCalls.push(event.toolName);
+        const id =
+          typeof event.toolCallId === "string" ? event.toolCallId : `tool-${acc.tools.length}`;
+        acc.tools.push({ id, name: event.toolName, input: event.input, state: "running" });
+      }
       break;
+    case "tool-output-available": {
+      const id = typeof event.toolCallId === "string" ? event.toolCallId : undefined;
+      const tool = id
+        ? acc.tools.find((t) => t.id === id)
+        : acc.tools[acc.tools.length - 1];
+      if (tool) {
+        // The server wraps results as `{ type: "text", value: … }`.
+        const out = event.output as { value?: unknown } | undefined;
+        tool.output = out && typeof out === "object" && "value" in out ? out.value : event.output;
+        tool.state = "done";
+      }
+      break;
+    }
     case "error":
       acc.error =
         (typeof event.errorText === "string" && event.errorText) ||
@@ -90,7 +124,7 @@ function parseEventLine(line: string): Record<string, unknown> | null {
 }
 
 export function parseAiSdkStream(raw: string): ParsedAiStream {
-  const result: ParsedAiStream = { text: "", toolCalls: [] };
+  const result: ParsedAiStream = { text: "", toolCalls: [], tools: [] };
   if (!raw) return result;
   for (const line of raw.split("\n")) {
     const event = parseEventLine(line);
@@ -155,7 +189,7 @@ function errorMessageFromBody(raw: string, status: number): string {
 export interface StreamAiChatOptions {
   signal?: AbortSignal;
   /** Called as text accumulates, with the full reply so far + tools seen. */
-  onUpdate?: (text: string, toolCalls: string[]) => void;
+  onUpdate?: (text: string, tools: ToolInvocation[]) => void;
   /** Bind the turn to a server conversation (for server-side persistence). */
   conversationId?: string;
 }
@@ -198,24 +232,24 @@ export async function streamAiChat(
     // Streaming not supported in this runtime — read it whole.
     const raw = await res.text();
     const parsed = parseAiSdkStream(raw);
-    onUpdate?.(parsed.text, parsed.toolCalls);
+    onUpdate?.(parsed.text, parsed.tools);
     return parsed;
   }
 
   const reader = body.getReader();
   const decoder = new TextDecoder();
-  const acc: ParsedAiStream = { text: "", toolCalls: [] };
+  const acc: ParsedAiStream = { text: "", toolCalls: [], tools: [] };
   let buffer = "";
 
+  // A cheap signature so onUpdate fires on text deltas, new tool calls, and a
+  // tool's state flipping to `done` (output arriving).
+  const sig = () => `${acc.text.length}|${acc.tools.map((t) => t.id + t.state).join(",")}`;
   const drainLine = (line: string) => {
     const event = parseEventLine(line);
     if (!event) return;
-    const before = acc.text;
-    const toolsBefore = acc.toolCalls.length;
+    const before = sig();
     applyEvent(event, acc);
-    if (acc.text !== before || acc.toolCalls.length !== toolsBefore) {
-      onUpdate?.(acc.text, acc.toolCalls);
-    }
+    if (sig() !== before) onUpdate?.(acc.text, acc.tools);
   };
 
   try {
