@@ -29,6 +29,8 @@ export interface UseAIChatResult {
   loadConversation: (id: string) => Promise<void>;
   /** Delete a saved conversation. */
   removeConversation: (id: string) => Promise<void>;
+  /** Rename a saved conversation. */
+  renameConversation: (id: string, title: string) => Promise<void>;
 }
 
 /**
@@ -53,6 +55,7 @@ export function useAIChat(): UseAIChatResult {
   const newConversation = useAIChatStore((s) => s.newConversation);
   const loadConversation = useAIChatStore((s) => s.loadConversation);
   const removeConversation = useAIChatStore((s) => s.removeConversation);
+  const renameConversation = useAIChatStore((s) => s.renameConversation);
   return {
     messages,
     isLoading,
@@ -68,5 +71,6 @@ export function useAIChat(): UseAIChatResult {
     newConversation,
     loadConversation,
     removeConversation,
+    renameConversation,
   };
 }

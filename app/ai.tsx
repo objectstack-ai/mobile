@@ -21,12 +21,16 @@ import {
   Square,
   SquarePen,
   MessagesSquare,
+  Pencil,
 } from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/common/EmptyState";
 import { BottomSheet } from "~/components/ui/BottomSheet";
+import { Dialog } from "~/components/ui/Dialog";
+import { Button } from "~/components/ui/Button";
 import { MarkdownText } from "~/components/ui/MarkdownText";
 import { ToolInvocations } from "~/components/ui/ToolInvocations";
+import { Reasoning } from "~/components/ui/Reasoning";
 import { cn } from "~/lib/utils";
 import { useAIChat, type AIChatMessage } from "~/hooks/useAIChat";
 
@@ -71,7 +75,8 @@ function MessageBubble({ message }: { message: AIChatMessage }) {
 
   return (
     <View className={cn("mb-3 max-w-[85%]", isUser ? "self-end" : "self-start")}>
-      {/* Structured tool activity (assistant only) */}
+      {/* Reasoning trace, then tool activity (assistant only) */}
+      {!isUser && message.reasoning ? <Reasoning reasoning={message.reasoning} /> : null}
       {!isUser && message.tools && message.tools.length > 0 && (
         <ToolInvocations tools={message.tools} />
       )}
@@ -118,9 +123,11 @@ export default function AIAssistantScreen() {
     newConversation,
     loadConversation,
     removeConversation,
+    renameConversation,
   } = useAIChat();
   const [draft, setDraft] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [renaming, setRenaming] = useState<{ id: string; title: string } | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   // Probe the server + restore the last conversation on first mount.
@@ -226,6 +233,17 @@ export default function AIAssistantScreen() {
                 </Text>
               </Pressable>
               <Pressable
+                onPress={() => {
+                  setDrawerOpen(false);
+                  setRenaming({ id: c.id, title: c.title ?? "" });
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Rename conversation"
+                className="h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
+              >
+                <Pencil size={15} color="#94a3b8" />
+              </Pressable>
+              <Pressable
                 onPress={() => void removeConversation(c.id)}
                 accessibilityRole="button"
                 accessibilityLabel="Delete conversation"
@@ -237,6 +255,46 @@ export default function AIAssistantScreen() {
           ))
         )}
       </BottomSheet>
+
+      {/* Rename dialog */}
+      <Dialog
+        open={renaming !== null}
+        onOpenChange={(o) => !o && setRenaming(null)}
+        title="Rename conversation"
+      >
+        {renaming && (
+          <View className="gap-3">
+            <TextInput
+              className="rounded-lg border border-input bg-background px-3 py-2.5 text-base text-foreground"
+              value={renaming.title}
+              onChangeText={(t) => setRenaming({ ...renaming, title: t })}
+              placeholder="Conversation title"
+              placeholderTextColor="#9ca3af"
+              autoFocus
+              onSubmitEditing={() => {
+                const r = renaming;
+                setRenaming(null);
+                void renameConversation(r.id, r.title);
+              }}
+              accessibilityLabel="Conversation title"
+            />
+            <View className="flex-row justify-end gap-2">
+              <Button variant="outline" onPress={() => setRenaming(null)}>
+                Cancel
+              </Button>
+              <Button
+                onPress={() => {
+                  const r = renaming;
+                  setRenaming(null);
+                  void renameConversation(r.id, r.title);
+                }}
+              >
+                Save
+              </Button>
+            </View>
+          </View>
+        )}
+      </Dialog>
 
       <KeyboardAvoidingView
         className="flex-1"

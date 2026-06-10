@@ -34,6 +34,7 @@ function mockChat(overrides: Partial<ReturnType<typeof useAIChat>> = {}) {
     newConversation: jest.fn().mockResolvedValue(undefined),
     loadConversation: jest.fn().mockResolvedValue(undefined),
     removeConversation: jest.fn().mockResolvedValue(undefined),
+    renameConversation: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   };
   mockUseAIChat.mockReturnValue(base);
@@ -187,5 +188,33 @@ describe("AIAssistantScreen", () => {
       fireEvent.press(getByLabelText("Delete conversation"));
       expect(chat.removeConversation).toHaveBeenCalledWith("c1");
     });
+
+    it("renames a conversation via the dialog", () => {
+      const chat = mockChat({
+        serverBacked: true,
+        conversations: [{ id: "c1", title: "Old name" }],
+      });
+      const { getByLabelText, getByRole } = renderScreen();
+      fireEvent.press(getByLabelText("Conversation history"));
+      fireEvent.press(getByLabelText("Rename conversation"));
+      // The dialog opens prefilled with the current title.
+      const input = getByLabelText("Conversation title");
+      fireEvent.changeText(input, "New name");
+      fireEvent.press(getByRole("button", { name: "Save" }));
+      expect(chat.renameConversation).toHaveBeenCalledWith("c1", "New name");
+    });
+  });
+
+  it("renders a reasoning block when the message has reasoning", () => {
+    mockChat({
+      messages: [
+        { role: "user", content: "why?" },
+        { role: "assistant", content: "Because.", reasoning: "Considered the trade-offs." },
+      ],
+    });
+    const { getByText, getByLabelText } = renderScreen();
+    expect(getByText("Reasoning")).toBeTruthy();
+    fireEvent.press(getByLabelText("Reasoning"));
+    expect(getByText("Considered the trade-offs.")).toBeTruthy();
   });
 });

@@ -8,6 +8,7 @@ jest.mock("~/lib/ai-conversations", () => ({
   getConversation: jest.fn(),
   deleteConversation: jest.fn(),
   addMessage: jest.fn(),
+  renameConversation: jest.fn(),
 }));
 import { streamAiChat } from "~/lib/ai-chat";
 import * as conv from "~/lib/ai-conversations";
@@ -205,6 +206,21 @@ describe("ai-chat-store", () => {
       await get().newConversation();
       expect(get().conversationId).toBeNull();
       expect(get().messages).toEqual([]);
+    });
+
+    it("renameConversation optimistically updates the list then PATCHes", async () => {
+      useAIChatStore.setState({ conversations: [{ id: "c5", title: "Old" }] });
+      (conv.renameConversation as jest.Mock).mockResolvedValue(undefined);
+      await get().renameConversation("c5", "  Brand New  ");
+      expect(get().conversations).toEqual([{ id: "c5", title: "Brand New" }]);
+      expect(conv.renameConversation).toHaveBeenCalledWith("c5", "Brand New");
+    });
+
+    it("renameConversation ignores a blank title", async () => {
+      useAIChatStore.setState({ conversations: [{ id: "c5", title: "Old" }] });
+      await get().renameConversation("c5", "   ");
+      expect(conv.renameConversation).not.toHaveBeenCalled();
+      expect(get().conversations).toEqual([{ id: "c5", title: "Old" }]);
     });
   });
 });

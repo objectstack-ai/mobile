@@ -9,6 +9,7 @@ import {
   deleteConversation,
   addMessage,
   deriveConversationTitle,
+  renameConversation as renameConversationApi,
   type ConversationSummary,
 } from "~/lib/ai-conversations";
 
@@ -18,6 +19,8 @@ export interface AIChatMessage {
   content: string;
   /** Structured tool invocations the agent ran (assistant messages only). */
   tools?: ToolInvocation[];
+  /** The model's reasoning/thinking text, if it streamed any. */
+  reasoning?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -110,6 +113,8 @@ interface AIChatState {
   loadConversation: (id: string) => Promise<void>;
   /** Delete a server conversation; resets the view if it was active. */
   removeConversation: (id: string) => Promise<void>;
+  /** Rename a server conversation. */
+  renameConversation: (id: string, title: string) => Promise<void>;
   /** Refresh the conversation list from the server. */
   refreshConversations: () => Promise<void>;
   /** Reload the local cached thread (cold-start restore in local mode). */
@@ -169,12 +174,17 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
 
     set({ messages: [...history, { role: "assistant", content: "" }], isLoading: true, error: null });
 
-    const patchAssistant = (content: string, tools: ToolInvocation[]) => {
+    const patchAssistant = (content: string, tools: ToolInvocation[], reasoning = "") => {
       set((state) => {
         const next = [...state.messages];
         const last = next.length - 1;
         if (last >= 0 && next[last].role === "assistant") {
-          next[last] = { role: "assistant", content, ...(tools.length > 0 ? { tools } : {}) };
+          next[last] = {
+            role: "assistant",
+            content,
+            ...(tools.length > 0 ? { tools } : {}),
+            ...(reasoning.trim() !== "" ? { reasoning } : {}),
+          };
         }
         return { messages: next };
       });
@@ -201,11 +211,11 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
       const result = await streamAiChat(wire, {
         signal: controller.signal,
         conversationId: conversationId ?? undefined,
-        onUpdate: (t, tools) => {
+        onUpdate: (t, tools, reasoning) => {
           const now = Date.now();
           if (now - lastPatch >= 80) {
             lastPatch = now;
-            patchAssistant(t, tools);
+            patchAssistant(t, tools, reasoning);
           }
         },
       });
@@ -217,7 +227,7 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
           : stopped
             ? "(stopped)"
             : "I couldn't generate a response.");
-      patchAssistant(content, result.tools);
+      patchAssistant(content, result.tools, result.reasoning);
       lastFailed = null;
 
       if (serverBacked && conversationId) {
@@ -300,6 +310,16 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
       set({ messages: [], conversationId: null });
       rememberActiveId(null);
     }
+  },
+
+  renameConversation: async (id: string, title: string) => {
+    const trimmed = title.trim();
+    if (trimmed === "") return;
+    // Optimistic local update, then persist.
+    set((s) => ({
+      conversations: s.conversations.map((c) => (c.id === id ? { ...c, title: trimmed } : c)),
+    }));
+    await renameConversationApi(id, trimmed);
   },
 
   refreshConversations: async () => {
