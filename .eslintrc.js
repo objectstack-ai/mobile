@@ -33,6 +33,9 @@ module.exports = {
       rules: {
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-var-requires": "off",
+        // typescript-eslint v8 `recommended` flags require() via this rule;
+        // tests legitimately use require() for module mocking / lazy loads.
+        "@typescript-eslint/no-require-imports": "off",
       },
     },
   ],
