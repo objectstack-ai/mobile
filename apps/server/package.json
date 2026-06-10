@@ -13,6 +13,7 @@
   "dependencies": {
     "@objectstack/spec": "^8.0.1",
     "@objectstack/runtime": "^8.0.1",
+    "@objectstack/plugin-auth": "^8.0.1",
     "@objectstack/objectql": "^8.0.1",
     "@objectstack/driver-memory": "^8.0.1",
     "@objectstack/service-automation": "^8.0.1",
