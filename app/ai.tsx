@@ -10,9 +10,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Send, Sparkles, Trash2 } from "lucide-react-native";
+import * as Clipboard from "expo-clipboard";
+import { Send, Sparkles, Trash2, Copy, Check, RotateCcw } from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/common/EmptyState";
+import { MarkdownText } from "~/components/ui/MarkdownText";
 import { cn } from "~/lib/utils";
 import { useAIChat, type AIChatMessage } from "~/hooks/useAIChat";
 
@@ -26,8 +28,35 @@ const EXAMPLE_PROMPTS = [
 /*  Message bubble                                                     */
 /* ------------------------------------------------------------------ */
 
+/** Copy-to-clipboard affordance shown under an assistant message. */
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = useCallback(() => {
+    void Clipboard.setStringAsync(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [text]);
+  return (
+    <Pressable
+      onPress={onCopy}
+      accessibilityRole="button"
+      accessibilityLabel={copied ? "Copied" : "Copy message"}
+      className="mt-1 flex-row items-center gap-1 self-start rounded-md px-1.5 py-1 active:bg-muted"
+    >
+      {copied ? <Check size={13} color="#16a34a" /> : <Copy size={13} color="#94a3b8" />}
+      <Text className={cn("text-xs", copied ? "text-green-600" : "text-muted-foreground")}>
+        {copied ? "Copied" : "Copy"}
+      </Text>
+    </Pressable>
+  );
+}
+
 function MessageBubble({ message }: { message: AIChatMessage }) {
   const isUser = message.role === "user";
+  // An assistant turn with no text yet = the reply is still streaming in.
+  const isPending = !isUser && message.content.trim() === "";
+
   return (
     <View className={cn("mb-3 max-w-[85%]", isUser ? "self-end" : "self-start")}>
       {/* Tool activity caption (assistant only) */}
@@ -42,15 +71,19 @@ function MessageBubble({ message }: { message: AIChatMessage }) {
           isUser ? "bg-primary" : "border border-border bg-card",
         )}
       >
-        <Text
-          className={cn(
-            "text-base",
-            isUser ? "text-primary-foreground" : "text-card-foreground",
-          )}
-        >
-          {message.content}
-        </Text>
+        {isUser ? (
+          <Text className="text-base text-primary-foreground">{message.content}</Text>
+        ) : isPending ? (
+          <View className="flex-row items-center gap-2">
+            <ActivityIndicator size="small" color="#64748b" />
+            <Text className="text-sm text-muted-foreground">Thinking…</Text>
+          </View>
+        ) : (
+          // Assistant replies are markdown (bold, lists, code, links).
+          <MarkdownText>{message.content}</MarkdownText>
+        )}
       </View>
+      {!isUser && !isPending && <CopyButton text={message.content} />}
     </View>
   );
 }
@@ -60,7 +93,7 @@ function MessageBubble({ message }: { message: AIChatMessage }) {
 /* ------------------------------------------------------------------ */
 
 export default function AIAssistantScreen() {
-  const { messages, isLoading, error, send, clear } = useAIChat();
+  const { messages, isLoading, error, send, retry, clear } = useAIChat();
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<ScrollView>(null);
 
@@ -142,19 +175,22 @@ export default function AIAssistantScreen() {
               {messages.map((m, i) => (
                 <MessageBubble key={i} message={m} />
               ))}
-              {isLoading && (
-                <View className="mb-3 max-w-[85%] self-start">
-                  <View className="flex-row items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
-                    <ActivityIndicator size="small" color="#64748b" />
-                    <Text className="text-sm text-muted-foreground">Thinking…</Text>
-                  </View>
-                </View>
-              )}
             </>
           )}
 
           {error && (
-            <Text className="mt-2 text-center text-sm text-destructive">{error.message}</Text>
+            <View className="mt-2 items-center gap-2">
+              <Text className="text-center text-sm text-destructive">{error.message}</Text>
+              <Pressable
+                onPress={retry}
+                accessibilityRole="button"
+                accessibilityLabel="Retry"
+                className="flex-row items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 active:bg-muted"
+              >
+                <RotateCcw size={14} color="#64748b" />
+                <Text className="text-sm font-medium text-foreground">Retry</Text>
+              </Pressable>
+            </View>
           )}
         </ScrollView>
 

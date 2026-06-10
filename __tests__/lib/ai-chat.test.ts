@@ -1,10 +1,33 @@
-import { parseAiSdkStream, sendAiChat } from "~/lib/ai-chat";
+import { parseAiSdkStream, sendAiChat, streamAiChat } from "~/lib/ai-chat";
 
 jest.mock("~/lib/objectstack", () => ({
   apiFetch: jest.fn(),
+  buildAuthInit: (init: unknown) => init,
+  resolveApiUrl: (p: string) => `http://localhost:3100${p}`,
 }));
 import { apiFetch } from "~/lib/objectstack";
 const mockApiFetch = apiFetch as jest.Mock;
+
+const mockExpoFetch = jest.fn();
+jest.mock("expo/fetch", () => ({ fetch: (...args: unknown[]) => mockExpoFetch(...args) }));
+
+/** A streamed Response whose body yields the given SSE chunks. */
+function streamResponse(chunks: string[]) {
+  let i = 0;
+  return {
+    ok: true,
+    status: 200,
+    body: {
+      getReader: () => ({
+        read: async () =>
+          i < chunks.length
+            ? { done: false, value: new TextEncoder().encode(chunks[i++]) }
+            : { done: true, value: undefined },
+      }),
+    },
+    text: async () => chunks.join(""),
+  };
+}
 
 /** A realistic AI-SDK UI message stream (captured from the 8.0 server). */
 const STREAM = [
@@ -107,5 +130,63 @@ describe("sendAiChat", () => {
   it("throws a generic error when the error body isn't JSON", async () => {
     mockApiFetch.mockResolvedValue({ ok: false, status: 500, text: async () => "Internal Error" });
     await expect(sendAiChat([{ role: "user", content: "x" }])).rejects.toThrow("AI chat failed (500)");
+  });
+});
+
+describe("streamAiChat", () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it("invokes onUpdate incrementally as text streams in, split across chunks", async () => {
+    // The second text-delta is split across two network chunks.
+    mockExpoFetch.mockResolvedValue(
+      streamResponse([
+        `data: {"type":"text-delta","delta":"Hello "}\n`,
+        `data: {"type":"text-delta","delta":"wor`,
+        `ld"}\n`,
+        `data: {"type":"finish","finishReason":"stop"}\ndata: [DONE]\n`,
+      ]),
+    );
+
+    const updates: string[] = [];
+    const result = await streamAiChat([{ role: "user", content: "hi" }], {
+      onUpdate: (text) => updates.push(text),
+    });
+
+    expect(updates).toEqual(["Hello ", "Hello world"]);
+    expect(result.text).toBe("Hello world");
+    expect(result.finishReason).toBe("stop");
+  });
+
+  it("reports tool calls and surfaces them via onUpdate", async () => {
+    mockExpoFetch.mockResolvedValue(
+      streamResponse([
+        `data: {"type":"tool-input-available","toolName":"query_data"}\n`,
+        `data: {"type":"text-delta","delta":"done"}\n`,
+      ]),
+    );
+    const result = await streamAiChat([{ role: "user", content: "hi" }]);
+    expect(result.toolCalls).toEqual(["query_data"]);
+    expect(result.text).toBe("done");
+  });
+
+  it("falls back to the buffered request when streaming can't start", async () => {
+    mockExpoFetch.mockRejectedValue(new Error("streaming unavailable"));
+    mockApiFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => `data: {"type":"text-delta","delta":"buffered"}\ndata: [DONE]`,
+    });
+    const result = await streamAiChat([{ role: "user", content: "hi" }]);
+    expect(mockApiFetch).toHaveBeenCalled();
+    expect(result.text).toBe("buffered");
+  });
+
+  it("throws the server error on a non-OK streamed response", async () => {
+    mockExpoFetch.mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => JSON.stringify({ error: "messages array is required" }),
+    });
+    await expect(streamAiChat([])).rejects.toThrow("messages array is required");
   });
 });

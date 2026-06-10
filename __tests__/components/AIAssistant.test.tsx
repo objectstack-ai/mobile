@@ -8,6 +8,11 @@ jest.mock("~/hooks/useAIChat");
 import { useAIChat } from "~/hooks/useAIChat";
 const mockUseAIChat = useAIChat as jest.Mock;
 
+const mockSetString = jest.fn().mockResolvedValue(undefined);
+jest.mock("expo-clipboard", () => ({
+  setStringAsync: (...args: unknown[]) => mockSetString(...args),
+}));
+
 const SAFE_AREA_METRICS = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
@@ -19,6 +24,7 @@ function mockChat(overrides: Partial<ReturnType<typeof useAIChat>> = {}) {
     isLoading: false,
     error: null,
     send: jest.fn().mockResolvedValue(undefined),
+    retry: jest.fn(),
     clear: jest.fn(),
     ...overrides,
   };
@@ -67,18 +73,28 @@ describe("AIAssistantScreen", () => {
     expect(chat.send).toHaveBeenCalledWith("Show me the most recent records");
   });
 
-  it("renders the conversation, tool activity, and the thinking indicator", () => {
+  it("renders the conversation and tool activity", () => {
     mockChat({
       messages: [
         { role: "user", content: "how many?" },
         { role: "assistant", content: "There are 5.", toolCalls: ["query_data"] },
       ],
-      isLoading: true,
     });
     const { getByText } = renderScreen();
     expect(getByText("how many?")).toBeTruthy();
     expect(getByText("There are 5.")).toBeTruthy();
     expect(getByText("Ran query_data")).toBeTruthy();
+  });
+
+  it("shows the thinking indicator for an empty (streaming) assistant turn", () => {
+    mockChat({
+      messages: [
+        { role: "user", content: "how many?" },
+        { role: "assistant", content: "" },
+      ],
+      isLoading: true,
+    });
+    const { getByText } = renderScreen();
     expect(getByText("Thinking…")).toBeTruthy();
   });
 
@@ -89,9 +105,23 @@ describe("AIAssistantScreen", () => {
     expect(chat.clear).toHaveBeenCalled();
   });
 
-  it("surfaces an error message", () => {
-    mockChat({ error: new Error("model unavailable") });
-    const { getByText } = renderScreen();
+  it("surfaces an error message with a retry action", () => {
+    const chat = mockChat({ error: new Error("model unavailable") });
+    const { getByText, getByLabelText } = renderScreen();
     expect(getByText("model unavailable")).toBeTruthy();
+    fireEvent.press(getByLabelText("Retry"));
+    expect(chat.retry).toHaveBeenCalled();
+  });
+
+  it("copies an assistant message to the clipboard", () => {
+    mockChat({
+      messages: [
+        { role: "user", content: "hi" },
+        { role: "assistant", content: "**Hello** there" },
+      ],
+    });
+    const { getByLabelText } = renderScreen();
+    fireEvent.press(getByLabelText("Copy message"));
+    expect(mockSetString).toHaveBeenCalledWith("**Hello** there");
   });
 });
