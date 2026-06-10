@@ -14,7 +14,7 @@ import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { Button } from "~/components/ui/Button";
 import { SearchBar } from "~/components/common/SearchBar";
 import { BatchActionBar } from "~/components/batch/BatchActionBar";
-import { formatDisplayValue } from "./fields/FieldRenderer";
+import { formatDisplayValue, isSelectType, OptionBadge } from "./fields/FieldRenderer";
 import { FilterDrawer, FilterButton } from "./FilterDrawer";
 import { SwipeableRow } from "./SwipeableRow";
 import type {
@@ -442,11 +442,19 @@ export function ListViewRenderer({
                 <View className="mt-1.5 flex-row flex-wrap gap-x-4">
                   {secondaryCols.map((col) => {
                     const fieldDef = fields.find((f) => f.name === col.field);
-                    const displayVal = formatDisplayValue(
-                      item[col.field],
-                      (fieldDef?.type ?? col.type ?? "text") as FieldType,
-                      fieldDef,
-                    );
+                    const fieldType = (fieldDef?.type ?? col.type ?? "text") as FieldType;
+                    // Select/status values render as the option's coloured badge
+                    // (the colour carries the meaning), not flat "Label: value".
+                    if (isSelectType(fieldType)) {
+                      return (
+                        <OptionBadge
+                          key={col.field}
+                          field={{ ...fieldDef, name: col.field, type: fieldType }}
+                          value={item[col.field]}
+                        />
+                      );
+                    }
+                    const displayVal = formatDisplayValue(item[col.field], fieldType, fieldDef);
                     return (
                       <View key={col.field} className="flex-row items-center">
                         <Text className="text-xs text-muted-foreground">

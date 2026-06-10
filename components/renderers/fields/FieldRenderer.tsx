@@ -21,6 +21,11 @@ import type { FieldDefinition, FieldType, SelectOption } from "../types";
 const SELECT_TYPES = new Set(["select", "radio", "picklist", "status"]);
 const MULTI_TYPES = new Set(["multiselect", "checkboxes", "tags"]);
 
+/** Whether a field type renders as a single coloured option badge. */
+export function isSelectType(type: string | undefined): boolean {
+  return SELECT_TYPES.has(type ?? "");
+}
+
 /** Find the option matching `value` in a field's option list. */
 function findOption(
   field: FieldDefinition | undefined,
@@ -63,8 +68,58 @@ function badgeClasses(color: string | undefined): string {
   }
 }
 
+/** Expand a `#rgb`/`#rrggbb` colour to a 6-digit hex, or null if not hex. */
+function normalizeHex(color: string | undefined): string | null {
+  const c = (color ?? "").trim();
+  if (/^#[0-9a-f]{6}$/i.test(c)) return c;
+  if (/^#[0-9a-f]{3}$/i.test(c)) {
+    return `#${c[1]}${c[1]}${c[2]}${c[2]}${c[3]}${c[3]}`;
+  }
+  return null;
+}
+
+/**
+ * Inline badge style for a hex option colour — a light tint background with the
+ * colour itself as the text. Metadata authors often specify hex (`#10B981`)
+ * rather than a named colour, which `badgeClasses` can't map; without this they
+ * all fall back to a flat grey pill.
+ */
+function hexBadgeStyle(hex: string): { bg: { backgroundColor: string }; fg: { color: string } } {
+  // 8-digit hex appends an alpha byte; `1F` ≈ 12% opacity for the tint.
+  return { bg: { backgroundColor: `${hex}1F` }, fg: { color: hex } };
+}
+
+/**
+ * A coloured option badge for a select/status field value — the same pill the
+ * detail/form renderers use, exported so compact surfaces (list rows, related
+ * lists) render the option's colour instead of flat text. Returns null for a
+ * non-select field or an empty value.
+ */
+export function OptionBadge({
+  field,
+  value,
+}: {
+  field: FieldDefinition | undefined;
+  value: unknown;
+}) {
+  if (!field || !isSelectType(field.type) || value == null || value === "") return null;
+  const opt = findOption(field, value);
+  return <StatusBadge label={opt?.label ?? String(value)} color={opt?.color} />;
+}
+
 /** A coloured pill for a select/status value. */
 function StatusBadge({ label, color }: { label: string; color?: string }) {
+  const hex = normalizeHex(color);
+  if (hex) {
+    const { bg, fg } = hexBadgeStyle(hex);
+    return (
+      <View className="self-start rounded-full px-2.5 py-1" style={bg}>
+        <Text className="text-xs font-semibold" style={fg}>
+          {label}
+        </Text>
+      </View>
+    );
+  }
   return (
     <View className={cn("self-start rounded-full px-2.5 py-1", badgeClasses(color))}>
       <Text className={cn("text-xs font-semibold", badgeClasses(color))}>{label}</Text>

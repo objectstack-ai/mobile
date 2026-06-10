@@ -478,13 +478,20 @@ export function DetailViewRenderer({
         .map((f) => f.name),
     );
 
+    const isEmptyValue = (v: unknown) =>
+      v == null || v === "" || (Array.isArray(v) && v.length === 0);
+
     const buildSections = (allKeys: string[]): FormSection[] => {
       const keys = allKeys.filter(
         (k) =>
           !k.startsWith("_") &&
           k !== "id" &&
           !INTERNAL_FIELDS.has(k) &&
-          !hiddenByMeta.has(k),
+          !hiddenByMeta.has(k) &&
+          // In the auto-layout (no curated view) an empty field is just a "—"
+          // taking up a line; collapse it. Curated views still show every
+          // field the author chose, empty or not.
+          !(record != null && isEmptyValue(record[k])),
       );
       const business = keys.filter((k) => !SYSTEM_FIELDS.has(k));
       const system = keys.filter((k) => SYSTEM_FIELDS.has(k));
