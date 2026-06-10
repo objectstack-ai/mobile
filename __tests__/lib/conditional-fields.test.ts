@@ -126,6 +126,20 @@ describe("evaluateCondition", () => {
       expect(evaluateCondition(cel("constructor == 'x'"), {}, true)).toBe(false);
       expect(() => evaluateCondition(cel("@#$%^"), {}, true)).not.toThrow();
     });
+
+    it("warns once (in __DEV__) on an unparseable source, then stays quiet", () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        // Unique source so it isn't deduped by an earlier test.
+        const bad = cel("status === unterminated ((( oops_unique_warn_src");
+        evaluateCondition(bad, {}, true);
+        evaluateCondition(bad, {}, true); // second call must not warn again
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(String(warn.mock.calls[0][0])).toContain("conditional-fields");
+      } finally {
+        warn.mockRestore();
+      }
+    });
   });
 });
 
