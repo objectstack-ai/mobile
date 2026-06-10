@@ -18,21 +18,29 @@ jobs:
   submit:
     name: Submit to ${{ inputs.platform == 'ios' && 'App Store' || 'Google Play' }}
     runs-on: ubuntu-latest
-    # Skip (neutral, not failed) when no Expo token is configured.
-    if: ${{ secrets.EXPO_TOKEN != '' }}
+    # Secret can't be read in a job-level `if`; mirror it to env and guard each
+    # step so the job is a clean no-op (green) when no Expo token is configured.
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        if: ${{ env.EXPO_TOKEN != '' }}
       - uses: pnpm/action-setup@v4
+        if: ${{ env.EXPO_TOKEN != '' }}
         with:
           version: 10
       - uses: actions/setup-node@v4
+        if: ${{ env.EXPO_TOKEN != '' }}
         with:
           node-version: 20
           cache: pnpm
       - uses: expo/expo-github-action@v8
+        if: ${{ env.EXPO_TOKEN != '' }}
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - run: pnpm install
+        if: ${{ env.EXPO_TOKEN != '' }}
       - name: Submit
+        if: ${{ env.EXPO_TOKEN != '' }}
         run: eas submit --platform ${{ inputs.platform }} --profile production --non-interactive
