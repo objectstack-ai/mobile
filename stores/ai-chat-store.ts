@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createMMKV } from "react-native-mmkv";
 import { streamAiChat, type AiChatMessage } from "~/lib/ai-chat";
 
 /** A chat message plus the tool activity that produced an assistant reply. */
@@ -7,6 +8,48 @@ export interface AIChatMessage {
   content: string;
   /** Tools the agent ran to produce this reply (assistant messages only). */
   toolCalls?: string[];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Disk persistence (MMKV)                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The conversation is persisted to MMKV so it **survives an app restart**, not
+ * just navigation. (Server-backed multi-conversation history — the objectui
+ * `/api/v1/ai/conversations` model — is a follow-up that needs the server to
+ * expose that API; published service-ai 8.0.1 does not.)
+ */
+const storage = createMMKV({ id: "objectstack-ai-chat" });
+const MESSAGES_KEY = "messages";
+/** Don't let an unbounded thread bloat storage. */
+const MAX_PERSISTED = 200;
+
+function loadPersistedMessages(): AIChatMessage[] {
+  try {
+    const raw = storage.getString(MESSAGES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (m): m is AIChatMessage =>
+        Boolean(m) &&
+        typeof m === "object" &&
+        ((m as AIChatMessage).role === "user" || (m as AIChatMessage).role === "assistant") &&
+        typeof (m as AIChatMessage).content === "string",
+    );
+  } catch {
+    return [];
+  }
+}
+
+function persistMessages(messages: AIChatMessage[]): void {
+  try {
+    if (messages.length === 0) storage.remove(MESSAGES_KEY);
+    else storage.set(MESSAGES_KEY, JSON.stringify(messages.slice(-MAX_PERSISTED)));
+  } catch {
+    /* ignore — storage unavailable (e.g. web) shouldn't break chat */
+  }
 }
 
 interface AIChatState {
@@ -21,6 +64,8 @@ interface AIChatState {
   stop: () => void;
   /** Reset the conversation. */
   clear: () => void;
+  /** Reload the persisted thread from disk (used on cold start / restore). */
+  hydrate: () => void;
 }
 
 // Non-reactive internals (don't belong in render state).
@@ -35,7 +80,8 @@ let controller: AbortController | null = null;
  * `/api/v1/ai/chat` streaming agent (see `lib/ai-chat`).
  */
 export const useAIChatStore = create<AIChatState>((set, get) => ({
-  messages: [],
+  // Restore the persisted thread on cold start.
+  messages: loadPersistedMessages(),
   isLoading: false,
   error: null,
 
@@ -84,11 +130,13 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
             : "I couldn't generate a response.");
       patchAssistant(content, result.toolCalls);
       lastFailed = null;
+      persistMessages(get().messages);
     } catch (err) {
       set({ error: err instanceof Error ? err : new Error("Chat request failed") });
       lastFailed = trimmed;
       // Roll back the optimistic user turn + assistant placeholder.
       set((state) => ({ messages: state.messages.slice(0, -2) }));
+      persistMessages(get().messages);
     } finally {
       set({ isLoading: false });
       inFlight = false;
@@ -112,5 +160,8 @@ export const useAIChatStore = create<AIChatState>((set, get) => ({
     controller?.abort();
     lastFailed = null;
     set({ messages: [], error: null });
+    persistMessages([]);
   },
+
+  hydrate: () => set({ messages: loadPersistedMessages() }),
 }));

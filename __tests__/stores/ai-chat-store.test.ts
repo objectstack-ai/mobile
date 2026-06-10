@@ -5,7 +5,10 @@ import { useAIChatStore } from "~/stores/ai-chat-store";
 const mockStream = streamAiChat as jest.Mock;
 
 function reset() {
-  useAIChatStore.setState({ messages: [], isLoading: false, error: null });
+  // clear() also wipes the persisted (MMKV) thread, which is module-level and
+  // would otherwise leak between tests.
+  useAIChatStore.getState().clear();
+  useAIChatStore.setState({ isLoading: false, error: null });
 }
 
 beforeEach(() => {
@@ -81,5 +84,39 @@ describe("ai-chat-store", () => {
     get().clear();
     expect(get().messages).toEqual([]);
     expect(get().error).toBeNull();
+  });
+
+  describe("disk persistence (survives restart)", () => {
+    it("persists the thread and restores it via hydrate()", async () => {
+      mockStream.mockResolvedValue({ text: "saved reply", toolCalls: ["query_data"] });
+      await get().send("persist me");
+
+      // Simulate an app restart: drop the in-memory state, then re-hydrate from
+      // disk (reads the same MMKV instance the send wrote to).
+      useAIChatStore.setState({ messages: [] });
+      expect(get().messages).toEqual([]);
+
+      get().hydrate();
+      const restored = get().messages;
+      expect(restored.map((m) => m.content)).toEqual(["persist me", "saved reply"]);
+      expect(restored[1].toolCalls).toEqual(["query_data"]);
+    });
+
+    it("clear() wipes the persisted thread too", async () => {
+      mockStream.mockResolvedValue({ text: "hi", toolCalls: [] });
+      await get().send("hello");
+      get().clear();
+      // Nothing left to restore after a clear.
+      useAIChatStore.setState({ messages: [{ role: "user", content: "stale" }] });
+      get().hydrate();
+      expect(get().messages).toEqual([]);
+    });
+
+    it("does not persist a failed turn", async () => {
+      mockStream.mockRejectedValueOnce(new Error("boom"));
+      await get().send("will fail");
+      get().hydrate();
+      expect(get().messages).toEqual([]);
+    });
   });
 });
