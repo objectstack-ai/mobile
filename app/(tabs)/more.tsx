@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Workflow,
   Inbox,
+  Sparkles,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { authClient } from "~/lib/auth-client";
@@ -111,6 +112,14 @@ export default function MoreScreen() {
           icon={<Bell size={20} color="#64748b" />}
           label="Notifications"
           onPress={() => router.push("/(tabs)/notifications")}
+        />
+
+        {/* Assistant */}
+        <SectionHeader title="Assistant" />
+        <MenuItem
+          icon={<Sparkles size={20} color="#64748b" />}
+          label="AI Assistant"
+          onPress={() => router.push("/ai")}
         />
 
         {/* Automation */}
