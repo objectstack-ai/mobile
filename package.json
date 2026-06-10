@@ -102,10 +102,5 @@
     "tsx": "^4.21.0",
     "typescript": "~5.9.2"
   },
-  "private": true,
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
-  }
+  "private": true
 }
