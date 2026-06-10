@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Home,
   Search,
@@ -10,6 +11,11 @@ import {
 
 export default function TabLayout() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  // Without a bottom safe-area inset (web, or a device with no home indicator)
+  // the labels sit flush against the bottom edge and get clipped. Reserve a
+  // floor of bottom padding so the descenders always clear the edge.
+  const bottomPad = Math.max(insets.bottom, 12);
   return (
     <Tabs
       screenOptions={{
@@ -22,10 +28,14 @@ export default function TabLayout() {
         tabBarStyle: {
           borderTopColor: "#e2e8f0",
           backgroundColor: "#ffffff",
+          height: 56 + bottomPad,
+          paddingBottom: bottomPad,
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",
+          lineHeight: 14,
         },
       }}
     >

@@ -136,6 +136,18 @@
     "more": "المزيد",
     "profile": "الملف الشخصي"
   },
+  "home": {
+    "greetingMorning": "صباح الخير",
+    "greetingAfternoon": "مساء الخير",
+    "greetingEvening": "مساء الخير",
+    "subtitle": "إليك نظرة عامة.",
+    "assistantTitle": "المساعد الذكي",
+    "assistantSubtitle": "اسأل أي شيء عن بياناتك",
+    "dashboardsTitle": "لوحات المعلومات",
+    "noDashboardsTitle": "لا توجد لوحات معلومات",
+    "noDashboardsDesc": "لم تنشر أي من تطبيقاتك المثبتة لوحة معلومات بعد.",
+    "loadErrorTitle": "تعذّر تحميل لوحات المعلومات"
+  },
   "search": {
     "title": "بحث",
     "placeholder": "ابحث في كل السجلات…",

@@ -1,13 +1,28 @@
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LayoutDashboard, ChevronRight, Inbox, AlertCircle } from "lucide-react-native";
+import {
+  LayoutDashboard,
+  ChevronRight,
+  Inbox,
+  AlertCircle,
+  Sparkles,
+} from "lucide-react-native";
 import { useClient } from "@objectstack/client-react";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useCallback, useEffect, useState } from "react";
+import { authClient } from "~/lib/auth-client";
 import { PressableCard } from "~/components/ui/PressableCard";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useApps } from "~/hooks/useApps";
+
+/** Pick a time-of-day greeting i18n key from the local hour. */
+function greetingKey(hour: number): "greetingMorning" | "greetingAfternoon" | "greetingEvening" {
+  if (hour < 12) return "greetingMorning";
+  if (hour < 18) return "greetingAfternoon";
+  return "greetingEvening";
+}
 
 interface DashboardEntry {
   /** App name — the route segment dashboards open under. */
@@ -27,7 +42,13 @@ interface DashboardEntry {
 export default function HomeScreen() {
   const client = useClient();
   const router = useRouter();
+  const { t } = useTranslation();
+  const { data: session } = authClient.useSession();
   const { apps, isLoading: appsLoading, refetch: refetchApps } = useApps();
+
+  const firstName = (session?.user?.name ?? "").trim().split(/\s+/)[0];
+  const greeting = t(`home.${greetingKey(new Date().getHours())}`);
+  const heading = firstName ? `${greeting}, ${firstName}` : greeting;
 
   const [dashboards, setDashboards] = useState<DashboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,35 +121,60 @@ export default function HomeScreen() {
         }
       >
         <View className="mb-5">
-          <Text className="text-2xl font-bold text-foreground">Dashboard</Text>
+          <Text className="text-2xl font-bold text-foreground">{heading}</Text>
           <Text className="mt-1 text-sm text-muted-foreground">
-            Welcome back. Here&apos;s your overview.
+            {t("home.subtitle")}
           </Text>
         </View>
+
+        {/* AI Assistant quick entry — surfaces the assistant on the home screen
+            instead of burying it two levels deep under More. */}
+        <PressableCard
+          className="mb-5 flex-row items-center p-4"
+          onPress={() => router.push("/ai")}
+          accessibilityRole="button"
+          accessibilityLabel={t("home.assistantTitle")}
+        >
+          <View className="rounded-xl bg-primary/10 p-3">
+            <Sparkles size={24} color="#1e40af" />
+          </View>
+          <View className="ml-4 flex-1">
+            <Text className="text-base font-semibold text-card-foreground">
+              {t("home.assistantTitle")}
+            </Text>
+            <Text className="mt-0.5 text-sm text-muted-foreground">
+              {t("home.assistantSubtitle")}
+            </Text>
+          </View>
+          <ChevronRight size={20} color="#94a3b8" />
+        </PressableCard>
 
         {loading ? (
           <ListSkeleton count={4} />
         ) : error ? (
-          <View className="pt-20">
+          <View className="pt-16">
             <EmptyState
               icon={AlertCircle}
               variant="error"
-              title="Couldn't Load Dashboards"
+              title={t("home.loadErrorTitle")}
               description={error.message}
-              actionLabel="Retry"
+              actionLabel={t("common.retry")}
               onAction={() => void fetchDashboards()}
             />
           </View>
         ) : dashboards.length === 0 ? (
-          <View className="pt-20">
+          <View className="pt-16">
             <EmptyState
               icon={Inbox}
-              title="No Dashboards"
-              description="None of your installed apps publish a dashboard yet."
+              title={t("home.noDashboardsTitle")}
+              description={t("home.noDashboardsDesc")}
             />
           </View>
         ) : (
           <View className="gap-3">
+            <Text className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {t("home.dashboardsTitle")}
+            </Text>
             {dashboards.map((d) => (
               <PressableCard
                 key={`${d.appId}:${d.name}`}
