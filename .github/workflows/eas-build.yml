@@ -31,26 +31,33 @@ jobs:
   build:
     name: EAS Build (${{ inputs.platform || 'all' }})
     runs-on: ubuntu-latest
-    # Skip (neutral, not failed) when no Expo token is configured — EAS needs an
-    # account credential this repo can't provide by default.
-    if: ${{ secrets.EXPO_TOKEN != '' }}
+    # EAS needs an account credential this repo can't provide by default. The
+    # secret can't be read in a job-level `if`, so mirror it into an env var and
+    # guard each step — the job is a clean no-op (green) when it's unset.
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        if: ${{ env.EXPO_TOKEN != '' }}
       - uses: pnpm/action-setup@v4
+        if: ${{ env.EXPO_TOKEN != '' }}
         with:
           version: 10
       - uses: actions/setup-node@v4
+        if: ${{ env.EXPO_TOKEN != '' }}
         with:
           node-version: 20
           cache: pnpm
       - uses: expo/expo-github-action@v8
+        if: ${{ env.EXPO_TOKEN != '' }}
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - run: pnpm install
+        if: ${{ env.EXPO_TOKEN != '' }}
       - name: Build iOS
-        if: inputs.platform == 'ios' || inputs.platform == 'all' || inputs.platform == ''
+        if: ${{ env.EXPO_TOKEN != '' && (inputs.platform == 'ios' || inputs.platform == 'all' || inputs.platform == '') }}
         run: eas build --platform ios --profile ${{ inputs.profile || 'preview' }} --non-interactive
       - name: Build Android
-        if: inputs.platform == 'android' || inputs.platform == 'all' || inputs.platform == ''
+        if: ${{ env.EXPO_TOKEN != '' && (inputs.platform == 'android' || inputs.platform == 'all' || inputs.platform == '') }}
         run: eas build --platform android --profile ${{ inputs.profile || 'preview' }} --non-interactive
