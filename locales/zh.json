@@ -26,7 +26,10 @@
     "more": "更多",
     "settings": "设置",
     "language": "语言",
-    "packages": "应用包"
+    "packages": "应用包",
+    "clear": "清除",
+    "today": "今天",
+    "undo": "撤销"
   },
   "auth": {
     "signIn": "登录",
@@ -204,7 +207,21 @@
     "required": "此字段为必填项。",
     "invalidEmail": "请输入有效的邮箱地址。",
     "invalidUrl": "请输入有效的 URL。",
-    "invalidNumber": "请输入有效的数字。"
+    "invalidNumber": "请输入有效的数字。",
+    "gallery": "相册",
+    "camera": "相机",
+    "file": "文件",
+    "uploading": "上传中…",
+    "uploadFailed": "文件上传失败，请重试。",
+    "attachedFile": "已附加文件"
+  },
+  "views": {
+    "saveView": "保存视图",
+    "viewName": "视图名称",
+    "namePlaceholder": "例如：我的活跃线索",
+    "visibility": "可见性",
+    "private": "私有",
+    "shared": "共享"
   },
   "nav": {
     "home": "首页",
@@ -267,6 +284,7 @@
     "profileFallback": "用户"
   },
   "ai": {
+    "reasoning": "推理",
     "title": "AI 助手",
     "thinking": "正在思考…",
     "copy": "复制",

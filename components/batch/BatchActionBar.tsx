@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { Trash2, Edit3, X } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { useThemeColors } from "~/lib/theme-colors";
 
@@ -26,6 +27,7 @@ export function BatchActionBar({
   onClearSelection,
   className,
 }: BatchActionBarProps) {
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   if (selectedCount === 0) return null;
 
@@ -52,7 +54,7 @@ export function BatchActionBar({
             className="flex-row items-center rounded-lg bg-primary/10 px-3 py-2"
           >
             <Edit3 size={14} color={accent} />
-            <Text className="ml-1.5 text-xs font-semibold text-primary">Edit</Text>
+            <Text className="ml-1.5 text-xs font-semibold text-primary">{t("common.edit")}</Text>
           </Pressable>
         )}
         {onBatchDelete && (
@@ -61,7 +63,7 @@ export function BatchActionBar({
             className="flex-row items-center rounded-lg bg-destructive/10 px-3 py-2"
           >
             <Trash2 size={14} color="#ef4444" />
-            <Text className="ml-1.5 text-xs font-semibold text-destructive">Delete</Text>
+            <Text className="ml-1.5 text-xs font-semibold text-destructive">{t("common.delete")}</Text>
           </Pressable>
         )}
       </View>

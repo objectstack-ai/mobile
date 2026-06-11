@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export interface UndoSnackbarProps {
   message: string;
@@ -16,6 +17,7 @@ export function UndoSnackbar({
   visible,
   testID = "undo-snackbar",
 }: UndoSnackbarProps) {
+  const { t } = useTranslation();
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [show, setShow] = React.useState(visible);
 
@@ -51,10 +53,10 @@ export function UndoSnackbar({
       <TouchableOpacity
         testID={`${testID}-undo`}
         onPress={onUndo}
-        accessibilityLabel="Undo"
+        accessibilityLabel={t("common.undo")}
         accessibilityRole="button"
       >
-        <Text className="ml-3 text-sm font-bold text-primary">Undo</Text>
+        <Text className="ml-3 text-sm font-bold text-primary">{t("common.undo")}</Text>
       </TouchableOpacity>
     </View>
   );

@@ -26,7 +26,10 @@
     "more": "المزيد",
     "settings": "الإعدادات",
     "language": "اللغة",
-    "packages": "الحزم"
+    "packages": "الحزم",
+    "clear": "مسح",
+    "today": "اليوم",
+    "undo": "تراجع"
   },
   "auth": {
     "signIn": "تسجيل الدخول",
@@ -209,7 +212,21 @@
     "required": "هذا الحقل مطلوب.",
     "invalidEmail": "يرجى إدخال عنوان بريد إلكتروني صالح.",
     "invalidUrl": "يرجى إدخال عنوان URL صالح.",
-    "invalidNumber": "يرجى إدخال رقم صالح."
+    "invalidNumber": "يرجى إدخال رقم صالح.",
+    "gallery": "المعرض",
+    "camera": "الكاميرا",
+    "file": "ملف",
+    "uploading": "جارٍ الرفع…",
+    "uploadFailed": "تعذّر رفع الملف. يرجى المحاولة مرة أخرى.",
+    "attachedFile": "ملف مرفق"
+  },
+  "views": {
+    "saveView": "حفظ العرض",
+    "viewName": "اسم العرض",
+    "namePlaceholder": "مثال: عملائي المحتملون النشطون",
+    "visibility": "الظهور",
+    "private": "خاص",
+    "shared": "مُشترك"
   },
   "nav": {
     "home": "الرئيسية",
@@ -272,6 +289,7 @@
     "profileFallback": "مستخدم"
   },
   "ai": {
+    "reasoning": "الاستدلال",
     "title": "المساعد الذكي",
     "thinking": "يفكّر…",
     "copy": "نسخ",

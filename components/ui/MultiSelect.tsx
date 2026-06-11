@@ -2,6 +2,7 @@ import React from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { ChevronDown, Check, X } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import type { SelectOption } from "~/components/renderers/types";
 
@@ -31,6 +32,7 @@ export function MultiSelect({
   className,
   error,
 }: MultiSelectProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const selectedSet = React.useMemo(() => new Set(value), [value]);
   const selectedOptions = options.filter((o) => selectedSet.has(String(o.value)));
@@ -109,7 +111,7 @@ export function MultiSelect({
               })}
             </ScrollView>
             <Pressable onPress={() => setOpen(false)} className="mt-1 items-center rounded-lg bg-primary py-2.5">
-              <Text className="text-sm font-semibold text-primary-foreground">Done</Text>
+              <Text className="text-sm font-semibold text-primary-foreground">{t("common.done")}</Text>
             </Pressable>
           </Pressable>
         </Pressable>

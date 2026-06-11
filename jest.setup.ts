@@ -203,3 +203,10 @@ const mockAppState = {
   addEventListener: jest.fn(() => ({ remove: jest.fn() })),
 };
 jest.mock("react-native/Libraries/AppState/AppState", () => mockAppState);
+
+/* ---- i18next ---- */
+// Initialize the shared i18n instance so components' `t()` calls resolve to
+// real (English) strings in tests instead of returning raw keys. Mirrors the
+// app, where importing a screen pulls in `~/lib/i18n`; tests render components
+// in isolation, so without this the translation layer is never set up.
+require("~/lib/i18n");
