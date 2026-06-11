@@ -29,7 +29,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
           containerClassName
         )}
       >
-        {leftSlot ? <View className="mr-2">{leftSlot}</View> : null}
+        {leftSlot ? <View className="me-2">{leftSlot}</View> : null}
         <TextInput
           ref={ref}
           className={cn(
@@ -47,7 +47,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
           }}
           {...props}
         />
-        {rightSlot ? <View className="ml-2">{rightSlot}</View> : null}
+        {rightSlot ? <View className="ms-2">{rightSlot}</View> : null}
       </View>
     );
   }

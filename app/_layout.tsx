@@ -1,5 +1,6 @@
 import "../global.css";
-import "~/lib/i18n"; // Initialize i18next before any screen calls useTranslation()
+import i18n from "~/lib/i18n"; // Initialize i18next before any screen calls useTranslation()
+import { syncRTL } from "~/lib/rtl";
 
 import { useCallback, useEffect, useMemo } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -87,6 +88,12 @@ export default function RootLayout() {
   useEffect(() => {
     colorScheme.set(themeMode);
   }, [themeMode]);
+
+  // Apply the writing direction (LTR/RTL) for the active language on launch —
+  // on web this sets the document `dir`; on native it forces RTL (persisted).
+  useEffect(() => {
+    syncRTL(i18n.language);
+  }, []);
 
   useProtectedRoute(serverUrl, isReady);
 

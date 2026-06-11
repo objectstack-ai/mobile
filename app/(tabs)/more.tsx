@@ -34,7 +34,7 @@ function MenuItem({ icon, label, onPress, showChevron = true, destructive = fals
       accessibilityLabel={label}
       accessibilityRole="button"
     >
-      <View className="mr-3">{icon}</View>
+      <View className="me-3">{icon}</View>
       <Text
         className={`flex-1 text-base ${
           destructive ? "text-red-600" : "text-foreground"
@@ -98,7 +98,7 @@ export default function MoreScreen() {
           <View className="rounded-full bg-muted p-3">
             <UserCircle size={32} color="#94a3b8" />
           </View>
-          <View className="ml-3 flex-1">
+          <View className="ms-3 flex-1">
             <Text className="text-lg font-bold text-foreground">
               {session?.user.name ?? t("more.profileFallbackName")}
             </Text>

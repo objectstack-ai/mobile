@@ -77,7 +77,7 @@ export default function AppHomeScreen() {
         <View className="rounded-xl bg-primary/10 p-2.5">
           <Icon size={20} color={accent} />
         </View>
-        <Text className="ml-3 flex-1 text-base font-medium text-card-foreground">
+        <Text className="ms-3 flex-1 text-base font-medium text-card-foreground">
           {item.label}
         </Text>
         {navigable ? <ChevronRight size={18} color="#94a3b8" /> : null}
@@ -92,7 +92,7 @@ export default function AppHomeScreen() {
       <View key={group.id} className="mt-5">
         <View className="mb-2 flex-row items-center px-1">
           <GroupIcon size={14} color="#94a3b8" />
-          <Text className="ml-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <Text className="ms-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {group.label}
           </Text>
         </View>

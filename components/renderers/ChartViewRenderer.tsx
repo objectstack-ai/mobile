@@ -157,7 +157,7 @@ function PieChartView({ data }: { data: AnalyticsDataPoint[] }) {
               {point.label}
             </Text>
             <Text className="text-sm font-medium text-foreground">{point.value}</Text>
-            <Text className="text-xs text-muted-foreground w-12 text-right">{pct}%</Text>
+            <Text className="text-xs text-muted-foreground w-12 text-end">{pct}%</Text>
           </View>
         );
       })}

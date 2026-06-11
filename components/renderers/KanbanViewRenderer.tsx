@@ -16,7 +16,7 @@ function KanbanSkeleton() {
   return (
     <View className="flex-1 flex-row px-4 pt-3">
       {[0, 1, 2].map((c) => (
-        <View key={c} className="mr-3 w-64 rounded-xl bg-muted/30 p-2">
+        <View key={c} className="me-3 w-64 rounded-xl bg-muted/30 p-2">
           <View className="mb-2 px-1">
             <Skeleton className="h-4 w-24 rounded-md" />
           </View>
@@ -103,7 +103,7 @@ function KanbanCard({
       onPress={onPress}
     >
       <View className="flex-row items-start">
-        <View className="mr-2 mt-1">
+        <View className="me-2 mt-1">
           <GripVertical size={14} color="#94a3b8" />
         </View>
         <View className="flex-1">
@@ -142,7 +142,7 @@ function KanbanColumnView({
 }) {
   const { t } = useTranslation();
   return (
-    <View className="mr-3 w-64 rounded-xl bg-muted/30 p-2">
+    <View className="me-3 w-64 rounded-xl bg-muted/30 p-2">
       {/* Column header */}
       <View className="mb-2 flex-row items-center justify-between px-1">
         <View className="flex-row items-center gap-2">

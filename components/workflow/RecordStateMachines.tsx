@@ -82,7 +82,7 @@ export function RecordStateMachines({
                           anyBusy ? "opacity-50" : ""
                         }`}
                       >
-                        <View className="flex-1 pr-2">
+                        <View className="flex-1 pe-2">
                           <Text className="text-sm font-medium text-foreground">
                             {tr.label ?? tr.event}
                           </Text>

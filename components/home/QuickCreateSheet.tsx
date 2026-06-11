@@ -98,7 +98,7 @@ export function QuickCreateSheet({
                 <View className="rounded-lg bg-primary/10 p-2">
                   <Icon size={18} color={accent} />
                 </View>
-                <View className="ml-3 flex-1">
+                <View className="ms-3 flex-1">
                   <Text className="text-base text-foreground">{o.label}</Text>
                   <Text className="text-xs text-muted-foreground">{o.appLabel}</Text>
                 </View>

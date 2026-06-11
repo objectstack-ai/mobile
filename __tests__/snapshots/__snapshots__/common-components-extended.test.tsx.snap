@@ -97,7 +97,7 @@ exports[`OfflineIndicator snapshots renders syncing in progress 1`] = `
       size={12}
     />
     <Text
-      className="ml-1 text-xs font-medium text-primary"
+      className="ms-1 text-xs font-medium text-primary"
     >
       Syncing…
     </Text>
@@ -155,7 +155,7 @@ exports[`OfflineIndicator snapshots renders syncing state when online with pendi
       size={12}
     />
     <Text
-      className="ml-1 text-xs font-medium text-primary"
+      className="ms-1 text-xs font-medium text-primary"
     >
       Sync
     </Text>

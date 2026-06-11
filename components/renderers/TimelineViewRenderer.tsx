@@ -135,7 +135,7 @@ export function TimelineViewRenderer({
             onPress={onEntryPress ? () => onEntryPress(entry) : undefined}
           >
             {/* Timeline connector */}
-            <View className="mr-3 items-center" style={{ width: 24 }}>
+            <View className="me-3 items-center" style={{ width: 24 }}>
               {/* Dot */}
               <View
                 className="h-6 w-6 items-center justify-center rounded-full"

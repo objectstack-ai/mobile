@@ -104,7 +104,7 @@ function MetricWidget({
     <Card className="mb-3 p-4">
       <View className="flex-row items-start justify-between">
         <Text
-          className="min-h-[40px] flex-1 pr-2 text-sm font-medium text-muted-foreground"
+          className="min-h-[40px] flex-1 pe-2 text-sm font-medium text-muted-foreground"
           numberOfLines={2}
         >
           {widget.title ?? widget.name}
@@ -137,7 +137,7 @@ function MetricWidget({
                   <TrendingDown size={12} color="#dc2626" />
                 )}
                 <Text
-                  className={`ml-1 text-xs font-semibold ${
+                  className={`ms-1 text-xs font-semibold ${
                     isPositive ? "text-emerald-600" : "text-red-600"
                   }`}
                 >

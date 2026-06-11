@@ -89,7 +89,7 @@ export default function AppsScreen() {
                   <View className="rounded-xl bg-primary/10 p-3">
                     <Icon size={24} color={accent} />
                   </View>
-                  <View className="ml-4 flex-1">
+                  <View className="ms-4 flex-1">
                     <Text className="text-base font-semibold text-card-foreground">
                       {app.label}
                     </Text>

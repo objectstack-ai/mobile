@@ -76,7 +76,7 @@ export function ViewTabs({
               <Bookmark size={12} color={isActive ? accent : "#94a3b8"} />
               <Text
                 className={cn(
-                  "ml-1.5 text-xs font-medium",
+                  "ms-1.5 text-xs font-medium",
                   isActive ? "text-primary" : "text-muted-foreground",
                 )}
                 numberOfLines={1}
@@ -84,11 +84,11 @@ export function ViewTabs({
                 {view.name}
               </Text>
               {isActive && view.visibility === "shared" && (
-                <Text className="ml-1 text-xs text-muted-foreground">•</Text>
+                <Text className="ms-1 text-xs text-muted-foreground">•</Text>
               )}
             </Pressable>
             {isActive && onDelete && (
-              <Pressable onPress={() => onDelete(view.id)} className="ml-1 p-1">
+              <Pressable onPress={() => onDelete(view.id)} className="ms-1 p-1">
                 <X size={12} color="#ef4444" />
               </Pressable>
             )}

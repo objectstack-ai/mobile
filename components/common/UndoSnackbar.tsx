@@ -56,7 +56,7 @@ export function UndoSnackbar({
         accessibilityLabel={t("common.undo")}
         accessibilityRole="button"
       >
-        <Text className="ml-3 text-sm font-bold text-primary">{t("common.undo")}</Text>
+        <Text className="ms-3 text-sm font-bold text-primary">{t("common.undo")}</Text>
       </TouchableOpacity>
     </View>
   );

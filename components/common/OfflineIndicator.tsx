@@ -55,7 +55,7 @@ export function OfflineIndicator({
           className="flex-row items-center rounded-lg bg-primary/10 px-2.5 py-1"
         >
           <RefreshCw size={12} color={accent} />
-          <Text className="ml-1 text-xs font-medium text-primary">
+          <Text className="ms-1 text-xs font-medium text-primary">
             {isSyncing ? "Syncing…" : "Sync"}
           </Text>
         </Pressable>

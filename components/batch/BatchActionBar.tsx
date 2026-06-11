@@ -54,7 +54,7 @@ export function BatchActionBar({
             className="flex-row items-center rounded-lg bg-primary/10 px-3 py-2"
           >
             <Edit3 size={14} color={accent} />
-            <Text className="ml-1.5 text-xs font-semibold text-primary">{t("common.edit")}</Text>
+            <Text className="ms-1.5 text-xs font-semibold text-primary">{t("common.edit")}</Text>
           </Pressable>
         )}
         {onBatchDelete && (
@@ -63,7 +63,7 @@ export function BatchActionBar({
             className="flex-row items-center rounded-lg bg-destructive/10 px-3 py-2"
           >
             <Trash2 size={14} color="#ef4444" />
-            <Text className="ml-1.5 text-xs font-semibold text-destructive">{t("common.delete")}</Text>
+            <Text className="ms-1.5 text-xs font-semibold text-destructive">{t("common.delete")}</Text>
           </Pressable>
         )}
       </View>

@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { colorScheme } from "nativewind";
 import { createMMKV } from "react-native-mmkv";
-import i18n from "~/lib/i18n";
+import i18n, { isRTL, LANGUAGE_KEY } from "~/lib/i18n";
 import type { SupportedLanguage } from "~/lib/i18n";
+import { syncRTL, reloadForRTL } from "~/lib/rtl";
 
 export type ThemeMode = "light" | "dark" | "system";
 /** Default list row spacing when a view doesn't dictate its own. */
@@ -57,7 +58,16 @@ export const useUIStore = create<UIState>((set) => ({
   },
   language: (i18n.language ?? "en") as SupportedLanguage,
   setLanguage: (lang) => {
+    const directionFlips = isRTL(i18n.language) !== isRTL(lang);
+    // Persist so the choice survives the reload an RTL flip triggers (and app
+    // restarts in general) — i18n's init reads this before device detection.
+    storage.set(LANGUAGE_KEY, lang);
     i18n.changeLanguage(lang);
     set({ language: lang });
+    // Apply writing direction. When the direction actually flips (e.g. en↔ar),
+    // the layout must re-lay-out: on web a reload re-reads `document.dir`; on
+    // native `forceRTL` is persisted and applies on the next launch.
+    syncRTL(lang);
+    if (directionFlips) reloadForRTL();
   },
 }));

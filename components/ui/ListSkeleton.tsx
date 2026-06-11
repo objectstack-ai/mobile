@@ -21,7 +21,7 @@ export function ListSkeleton({ count = 5 }: ListSkeletonProps) {
           className="flex-row items-center rounded-2xl border border-border bg-card p-5"
         >
           <Skeleton className="h-12 w-12 rounded-xl" />
-          <View className="ml-4 flex-1 gap-2">
+          <View className="ms-4 flex-1 gap-2">
             <Skeleton className="h-4 w-1/2 rounded-md" />
             <Skeleton className="h-3 w-3/4 rounded-md" />
           </View>
