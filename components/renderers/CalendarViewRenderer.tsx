@@ -268,7 +268,7 @@ export function CalendarViewRenderer({
                 onPress={() => onEventPress?.(ev)}
               >
                 <View
-                  className="mr-3 h-3 w-3 rounded-full"
+                  className="me-3 h-3 w-3 rounded-full"
                   style={{ backgroundColor: ev.color ?? "#3b82f6" }}
                 />
                 <Text className="flex-1 text-sm font-medium text-card-foreground" numberOfLines={1}>

@@ -74,7 +74,7 @@ export function MultiSelect({
             ))}
           </View>
         )}
-        <ChevronDown size={16} className="ml-1 text-muted-foreground" />
+        <ChevronDown size={16} className="ms-1 text-muted-foreground" />
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>

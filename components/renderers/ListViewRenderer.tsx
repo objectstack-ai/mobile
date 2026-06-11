@@ -491,7 +491,7 @@ export function ListViewRenderer({
             {selectionMode !== "none" && (
               <Pressable
                 className={cn(
-                  "mr-3 h-5 w-5 items-center justify-center rounded border",
+                  "me-3 h-5 w-5 items-center justify-center rounded border",
                   isSelected
                     ? "border-primary bg-primary"
                     : "border-muted-foreground/40",
@@ -580,7 +580,7 @@ export function ListViewRenderer({
             <Text className="text-xs font-semibold uppercase text-muted-foreground">
               {item.label}
             </Text>
-            <Text className="ml-2 text-xs text-muted-foreground/60">({item.count})</Text>
+            <Text className="ms-2 text-xs text-muted-foreground/60">({item.count})</Text>
           </View>
         );
       }
@@ -710,7 +710,7 @@ export function ListViewRenderer({
             <Layers size={13} color={effectiveGroupField ? accent : "#94a3b8"} />
             <Text
               className={cn(
-                "ml-1.5 text-xs font-medium",
+                "ms-1.5 text-xs font-medium",
                 effectiveGroupField ? "text-primary" : "text-muted-foreground",
               )}
             >
@@ -744,7 +744,7 @@ export function ListViewRenderer({
                 >
                   {col.label ?? col.field}
                 </Text>
-                <View className="ml-1">
+                <View className="ms-1">
                   {isActive ? (
                     sortDir === "asc" ? (
                       <ArrowUp size={12} color={accent} />

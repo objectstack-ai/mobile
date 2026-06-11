@@ -88,7 +88,7 @@ function ResultField({ field, value }: { field: ResolvedField; value: unknown })
         </Text>
         {isSecret && (
           <Pressable onPress={() => setRevealed((r) => !r)} accessibilityRole="button">
-            <Text className="ml-3 text-xs font-semibold text-primary">
+            <Text className="ms-3 text-xs font-semibold text-primary">
               {revealed ? "Hide" : "Reveal"}
             </Text>
           </Pressable>

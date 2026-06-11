@@ -133,7 +133,7 @@ export default function HomeScreen() {
         }
       >
         <View className="mb-5 flex-row items-start justify-between">
-          <View className="flex-1 pr-3">
+          <View className="flex-1 pe-3">
             <Text className="text-2xl font-bold text-foreground">{heading}</Text>
             <Text className="mt-1 text-sm text-muted-foreground">
               {t("home.subtitle")}
@@ -161,7 +161,7 @@ export default function HomeScreen() {
           <View className="rounded-xl bg-primary/10 p-3">
             <Sparkles size={24} color={accent} />
           </View>
-          <View className="ml-4 flex-1">
+          <View className="ms-4 flex-1">
             <Text className="text-base font-semibold text-card-foreground">
               {t("home.assistantTitle")}
             </Text>
@@ -206,7 +206,7 @@ export default function HomeScreen() {
                   <View className="rounded-xl bg-primary/10 p-2.5">
                     <Clock size={18} color={accent} />
                   </View>
-                  <View className="ml-3 flex-1">
+                  <View className="ms-3 flex-1">
                     <Text
                       className="text-base font-medium text-card-foreground"
                       numberOfLines={1}
@@ -265,7 +265,7 @@ export default function HomeScreen() {
                 <View className="rounded-xl bg-primary/10 p-3">
                   <LayoutDashboard size={24} color={accent} />
                 </View>
-                <View className="ml-4 flex-1">
+                <View className="ms-4 flex-1">
                   <Text className="text-base font-semibold text-card-foreground">
                     {d.label}
                   </Text>

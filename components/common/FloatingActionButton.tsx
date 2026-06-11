@@ -32,7 +32,7 @@ export function FloatingActionButton({
   };
 
   return (
-    <View testID={testID} className="absolute bottom-6 right-6 items-end">
+    <View testID={testID} className="absolute bottom-6 end-6 items-end">
       {/* Expanded action items */}
       {expanded && actions && actions.map((action) => (
         <TouchableOpacity

@@ -97,7 +97,7 @@ export function ScreenHeader({
         </View>
 
         {right ? (
-          <View className="flex-row items-center pr-1">{right}</View>
+          <View className="flex-row items-center pe-1">{right}</View>
         ) : (
           <View className="w-2" />
         )}

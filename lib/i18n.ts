@@ -10,10 +10,15 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { getLocales } from "expo-localization";
+import { createMMKV } from "react-native-mmkv";
 
 import en from "~/locales/en.json";
 import zh from "~/locales/zh.json";
 import ar from "~/locales/ar.json";
+
+/** Shared with `ui-store` — the persisted language key lives in this store. */
+const uiStorage = createMMKV({ id: "objectstack-ui" });
+export const LANGUAGE_KEY = "language";
 
 /** Languages that use right-to-left layout */
 export const RTL_LANGUAGES = new Set(["ar", "he", "fa", "ur"]);
@@ -42,6 +47,21 @@ export function detectDeviceLanguage(): SupportedLanguage {
   }
 }
 
+/**
+ * Initial language: the user's persisted choice wins over device detection, so
+ * a manual selection survives the reload that an RTL direction change triggers.
+ */
+function loadInitialLanguage(): SupportedLanguage {
+  try {
+    const stored = uiStorage.getString(LANGUAGE_KEY);
+    const supported = SUPPORTED_LANGUAGES.map((l) => l.code) as readonly string[];
+    if (stored && supported.includes(stored)) return stored as SupportedLanguage;
+  } catch {
+    // fall through to device detection
+  }
+  return detectDeviceLanguage();
+}
+
 /** Check whether the current language is RTL */
 export function isRTL(lang?: string): boolean {
   const code = lang ?? i18n.language ?? "en";
@@ -52,7 +72,7 @@ const resources = { en: { translation: en }, zh: { translation: zh }, ar: { tran
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: detectDeviceLanguage(),
+  lng: loadInitialLanguage(),
   fallbackLng: "en",
   interpolation: { escapeValue: false },
   compatibilityJSON: "v4",

@@ -79,7 +79,7 @@ export function ConflictResolutionDialog({
                     className="flex-1 flex-row items-center justify-center rounded-lg bg-primary/10 py-2"
                   >
                     <RefreshCw size={12} color={accent} />
-                    <Text className="ml-1.5 text-xs font-semibold text-primary">
+                    <Text className="ms-1.5 text-xs font-semibold text-primary">
                       Keep Local
                     </Text>
                   </Pressable>
@@ -88,7 +88,7 @@ export function ConflictResolutionDialog({
                     className="flex-1 flex-row items-center justify-center rounded-lg bg-destructive/10 py-2"
                   >
                     <Trash2 size={12} color="#ef4444" />
-                    <Text className="ml-1.5 text-xs font-semibold text-destructive">
+                    <Text className="ms-1.5 text-xs font-semibold text-destructive">
                       Keep Server
                     </Text>
                   </Pressable>

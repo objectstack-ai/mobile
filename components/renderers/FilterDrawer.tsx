@@ -77,11 +77,11 @@ export function FilterDrawer({
           <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
             <View className="flex-row items-center">
               <Filter size={18} color={accent} />
-              <Text className="ml-2 text-lg font-semibold text-foreground">
+              <Text className="ms-2 text-lg font-semibold text-foreground">
                 Filters
               </Text>
               {filterCount > 0 && (
-                <View className="ml-2 min-w-[20px] items-center rounded-full bg-primary px-1.5 py-0.5">
+                <View className="ms-2 min-w-[20px] items-center rounded-full bg-primary px-1.5 py-0.5">
                   <Text className="text-[10px] font-bold text-primary-foreground">
                     {filterCount}
                   </Text>
@@ -166,7 +166,7 @@ export function FilterButton({ count = 0, onPress, className }: FilterButtonProp
       <Filter size={16} color={isActive ? "#1e40af" : "#64748b"} />
       <Text
         className={cn(
-          "ml-1.5 text-xs font-medium",
+          "ms-1.5 text-xs font-medium",
           isActive ? "text-primary" : "text-muted-foreground",
         )}
       >
@@ -174,7 +174,7 @@ export function FilterButton({ count = 0, onPress, className }: FilterButtonProp
       </Text>
 
       {isActive && (
-        <View className="absolute -right-1.5 -top-1.5 min-w-[18px] items-center rounded-full bg-primary px-1 py-0.5">
+        <View className="absolute -end-1.5 -top-1.5 min-w-[18px] items-center rounded-full bg-primary px-1 py-0.5">
           <Text className="text-[10px] font-bold text-primary-foreground">
             {count}
           </Text>

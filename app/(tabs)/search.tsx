@@ -32,7 +32,7 @@ export default function SearchScreen() {
         <View className="flex-row items-center rounded-xl bg-muted px-4 py-3">
           <SearchIcon size={20} color="#94a3b8" />
           <Input
-            className="ml-2 flex-1 border-0 bg-transparent p-0 text-base"
+            className="ms-2 flex-1 border-0 bg-transparent p-0 text-base"
             placeholder={t("search.placeholder")}
             value={query}
             onChangeText={setQuery}
@@ -93,7 +93,7 @@ export default function SearchScreen() {
                     accessibilityLabel={q}
                   >
                     <Clock size={16} color="#94a3b8" />
-                    <Text className="ml-3 flex-1 text-base text-foreground" numberOfLines={1}>
+                    <Text className="ms-3 flex-1 text-base text-foreground" numberOfLines={1}>
                       {q}
                     </Text>
                   </TouchableOpacity>
@@ -163,7 +163,7 @@ export default function SearchScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={t("search.openLabel", { title: rec.title })}
                   >
-                    <View className="mr-3 rounded-lg bg-primary/10 p-2">
+                    <View className="me-3 rounded-lg bg-primary/10 p-2">
                       <FileText size={16} color={accent} />
                     </View>
                     <View className="flex-1">

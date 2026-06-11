@@ -126,7 +126,7 @@ export function SaveViewDialog({
             )}
           >
             <Save size={16} color="#ffffff" />
-            <Text className="ml-2 font-semibold text-primary-foreground">
+            <Text className="ms-2 font-semibold text-primary-foreground">
               {isSaving ? t("common.saving") : t("views.saveView")}
             </Text>
           </Pressable>

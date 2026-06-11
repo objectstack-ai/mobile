@@ -300,7 +300,7 @@ function DetailActionBar({
       {hasMore && (
         <>
           <Pressable
-            className="ml-auto h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
+            className="ms-auto h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
             onPress={() => setMoreOpen(true)}
             accessibilityRole="button"
             accessibilityLabel={t("records.moreActions")}
@@ -393,7 +393,7 @@ function RelatedListSection({
                   {config.columns.map((col) => (
                     <View key={col} className="flex-row justify-between gap-3">
                       <Text className="text-xs text-muted-foreground">{humanizeField(col)}</Text>
-                      <Text className="flex-1 text-right text-sm text-card-foreground" numberOfLines={1}>
+                      <Text className="flex-1 text-end text-sm text-card-foreground" numberOfLines={1}>
                         {rec[col] == null ? "—" : String(rec[col])}
                       </Text>
                     </View>
@@ -444,7 +444,7 @@ function RecordNavigator({
         <ChevronLeft size={16} color={hasPrevious ? accent : "#94a3b8"} />
         <Text
           className={cn(
-            "ml-1 text-sm font-medium",
+            "ms-1 text-sm font-medium",
             hasPrevious ? "text-primary" : "text-muted-foreground",
           )}
         >
@@ -466,7 +466,7 @@ function RecordNavigator({
       >
         <Text
           className={cn(
-            "mr-1 text-sm font-medium",
+            "me-1 text-sm font-medium",
             hasNext ? "text-primary" : "text-muted-foreground",
           )}
         >

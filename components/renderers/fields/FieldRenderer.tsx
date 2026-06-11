@@ -190,7 +190,7 @@ function ReadOnlyValue({ field, value }: { field: FieldDefinition; value: unknow
             value ? "bg-emerald-500" : "bg-muted",
           )}
         />
-        <Text className="ml-2 text-base text-foreground">
+        <Text className="ms-2 text-base text-foreground">
           {value ? "Yes" : "No"}
         </Text>
       </View>

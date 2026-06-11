@@ -112,14 +112,14 @@ function DonutChart({ data, colors }: WidgetChartProps) {
           )}
         </G>
       </Svg>
-      <View className="ml-3 flex-1 gap-1.5">
+      <View className="ms-3 flex-1 gap-1.5">
         {slices.slice(0, 6).map((s, i) => (
           <View key={i} className="flex-row items-center">
             <View className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: s.color }} />
-            <Text className="ml-2 flex-1 text-xs text-foreground" numberOfLines={1}>
+            <Text className="ms-2 flex-1 text-xs text-foreground" numberOfLines={1}>
               {s.label}
             </Text>
-            <Text className="ml-1 text-xs font-medium text-muted-foreground">
+            <Text className="ms-1 text-xs font-medium text-muted-foreground">
               {Math.round(s.frac * 100)}%
             </Text>
           </View>
@@ -231,7 +231,7 @@ function FunnelChart({ data, colors, format = identity }: WidgetChartProps) {
             </Text>
             <View className="h-5 flex-1 justify-center rounded-sm bg-muted/30">
               <View
-                className="h-5 items-end justify-center rounded-sm pr-1"
+                className="h-5 items-end justify-center rounded-sm pe-1"
                 style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: paletteAt(colors, i) }}
               >
                 <Text className="text-[9px] font-semibold text-white" numberOfLines={1}>

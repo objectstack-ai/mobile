@@ -47,7 +47,7 @@ export function CollaborationIndicator({
 
   return (
     <View className="flex-row items-center gap-1 px-4 py-2" accessible={true} accessibilityLabel={`${members.length} viewer${members.length !== 1 ? "s" : ""} active`}>
-      <Text className="mr-1 text-xs text-muted-foreground">Viewing:</Text>
+      <Text className="me-1 text-xs text-muted-foreground">Viewing:</Text>
       {visible.map((member) => (
         <View
           key={member.userId}
@@ -57,7 +57,7 @@ export function CollaborationIndicator({
             {getInitial(member.userId)}
           </Text>
           <View
-            className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-white"
+            className="absolute -bottom-0.5 -end-0.5 h-2 w-2 rounded-full border border-white"
             style={{
               backgroundColor: statusColors[member.status] ?? "#94a3b8",
             }}
