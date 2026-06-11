@@ -1,9 +1,13 @@
 import { useMemo } from "react";
 import { useQuery } from "@objectstack/client-react";
-import { mongoFilterToAst } from "~/lib/query-builder";
+import { matchesMongoFilter, mongoFilterToAst } from "~/lib/query-builder";
 import type {
   DashboardWidgetMeta,
+  DatasetMeasure,
   DatasetMeta,
+  DerivedMetricSpec,
+  MeasureAggregate,
+  ResolvedMetricComponent,
 } from "~/components/renderers/types";
 import type { WidgetDataPayload } from "~/components/renderers/DashboardViewRenderer";
 
@@ -167,6 +171,49 @@ function spanFromLayoutWidth(w: number | undefined): number {
   return typeof w === "number" && w >= 8 ? 2 : 1;
 }
 
+/** Narrow a measure's aggregate to the core five the hook evaluates. */
+function normalizeAggregate(agg: string | undefined): MeasureAggregate {
+  return agg === "sum" || agg === "avg" || agg === "min" || agg === "max"
+    ? agg
+    : "count";
+}
+
+/**
+ * Resolve an 8.0 derived measure (`ratio`/`difference`/`product`/`sum` over
+ * other measures, referenced by name) into the component specs the widget hook
+ * aggregates client-side. A `ratio` is treated as a percentage when its format
+ * is a percent pattern (or when it has no format at all — a bare 0–1 quotient
+ * reads as "0"), so `asPercent` scales it to 0–100 for the percent formatters.
+ * Returns `undefined` when no component measures resolve.
+ */
+function resolveDerivedMeasure(
+  measure: DatasetMeasure,
+  dataset: DatasetMeta,
+  isPercent: boolean,
+): DerivedMetricSpec | undefined {
+  const derived = measure.derived;
+  if (!derived) return undefined;
+
+  const parts: ResolvedMetricComponent[] = (derived.of ?? [])
+    .map((name) => dataset.measures?.find((m) => m.name === name))
+    // A derived measure references base measures only — skip any that don't
+    // resolve (or are themselves derived, which the hook can't nest).
+    .filter((m): m is DatasetMeasure => !!m && !m.derived)
+    .map((m) => ({
+      aggregate: normalizeAggregate(m.aggregate),
+      field: m.field,
+      filter: m.filter,
+    }));
+
+  if (parts.length === 0) return undefined;
+
+  return {
+    op: derived.op,
+    parts,
+    asPercent: derived.op === "ratio" && isPercent,
+  };
+}
+
 /**
  * Resolve an 8.0-spec dashboard widget — which references an analytics
  * `dataset` plus `values` (measures) / `dimensions` — into the object-query
@@ -194,21 +241,82 @@ export function resolveDatasetWidget(
   const options = (widget.options ?? {}) as Record<string, unknown>;
   const color = typeof options.color === "string" ? options.color : undefined;
 
+  // A `ratio` derived measure renders as a percentage; default its format to
+  // `0%` so a bare quotient (e.g. 0.25) still reads as "25%".
+  const format =
+    measure?.derived?.op === "ratio" ? measure.format ?? "0%" : measure?.format;
+  const derivedMetric = measure?.derived
+    ? resolveDerivedMeasure(measure, dataset, !!format && format.includes("%"))
+    : undefined;
+  const aggregate = normalizeAggregate(measure?.aggregate);
+
   return {
     ...widget,
     object: dataset.object,
-    aggregate: measure?.aggregate ?? "count",
-    // `count` measures have no source field — count rows instead.
+    // A derived metric is computed from its components — its top-level aggregate
+    // is unused, so keep it inert (`count`).
+    aggregate: derivedMetric ? "count" : aggregate,
+    // `count` and derived measures have no single source field — count rows
+    // (the derived path ignores this) instead.
     valueField:
-      measure && measure.aggregate !== "count" ? measure.field : undefined,
+      measure && !measure.derived && aggregate !== "count"
+        ? measure.field
+        : undefined,
     categoryField: dimension?.field,
     span: widget.span ?? spanFromLayoutWidth(widget.layout?.w),
+    derivedMetric,
     chartConfig: {
       ...options,
       ...(color ? { colors: [color] } : null),
-      ...(measure?.format ? { format: measure.format } : null),
+      ...(format ? { format } : null),
     },
   };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Derived-metric computation (client-side)                            */
+/* ------------------------------------------------------------------ */
+
+/** Aggregate a single derived-metric component from the fetched rows. */
+function computeMetricComponent(
+  records: Record<string, unknown>[],
+  comp: ResolvedMetricComponent,
+): number {
+  const rows = comp.filter
+    ? records.filter((r) => matchesMongoFilter(r, comp.filter))
+    : records;
+  // `count` (and any component without a source field) tallies rows.
+  if (comp.aggregate === "count" || !comp.field) return rows.length;
+  const field = comp.field;
+  const nums = rows.map((r) => Number(r[field])).filter((n) => !isNaN(n));
+  return applyAggregate(comp.aggregate, nums);
+}
+
+/**
+ * Combine a derived metric's component aggregates via its operator. A `ratio`
+ * guards against a zero denominator and scales to a 0–100 percentage when
+ * `asPercent` is set, matching the codebase's percent-formatting convention.
+ */
+function computeDerivedMetric(
+  records: Record<string, unknown>[],
+  spec: DerivedMetricSpec,
+): number {
+  const vals = spec.parts.map((p) => computeMetricComponent(records, p));
+  switch (spec.op) {
+    case "ratio": {
+      const num = vals[0] ?? 0;
+      const den = vals[1] ?? 0;
+      const ratio = den === 0 ? 0 : num / den;
+      return spec.asPercent ? ratio * 100 : ratio;
+    }
+    case "difference":
+      return vals.reduce((acc, v, i) => (i === 0 ? v : acc - v), 0);
+    case "product":
+      return vals.reduce((acc, v) => acc * v, 1);
+    case "sum":
+    default:
+      return vals.reduce((acc, v) => acc + v, 0);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -275,6 +383,15 @@ export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
     switch (type) {
       case "metric":
       case "kpi": {
+        // A derived measure (e.g. a completion-rate ratio) has no single source
+        // field — compute it from its filtered component aggregates.
+        if (widget.derivedMetric) {
+          return {
+            value: computeDerivedMetric(records, widget.derivedMetric),
+            isLoading: false,
+          };
+        }
+
         // Derive a numeric value from the aggregate hint
         const agg = widget.aggregate ?? "count";
         const field = widget.valueField;

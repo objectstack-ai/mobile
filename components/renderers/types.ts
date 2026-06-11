@@ -209,16 +209,69 @@ export interface DashboardWidgetMeta {
   dimensions?: string[];
   /** Grid placement (8.0 spec): `{ x, y, w, h }` in a 12-column grid. */
   layout?: { x?: number; y?: number; w?: number; h?: number };
+  /**
+   * Resolved derived metric (8.0). When set, the widget's headline value is
+   * computed from `derivedMetric` (a combination of filtered component
+   * aggregates) rather than the single `aggregate`/`valueField`. Populated by
+   * `resolveDatasetWidget` from a dataset's derived measure (e.g. a ratio).
+   */
+  derivedMetric?: DerivedMetricSpec;
 }
+
+/** Core aggregate operators the RN widget hook can evaluate client-side. */
+export type MeasureAggregate = "count" | "sum" | "avg" | "min" | "max";
 
 /** A measure (aggregation) declared by an analytics dataset (8.0 spec). */
 export interface DatasetMeasure {
   name: string;
   label?: string;
-  aggregate?: "count" | "sum" | "avg" | "min" | "max";
+  /**
+   * Aggregate operator. Optional/ignored for a `derived` measure. The spec also
+   * defines `count_distinct`/`array_agg`/`string_agg`; the RN hook treats any
+   * value outside the core five as `count`.
+   */
+  aggregate?: MeasureAggregate | string;
   /** Source object field the aggregate runs over (absent for `count`). */
   field?: string;
+  /**
+   * Row predicate this measure aggregates over (Mongo-style, as authored in
+   * dataset metadata, e.g. `{ status: "done" }`). Lets a single object back
+   * several filtered measures — e.g. the numerator of a completion rate.
+   */
+  filter?: Record<string, unknown>;
   format?: string;
+  /**
+   * Derived measure (8.0 / ADR-0021): combines OTHER measures (referenced by
+   * name) via an operator — e.g. `completion_rate = ratio(done_count,
+   * task_count)`. A derived measure has no source field of its own, so it must
+   * be computed from its component measures rather than a single aggregate.
+   */
+  derived?: { op: DerivedMeasureOp; of: string[] };
+}
+
+/** Operator combining the component measures of a derived measure (8.0). */
+export type DerivedMeasureOp = "ratio" | "sum" | "difference" | "product";
+
+/**
+ * A base measure resolved into the inputs the RN widget hook aggregates
+ * client-side — one component of a derived measure.
+ */
+export interface ResolvedMetricComponent {
+  aggregate: MeasureAggregate;
+  field?: string;
+  filter?: Record<string, unknown>;
+}
+
+/**
+ * A derived metric resolved for client-side computation: aggregate each
+ * component from the fetched rows, then combine via `op`. `asPercent` scales a
+ * `ratio` (a 0–1 fraction) to 0–100 so the codebase's percent formatters
+ * (e.g. a `0%` pattern) render it correctly.
+ */
+export interface DerivedMetricSpec {
+  op: DerivedMeasureOp;
+  parts: ResolvedMetricComponent[];
+  asPercent?: boolean;
 }
 
 /** A dimension (groupable field) declared by an analytics dataset (8.0 spec). */
