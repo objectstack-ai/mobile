@@ -1,14 +1,42 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 import { webContentMaxWidth } from "~/lib/responsive";
 import { Bell, CheckCheck, Circle, WifiOff } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { cn } from "~/lib/utils";
+import { dateGroup, relativeTime, type DateGroup } from "~/lib/relative-time";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useNotifications, type NotificationItem } from "~/hooks/useNotifications";
+
+/** Localized compact relative-time label for a notification timestamp. */
+function relLabel(createdAt: string, now: number, t: TFunction): string {
+  const rel = relativeTime(new Date(createdAt).getTime(), now);
+  switch (rel.kind) {
+    case "justNow":
+      return t("time.justNow");
+    case "minutes":
+      return t("time.minutesShort", { n: rel.n });
+    case "hours":
+      return t("time.hoursShort", { n: rel.n });
+    case "yesterday":
+      return t("time.yesterday");
+    case "date":
+      return new Date(rel.ts).toLocaleDateString();
+  }
+}
+
+const GROUP_ORDER: DateGroup[] = ["today", "yesterday", "week", "earlier"];
+const GROUP_LABEL_KEY: Record<DateGroup, string> = {
+  today: "notifications.groupToday",
+  yesterday: "notifications.groupYesterday",
+  week: "notifications.groupThisWeek",
+  earlier: "notifications.groupEarlier",
+};
 
 /* ------------------------------------------------------------------ */
 /*  Notification Row                                                    */
@@ -16,11 +44,14 @@ import { useNotifications, type NotificationItem } from "~/hooks/useNotification
 
 function NotificationRow({
   notification,
+  now,
   onPress,
 }: {
   notification: NotificationItem;
+  now: number;
   onPress: (n: NotificationItem) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Pressable
       className={cn(
@@ -53,7 +84,7 @@ function NotificationRow({
           {notification.body}
         </Text>
         <Text className="mt-1 text-xs text-muted-foreground/60">
-          {new Date(notification.createdAt).toLocaleDateString()}
+          {relLabel(notification.createdAt, now, t)}
         </Text>
       </View>
     </Pressable>
@@ -78,6 +109,7 @@ export default function NotificationsScreen() {
   const { t } = useTranslation();
 
   const handlePress = (n: NotificationItem) => {
+    void Haptics.selectionAsync();
     if (!n.read) {
       void markRead([n.id]);
     }
@@ -86,6 +118,25 @@ export default function NotificationsScreen() {
       router.push(n.actionUrl);
     }
   };
+
+  // Bucket notifications into Today / Yesterday / This Week / Earlier, keeping
+  // the server's within-group order. `now` is read once per render.
+  const now = Date.now();
+  const sections = useMemo(() => {
+    const buckets: Record<DateGroup, NotificationItem[]> = {
+      today: [],
+      yesterday: [],
+      week: [],
+      earlier: [],
+    };
+    for (const n of notifications) {
+      buckets[dateGroup(new Date(n.createdAt).getTime(), now)].push(n);
+    }
+    return GROUP_ORDER.map((group) => ({ group, items: buckets[group] })).filter(
+      (s) => s.items.length > 0,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifications, now]);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["top", "left", "right"]}>
@@ -149,8 +200,20 @@ export default function NotificationsScreen() {
           contentContainerClassName="px-1 pb-8 pt-2"
         contentContainerStyle={webContentMaxWidth}
         >
-          {notifications.map((n) => (
-            <NotificationRow key={n.id} notification={n} onPress={handlePress} />
+          {sections.map(({ group, items }) => (
+            <View key={group} className="mb-2">
+              <Text className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t(GROUP_LABEL_KEY[group])}
+              </Text>
+              {items.map((n) => (
+                <NotificationRow
+                  key={n.id}
+                  notification={n}
+                  now={now}
+                  onPress={handlePress}
+                />
+              ))}
+            </View>
           ))}
         </ScrollView>
       )}

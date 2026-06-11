@@ -169,7 +169,17 @@
     "emptyTitle": "لا توجد إشعارات",
     "emptyDesc": "لقد اطّلعت على كل شيء. ستظهر الإشعارات الجديدة هنا.",
     "unavailableTitle": "الإشعارات غير متاحة",
-    "unavailableDesc": "تعذّر الوصول إلى خدمة الإشعارات. اسحب للتحديث أو حاول مرة أخرى."
+    "unavailableDesc": "تعذّر الوصول إلى خدمة الإشعارات. اسحب للتحديث أو حاول مرة أخرى.",
+    "groupToday": "اليوم",
+    "groupYesterday": "أمس",
+    "groupThisWeek": "هذا الأسبوع",
+    "groupEarlier": "أقدم"
+  },
+  "time": {
+    "justNow": "الآن",
+    "minutesShort": "{{n}} د",
+    "hoursShort": "{{n}} س",
+    "yesterday": "أمس"
   },
   "more": {
     "profileFallbackName": "مستخدم",
@@ -258,7 +268,9 @@
     "resultCount_few": "{{count}} نتائج",
     "resultCount_many": "{{count}} نتيجة",
     "resultCount_other": "{{n}} نتيجة",
-    "openLabel": "فتح {{title}}"
+    "openLabel": "فتح {{title}}",
+    "recentTitle": "عمليات البحث الأخيرة",
+    "recentClear": "مسح"
   },
   "offline": {
     "offlineMode": "وضع عدم الاتصال",

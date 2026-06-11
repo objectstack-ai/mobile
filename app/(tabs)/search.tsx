@@ -1,19 +1,25 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 import { webContentMaxWidth } from "~/lib/responsive";
-import { Search as SearchIcon, X, ChevronRight, FileText, SearchX } from "lucide-react-native";
+import { Search as SearchIcon, X, ChevronRight, FileText, SearchX, Clock } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { tCount } from "~/lib/i18n";
 import { Input } from "~/components/ui/Input";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { useGlobalSearch } from "~/hooks/useGlobalSearch";
+import { useSearchHistoryStore } from "~/stores/search-history-store";
 
 export default function SearchScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { query, setQuery, groups, isSearching, hasSearched, totalCount, objectCount } =
     useGlobalSearch();
+  const recentQueries = useSearchHistoryStore((s) => s.queries);
+  const recordSearch = useSearchHistoryStore((s) => s.record);
+  const removeSearch = useSearchHistoryStore((s) => s.remove);
+  const clearSearches = useSearchHistoryStore((s) => s.clear);
 
   const showResults = query.trim().length > 0;
 
@@ -43,18 +49,74 @@ export default function SearchScreen() {
         </View>
       </View>
 
-      {/* Idle empty state */}
-      {!showResults && (
-        <EmptyState
-          icon={SearchIcon}
-          title={t("search.emptyTitle")}
-          description={
-            objectCount > 0
-              ? tCount("search.lookingAcross", objectCount)
-              : t("search.emptyHint")
-          }
-        />
-      )}
+      {/* Idle: recent searches if any, else the empty hint. */}
+      {!showResults &&
+        (recentQueries.length > 0 ? (
+          <ScrollView
+            className="flex-1"
+            contentContainerClassName="px-5 pb-8 pt-4"
+            contentContainerStyle={webContentMaxWidth}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View className="mb-2 flex-row items-center justify-between">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("search.recentTitle")}
+              </Text>
+              <TouchableOpacity
+                onPress={clearSearches}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t("search.recentClear")}
+              >
+                <Text className="text-xs font-medium text-primary">
+                  {t("search.recentClear")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View className="overflow-hidden rounded-xl border border-border bg-card">
+              {recentQueries.map((q, idx) => (
+                <View
+                  key={q}
+                  className={`flex-row items-center px-4 py-3 ${
+                    idx > 0 ? "border-t border-border/50" : ""
+                  }`}
+                >
+                  <TouchableOpacity
+                    className="flex-1 flex-row items-center"
+                    onPress={() => {
+                      void Haptics.selectionAsync();
+                      setQuery(q);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={q}
+                  >
+                    <Clock size={16} color="#94a3b8" />
+                    <Text className="ml-3 flex-1 text-base text-foreground" numberOfLines={1}>
+                      {q}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => removeSearch(q)}
+                    hitSlop={8}
+                    accessibilityLabel={t("search.recentClear")}
+                  >
+                    <X size={16} color="#94a3b8" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        ) : (
+          <EmptyState
+            icon={SearchIcon}
+            title={t("search.emptyTitle")}
+            description={
+              objectCount > 0
+                ? tCount("search.lookingAcross", objectCount)
+                : t("search.emptyHint")
+            }
+          />
+        ))}
 
       {/* No matches */}
       {showResults && !isSearching && hasSearched && totalCount === 0 && (
@@ -88,11 +150,14 @@ export default function SearchScreen() {
                     className={`flex-row items-center px-4 py-3 ${
                       idx > 0 ? "border-t border-border/50" : ""
                     }`}
-                    onPress={() =>
+                    onPress={() => {
+                      // Tapping a result is a strong signal the query was
+                      // useful — remember it for one-tap re-run.
+                      recordSearch(query);
                       router.push(
                         `/(app)/${rec.appName}/${rec.objectName}/${rec.id}` as never,
-                      )
-                    }
+                      );
+                    }}
                     accessibilityRole="button"
                     accessibilityLabel={t("search.openLabel", { title: rec.title })}
                   >
