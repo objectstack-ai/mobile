@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { AlertCircle } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import {
   resolvePageSchema,
   type PageSchema,
@@ -243,6 +244,7 @@ export function PageRenderer({
   error,
   renderComponent,
 }: PageRendererProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <ScrollView className="flex-1">
@@ -270,7 +272,7 @@ export function PageRenderer({
       <EmptyState
         icon={AlertCircle}
         variant="error"
-        title="Couldn't Load Page"
+        title={t("empty.loadPage")}
         description={error.message}
       />
     );

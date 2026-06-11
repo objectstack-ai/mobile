@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { Circle, CheckCircle2, AlertCircle, Clock, User, FileText } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
 
 /* ------------------------------------------------------------------ */
@@ -98,6 +99,7 @@ export function TimelineViewRenderer({
   isLoading = false,
   onEntryPress,
 }: TimelineViewRendererProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <View className="flex-1 px-4 pt-4">
@@ -110,9 +112,9 @@ export function TimelineViewRenderer({
     return (
       <View className="flex-1 items-center justify-center px-6">
         <Clock size={48} color="#94a3b8" />
-        <Text className="mt-4 text-lg font-semibold text-foreground">No Activity</Text>
+        <Text className="mt-4 text-lg font-semibold text-foreground">{t("empty.timelineTitle")}</Text>
         <Text className="mt-2 text-center text-sm text-muted-foreground">
-          No timeline entries found.
+          {t("empty.timelineDesc")}
         </Text>
       </View>
     );

@@ -6,6 +6,7 @@ import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { Image as ImageIcon } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -92,8 +93,9 @@ export function GalleryViewRenderer({
   aspectRatio = 1,
   isLoading,
   onCardPress,
-  emptyMessage = "No items to display",
+  emptyMessage,
 }: GalleryViewRendererProps) {
+  const { t } = useTranslation();
   const renderCard = useCallback(
     ({ item }: { item: Record<string, unknown> }) => {
       const uri = resolveImageUri(item, imageField);
@@ -160,8 +162,8 @@ export function GalleryViewRenderer({
     return (
       <EmptyState
         icon={<ImageIcon size={40} color="#94a3b8" />}
-        title="No Items"
-        description={emptyMessage}
+        title={t("empty.galleryTitle")}
+        description={emptyMessage ?? t("empty.noData")}
       />
     );
   }

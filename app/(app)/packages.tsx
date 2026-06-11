@@ -68,7 +68,7 @@ export default function PackagesScreen() {
             <EmptyState
               icon={Package}
               variant="error"
-              title="Couldn't Load Packages"
+              title={t("empty.loadPackages")}
               description={error.message}
               actionLabel="Retry"
               onAction={refetch}
@@ -78,8 +78,8 @@ export default function PackagesScreen() {
           <View className="pt-24">
             <EmptyState
               icon={Package}
-              title="No Packages"
-              description="No packages are installed yet."
+              title={t("empty.packagesTitle")}
+              description={t("empty.packagesDesc")}
             />
           </View>
         ) : (

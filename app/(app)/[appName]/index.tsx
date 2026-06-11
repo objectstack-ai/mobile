@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Inbox, ChevronRight, AlertCircle } from "lucide-react-native";
 import { PressableCard } from "~/components/ui/PressableCard";
 import { EmptyState } from "~/components/ui/EmptyState";
@@ -20,6 +21,7 @@ import { useThemeColors } from "~/lib/theme-colors";
 export default function AppHomeScreen() {
   const { appName } = useLocalSearchParams<{ appName: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   const { app, isLoading, error } = useApp(appName);
 
@@ -116,7 +118,7 @@ export default function AppHomeScreen() {
             <EmptyState
               icon={AlertCircle}
               variant="error"
-              title="Couldn't Load App"
+              title={t("empty.loadApp")}
               description={error.message}
             />
           </View>
@@ -124,8 +126,8 @@ export default function AppHomeScreen() {
           <View className="pt-20">
             <EmptyState
               icon={Inbox}
-              title="No Navigation"
-              description="This app hasn't published a navigation menu yet."
+              title={t("empty.appNavTitle")}
+              description={t("empty.appNavDesc")}
             />
           </View>
         ) : (

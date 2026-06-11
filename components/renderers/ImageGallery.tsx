@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { X, Download, Share2, Image as ImageIcon } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { EmptyState } from "~/components/ui/EmptyState";
 
@@ -52,6 +53,7 @@ export function ImageGallery({
   onDownload,
   onShare,
 }: ImageGalleryProps) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -94,8 +96,8 @@ export function ImageGallery({
     return (
       <EmptyState
         icon={ImageIcon}
-        title="No Images"
-        description="There are no images to display yet."
+        title={t("empty.imagesTitle")}
+        description={t("empty.imagesDesc")}
       />
     );
   }

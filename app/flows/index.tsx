@@ -1,6 +1,7 @@
 import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { Workflow } from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { PressableCard } from "~/components/ui/PressableCard";
@@ -46,6 +47,7 @@ function FlowCard({ flow, onPress }: { flow: FlowDefinition; onPress: () => void
  */
 export default function FlowsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { data: flows, isLoading, error, refetch, isRefetching } = useFlows();
 
   const count = flows?.length ?? 0;
@@ -53,8 +55,8 @@ export default function FlowsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
       <ScreenHeader
-        title="Automation Flows"
-        subtitle={count > 0 ? `${count} flow${count === 1 ? "" : "s"}` : undefined}
+        title={t("empty.flowsHeader")}
+        subtitle={count > 0 ? t("empty.flowCount", { count }) : undefined}
       />
       {isLoading ? (
         <ListSkeleton count={6} />
@@ -62,17 +64,17 @@ export default function FlowsScreen() {
         <EmptyState
           icon={Workflow}
           variant="error"
-          title="Couldn't load flows"
+          title={t("empty.loadFlows")}
           description={error.message}
-          actionLabel="Retry"
+          actionLabel={t("common.retry")}
           onAction={() => void refetch()}
           actionLoading={isRefetching}
         />
       ) : count === 0 ? (
         <EmptyState
           icon={Workflow}
-          title="No flows defined"
-          description="This server has no automation flows yet."
+          title={t("empty.flowsTitle")}
+          description={t("empty.flowsDesc")}
         />
       ) : (
         <ScrollView className="flex-1" contentContainerClassName="px-4 pt-4 pb-8">

@@ -2,6 +2,7 @@ import React, { useMemo, useCallback } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { EmptyState } from "~/components/common/EmptyState";
 import { GanttChartSquare } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "~/components/ui/Skeleton";
 
 /* ------------------------------------------------------------------ */
@@ -153,8 +154,9 @@ export function GanttViewRenderer({
   colorField,
   isLoading,
   onTaskPress,
-  emptyMessage = "No scheduled items",
+  emptyMessage,
 }: GanttViewRendererProps) {
+  const { t } = useTranslation();
   const tasks = useMemo(
     () => buildGanttTasks(records, { labelField, startField, endField, colorField }),
     [records, labelField, startField, endField, colorField],
@@ -202,8 +204,8 @@ export function GanttViewRenderer({
     return (
       <EmptyState
         icon={<GanttChartSquare size={40} color="#94a3b8" />}
-        title="Nothing Scheduled"
-        description={emptyMessage}
+        title={t("empty.ganttTitle")}
+        description={emptyMessage ?? t("empty.noData")}
       />
     );
   }
