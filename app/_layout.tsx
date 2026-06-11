@@ -2,7 +2,6 @@ import "../global.css";
 import "~/lib/i18n"; // Initialize i18next before any screen calls useTranslation()
 
 import { useCallback, useEffect, useMemo } from "react";
-import { ActivityIndicator, View } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
@@ -41,8 +40,12 @@ function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
   useEffect(() => {
     if (!isReady) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
+    const first = segments[0] as string | undefined;
+    const inAuthGroup = first === "(auth)";
     const isServerConfigRoute = segments.includes("server-config");
+    // The initial `index` route is the hydration splash — treat it like the
+    // auth group for redirect purposes so a signed-in user is forwarded on.
+    const onIndex = !first || first === "index";
 
     // Step 1: No server URL configured → go to server config
     if (!serverUrl) {
@@ -54,24 +57,26 @@ function useProtectedRoute(serverUrl: string | null, isReady: boolean) {
 
     if (isPending) return;
 
-    // Step 2: Not signed in → go to sign-in
+    // Step 2: Route based on session, forwarding off the splash/auth screens.
     if (!session && !inAuthGroup) {
       router.replace("/(auth)/sign-in");
-    } else if (session && inAuthGroup) {
+    } else if (session && (inAuthGroup || onIndex)) {
       router.replace("/(tabs)");
     }
   }, [session, isPending, segments, serverUrl, isReady, router]);
 }
 
-/**
- * The signed-in app shell. Mounted only after `hydrate()` has re-targeted the
- * auth/data clients at the persisted server URL — so the very first
- * `useSession()` (and every screen data hook) hits the configured server, not
- * the default API host. Mounting any of this earlier fires a storm of
- * connection-refused requests (and a dev-overlay error) on every cold start.
- */
-function AppShell({ serverUrl }: { serverUrl: string | null }) {
-  useProtectedRoute(serverUrl, true);
+export default function RootLayout() {
+  const serverUrl = useServerStore((s) => s.serverUrl);
+  const isReady = useServerStore((s) => s.isReady);
+  const hydrate = useServerStore((s) => s.hydrate);
+
+  // On mount, load the persisted server URL and re-target the auth/data clients.
+  useEffect(() => {
+    void hydrate();
+  }, [hydrate]);
+
+  useProtectedRoute(serverUrl, isReady);
 
   const { data: session } = authClient.useSession();
   const sessionRecord = session as Record<string, unknown> | null;
@@ -100,43 +105,35 @@ function AppShell({ serverUrl }: { serverUrl: string | null }) {
   return (
     <ObjectStackProvider client={client}>
       <QueryClientProvider client={queryClient}>
-        <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="(app)" />
-          <Stack.Screen name="account" />
-          <Stack.Screen name="ai" />
-        </Stack>
+        <SafeAreaProvider>
+          <ToastProvider>
+            <ConfirmProvider>
+              <StatusBar style="auto" />
+              {/* Push notifications fetch on mount, so hold them until the
+                  clients are re-targeted at the configured server. */}
+              {isReady && (
+                <PushNotificationsManager enabled={!!token} onDeepLink={handleDeepLink} />
+              )}
+              {/* The navigator is ALWAYS mounted. expo-router requires a
+                  navigator on every render — swapping it for a bare splash View
+                  during the async hydration window makes navigation hooks throw
+                  "Couldn't find a navigation context" (visible on native, where
+                  hydration is slow enough to actually paint the splash). The
+                  initial `index` route is a no-fetch splash that
+                  `useProtectedRoute` forwards off once `isReady`, so the data
+                  screens never mount against the pre-hydration default host. */}
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(app)" />
+                <Stack.Screen name="account" />
+                <Stack.Screen name="ai" />
+              </Stack>
+            </ConfirmProvider>
+          </ToastProvider>
+        </SafeAreaProvider>
       </QueryClientProvider>
     </ObjectStackProvider>
-  );
-}
-
-export default function RootLayout() {
-  const serverUrl = useServerStore((s) => s.serverUrl);
-  const isReady = useServerStore((s) => s.isReady);
-  const hydrate = useServerStore((s) => s.hydrate);
-
-  // On mount, load the persisted server URL and reinitialize clients
-  useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
-
-  return (
-    <SafeAreaProvider>
-      <ToastProvider>
-        <ConfirmProvider>
-          <StatusBar style="auto" />
-          {isReady ? (
-            <AppShell serverUrl={serverUrl} />
-          ) : (
-            <View className="flex-1 items-center justify-center bg-background">
-              <ActivityIndicator size="large" />
-            </View>
-          )}
-        </ConfirmProvider>
-      </ToastProvider>
-    </SafeAreaProvider>
   );
 }
