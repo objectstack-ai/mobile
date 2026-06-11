@@ -5,7 +5,7 @@ import { Plus } from "lucide-react-native";
 import { useClient, useQuery, useView } from "@objectstack/client-react";
 import { useTranslation } from "react-i18next";
 import { tCount } from "~/lib/i18n";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ListViewRenderer } from "~/components/renderers";
 import type { ListViewMeta } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
@@ -44,7 +44,29 @@ export default function ObjectListScreen() {
     objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ??
     "Objects";
 
-  const records = data?.records ?? [];
+  // Rows deleted optimistically: hidden from the list the instant you confirm,
+  // before the server round-trip lands. Restored on failure (see below).
+  const [pendingDeletes, setPendingDeletes] = useState<Set<string>>(new Set());
+  const allRecords = data?.records ?? [];
+  const records = allRecords.filter(
+    (r: Record<string, unknown>) => !pendingDeletes.has(String(r.id ?? r._id)),
+  );
+
+  // Prune the pending set once a refetch reflects the deletion (the id is gone
+  // from server data), so it can't grow unbounded across a long session.
+  useEffect(() => {
+    if (pendingDeletes.size === 0) return;
+    const present = new Set(
+      (data?.records ?? []).map((r: Record<string, unknown>) =>
+        String(r.id ?? r._id),
+      ),
+    );
+    setPendingDeletes((prev) => {
+      const next = new Set([...prev].filter((id) => present.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [data, pendingDeletes.size]);
+
   const listView: ListViewMeta | undefined = viewData ?? undefined;
 
   const handleSwipeEdit = useCallback(
@@ -66,10 +88,18 @@ export default function ObjectListScreen() {
         destructive: true,
       });
       if (!ok) return;
+      // Optimistic: drop the row immediately, then persist.
+      setPendingDeletes((prev) => new Set(prev).add(id));
       try {
         await client.data.delete(objectName!, id);
         refetch();
       } catch {
+        // Restore the row and surface the failure.
+        setPendingDeletes((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         toastError(t("records.deleteFailed"));
       }
     },
