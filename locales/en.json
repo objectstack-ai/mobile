@@ -166,7 +166,17 @@
     "emptyTitle": "No Notifications",
     "emptyDesc": "You're all caught up. New notifications will appear here.",
     "unavailableTitle": "Notifications Unavailable",
-    "unavailableDesc": "We couldn't reach the notifications service. Pull to refresh or try again."
+    "unavailableDesc": "We couldn't reach the notifications service. Pull to refresh or try again.",
+    "groupToday": "Today",
+    "groupYesterday": "Yesterday",
+    "groupThisWeek": "This Week",
+    "groupEarlier": "Earlier"
+  },
+  "time": {
+    "justNow": "Just now",
+    "minutesShort": "{{n}}m",
+    "hoursShort": "{{n}}h",
+    "yesterday": "Yesterday"
   },
   "more": {
     "profileFallbackName": "User",
@@ -247,7 +257,9 @@
     "noResultsBody": "Nothing matched “{{query}}”. Try a different keyword.",
     "resultCount_one": "{{n}} result",
     "resultCount_other": "{{n}} results",
-    "openLabel": "Open {{title}}"
+    "openLabel": "Open {{title}}",
+    "recentTitle": "Recent searches",
+    "recentClear": "Clear"
   },
   "offline": {
     "offlineMode": "Offline Mode",

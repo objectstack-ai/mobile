@@ -164,7 +164,17 @@
     "emptyTitle": "暂无通知",
     "emptyDesc": "你已全部处理完毕。新通知将显示在这里。",
     "unavailableTitle": "通知不可用",
-    "unavailableDesc": "无法连接通知服务。下拉刷新或稍后重试。"
+    "unavailableDesc": "无法连接通知服务。下拉刷新或稍后重试。",
+    "groupToday": "今天",
+    "groupYesterday": "昨天",
+    "groupThisWeek": "本周",
+    "groupEarlier": "更早"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "minutesShort": "{{n}}分钟",
+    "hoursShort": "{{n}}小时",
+    "yesterday": "昨天"
   },
   "more": {
     "profileFallbackName": "用户",
@@ -243,7 +253,9 @@
     "noResultsTitle": "无结果",
     "noResultsBody": "没有与“{{query}}”匹配的结果。请尝试其他关键词。",
     "resultCount_other": "{{n}} 条结果",
-    "openLabel": "打开 {{title}}"
+    "openLabel": "打开 {{title}}",
+    "recentTitle": "最近搜索",
+    "recentClear": "清除"
   },
   "offline": {
     "offlineMode": "离线模式",
