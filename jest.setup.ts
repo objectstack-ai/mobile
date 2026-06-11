@@ -205,7 +205,6 @@ jest.mock("@sentry/react-native", () => ({
 // layout-animation builders (FadeInDown.delay().duration()...) into chainable
 // no-ops, so screens that use entrance animations mount in tests.
 jest.mock("react-native-reanimated", () => {
-  const React = require("react");
   const RN = require("react-native");
   // A layout-animation builder: every method returns the same chainable stub,
   // and it's usable both as `FadeInDown` and `FadeInDown.duration(380)`.
