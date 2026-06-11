@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { authClient } from "~/lib/auth-client";
 import { useAccount } from "~/hooks/useAccount";
 import { useTwoFactor } from "~/hooks/useTwoFactor";
@@ -40,6 +41,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * resend the verification email. Backed by `useAccount` → `client.auth.*`.
  */
 export default function AccountScreen() {
+  const { t } = useTranslation();
   const { data: session } = authClient.useSession();
   const user = session?.user;
   const { updateProfile, changePassword, changeEmail, resendVerification, isSaving } =
@@ -157,7 +159,7 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <ScreenHeader title="Account" />
+      <ScreenHeader title={t("more.sectionAccount")} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <Section title="Profile">

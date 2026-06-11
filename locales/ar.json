@@ -23,7 +23,8 @@
     "refresh": "تحديث",
     "more": "المزيد",
     "settings": "الإعدادات",
-    "language": "اللغة"
+    "language": "اللغة",
+    "packages": "الحزم"
   },
   "auth": {
     "signIn": "تسجيل الدخول",

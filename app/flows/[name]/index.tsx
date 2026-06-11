@@ -68,7 +68,7 @@ export default function FlowDetailScreen() {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-        <ScreenHeader title="Flow" backFallback="/flows" />
+        <ScreenHeader title={t("more.flows")} backFallback="/flows" />
         <ListSkeleton count={5} />
       </SafeAreaView>
     );
@@ -77,7 +77,7 @@ export default function FlowDetailScreen() {
   if (error || !flow) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-        <ScreenHeader title="Flow" backFallback="/flows" />
+        <ScreenHeader title={t("more.flows")} backFallback="/flows" />
         <EmptyState
           icon={Workflow}
           variant={error ? "error" : "default"}
