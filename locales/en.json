@@ -278,6 +278,9 @@
     "title": "Appearance",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "density": "List density",
+    "comfortable": "Comfortable",
+    "compact": "Compact"
   }
 }

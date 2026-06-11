@@ -8,6 +8,7 @@ import type {
   DashboardMeta,
   DashboardWidgetMeta,
   DatasetMeta,
+  FieldDefinition,
 } from "~/components/renderers";
 import type { WidgetDataPayload } from "~/components/renderers";
 import { resolveDatasetWidget, useWidgetQuery } from "~/hooks/useDashboardData";
@@ -94,11 +95,41 @@ export default function DashboardScreen() {
           }),
         );
 
+        // Fetch each dataset object's field metadata once, so chart category
+        // buckets can render select-field option *labels* ("Completed") rather
+        // than the raw stored values ("completed").
+        const objectNames = [...new Set([...datasets.values()].map((d) => d.object))];
+        const objectFields = new Map<string, FieldDefinition[]>();
+        await Promise.all(
+          objectNames.map(async (objectName) => {
+            try {
+              const obj = (await client.meta.getItem("object", objectName)) as
+                | { fields?: Record<string, Record<string, unknown>> }
+                | undefined;
+              if (obj?.fields) {
+                objectFields.set(
+                  objectName,
+                  Object.entries(obj.fields).map(
+                    ([name, f]) => ({ name, ...f }) as FieldDefinition,
+                  ),
+                );
+              }
+            } catch {
+              // Object metadata unavailable — chart labels fall back to raw values.
+            }
+          }),
+        );
+
         const meta: DashboardMeta = {
           ...raw,
-          widgets: widgets.map((w) =>
-            resolveDatasetWidget(w, w.dataset ? datasets.get(w.dataset) : undefined),
-          ),
+          widgets: widgets.map((w) => {
+            const ds = w.dataset ? datasets.get(w.dataset) : undefined;
+            return resolveDatasetWidget(
+              w,
+              ds,
+              ds ? objectFields.get(ds.object) : undefined,
+            );
+          }),
         };
         setDashboard(meta);
       } catch {

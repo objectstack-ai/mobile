@@ -26,6 +26,7 @@ import { Button } from "~/components/ui/Button";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { SearchBar } from "~/components/common/SearchBar";
 import { BatchActionBar } from "~/components/batch/BatchActionBar";
+import { useUIStore } from "~/stores/ui-store";
 import { formatDisplayValue, isSelectType, OptionBadge } from "./fields/FieldRenderer";
 import { FilterDrawer, FilterButton } from "./FilterDrawer";
 import { SwipeableRow } from "./SwipeableRow";
@@ -141,6 +142,7 @@ export function buildListItems(
   data: Record<string, unknown>[],
   meta: ListViewMeta | null | undefined,
   groupFieldOverride?: string | null,
+  fields?: FieldDefinition[],
 ): ListItem[] {
   const groupField =
     groupFieldOverride !== undefined
@@ -150,16 +152,29 @@ export function buildListItems(
     return data.map((record) => ({ __kind: "row", record }));
   }
 
-  const buckets = new Map<string, Record<string, unknown>[]>();
+  // Bucket by the raw value (stable key), but remember the value itself so the
+  // header can display the field's option *label* — e.g. a `status` group reads
+  // "Completed", not "completed".
+  const groupFieldDef = fields?.find((f) => f.name === groupField);
+  const buckets = new Map<string, { value: unknown; records: Record<string, unknown>[] }>();
   for (const record of data) {
-    const key = groupValueLabel(record[groupField]);
+    const value = record[groupField];
+    const key = groupValueLabel(value);
     const bucket = buckets.get(key);
-    if (bucket) bucket.push(record);
-    else buckets.set(key, [record]);
+    if (bucket) bucket.records.push(record);
+    else buckets.set(key, { value, records: [record] });
   }
 
   const items: ListItem[] = [];
-  for (const [label, records] of buckets) {
+  for (const [key, { value, records }] of buckets) {
+    // Map the raw value to its display label via the field definition (select →
+    // option label, boolean → Yes/No, date → formatted); fall back to the key.
+    const label =
+      value == null || value === ""
+        ? key
+        : groupFieldDef
+          ? formatDisplayValue(value, groupFieldDef.type, groupFieldDef)
+          : key;
     items.push({ __kind: "group", label, count: records.length });
     for (const record of records) items.push({ __kind: "row", record });
   }
@@ -373,10 +388,15 @@ export function ListViewRenderer({
 
   /* ---- Spec-aligned display options ---- */
   const listItems = useMemo(
-    () => buildListItems(records, view, effectiveGroupField),
-    [records, view, effectiveGroupField],
+    () => buildListItems(records, view, effectiveGroupField, fields),
+    [records, view, effectiveGroupField, fields],
   );
-  const densityClass = rowDensityClass(view?.rowHeight);
+  // A view's explicit rowHeight wins; otherwise fall back to the user's global
+  // density preference (comfortable → medium, compact → tighter rows).
+  const userDensity = useUIStore((s) => s.density);
+  const densityClass = rowDensityClass(
+    view?.rowHeight ?? (userDensity === "compact" ? "compact" : "medium"),
+  );
   const striped = !!view?.striped;
   const bordered = view?.bordered !== false;
   const summaryColumns = useMemo(

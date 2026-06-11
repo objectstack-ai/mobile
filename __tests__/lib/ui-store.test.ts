@@ -20,4 +20,10 @@ describe("ui-store", () => {
     useUIStore.getState().setLanguage("zh");
     expect(useUIStore.getState().language).toBe("zh");
   });
+
+  it("defaults density to comfortable and can switch to compact", () => {
+    expect(useUIStore.getState().density).toBe("comfortable");
+    useUIStore.getState().setDensity("compact");
+    expect(useUIStore.getState().density).toBe("compact");
+  });
 });
