@@ -382,6 +382,62 @@ export function mongoFilterToAst(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Client-side row matching                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Match a single value against a Mongo operator. Mirrors the operator
+ * vocabulary of `MONGO_OP_TO_AST` so a filter authored for the data API
+ * evaluates identically client-side.
+ */
+const MONGO_OP_MATCHERS: Record<string, (actual: unknown, expected: unknown) => boolean> = {
+  $eq: (a, b) => a === b,
+  $ne: (a, b) => a !== b,
+  $gt: (a, b) => (a as number) > (b as number),
+  $gte: (a, b) => (a as number) >= (b as number),
+  $lt: (a, b) => (a as number) < (b as number),
+  $lte: (a, b) => (a as number) <= (b as number),
+  $in: (a, b) => Array.isArray(b) && b.includes(a),
+  $nin: (a, b) => Array.isArray(b) && !b.includes(a),
+  $contains: (a, b) => String(a).includes(String(b)),
+  $startsWith: (a, b) => String(a).startsWith(String(b)),
+  $endsWith: (a, b) => String(a).endsWith(String(b)),
+};
+
+/**
+ * Evaluate a Mongo-style filter object against an in-memory record. Used to
+ * compute filtered measures client-side (e.g. a "completed" count that backs
+ * the numerator of a completion-rate ratio) without a second server round-trip.
+ *
+ * Supports bare-value equality (`{ status: "done" }`) and the operator forms in
+ * `MONGO_OP_MATCHERS`; relative-date macros are resolved the same way the
+ * server-bound AST resolves them. An absent/empty filter matches every record.
+ * Unknown operators are treated as a pass so an unsupported clause never
+ * silently excludes everything.
+ */
+export function matchesMongoFilter(
+  record: Record<string, unknown>,
+  filter: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!filter || typeof filter !== "object") return true;
+  return Object.entries(filter).every(([field, cond]) => {
+    const actual = record[field];
+    if (
+      cond !== null &&
+      typeof cond === "object" &&
+      !Array.isArray(cond) &&
+      Object.keys(cond as object).some((k) => k.startsWith("$"))
+    ) {
+      return Object.entries(cond as Record<string, unknown>).every(([op, raw]) => {
+        const matcher = MONGO_OP_MATCHERS[op];
+        return matcher ? matcher(actual, resolveLeaf(raw)) : true;
+      });
+    }
+    return actual === resolveLeaf(cond);
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Field selection / projections                                       */
 /* ------------------------------------------------------------------ */
 

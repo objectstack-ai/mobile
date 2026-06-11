@@ -167,6 +167,89 @@ describe("useWidgetQuery", () => {
     expect(result.current.value).toBeUndefined();
   });
 
+  it("computes a derived ratio metric as a 0–100 percentage", () => {
+    // 2 of 8 tasks complete → 25%. A `count` ratio has no source field, so the
+    // numerator is a *filtered* row count and the denominator the total count.
+    mockUseQuery.mockReturnValue({
+      data: {
+        records: [
+          { id: "1", status: "done" },
+          { id: "2", status: "done" },
+          { id: "3", status: "open" },
+          { id: "4", status: "open" },
+          { id: "5", status: "open" },
+          { id: "6", status: "open" },
+          { id: "7", status: "open" },
+          { id: "8", status: "open" },
+        ],
+      },
+      isLoading: false,
+    });
+    const widget: DashboardWidgetMeta = {
+      name: "completion_rate",
+      object: "todo_task",
+      type: "metric",
+      derivedMetric: {
+        op: "ratio",
+        asPercent: true,
+        parts: [
+          { aggregate: "count", filter: { status: "done" } },
+          { aggregate: "count" },
+        ],
+      },
+    };
+    const { result } = renderHook(() => useWidgetQuery(widget));
+    expect(result.current.value).toBe(25);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it("returns a raw quotient for a non-percent ratio metric", () => {
+    // avg basket value = revenue / orders, no percent format → leave un-scaled.
+    mockUseQuery.mockReturnValue({
+      data: {
+        records: [
+          { id: "1", revenue: 100 },
+          { id: "2", revenue: 300 },
+        ],
+      },
+      isLoading: false,
+    });
+    const widget: DashboardWidgetMeta = {
+      name: "avg_basket",
+      object: "orders",
+      type: "metric",
+      derivedMetric: {
+        op: "ratio",
+        asPercent: false,
+        parts: [
+          { aggregate: "sum", field: "revenue" },
+          { aggregate: "count" },
+        ],
+      },
+    };
+    const { result } = renderHook(() => useWidgetQuery(widget));
+    expect(result.current.value).toBe(200); // (100 + 300) / 2
+  });
+
+  it("yields 0 for a ratio metric with a zero denominator", () => {
+    mockUseQuery.mockReturnValue({ data: { records: [] }, isLoading: false });
+    const widget: DashboardWidgetMeta = {
+      name: "completion_rate",
+      object: "todo_task",
+      type: "metric",
+      derivedMetric: {
+        op: "ratio",
+        asPercent: true,
+        parts: [
+          { aggregate: "count", filter: { status: "done" } },
+          { aggregate: "count" },
+        ],
+      },
+    };
+    const { result } = renderHook(() => useWidgetQuery(widget));
+    expect(result.current.value).toBe(0);
+  });
+
   it("counts rows per bucket for a count-aggregate chart (no valueField)", () => {
     // The common dataset case: a `count` measure has no source field, so chart
     // buckets must count rows — not aggregate an absent value field (→ all 0).
@@ -203,7 +286,14 @@ describe("resolveDatasetWidget", () => {
     dimensions: [{ name: "status", field: "status", type: "string" }],
     measures: [
       { name: "task_count", aggregate: "count" },
+      { name: "completed_count", aggregate: "count", filter: { status: "done" } },
       { name: "est_hours", aggregate: "sum", field: "estimated_hours", format: "0.0" },
+      {
+        name: "completion_rate",
+        label: "Completion Rate",
+        format: "0%",
+        derived: { op: "ratio", of: ["completed_count", "task_count"] },
+      },
     ],
   };
 
@@ -246,5 +336,50 @@ describe("resolveDatasetWidget", () => {
     expect(resolved.categoryField).toBe("status");
     expect(resolved.span).toBe(2);
     expect(resolved.chartConfig?.format).toBe("0.0");
+  });
+
+  it("resolves a derived ratio measure into a percent metric", () => {
+    const widget: DashboardWidgetMeta = {
+      name: "rate",
+      type: "metric",
+      dataset: "task_metrics",
+      values: ["completion_rate"],
+      layout: { w: 3 },
+    };
+    const resolved = resolveDatasetWidget(widget, dataset);
+    expect(resolved.object).toBe("todo_task");
+    // The ratio has no single source field, so the widget must not aggregate one.
+    expect(resolved.valueField).toBeUndefined();
+    expect(resolved.aggregate).toBe("count");
+    expect(resolved.chartConfig?.format).toBe("0%");
+    expect(resolved.derivedMetric).toEqual({
+      op: "ratio",
+      asPercent: true,
+      parts: [
+        { aggregate: "count", field: undefined, filter: { status: "done" } },
+        { aggregate: "count", field: undefined, filter: undefined },
+      ],
+    });
+  });
+
+  it("defaults a format-less ratio measure to a `0%` percent metric", () => {
+    const ds: DatasetMeta = {
+      ...dataset,
+      measures: [
+        { name: "task_count", aggregate: "count" },
+        { name: "completed_count", aggregate: "count", filter: { status: "done" } },
+        // No `format` declared on the derived measure.
+        { name: "rate_no_fmt", derived: { op: "ratio", of: ["completed_count", "task_count"] } },
+      ],
+    };
+    const widget: DashboardWidgetMeta = {
+      name: "rate",
+      type: "metric",
+      dataset: "task_metrics",
+      values: ["rate_no_fmt"],
+    };
+    const resolved = resolveDatasetWidget(widget, ds);
+    expect(resolved.chartConfig?.format).toBe("0%");
+    expect(resolved.derivedMetric?.asPercent).toBe(true);
   });
 });
