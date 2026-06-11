@@ -63,3 +63,4 @@ apps/docs/node_modules/
 server/integration/dist/
 server/integration/data/
 server/integration/dev-crypto-key
+.verify-server/
