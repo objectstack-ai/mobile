@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
+import { useTranslation } from "react-i18next";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -96,6 +97,7 @@ export function StateMachineViewer({
   currentState,
   scrollable = true,
 }: StateMachineViewerProps) {
+  const { t: tr } = useTranslation();
   if (states.length === 0) {
     return (
       <View className="items-center py-8">
@@ -144,14 +146,14 @@ export function StateMachineViewer({
 
   if (!scrollable) {
     return (
-      <View accessibilityRole="list" accessibilityLabel="State machine diagram">
+      <View accessibilityRole="list" accessibilityLabel={tr("a11y.stateMachineDiagram")}>
         {body}
       </View>
     );
   }
 
   return (
-    <ScrollView className="flex-1" accessibilityRole="list" accessibilityLabel="State machine diagram">
+    <ScrollView className="flex-1" accessibilityRole="list" accessibilityLabel={tr("a11y.stateMachineDiagram")}>
       {body}
     </ScrollView>
   );

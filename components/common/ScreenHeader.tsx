@@ -3,6 +3,7 @@ import { View, Text, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useThemeColors } from "~/lib/theme-colors";
 
 export interface ScreenHeaderProps {
@@ -45,6 +46,7 @@ export function ScreenHeader({
 }: ScreenHeaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
 
   const handleBack = () => {
@@ -73,7 +75,7 @@ export function ScreenHeader({
             onPress={handleBack}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={t("a11y.goBack")}
             className="h-11 w-11 items-center justify-center rounded-full active:bg-muted"
           >
             <ChevronLeft size={26} color={accent} />

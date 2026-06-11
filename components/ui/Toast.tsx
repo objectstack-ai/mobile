@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { X } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import * as Haptics from "expo-haptics";
 import { cn } from "~/lib/utils";
 
@@ -35,6 +36,7 @@ const variantTextStyles: Record<ToastVariant, string> = {
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { t: tr } = useTranslation();
   const [toasts, setToasts] = React.useState<ToastItem[]>([]);
 
   const dismiss = React.useCallback((id: number) => {
@@ -90,7 +92,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               onPress={() => dismiss(t.id)}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Dismiss"
+              accessibilityLabel={tr("a11y.dismiss")}
               className="active:opacity-70"
             >
               <X size={16} className={variantTextStyles[t.variant]} />

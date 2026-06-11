@@ -29,7 +29,7 @@ export function Reasoning({
         className="flex-row items-center gap-2 px-2.5 py-2 active:bg-muted"
         onPress={() => setOpen((o) => !o)}
         accessibilityRole="button"
-        accessibilityLabel="Reasoning"
+        accessibilityLabel={t("ai.reasoning")}
         accessibilityState={{ expanded: open }}
       >
         <Brain size={13} color="#64748b" />

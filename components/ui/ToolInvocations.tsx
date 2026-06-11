@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { ChevronRight, ChevronDown, Wrench, Check, Loader } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import type { ToolInvocation } from "~/lib/ai-chat";
 
@@ -87,9 +88,10 @@ export function ToolInvocations({
   tools: ToolInvocation[];
   className?: string;
 }) {
+  const { t } = useTranslation();
   if (!tools || tools.length === 0) return null;
   return (
-    <View className={cn("mb-1 gap-1", className)} accessibilityLabel="Tool activity">
+    <View className={cn("mb-1 gap-1", className)} accessibilityLabel={t("a11y.toolActivity")}>
       {tools.map((t) => (
         <ToolRow key={t.id} tool={t} />
       ))}

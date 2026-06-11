@@ -78,7 +78,7 @@ export function SwipeableRow({
               onEdit();
             }}
             accessibilityRole="button"
-            accessibilityLabel="Edit"
+            accessibilityLabel={t("common.edit")}
             className="items-center justify-center bg-blue-600 active:opacity-80"
             style={{ width: ACTION_WIDTH }}
           >
@@ -94,7 +94,7 @@ export function SwipeableRow({
               onDelete();
             }}
             accessibilityRole="button"
-            accessibilityLabel="Delete"
+            accessibilityLabel={t("common.delete")}
             className="items-center justify-center bg-red-600 active:opacity-80"
             style={{ width: ACTION_WIDTH }}
           >

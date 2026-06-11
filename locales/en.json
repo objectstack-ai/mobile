@@ -257,6 +257,18 @@
     "flowsDesc": "This server has no automation flows yet.",
     "flowCount": "{{count}} flows"
   },
+  "a11y": {
+    "goBack": "Go back",
+    "clearSearch": "Clear search",
+    "dismiss": "Dismiss",
+    "toolActivity": "Tool activity",
+    "flowDiagram": "Flow diagram",
+    "stateMachineDiagram": "State machine diagram",
+    "loadingList": "Loading list",
+    "loadingDashboard": "Loading dashboard",
+    "loadingDetail": "Loading detail",
+    "loadingForm": "Loading form"
+  },
   "nav": {
     "home": "Home",
     "search": "Search",
