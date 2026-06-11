@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { useColorScheme } from "nativewind";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Home,
@@ -11,6 +12,8 @@ import {
 
 export default function TabLayout() {
   const { t } = useTranslation();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
   const insets = useSafeAreaInsets();
   // Without a bottom safe-area inset (web, or a device with no home indicator)
   // the labels sit flush against the bottom edge and get clipped. Reserve a
@@ -23,11 +26,13 @@ export default function TabLayout() {
         // double up with each screen's in-body title on native. Every tab
         // screen renders its own large title instead (iOS-style root header).
         headerShown: false,
-        tabBarActiveTintColor: "#1e40af",
-        tabBarInactiveTintColor: "#94a3b8",
+        // Theme-aware: the tab bar's hardcoded white background stayed light in
+        // dark mode, leaving a glaring white bar under a dark app.
+        tabBarActiveTintColor: isDark ? "#60a5fa" : "#1e40af",
+        tabBarInactiveTintColor: isDark ? "#64748b" : "#94a3b8",
         tabBarStyle: {
-          borderTopColor: "#e2e8f0",
-          backgroundColor: "#ffffff",
+          borderTopColor: isDark ? "#1e293b" : "#e2e8f0",
+          backgroundColor: isDark ? "#0b1120" : "#ffffff",
           height: 56 + bottomPad,
           paddingBottom: bottomPad,
           paddingTop: 6,

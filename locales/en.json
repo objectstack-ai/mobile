@@ -169,7 +169,8 @@
     "approvals": "Approvals",
     "flows": "Flows",
     "language": "Language",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "appearance": "Appearance"
   },
   "ai": {
     "title": "AI Assistant",
@@ -240,5 +241,11 @@
     "dashboard": "Dashboard",
     "noWidgets": "No widgets configured.",
     "refreshing": "Refreshing…"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }
