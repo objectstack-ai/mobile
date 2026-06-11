@@ -197,6 +197,68 @@ jest.mock("@sentry/react-native", () => ({
   ),
 }));
 
+/* ---- react-native-reanimated ---- */
+// Reanimated v4 pulls in react-native-worklets, whose native half throws
+// "Worklets isn't initialized" when imported under Node — and the package's
+// own bundled mock re-imports the real entrypoint, so it throws too. This
+// hand-rolled mock renders Animated.* as plain host components and turns the
+// layout-animation builders (FadeInDown.delay().duration()...) into chainable
+// no-ops, so screens that use entrance animations mount in tests.
+jest.mock("react-native-reanimated", () => {
+  const React = require("react");
+  const RN = require("react-native");
+  // A layout-animation builder: every method returns the same chainable stub,
+  // and it's usable both as `FadeInDown` and `FadeInDown.duration(380)`.
+  const makeBuilder = () => {
+    const builder: Record<string, unknown> = {};
+    const chain = () => builder;
+    for (const m of ["delay", "duration", "springify", "damping", "stiffness",
+      "mass", "easing", "withInitialValues", "build", "randomDelay", "reduceMotion"]) {
+      builder[m] = chain;
+    }
+    return builder;
+  };
+  const animations = new Proxy(
+    {},
+    { get: () => new Proxy(makeBuilder(), { get: (t, p) => (t as any)[p] ?? (() => t) }) },
+  );
+  const createAnimatedComponent = (Component: unknown) => Component;
+  const Animated = {
+    View: RN.View,
+    Text: RN.Text,
+    ScrollView: RN.ScrollView,
+    Image: RN.Image,
+    FlatList: RN.FlatList,
+    createAnimatedComponent,
+  };
+  return new Proxy(
+    {
+      __esModule: true,
+      default: Animated,
+      createAnimatedComponent,
+      useSharedValue: (v: unknown) => ({ value: v }),
+      useAnimatedStyle: () => ({}),
+      useDerivedValue: (fn: () => unknown) => ({ value: fn() }),
+      withTiming: (v: unknown) => v,
+      withSpring: (v: unknown) => v,
+      withDelay: (_d: unknown, v: unknown) => v,
+      withRepeat: (v: unknown) => v,
+      withSequence: (v: unknown) => v,
+      cancelAnimation: () => {},
+      runOnJS: (fn: (...a: unknown[]) => unknown) => fn,
+      runOnUI: (fn: (...a: unknown[]) => unknown) => fn,
+      Easing: new Proxy({}, { get: () => () => 0 }),
+    },
+    {
+      get: (target: Record<string, unknown>, prop: string) => {
+        if (prop in target) return target[prop];
+        // FadeInDown, FadeIn, SlideInRight, Layout, etc. → chainable builder.
+        return (animations as any)[prop];
+      },
+    },
+  );
+});
+
 /* ---- react-native AppState ---- */
 const mockAppState = {
   currentState: "active" as string,
