@@ -24,7 +24,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
       <View
         className={cn(
           "h-12 flex-row items-center rounded-xl border border-input bg-background px-4",
-          isFocused && "border-ring ring-1 ring-ring",
+          isFocused && "border-ring",
           error && "border-destructive",
           containerClassName
         )}
