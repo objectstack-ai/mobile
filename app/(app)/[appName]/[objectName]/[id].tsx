@@ -128,6 +128,21 @@ export default function ObjectDetailScreen() {
     }
   }, [confirm, client, objectName, id, router, t, toastError]);
 
+  /* ---- Inline field edit (select/status badges on the detail) ---- */
+  const handleFieldEdit = useCallback(
+    async (field: string, value: unknown) => {
+      if (!objectName || !id) return;
+      try {
+        await client.data.update(objectName, id, { [field]: value });
+        await fetchRecord();
+        toastSuccess(t("records.updated"));
+      } catch {
+        toastError(t("records.updateFailed"));
+      }
+    },
+    [client, objectName, id, fetchRecord, toastSuccess, toastError, t],
+  );
+
   /* ---- Object actions (record_header inline, record_more overflow) ---- */
   const allActions = useMemo<ActionMeta[]>(
     () => ((meta?.actions as ActionMeta[] | undefined) ?? []).filter(isActionVisible),
@@ -213,6 +228,7 @@ export default function ObjectDetailScreen() {
         actions={headerActions}
         moreActions={moreActions}
         onAction={runAction}
+        onFieldEdit={handleFieldEdit}
         busyActionName={busyName}
         relatedLists={relatedLists}
         onRelatedRecordPress={handleRelatedRecordPress}
