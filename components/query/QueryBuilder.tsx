@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { Plus, Trash2, ToggleLeft } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { useThemeColors } from "~/lib/theme-colors";
 import type { FieldDefinition } from "~/components/renderers/types";
@@ -44,6 +45,7 @@ export function QueryBuilder({
   onClear,
   className,
 }: QueryBuilderProps) {
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   const handleAdd = useCallback(() => {
     const firstField = fields[0]?.name ?? "";
@@ -67,7 +69,7 @@ export function QueryBuilder({
         {root.filters.length > 0 && (
           <Pressable onPress={onClear} className="flex-row items-center rounded-lg px-2 py-1">
             <Trash2 size={14} color="#ef4444" />
-            <Text className="ml-1 text-xs text-destructive">Clear</Text>
+            <Text className="ml-1 text-xs text-destructive">{t("common.clear")}</Text>
           </Pressable>
         )}
       </View>
@@ -98,7 +100,7 @@ export function QueryBuilder({
         className="mt-3 flex-row items-center self-start rounded-lg border border-dashed border-border px-3 py-2"
       >
         <Plus size={14} color="#64748b" />
-        <Text className="ml-1.5 text-xs font-medium text-muted-foreground">Add filter</Text>
+        <Text className="ml-1.5 text-xs font-medium text-muted-foreground">{t("filter.addFilter")}</Text>
       </Pressable>
     </View>
   );

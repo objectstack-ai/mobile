@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { ChevronRight, ChevronDown, Brain } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 
 /**
@@ -19,6 +20,7 @@ export function Reasoning({
   reasoning: string;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   if (!reasoning || reasoning.trim() === "") return null;
   return (
@@ -31,7 +33,7 @@ export function Reasoning({
         accessibilityState={{ expanded: open }}
       >
         <Brain size={13} color="#64748b" />
-        <Text className="flex-1 text-xs font-medium text-muted-foreground">Reasoning</Text>
+        <Text className="flex-1 text-xs font-medium text-muted-foreground">{t("ai.reasoning")}</Text>
         {open ? (
           <ChevronDown size={14} color="#94a3b8" />
         ) : (

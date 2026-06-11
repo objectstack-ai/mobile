@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { View, Text, Pressable, Animated } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import { useTranslation } from "react-i18next";
 import { Edit, Trash2 } from "lucide-react-native";
 
 /* ------------------------------------------------------------------ */
@@ -44,6 +45,7 @@ export function SwipeableRow({
   onEdit,
   onDelete,
 }: SwipeableRowProps) {
+  const { t } = useTranslation();
   const swipeableRef = useRef<Swipeable>(null);
 
   const hasActions = !!(onEdit || onDelete);
@@ -81,7 +83,7 @@ export function SwipeableRow({
             style={{ width: ACTION_WIDTH }}
           >
             <Edit size={20} color="#ffffff" />
-            <Text className="mt-1 text-xs font-medium text-white">Edit</Text>
+            <Text className="mt-1 text-xs font-medium text-white">{t("common.edit")}</Text>
           </Pressable>
         )}
 
@@ -97,7 +99,7 @@ export function SwipeableRow({
             style={{ width: ACTION_WIDTH }}
           >
             <Trash2 size={20} color="#ffffff" />
-            <Text className="mt-1 text-xs font-medium text-white">Delete</Text>
+            <Text className="mt-1 text-xs font-medium text-white">{t("common.delete")}</Text>
           </Pressable>
         )}
       </Animated.View>

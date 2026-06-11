@@ -11,6 +11,7 @@ import {
 } from "lucide-react-native";
 import type { FieldDefinition } from "../types";
 import type { FileUploadResult } from "~/hooks/useFileUpload";
+import { useTranslation } from "react-i18next";
 import { useToast } from "~/components/ui/Toast";
 import { useThemeColors } from "~/lib/theme-colors";
 
@@ -81,6 +82,7 @@ export function FileField({
   onShare,
   error,
 }: FileFieldProps) {
+  const { t } = useTranslation();
   const [isUploading, setIsUploading] = useState(false);
   const { toastError } = useToast();
   const { accent } = useThemeColors();
@@ -96,12 +98,12 @@ export function FileField({
           onChange?.(result);
         }
       } catch {
-        toastError("Could not upload the file. Please try again.");
+        toastError(t("fields.uploadFailed"));
       } finally {
         setIsUploading(false);
       }
     },
-    [onChange, toastError],
+    [onChange, toastError, t],
   );
 
   /* ---- Read-only ---- */
@@ -116,7 +118,7 @@ export function FileField({
       <View className="flex-row items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
         <FileText size={16} color="#64748b" />
         <Text className="flex-1 text-sm text-foreground" numberOfLines={1}>
-          {fileInfo.name ?? fileInfo.id ?? "File"}
+          {fileInfo.name ?? fileInfo.id ?? t("fields.file")}
         </Text>
         {onDownload && fileInfo.id && (
           <Pressable onPress={() => onDownload(fileInfo.id!, fileInfo.name ?? "file")}>
@@ -140,7 +142,7 @@ export function FileField({
         <View className="flex-row items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
           <FileText size={16} color="#64748b" />
           <Text className="flex-1 text-sm text-foreground" numberOfLines={1}>
-            {fileInfo.name ?? "Attached file"}
+            {fileInfo.name ?? t("fields.attachedFile")}
           </Text>
           <Pressable onPress={() => onChange?.(null)}>
             <X size={16} color="#ef4444" />
@@ -152,7 +154,7 @@ export function FileField({
       {isUploading ? (
         <View className="items-center py-4">
           <ActivityIndicator size="small" color={accent} />
-          <Text className="mt-2 text-xs text-muted-foreground">Uploading…</Text>
+          <Text className="mt-2 text-xs text-muted-foreground">{t("fields.uploading")}</Text>
         </View>
       ) : (
         <View className="flex-row flex-wrap gap-2">
@@ -162,7 +164,7 @@ export function FileField({
               onPress={() => handleUpload(onPickImage)}
             >
               <ImageIcon size={14} color="#64748b" />
-              <Text className="text-xs font-medium text-foreground">Gallery</Text>
+              <Text className="text-xs font-medium text-foreground">{t("fields.gallery")}</Text>
             </Pressable>
           )}
           {(field.type === "image" || field.type === "file") && onCapturePhoto && (
@@ -171,7 +173,7 @@ export function FileField({
               onPress={() => handleUpload(onCapturePhoto)}
             >
               <Camera size={14} color="#64748b" />
-              <Text className="text-xs font-medium text-foreground">Camera</Text>
+              <Text className="text-xs font-medium text-foreground">{t("fields.camera")}</Text>
             </Pressable>
           )}
           {onPickDocument && (
@@ -180,7 +182,7 @@ export function FileField({
               onPress={() => handleUpload(onPickDocument)}
             >
               <Upload size={14} color="#64748b" />
-              <Text className="text-xs font-medium text-foreground">File</Text>
+              <Text className="text-xs font-medium text-foreground">{t("fields.file")}</Text>
             </Pressable>
           )}
         </View>

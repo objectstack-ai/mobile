@@ -26,7 +26,10 @@
     "more": "More",
     "settings": "Settings",
     "language": "Language",
-    "packages": "Packages"
+    "packages": "Packages",
+    "clear": "Clear",
+    "today": "Today",
+    "undo": "Undo"
   },
   "auth": {
     "signIn": "Sign In",
@@ -205,7 +208,21 @@
     "required": "This field is required.",
     "invalidEmail": "Please enter a valid email address.",
     "invalidUrl": "Please enter a valid URL.",
-    "invalidNumber": "Please enter a valid number."
+    "invalidNumber": "Please enter a valid number.",
+    "gallery": "Gallery",
+    "camera": "Camera",
+    "file": "File",
+    "uploading": "Uploading…",
+    "uploadFailed": "Could not upload the file. Please try again.",
+    "attachedFile": "Attached file"
+  },
+  "views": {
+    "saveView": "Save View",
+    "viewName": "View Name",
+    "namePlaceholder": "e.g. My Active Leads",
+    "visibility": "Visibility",
+    "private": "Private",
+    "shared": "Shared"
   },
   "nav": {
     "home": "Home",
@@ -269,6 +286,7 @@
     "profileFallback": "User"
   },
   "ai": {
+    "reasoning": "Reasoning",
     "title": "AI Assistant",
     "thinking": "Thinking…",
     "copy": "Copy",

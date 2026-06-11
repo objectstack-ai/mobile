@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, Modal } from "react-native";
 import { X, Save } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import type { SaveViewInput } from "~/hooks/useViewStorage";
 
@@ -27,6 +28,7 @@ export function SaveViewDialog({
   onSave,
   initialValues,
 }: SaveViewDialogProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialValues?.name ?? "");
   const [visibility, setVisibility] = useState<"private" | "shared">(
     initialValues?.visibility ?? "private",
@@ -56,25 +58,25 @@ export function SaveViewDialog({
         <View className="w-full max-w-sm rounded-2xl bg-card p-5 shadow-lg">
           {/* Header */}
           <View className="mb-4 flex-row items-center justify-between">
-            <Text className="text-lg font-semibold text-foreground">Save View</Text>
+            <Text className="text-lg font-semibold text-foreground">{t("views.saveView")}</Text>
             <Pressable onPress={onClose} className="rounded-full p-1">
               <X size={20} color="#64748b" />
             </Pressable>
           </View>
 
           {/* Name input */}
-          <Text className="mb-1 text-xs font-medium text-muted-foreground">View Name</Text>
+          <Text className="mb-1 text-xs font-medium text-muted-foreground">{t("views.viewName")}</Text>
           <TextInput
             className="mb-4 rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground"
             value={name}
             onChangeText={setName}
-            placeholder="e.g. My Active Leads"
+            placeholder={t("views.namePlaceholder")}
             placeholderTextColor="#94a3b8"
             autoFocus
           />
 
           {/* Visibility toggle */}
-          <Text className="mb-2 text-xs font-medium text-muted-foreground">Visibility</Text>
+          <Text className="mb-2 text-xs font-medium text-muted-foreground">{t("views.visibility")}</Text>
           <View className="mb-5 flex-row gap-2">
             <Pressable
               onPress={() => setVisibility("private")}
@@ -91,7 +93,7 @@ export function SaveViewDialog({
                   visibility === "private" ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                Private
+                {t("views.private")}
               </Text>
             </Pressable>
             <Pressable
@@ -109,7 +111,7 @@ export function SaveViewDialog({
                   visibility === "shared" ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                Shared
+                {t("views.shared")}
               </Text>
             </Pressable>
           </View>
@@ -125,7 +127,7 @@ export function SaveViewDialog({
           >
             <Save size={16} color="#ffffff" />
             <Text className="ml-2 font-semibold text-primary-foreground">
-              {isSaving ? "Saving…" : "Save View"}
+              {isSaving ? t("common.saving") : t("views.saveView")}
             </Text>
           </Pressable>
         </View>

@@ -9,6 +9,7 @@ import {
   ChevronDown,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 import { formatDate, formatDateTime } from "~/lib/formatting";
 
@@ -96,6 +97,7 @@ export function DatePicker({
   className,
   error,
 }: DatePickerProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
 
   const selected = React.useMemo(() => parseDateValue(value), [value]);
@@ -295,7 +297,7 @@ export function DatePicker({
                 }}
                 className="rounded-lg px-3 py-2 active:bg-accent"
               >
-                <Text className="text-sm font-medium text-muted-foreground">Clear</Text>
+                <Text className="text-sm font-medium text-muted-foreground">{t("common.clear")}</Text>
               </Pressable>
               <View className="flex-row gap-2">
                 <Pressable
@@ -314,11 +316,11 @@ export function DatePicker({
                   }}
                   className="rounded-lg px-3 py-2 active:bg-accent"
                 >
-                  <Text className="text-sm font-medium text-primary">Today</Text>
+                  <Text className="text-sm font-medium text-primary">{t("common.today")}</Text>
                 </Pressable>
                 {mode !== "date" && (
                   <Pressable onPress={confirm} className="rounded-lg bg-primary px-4 py-2">
-                    <Text className="text-sm font-semibold text-primary-foreground">Done</Text>
+                    <Text className="text-sm font-semibold text-primary-foreground">{t("common.done")}</Text>
                   </Pressable>
                 )}
               </View>
