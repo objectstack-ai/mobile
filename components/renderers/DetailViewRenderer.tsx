@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useColorScheme } from "nativewind";
 import { webContentMaxWidth } from "~/lib/responsive";
 import {
   Edit,
@@ -163,14 +165,22 @@ const ACTION_VARIANT_TEXT: Record<string, string> = {
   ghost: "text-foreground",
   link: "text-primary",
 };
-/** Icon tint per variant (lucide needs an explicit color, not a class). */
-const ACTION_VARIANT_ICON: Record<string, string> = {
-  primary: "#ffffff",
-  danger: "#ffffff",
-  secondary: "#0f172a",
-  ghost: "#0f172a",
-  link: "#1e40af",
-};
+/**
+ * Icon tint per variant (lucide needs an explicit color, not a class). The
+ * neutral and link variants must follow the theme — a hardcoded near-black
+ * (#0f172a) icon was invisible on a dark card once dark mode shipped.
+ */
+function actionIconColor(variant: string, isDark: boolean): string {
+  switch (variant) {
+    case "primary":
+    case "danger":
+      return "#ffffff";
+    case "link":
+      return isDark ? "#60a5fa" : "#1e40af";
+    default:
+      return isDark ? "#e2e8f0" : "#0f172a";
+  }
+}
 
 function HeaderActionButton({
   action,
@@ -181,7 +191,10 @@ function HeaderActionButton({
   onAction?: (action: ActionMeta) => void;
   busy: boolean;
 }) {
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
   const variant = action.variant ?? "secondary";
+  const iconColor = actionIconColor(variant, isDark);
   const Icon = action.icon ? getIcon(action.icon) : null;
   return (
     <Pressable
@@ -197,9 +210,9 @@ function HeaderActionButton({
       accessibilityState={{ busy }}
     >
       {busy ? (
-        <ActivityIndicator size="small" color={ACTION_VARIANT_ICON[variant]} />
+        <ActivityIndicator size="small" color={iconColor} />
       ) : Icon ? (
-        <Icon size={16} color={ACTION_VARIANT_ICON[variant]} />
+        <Icon size={16} color={iconColor} />
       ) : null}
       <Text className={cn("text-sm font-semibold", ACTION_VARIANT_TEXT[variant])}>
         {action.label}
@@ -207,6 +220,9 @@ function HeaderActionButton({
     </Pressable>
   );
 }
+
+/** Header `actions` shown inline before the rest spill into the ⋯ menu. */
+const MAX_INLINE_ACTIONS = 2;
 
 function DetailActionBar({
   onEdit,
@@ -219,10 +235,21 @@ function DetailActionBar({
   DetailViewRendererProps,
   "onEdit" | "onDelete" | "actions" | "moreActions" | "onAction" | "busyActionName"
 >) {
+  const { t } = useTranslation();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
   const [moreOpen, setMoreOpen] = useState(false);
-  const hasMore = !!(moreActions && moreActions.length > 0);
+
+  // Cap inline header actions so the bar can't overflow horizontally on a
+  // phone — the surplus joins the `record_more` actions in the ⋯ menu.
+  const inlineActions = (actions ?? []).slice(0, MAX_INLINE_ACTIONS);
+  const overflowActions = [
+    ...(actions ?? []).slice(MAX_INLINE_ACTIONS),
+    ...(moreActions ?? []),
+  ];
+  const hasMore = overflowActions.length > 0;
   const hasActions =
-    onEdit || onDelete || (actions && actions.length > 0) || hasMore;
+    onEdit || onDelete || inlineActions.length > 0 || hasMore;
   if (!hasActions) return null;
 
   return (
@@ -232,10 +259,12 @@ function DetailActionBar({
           className="flex-row items-center gap-1.5 rounded-lg bg-primary px-4 py-2 active:opacity-80"
           onPress={onEdit}
           accessibilityRole="button"
-          accessibilityLabel="Edit record"
+          accessibilityLabel={t("common.edit")}
         >
           <Edit size={16} color="#fff" />
-          <Text className="text-sm font-semibold text-primary-foreground">Edit</Text>
+          <Text className="text-sm font-semibold text-primary-foreground">
+            {t("common.edit")}
+          </Text>
         </Pressable>
       )}
       {onDelete && (
@@ -243,13 +272,15 @@ function DetailActionBar({
           className="flex-row items-center gap-1.5 rounded-lg bg-destructive px-4 py-2 active:opacity-80"
           onPress={onDelete}
           accessibilityRole="button"
-          accessibilityLabel="Delete record"
+          accessibilityLabel={t("common.delete")}
         >
           <Trash2 size={16} color="#fff" />
-          <Text className="text-sm font-semibold text-destructive-foreground">Delete</Text>
+          <Text className="text-sm font-semibold text-destructive-foreground">
+            {t("common.delete")}
+          </Text>
         </Pressable>
       )}
-      {actions?.map((action) => (
+      {inlineActions.map((action) => (
         <HeaderActionButton
           key={action.name}
           action={action}
@@ -264,16 +295,21 @@ function DetailActionBar({
             className="ml-auto h-9 w-9 items-center justify-center rounded-lg active:bg-muted"
             onPress={() => setMoreOpen(true)}
             accessibilityRole="button"
-            accessibilityLabel="More actions"
+            accessibilityLabel={t("records.moreActions")}
           >
-            <MoreHorizontal size={20} color="#0f172a" />
+            <MoreHorizontal size={20} color={isDark ? "#e2e8f0" : "#0f172a"} />
           </Pressable>
 
-          <BottomSheet open={moreOpen} onOpenChange={setMoreOpen} title="Actions">
-            {moreActions!.map((action) => {
+          <BottomSheet
+            open={moreOpen}
+            onOpenChange={setMoreOpen}
+            title={t("records.actionsTitle")}
+          >
+            {overflowActions.map((action) => {
               const Icon = action.icon ? getIcon(action.icon) : null;
               const busy = busyActionName === action.name;
               const danger = action.variant === "danger";
+              const neutralIcon = isDark ? "#e2e8f0" : "#0f172a";
               return (
                 <Pressable
                   key={action.name}
@@ -288,9 +324,9 @@ function DetailActionBar({
                   accessibilityLabel={action.label}
                 >
                   {busy ? (
-                    <ActivityIndicator size="small" color={danger ? "#dc2626" : "#0f172a"} />
+                    <ActivityIndicator size="small" color={danger ? "#dc2626" : neutralIcon} />
                   ) : Icon ? (
-                    <Icon size={18} color={danger ? "#dc2626" : "#0f172a"} />
+                    <Icon size={18} color={danger ? "#dc2626" : neutralIcon} />
                   ) : (
                     <View className="w-[18px]" />
                   )}
@@ -323,6 +359,7 @@ function RelatedListSection({
   config: RelatedListConfig;
   onRecordPress?: (objectName: string, record: Record<string, unknown>) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="mb-4 rounded-xl border border-border bg-card overflow-hidden">
       <View className="border-b border-border px-4 py-3">
@@ -333,7 +370,7 @@ function RelatedListSection({
       <View className="p-2">
         {config.records.length === 0 ? (
           <Text className="px-2 py-4 text-center text-sm text-muted-foreground">
-            No related records
+            {t("records.noRelated")}
           </Text>
         ) : (
           config.records.map((rec, idx) => (
@@ -381,6 +418,9 @@ function RecordNavigator({
   DetailViewRendererProps,
   "onPrevious" | "onNext" | "hasPrevious" | "hasNext" | "positionLabel"
 >) {
+  const { t } = useTranslation();
+  const { colorScheme } = useColorScheme();
+  const accent = colorScheme === "dark" ? "#60a5fa" : "#1e40af";
   if (!onPrevious && !onNext) return null;
 
   return (
@@ -393,14 +433,14 @@ function RecordNavigator({
         onPress={hasPrevious ? onPrevious : undefined}
         disabled={!hasPrevious}
       >
-        <ChevronLeft size={16} color={hasPrevious ? "#1e40af" : "#94a3b8"} />
+        <ChevronLeft size={16} color={hasPrevious ? accent : "#94a3b8"} />
         <Text
           className={cn(
             "ml-1 text-sm font-medium",
             hasPrevious ? "text-primary" : "text-muted-foreground",
           )}
         >
-          Previous
+          {t("records.previous")}
         </Text>
       </Pressable>
 
@@ -422,9 +462,9 @@ function RecordNavigator({
             hasNext ? "text-primary" : "text-muted-foreground",
           )}
         >
-          Next
+          {t("records.next")}
         </Text>
-        <ChevronRight size={16} color={hasNext ? "#1e40af" : "#94a3b8"} />
+        <ChevronRight size={16} color={hasNext ? accent : "#94a3b8"} />
       </Pressable>
     </View>
   );
@@ -458,6 +498,8 @@ export function DetailViewRenderer({
   allowDelete = true,
   footer,
 }: DetailViewRendererProps) {
+  const { t } = useTranslation();
+
   /* ---- Build sections ---- */
   const sections: FormSection[] = useMemo(() => {
     const viewSections = view?.sections ?? view?.groups;
@@ -528,12 +570,12 @@ export function DetailViewRenderer({
             <AlertCircle size={40} color="#dc2626" />
           </View>
         }
-        title="Couldn't Load Record"
+        title={t("records.loadOneError")}
         description={error.message}
         action={
           onRetry ? (
             <Button size="sm" onPress={onRetry}>
-              Retry
+              {t("common.retry")}
             </Button>
           ) : undefined
         }

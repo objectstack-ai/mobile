@@ -1,10 +1,26 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { FormViewRenderer } from "~/components/renderers/FormViewRenderer";
+import { ConfirmProvider } from "~/components/ui/ConfirmDialog";
 import type { FieldDefinition, FormViewMeta } from "~/components/renderers/types";
 
 const cel = (source: string) => ({ dialect: "cel" as const, source });
+
+// FormViewRenderer now reads useConfirm (unsaved-changes guard) and
+// useSafeAreaInsets (sticky save bar), so the tree needs both providers.
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <SafeAreaProvider
+    initialMetrics={{
+      frame: { x: 0, y: 0, width: 390, height: 844 },
+      insets: { top: 0, left: 0, right: 0, bottom: 0 },
+    }}
+  >
+    <ConfirmProvider>{children}</ConfirmProvider>
+  </SafeAreaProvider>
+);
+const renderForm = (ui: React.ReactElement) => render(ui, { wrapper: Wrapper });
 
 /**
  * Integration coverage for ObjectStack 8.0 conditional fields wired into the
@@ -38,7 +54,7 @@ describe("FormViewRenderer — conditional fields", () => {
   // The field label renders the text plus a possible required marker, so match
   // with a regex (partial) rather than an exact string.
   it("hides a field whose visibleWhen is false", () => {
-    const { queryByText } = render(
+    const { queryByText } = renderForm(
       <FormViewRenderer view={view} fields={fields} initialValues={{ type: "po" }} />,
     );
     expect(queryByText(/Type/)).toBeTruthy();
@@ -46,7 +62,7 @@ describe("FormViewRenderer — conditional fields", () => {
   });
 
   it("shows a field whose visibleWhen is true", () => {
-    const { queryByText } = render(
+    const { queryByText } = renderForm(
       <FormViewRenderer view={view} fields={fields} initialValues={{ type: "invoice" }} />,
     );
     expect(queryByText(/Invoice No/)).toBeTruthy();
@@ -54,7 +70,7 @@ describe("FormViewRenderer — conditional fields", () => {
 
   it("blocks submit when a conditionally-required visible field is empty", () => {
     const onSubmit = jest.fn();
-    const { getByText } = render(
+    const { getByText } = renderForm(
       <FormViewRenderer
         view={view}
         fields={fields}
@@ -69,7 +85,7 @@ describe("FormViewRenderer — conditional fields", () => {
 
   it("does NOT block submit for a conditionally-required field that is hidden", () => {
     const onSubmit = jest.fn();
-    const { getByText } = render(
+    const { getByText } = renderForm(
       <FormViewRenderer
         view={view}
         fields={fields}
@@ -86,7 +102,7 @@ describe("FormViewRenderer — conditional fields", () => {
 
   it("allows submit when the conditionally-required field is filled", () => {
     const onSubmit = jest.fn();
-    const { getByText } = render(
+    const { getByText } = renderForm(
       <FormViewRenderer
         view={view}
         fields={fields}
@@ -100,7 +116,7 @@ describe("FormViewRenderer — conditional fields", () => {
   });
 
   it("reveals a field live when the driving value changes", () => {
-    const { queryByText, getByPlaceholderText } = render(
+    const { queryByText, getByPlaceholderText } = renderForm(
       <FormViewRenderer view={view} fields={fields} initialValues={{ type: "po" }} />,
     );
     // Hidden initially (type === "po").
@@ -131,7 +147,7 @@ describe("FormViewRenderer — conditional sections", () => {
   };
 
   it("hides a section whose visibleOn is false", () => {
-    const { queryByText } = render(
+    const { queryByText } = renderForm(
       <FormViewRenderer view={view} fields={fields} initialValues={{ kind: "personal" }} />,
     );
     expect(queryByText("Business")).toBeNull();
@@ -139,7 +155,7 @@ describe("FormViewRenderer — conditional sections", () => {
   });
 
   it("shows a section whose visibleOn is true", () => {
-    const { queryByText } = render(
+    const { queryByText } = renderForm(
       <FormViewRenderer view={view} fields={fields} initialValues={{ kind: "business" }} />,
     );
     expect(queryByText("Business")).toBeTruthy();
@@ -148,7 +164,7 @@ describe("FormViewRenderer — conditional sections", () => {
 
   it("does not validate required fields inside a hidden section", () => {
     const onSubmit = jest.fn();
-    const { getByText } = render(
+    const { getByText } = renderForm(
       <FormViewRenderer
         view={view}
         fields={fields}

@@ -2,12 +2,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useClient, useMutation } from "@objectstack/client-react";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState, useCallback } from "react";
 import { AlertCircle } from "lucide-react-native";
 import { FormViewRenderer } from "~/components/renderers";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
+import { useConfirm } from "~/components/ui/ConfirmDialog";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
 
 export default function EditRecordScreen() {
@@ -18,7 +20,10 @@ export default function EditRecordScreen() {
   }>();
   const client = useClient();
   const router = useRouter();
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const { meta, fields } = useObjectMeta(objectName);
+  const [dirty, setDirty] = useState(false);
   const { mutate, isLoading: isSubmitting } = useMutation(objectName!, "update", {
     onSuccess: () => {
       router.back();
@@ -53,11 +58,32 @@ export default function EditRecordScreen() {
     meta?.label ??
     objectName?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ??
     "Record";
+  const title = t("records.editTitle", { name: displayName });
+
+  const goBack = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.replace("/(tabs)/apps");
+  }, [router]);
+
+  // Header back bypasses the form's own Cancel guard, so confirm here too.
+  const handleBack = useCallback(async () => {
+    if (dirty) {
+      const ok = await confirm({
+        title: t("records.discardTitle"),
+        message: t("records.discardMessage"),
+        confirmLabel: t("common.discard"),
+        cancelLabel: t("common.cancel"),
+        destructive: true,
+      });
+      if (!ok) return;
+    }
+    goBack();
+  }, [dirty, confirm, t, goBack]);
 
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-        <ScreenHeader title={`Edit ${displayName}`} />
+        <ScreenHeader title={title} />
         <View className="px-4 pt-4">
           <ListSkeleton count={5} />
         </View>
@@ -68,13 +94,13 @@ export default function EditRecordScreen() {
   if (loadError) {
     return (
       <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-        <ScreenHeader title={`Edit ${displayName}`} />
+        <ScreenHeader title={title} />
         <EmptyState
           icon={AlertCircle}
           variant="error"
-          title="Couldn't Load Record"
+          title={t("records.loadOneError")}
           description={loadError}
-          actionLabel="Retry"
+          actionLabel={t("common.retry")}
           onAction={fetchRecord}
         />
       </SafeAreaView>
@@ -83,14 +109,15 @@ export default function EditRecordScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <ScreenHeader title={`Edit ${displayName}`} />
+      <ScreenHeader title={title} onBack={handleBack} />
       <FormViewRenderer
         fields={fields}
         initialValues={record ?? {}}
         onSubmit={(values) => mutate({ id, data: values } as Record<string, unknown>)}
-        onCancel={() => router.back()}
+        onCancel={goBack}
+        onDirtyChange={setDirty}
         isSubmitting={isSubmitting}
-        submitLabel="Save"
+        submitLabel={t("common.save")}
       />
     </SafeAreaView>
   );
