@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { View, Text, Pressable, Modal } from "react-native";
 import { Filter, X } from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { useThemeColors } from "~/lib/theme-colors";
 import { QueryBuilder } from "~/components/query";
 import { useQueryBuilder } from "~/hooks/useQueryBuilder";
 import type { FieldDefinition } from "~/components/renderers/types";
@@ -46,6 +47,8 @@ export function FilterDrawer({
     hasFilters: _hasFilters,
   } = useQueryBuilder();
 
+  const { accent } = useThemeColors();
+
   /* ---- Active filter count ---- */
   const filterCount = root.filters.length;
 
@@ -73,7 +76,7 @@ export function FilterDrawer({
           {/* ---- Header ---- */}
           <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
             <View className="flex-row items-center">
-              <Filter size={18} color="#1e40af" />
+              <Filter size={18} color={accent} />
               <Text className="ml-2 text-lg font-semibold text-foreground">
                 Filters
               </Text>

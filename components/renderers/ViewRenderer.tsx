@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
+import { useThemeColors } from "~/lib/theme-colors";
 import { ListViewRenderer, type ListViewRendererProps } from "./ListViewRenderer";
 import { FormViewRenderer, type FormViewRendererProps } from "./FormViewRenderer";
 import { DetailViewRenderer, type DetailViewRendererProps } from "./DetailViewRenderer";
@@ -55,9 +56,10 @@ const LazyGantt = React.lazy(() =>
 /* ------------------------------------------------------------------ */
 
 function RendererFallback() {
+  const { accent } = useThemeColors();
   return (
     <View className="flex-1 items-center justify-center">
-      <ActivityIndicator size="large" color="#1e40af" />
+      <ActivityIndicator size="large" color={accent} />
     </View>
   );
 }

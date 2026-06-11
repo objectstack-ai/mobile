@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { MapPin, Navigation } from "lucide-react-native";
+import { useThemeColors } from "~/lib/theme-colors";
 import { Card, CardContent } from "~/components/ui/Card";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
 
@@ -95,6 +96,7 @@ export function MapViewRenderer({
   isLoading = false,
   onMarkerPress,
 }: MapViewRendererProps) {
+  const { accent } = useThemeColors();
   if (isLoading) {
     return (
       <View className="flex-1 px-4 pt-4">
@@ -122,7 +124,7 @@ export function MapViewRenderer({
     >
       {/* Summary header */}
       <View className="flex-row items-center gap-2 mb-2">
-        <Navigation size={16} color="#1e40af" />
+        <Navigation size={16} color={accent} />
         <Text className="text-sm font-medium text-muted-foreground">
           {markers.length} location{markers.length !== 1 ? "s" : ""}
         </Text>
@@ -137,7 +139,7 @@ export function MapViewRenderer({
           <Card className="active:bg-muted/50">
             <CardContent className="flex-row items-center gap-3 py-3">
               <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <MapPin size={18} color="#1e40af" />
+                <MapPin size={18} color={accent} />
               </View>
               <View className="flex-1">
                 <Text className="text-sm font-medium text-card-foreground" numberOfLines={1}>

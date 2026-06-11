@@ -8,6 +8,7 @@ import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { useApp, type NavigationItem } from "~/hooks/useApps";
 import { getIcon } from "~/lib/getIcon";
+import { useThemeColors } from "~/lib/theme-colors";
 
 /**
  * App home — renders the app's curated navigation tree (the same
@@ -19,6 +20,7 @@ import { getIcon } from "~/lib/getIcon";
 export default function AppHomeScreen() {
   const { appName } = useLocalSearchParams<{ appName: string }>();
   const router = useRouter();
+  const { accent } = useThemeColors();
   const { app, isLoading, error } = useApp(appName);
 
   const displayName =
@@ -71,7 +73,7 @@ export default function AppHomeScreen() {
         accessibilityLabel={item.label}
       >
         <View className="rounded-xl bg-primary/10 p-2.5">
-          <Icon size={20} color="#1e40af" />
+          <Icon size={20} color={accent} />
         </View>
         <Text className="ml-3 flex-1 text-base font-medium text-card-foreground">
           {item.label}

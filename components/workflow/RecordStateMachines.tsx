@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { ArrowRight } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
+import { useThemeColors } from "~/lib/theme-colors";
 import { StateMachineViewer } from "./StateMachineViewer";
 import type { RecordStateMachine, SMTransition } from "~/hooks/useStateMachines";
 
@@ -32,6 +33,7 @@ export function RecordStateMachines({
   pendingEvent,
 }: RecordStateMachinesProps) {
   const { t } = useTranslation();
+  const { accent } = useThemeColors();
   if (machines.length === 0) return null;
 
   return (
@@ -91,7 +93,7 @@ export function RecordStateMachines({
                         {isBusy ? (
                           <ActivityIndicator size="small" />
                         ) : (
-                          <ArrowRight size={16} color="#1e40af" />
+                          <ArrowRight size={16} color={accent} />
                         )}
                       </Pressable>
                     );

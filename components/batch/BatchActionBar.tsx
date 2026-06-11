@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { Trash2, Edit3, X } from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { useThemeColors } from "~/lib/theme-colors";
 
 export interface BatchActionBarProps {
   /** Number of selected records */
@@ -25,6 +26,7 @@ export function BatchActionBar({
   onClearSelection,
   className,
 }: BatchActionBarProps) {
+  const { accent } = useThemeColors();
   if (selectedCount === 0) return null;
 
   return (
@@ -49,7 +51,7 @@ export function BatchActionBar({
             onPress={onBatchEdit}
             className="flex-row items-center rounded-lg bg-primary/10 px-3 py-2"
           >
-            <Edit3 size={14} color="#1e40af" />
+            <Edit3 size={14} color={accent} />
             <Text className="ml-1.5 text-xs font-semibold text-primary">Edit</Text>
           </Pressable>
         )}

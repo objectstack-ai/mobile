@@ -12,11 +12,13 @@ import { useApps } from "~/hooks/useApps";
 import { getIcon } from "~/lib/getIcon";
 import { getUserErrorMessage } from "~/lib/error-handling";
 import { tCount } from "~/lib/i18n";
+import { useThemeColors } from "~/lib/theme-colors";
 
 export default function AppsScreen() {
   const { apps, isLoading, error, refetch } = useApps();
   const router = useRouter();
   const { t } = useTranslation();
+  const { accent } = useThemeColors();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleAppPress = (appName: string) => {
@@ -85,7 +87,7 @@ export default function AppsScreen() {
                   accessibilityLabel={t("apps.openA11y", { name: app.label })}
                 >
                   <View className="rounded-xl bg-primary/10 p-3">
-                    <Icon size={24} color="#1e40af" />
+                    <Icon size={24} color={accent} />
                   </View>
                   <View className="ml-4 flex-1">
                     <Text className="text-base font-semibold text-card-foreground">

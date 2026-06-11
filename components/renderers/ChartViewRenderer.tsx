@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { BarChart3, TrendingUp, PieChart, Activity, AlertCircle } from "lucide-react-native";
+import { useThemeColors } from "~/lib/theme-colors";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { EmptyState } from "~/components/ui/EmptyState";
@@ -32,15 +33,16 @@ export interface ChartViewRendererProps {
 /* ------------------------------------------------------------------ */
 
 function ChartIcon({ type }: { type: ChartType }) {
+  const { accent } = useThemeColors();
   switch (type) {
     case "line":
-      return <TrendingUp size={18} color="#1e40af" />;
+      return <TrendingUp size={18} color={accent} />;
     case "pie":
-      return <PieChart size={18} color="#1e40af" />;
+      return <PieChart size={18} color={accent} />;
     case "funnel":
-      return <Activity size={18} color="#1e40af" />;
+      return <Activity size={18} color={accent} />;
     default:
-      return <BarChart3 size={18} color="#1e40af" />;
+      return <BarChart3 size={18} color={accent} />;
   }
 }
 

@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { Plus, Trash2, ToggleLeft } from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { useThemeColors } from "~/lib/theme-colors";
 import type { FieldDefinition } from "~/components/renderers/types";
 import {
   type CompoundFilter,
@@ -43,6 +44,7 @@ export function QueryBuilder({
   onClear,
   className,
 }: QueryBuilderProps) {
+  const { accent } = useThemeColors();
   const handleAdd = useCallback(() => {
     const firstField = fields[0]?.name ?? "";
     onAddFilter(firstField, "eq");
@@ -56,7 +58,7 @@ export function QueryBuilder({
           onPress={onToggleLogic}
           className="flex-row items-center rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5"
         >
-          <ToggleLeft size={14} color="#1e40af" />
+          <ToggleLeft size={14} color={accent} />
           <Text className="ml-1.5 text-xs font-semibold text-primary">
             Match {root.logic === "AND" ? "ALL" : "ANY"}
           </Text>

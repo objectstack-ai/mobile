@@ -5,6 +5,7 @@ import { Check } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { SUPPORTED_LANGUAGES } from "~/lib/i18n";
 import { useUIStore } from "~/stores/ui-store";
+import { useThemeColors } from "~/lib/theme-colors";
 import { cn } from "~/lib/utils";
 
 /**
@@ -13,6 +14,7 @@ import { cn } from "~/lib/utils";
  */
 export function LanguageSelector({ className }: { className?: string }) {
   const { t } = useTranslation();
+  const { accent } = useThemeColors();
   const language = useUIStore((s) => s.language);
   const setLanguage = useUIStore((s) => s.setLanguage);
 
@@ -48,7 +50,7 @@ export function LanguageSelector({ className }: { className?: string }) {
             >
               {lang.label}
             </Text>
-            {isActive && <Check size={18} color="#1e40af" />}
+            {isActive && <Check size={18} color={accent} />}
           </Pressable>
         );
       })}

@@ -6,6 +6,7 @@ import {
   Pressable,
 } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { useThemeColors } from "~/lib/theme-colors";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { cn } from "~/lib/utils";
 
@@ -112,6 +113,7 @@ export function CalendarViewRenderer({
   initialYear,
   initialMonth,
 }: CalendarViewRendererProps) {
+  const { accent } = useThemeColors();
   const now = new Date();
   const [year, setYear] = useState(initialYear ?? now.getFullYear());
   const [month, setMonth] = useState(initialMonth ?? now.getMonth());
@@ -183,13 +185,13 @@ export function CalendarViewRenderer({
       {/* Month navigation */}
       <View className="mb-4 flex-row items-center justify-between">
         <Pressable onPress={goToPrevMonth} className="rounded-lg p-2 active:bg-muted">
-          <ChevronLeft size={20} color="#1e40af" />
+          <ChevronLeft size={20} color={accent} />
         </Pressable>
         <Text className="text-lg font-bold text-foreground">
           {MONTH_NAMES[month]} {year}
         </Text>
         <Pressable onPress={goToNextMonth} className="rounded-lg p-2 active:bg-muted">
-          <ChevronRight size={20} color="#1e40af" />
+          <ChevronRight size={20} color={accent} />
         </Pressable>
       </View>
 

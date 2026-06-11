@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { WifiOff, RefreshCw } from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { useThemeColors } from "~/lib/theme-colors";
 
 export interface OfflineIndicatorProps {
   isOffline: boolean;
@@ -22,6 +23,7 @@ export function OfflineIndicator({
   onSyncPress,
   className,
 }: OfflineIndicatorProps) {
+  const { accent } = useThemeColors();
   if (!isOffline && pendingCount === 0) return null;
 
   return (
@@ -52,7 +54,7 @@ export function OfflineIndicator({
           disabled={isSyncing}
           className="flex-row items-center rounded-lg bg-primary/10 px-2.5 py-1"
         >
-          <RefreshCw size={12} color="#1e40af" />
+          <RefreshCw size={12} color={accent} />
           <Text className="ml-1 text-xs font-medium text-primary">
             {isSyncing ? "Syncing…" : "Sync"}
           </Text>

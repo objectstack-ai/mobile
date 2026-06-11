@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Check, Sun, Moon, SmartphoneNfc } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { useUIStore, type ThemeMode } from "~/stores/ui-store";
+import { useThemeColors } from "~/lib/theme-colors";
 import { cn } from "~/lib/utils";
 
 const OPTIONS: { mode: ThemeMode; icon: typeof Sun; labelKey: string }[] = [
@@ -19,6 +20,7 @@ const OPTIONS: { mode: ThemeMode; icon: typeof Sun; labelKey: string }[] = [
  */
 export function ThemeSelector({ className }: { className?: string }) {
   const { t } = useTranslation();
+  const { accent } = useThemeColors();
   const theme = useUIStore((s) => s.theme);
   const setTheme = useUIStore((s) => s.setTheme);
 
@@ -47,7 +49,7 @@ export function ThemeSelector({ className }: { className?: string }) {
             }}
           >
             <View className="flex-row items-center gap-3">
-              <Icon size={20} color={isActive ? "#1e40af" : "#64748b"} />
+              <Icon size={20} color={isActive ? accent : "#64748b"} />
               <Text
                 className={cn(
                   "text-base",
@@ -57,7 +59,7 @@ export function ThemeSelector({ className }: { className?: string }) {
                 {t(labelKey)}
               </Text>
             </View>
-            {isActive && <Check size={18} color="#1e40af" />}
+            {isActive && <Check size={18} color={accent} />}
           </Pressable>
         );
       })}

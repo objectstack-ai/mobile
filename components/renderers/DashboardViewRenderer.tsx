@@ -12,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { WidgetChart } from "./charts/WidgetChart";
 import { formatByPattern, formatCurrency, formatNumber } from "~/lib/formatting";
+import { useThemeColors } from "~/lib/theme-colors";
 import type { DashboardMeta, DashboardWidgetMeta } from "./types";
 
 /** Skeleton grid shown while dashboard metadata + widget data load. */
@@ -90,6 +91,7 @@ function MetricWidget({
   widget: DashboardWidgetMeta;
   data?: WidgetDataPayload;
 }) {
+  const { accent } = useThemeColors();
   const value = data?.value ?? "—";
   const trend = data?.trend;
   const isPositive = trend?.startsWith("+");
@@ -107,7 +109,7 @@ function MetricWidget({
           {widget.title ?? widget.name}
         </Text>
         <View className="rounded-lg bg-primary/10 p-1.5">
-          <Hash size={16} color="#1e40af" />
+          <Hash size={16} color={accent} />
         </View>
       </View>
       {data?.isLoading ? (
@@ -183,6 +185,7 @@ function ListWidget({
   widget: DashboardWidgetMeta;
   data?: WidgetDataPayload;
 }) {
+  const { accent } = useThemeColors();
   const records = data?.records ?? [];
 
   return (
@@ -192,7 +195,7 @@ function ListWidget({
           {widget.title ?? widget.name}
         </CardTitle>
         <View className="rounded-lg bg-primary/10 p-2">
-          <List size={18} color="#1e40af" />
+          <List size={18} color={accent} />
         </View>
       </CardHeader>
       <CardContent>
@@ -240,6 +243,7 @@ function ChartWidget({
   widget: DashboardWidgetMeta;
   data?: WidgetDataPayload;
 }) {
+  const { accent } = useThemeColors();
   const chartType = String(widget.chartConfig?.type ?? widget.type ?? "bar");
   const colors = Array.isArray(widget.chartConfig?.colors)
     ? (widget.chartConfig?.colors as string[])
@@ -254,7 +258,7 @@ function ChartWidget({
           {widget.title ?? widget.name}
         </CardTitle>
         <View className="rounded-lg bg-primary/10 p-2">
-          <BarChart3 size={18} color="#1e40af" />
+          <BarChart3 size={18} color={accent} />
         </View>
       </CardHeader>
       <CardContent>

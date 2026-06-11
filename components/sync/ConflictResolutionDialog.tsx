@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable, ScrollView, Modal } from "react-native";
 import { AlertTriangle, RefreshCw, Trash2, X } from "lucide-react-native";
 import type { SyncQueueEntry } from "~/lib/sync-queue";
+import { useThemeColors } from "~/lib/theme-colors";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                               */
@@ -32,6 +33,7 @@ export function ConflictResolutionDialog({
   onKeepServer,
   onClose,
 }: ConflictResolutionDialogProps) {
+  const { accent } = useThemeColors();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end bg-black/40">
@@ -76,7 +78,7 @@ export function ConflictResolutionDialog({
                     onPress={() => onKeepLocal(entry.id)}
                     className="flex-1 flex-row items-center justify-center rounded-lg bg-primary/10 py-2"
                   >
-                    <RefreshCw size={12} color="#1e40af" />
+                    <RefreshCw size={12} color={accent} />
                     <Text className="ml-1.5 text-xs font-semibold text-primary">
                       Keep Local
                     </Text>
