@@ -1,5 +1,13 @@
 import React from "react";
-import { View, type ViewStyle } from "react-native";
+import { type ViewStyle } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { cn } from "~/lib/utils";
 
 export interface SkeletonProps {
@@ -8,36 +16,37 @@ export interface SkeletonProps {
   height?: number;
 }
 
+/**
+ * A pulsing placeholder block. The pulse runs entirely on the reanimated UI
+ * thread (a looped opacity 1 → 0.4 → 1), so a list of a dozen skeletons costs
+ * zero React re-renders while it breathes — previously each frame called
+ * setState on every skeleton.
+ */
 export function Skeleton({ className, width, height }: SkeletonProps) {
-  const [opacity, setOpacity] = React.useState(1);
+  const opacity = useSharedValue(1);
 
   React.useEffect(() => {
-    let frame: number;
-    let start: number | null = null;
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.4, { duration: 750, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 750, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+  }, [opacity]);
 
-    const animate = (timestamp: number) => {
-      if (start === null) start = timestamp;
-      const elapsed = timestamp - start;
-      // Pulse between 0.4 and 1.0 over 1.5s
-      const t = (Math.sin((elapsed / 1500) * Math.PI * 2) + 1) / 2;
-      setOpacity(0.4 + t * 0.6);
-      frame = requestAnimationFrame(animate);
-    };
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
-  }, []);
-
-  const style: ViewStyle = {
-    opacity,
+  const dims: ViewStyle = {
     ...(width != null ? { width } : {}),
     ...(height != null ? { height } : {}),
   };
 
   return (
-    <View
+    <Animated.View
       className={cn("rounded-lg bg-muted", className)}
-      style={style}
+      style={[animatedStyle, dims]}
     />
   );
 }

@@ -200,9 +200,10 @@ exports[`Skeleton snapshots renders default skeleton 1`] = `
 <View
   className="rounded-lg bg-muted"
   style={
-    {
-      "opacity": 1,
-    }
+    [
+      {},
+      {},
+    ]
   }
 />
 `;
@@ -211,11 +212,13 @@ exports[`Skeleton snapshots renders with custom dimensions 1`] = `
 <View
   className="rounded-lg bg-muted"
   style={
-    {
-      "height": 20,
-      "opacity": 1,
-      "width": 200,
-    }
+    [
+      {},
+      {
+        "height": 20,
+        "width": 200,
+      },
+    ]
   }
 />
 `;
