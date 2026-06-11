@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useColorScheme } from "nativewind";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { webContentMaxWidth } from "~/lib/responsive";
 import {
   Edit,
@@ -709,8 +710,9 @@ export function DetailViewRenderer({
           // Conditional section visibility (spec `FormSection.visibleOn`).
           if (!isSectionVisible(section.visibleOn, record)) return null;
           return (
-          <View
+          <Animated.View
             key={section.label ?? `section-${idx}`}
+            entering={FadeInDown.delay(idx * 60).duration(360)}
             className="mb-4 rounded-xl border border-border bg-card overflow-hidden"
           >
             {section.label && (
@@ -776,7 +778,7 @@ export function DetailViewRenderer({
                 );
               })}
             </View>
-          </View>
+          </Animated.View>
           );
         })}
 

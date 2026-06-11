@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, Pressable, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useColorScheme } from "nativewind";
 import { webContentMaxWidth } from "~/lib/responsive";
 import {
@@ -152,29 +153,31 @@ export default function HomeScreen() {
 
         {/* AI Assistant quick entry — surfaces the assistant on the home screen
             instead of burying it two levels deep under More. */}
-        <PressableCard
-          className="mb-5 flex-row items-center p-4"
-          onPress={() => router.push("/ai")}
-          accessibilityRole="button"
-          accessibilityLabel={t("home.assistantTitle")}
-        >
-          <View className="rounded-xl bg-primary/10 p-3">
-            <Sparkles size={24} color={accent} />
-          </View>
-          <View className="ms-4 flex-1">
-            <Text className="text-base font-semibold text-card-foreground">
-              {t("home.assistantTitle")}
-            </Text>
-            <Text className="mt-0.5 text-sm text-muted-foreground">
-              {t("home.assistantSubtitle")}
-            </Text>
-          </View>
-          <ChevronRight size={20} color="#94a3b8" />
-        </PressableCard>
+        <Animated.View entering={FadeInDown.duration(380)}>
+          <PressableCard
+            className="mb-5 flex-row items-center p-4"
+            onPress={() => router.push("/ai")}
+            accessibilityRole="button"
+            accessibilityLabel={t("home.assistantTitle")}
+          >
+            <View className="rounded-xl bg-primary/10 p-3">
+              <Sparkles size={24} color={accent} />
+            </View>
+            <View className="ms-4 flex-1">
+              <Text className="text-base font-semibold text-card-foreground">
+                {t("home.assistantTitle")}
+              </Text>
+              <Text className="mt-0.5 text-sm text-muted-foreground">
+                {t("home.assistantSubtitle")}
+              </Text>
+            </View>
+            <ChevronRight size={20} color="#94a3b8" />
+          </PressableCard>
+        </Animated.View>
 
         {/* Recently viewed records — quick re-entry to what you were working on. */}
         {recents.length > 0 && (
-          <View className="mb-5">
+          <Animated.View entering={FadeInDown.delay(70).duration(380)} className="mb-5">
             <View className="mb-2 flex-row items-center justify-between">
               <Text className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {t("home.recentTitle")}
@@ -223,7 +226,7 @@ export default function HomeScreen() {
                 </PressableCard>
               ))}
             </View>
-          </View>
+          </Animated.View>
         )}
 
         {loading ? (
@@ -252,9 +255,12 @@ export default function HomeScreen() {
             <Text className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("home.dashboardsTitle")}
             </Text>
-            {dashboards.map((d) => (
-              <PressableCard
+            {dashboards.map((d, i) => (
+              <Animated.View
                 key={`${d.appId}:${d.name}`}
+                entering={FadeInDown.delay(140 + i * 60).duration(380)}
+              >
+              <PressableCard
                 className="flex-row items-center p-4"
                 onPress={() =>
                   router.push(`/(app)/${d.appId}/dashboard/${d.name}`)
@@ -283,6 +289,7 @@ export default function HomeScreen() {
                 </View>
                 <ChevronRight size={20} color="#94a3b8" />
               </PressableCard>
+              </Animated.View>
             ))}
           </View>
         )}
