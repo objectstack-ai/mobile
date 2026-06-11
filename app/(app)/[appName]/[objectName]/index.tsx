@@ -12,6 +12,7 @@ import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { useToast } from "~/components/ui/Toast";
 import { useConfirm } from "~/components/ui/ConfirmDialog";
 import { useObjectMeta } from "~/hooks/useObjectMeta";
+import { useThemeColors } from "~/lib/theme-colors";
 
 export default function ObjectListScreen() {
   const { appName, objectName } = useLocalSearchParams<{
@@ -21,6 +22,7 @@ export default function ObjectListScreen() {
   const client = useClient();
   const router = useRouter();
   const { t } = useTranslation();
+  const { accent } = useThemeColors();
   const { toastError } = useToast();
   const confirm = useConfirm();
 
@@ -100,7 +102,7 @@ export default function ObjectListScreen() {
             accessibilityLabel={t("records.createNamed", { name: displayName })}
             className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
           >
-            <Plus size={24} color="#1e40af" />
+            <Plus size={24} color={accent} />
           </Pressable>
         }
       />

@@ -129,7 +129,7 @@ export default function HomeScreen() {
         contentContainerStyle={webContentMaxWidth}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#1e40af" />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={accent} />
         }
       >
         <View className="mb-5 flex-row items-start justify-between">
@@ -159,7 +159,7 @@ export default function HomeScreen() {
           accessibilityLabel={t("home.assistantTitle")}
         >
           <View className="rounded-xl bg-primary/10 p-3">
-            <Sparkles size={24} color="#1e40af" />
+            <Sparkles size={24} color={accent} />
           </View>
           <View className="ml-4 flex-1">
             <Text className="text-base font-semibold text-card-foreground">
@@ -263,7 +263,7 @@ export default function HomeScreen() {
                 accessibilityLabel={`Open ${d.label} dashboard`}
               >
                 <View className="rounded-xl bg-primary/10 p-3">
-                  <LayoutDashboard size={24} color="#1e40af" />
+                  <LayoutDashboard size={24} color={accent} />
                 </View>
                 <View className="ml-4 flex-1">
                   <Text className="text-base font-semibold text-card-foreground">

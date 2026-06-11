@@ -12,6 +12,7 @@ import {
 import type { FieldDefinition } from "../types";
 import type { FileUploadResult } from "~/hooks/useFileUpload";
 import { useToast } from "~/components/ui/Toast";
+import { useThemeColors } from "~/lib/theme-colors";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -82,6 +83,7 @@ export function FileField({
 }: FileFieldProps) {
   const [isUploading, setIsUploading] = useState(false);
   const { toastError } = useToast();
+  const { accent } = useThemeColors();
   const fileInfo = resolveFileInfo(value);
 
   const handleUpload = useCallback(
@@ -118,12 +120,12 @@ export function FileField({
         </Text>
         {onDownload && fileInfo.id && (
           <Pressable onPress={() => onDownload(fileInfo.id!, fileInfo.name ?? "file")}>
-            <Download size={16} color="#1e40af" />
+            <Download size={16} color={accent} />
           </Pressable>
         )}
         {onShare && fileInfo.id && (
           <Pressable onPress={() => onShare(fileInfo.id!, fileInfo.name ?? "file")}>
-            <Share2 size={16} color="#1e40af" />
+            <Share2 size={16} color={accent} />
           </Pressable>
         )}
       </View>
@@ -149,7 +151,7 @@ export function FileField({
       {/* Upload buttons */}
       {isUploading ? (
         <View className="items-center py-4">
-          <ActivityIndicator size="small" color="#1e40af" />
+          <ActivityIndicator size="small" color={accent} />
           <Text className="mt-2 text-xs text-muted-foreground">Uploading…</Text>
         </View>
       ) : (

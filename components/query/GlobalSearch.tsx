@@ -2,6 +2,7 @@ import React from "react";
 import { View, TextInput } from "react-native";
 import { Search } from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { useThemeColors } from "~/lib/theme-colors";
 
 export interface GlobalSearchProps {
   value: string;
@@ -20,6 +21,7 @@ export function GlobalSearch({
   placeholder = "Search across all fields…",
   className,
 }: GlobalSearchProps) {
+  const { accent } = useThemeColors();
   return (
     <View
       className={cn(
@@ -27,7 +29,7 @@ export function GlobalSearch({
         className,
       )}
     >
-      <Search size={18} color="#1e40af" />
+      <Search size={18} color={accent} />
       <TextInput
         className="h-11 flex-1 text-sm text-foreground placeholder:text-muted-foreground"
         value={value}

@@ -14,6 +14,7 @@ import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useConfirm } from "~/components/ui/ConfirmDialog";
+import { useThemeColors } from "~/lib/theme-colors";
 
 /**
  * Package management screen – list, enable, disable, uninstall packages.
@@ -22,6 +23,7 @@ import { useConfirm } from "~/components/ui/ConfirmDialog";
  */
 export default function PackagesScreen() {
   const { t } = useTranslation();
+  const { accent } = useThemeColors();
   const { packages, isLoading, error, refetch, enable, disable, uninstall } =
     usePackageManagement();
   const confirm = useConfirm();
@@ -87,7 +89,7 @@ export default function PackagesScreen() {
                 <CardHeader>
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2 flex-1">
-                      <Package size={18} color="#1e40af" />
+                      <Package size={18} color={accent} />
                       <CardTitle>{pkg.label}</CardTitle>
                     </View>
                     <View className="flex-row items-center gap-3">

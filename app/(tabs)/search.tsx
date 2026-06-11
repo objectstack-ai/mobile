@@ -10,10 +10,12 @@ import { Input } from "~/components/ui/Input";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { useGlobalSearch } from "~/hooks/useGlobalSearch";
 import { useSearchHistoryStore } from "~/stores/search-history-store";
+import { useThemeColors } from "~/lib/theme-colors";
 
 export default function SearchScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { accent } = useThemeColors();
   const { query, setQuery, groups, isSearching, hasSearched, totalCount, objectCount } =
     useGlobalSearch();
   const recentQueries = useSearchHistoryStore((s) => s.queries);
@@ -162,7 +164,7 @@ export default function SearchScreen() {
                     accessibilityLabel={t("search.openLabel", { title: rec.title })}
                   >
                     <View className="mr-3 rounded-lg bg-primary/10 p-2">
-                      <FileText size={16} color="#1e40af" />
+                      <FileText size={16} color={accent} />
                     </View>
                     <View className="flex-1">
                       <Text className="text-base text-foreground" numberOfLines={1}>

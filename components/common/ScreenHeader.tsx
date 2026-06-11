@@ -3,6 +3,7 @@ import { View, Text, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import { useThemeColors } from "~/lib/theme-colors";
 
 export interface ScreenHeaderProps {
   /** Primary title shown in the bar. */
@@ -44,6 +45,7 @@ export function ScreenHeader({
 }: ScreenHeaderProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { accent } = useThemeColors();
 
   const handleBack = () => {
     if (onBack) {
@@ -74,7 +76,7 @@ export function ScreenHeader({
             accessibilityLabel="Go back"
             className="h-11 w-11 items-center justify-center rounded-full active:bg-muted"
           >
-            <ChevronLeft size={26} color="#1e40af" />
+            <ChevronLeft size={26} color={accent} />
           </Pressable>
         )}
 

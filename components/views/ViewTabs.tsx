@@ -2,6 +2,7 @@ import React from "react";
 import { ScrollView, Pressable, Text, View } from "react-native";
 import { Bookmark, X } from "lucide-react-native";
 import { cn } from "~/lib/utils";
+import { useThemeColors } from "~/lib/theme-colors";
 import type { SavedView } from "~/hooks/useViewStorage";
 
 /* ------------------------------------------------------------------ */
@@ -30,6 +31,7 @@ export function ViewTabs({
   onDelete,
   className,
 }: ViewTabsProps) {
+  const { accent } = useThemeColors();
   if (views.length === 0) return null;
 
   return (
@@ -71,7 +73,7 @@ export function ViewTabs({
                 isActive ? "border-primary bg-primary/10" : "border-border bg-card",
               )}
             >
-              <Bookmark size={12} color={isActive ? "#1e40af" : "#94a3b8"} />
+              <Bookmark size={12} color={isActive ? accent : "#94a3b8"} />
               <Text
                 className={cn(
                   "ml-1.5 text-xs font-medium",

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { FileText, AlertCircle } from "lucide-react-native";
+import { useThemeColors } from "~/lib/theme-colors";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { EmptyState } from "~/components/ui/EmptyState";
@@ -307,6 +308,7 @@ export function ReportRenderer({
   isLoading,
   error,
 }: ReportRendererProps) {
+  const { accent } = useThemeColors();
   if (isLoading) {
     return (
       <ScrollView className="flex-1">
@@ -357,7 +359,7 @@ export function ReportRenderer({
       <Card className="m-4">
         <CardHeader>
           <View className="flex-row items-center gap-2">
-            <FileText size={18} color="#1e40af" />
+            <FileText size={18} color={accent} />
             <CardTitle>{title ?? "Report"}</CardTitle>
           </View>
           <Text className="text-xs text-muted-foreground mt-1">
