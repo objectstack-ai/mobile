@@ -14,6 +14,8 @@ import { WidgetChart } from "./charts/WidgetChart";
 import { useTranslation } from "react-i18next";
 import { formatByPattern, formatCurrency, formatNumber } from "~/lib/formatting";
 import { useThemeColors } from "~/lib/theme-colors";
+import { AnimatedNumber } from "~/components/ui/AnimatedNumber";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import type { DashboardMeta, DashboardWidgetMeta } from "./types";
 
 /** Skeleton grid shown while dashboard metadata + widget data load. */
@@ -96,6 +98,7 @@ function MetricWidget({
   const value = data?.value ?? "—";
   const trend = data?.trend;
   const isPositive = trend?.startsWith("+");
+  const isNumeric = typeof value === "number" && isFinite(value);
 
   // Compact tile (p-4, not p-5) — these pack two-up on phones, so the title
   // and headline must stay tight. Title is given a two-line floor so a
@@ -117,13 +120,25 @@ function MetricWidget({
         <ActivityIndicator size="small" className="mt-3 self-start" />
       ) : (
         <>
-          <Text
-            className="mt-1 text-2xl font-bold text-card-foreground"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {formatMetricValue(widget, value === "—" ? undefined : value)}
-          </Text>
+          {isNumeric ? (
+            <AnimatedNumber
+              value={value}
+              format={(n) =>
+                formatMetricValue(widget, Number.isInteger(value) ? Math.round(n) : n)
+              }
+              className="mt-1 text-2xl font-bold text-card-foreground"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            />
+          ) : (
+            <Text
+              className="mt-1 text-2xl font-bold text-card-foreground"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
+              {formatMetricValue(widget, value === "—" ? undefined : value)}
+            </Text>
+          )}
           {trend && (
             <View className="mt-2 flex-row">
               <View
@@ -417,10 +432,11 @@ export function DashboardViewRenderer({
         </View>
       )}
 
-      {/* Widget grid */}
+      {/* Widget grid — rows ease in with a gentle downward stagger. */}
       {rows.map((row, rowIdx) => (
-        <View
+        <Animated.View
           key={`row-${rowIdx}`}
+          entering={FadeInDown.delay(rowIdx * 70).duration(380)}
           style={{
             flexDirection: "row",
             marginBottom: GRID_GAP,
@@ -440,7 +456,7 @@ export function DashboardViewRenderer({
               </View>
             );
           })}
-        </View>
+        </Animated.View>
       ))}
     </ScrollView>
   );
