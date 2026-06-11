@@ -9,16 +9,18 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { Boxes, Eye, EyeOff } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { authClient } from "~/lib/auth-client";
 import { useServerStore } from "~/stores/server-store";
 
-const SSO_PROVIDER_LABELS: Record<string, string> = {
-  google: "Continue with Google",
-  apple: "Continue with Apple",
-  github: "Continue with GitHub",
+/** Brand names for SSO providers — not translated; only the surrounding copy is. */
+const SSO_PROVIDER_NAMES: Record<string, string> = {
+  google: "Google",
+  apple: "Apple",
+  github: "GitHub",
 };
 
 const PLATFORM_RESTRICTED: Record<string, string[]> = {
@@ -27,6 +29,7 @@ const PLATFORM_RESTRICTED: Record<string, string[]> = {
 
 export default function SignInScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const ssoProviders = useServerStore((s) => s.ssoProviders);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -36,7 +39,7 @@ export default function SignInScreen() {
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      setErrorMsg("Please enter your email and password.");
+      setErrorMsg(t("auth.errEmailPassword"));
       return;
     }
     setErrorMsg(null);
@@ -47,12 +50,12 @@ export default function SignInScreen() {
         password,
       });
       if (error) {
-        setErrorMsg(error.message ?? "Sign in failed. Please try again.");
+        setErrorMsg(error.message ?? t("auth.errSignInFailed"));
       } else {
         router.replace("/(tabs)");
       }
     } catch {
-      setErrorMsg("Something went wrong. Please try again.");
+      setErrorMsg(t("auth.errGeneric"));
     } finally {
       setLoading(false);
     }
@@ -67,7 +70,7 @@ export default function SignInScreen() {
         callbackURL: "/(tabs)",
       });
     } catch {
-      setErrorMsg("Something went wrong. Please try again.");
+      setErrorMsg(t("auth.errGeneric"));
     } finally {
       setLoading(false);
     }
@@ -95,20 +98,20 @@ export default function SignInScreen() {
               <Boxes size={32} color="rgb(30 64 175)" />
             </View>
             <Text className="text-center text-3xl font-bold text-foreground">
-              Welcome back
+              {t("auth.welcomeBack")}
             </Text>
             <Text className="mt-2 text-center text-base text-muted-foreground">
-              Sign in to your account to continue.
+              {t("auth.signInSubtitle")}
             </Text>
           </View>
 
           <View className="gap-4">
             <View>
               <Text className="mb-1.5 text-sm font-medium text-foreground">
-                Email
+                {t("auth.email")}
               </Text>
               <Input
-                placeholder="you@company.com"
+                placeholder={t("auth.emailPlaceholder")}
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
@@ -125,10 +128,10 @@ export default function SignInScreen() {
 
             <View>
               <Text className="mb-1.5 text-sm font-medium text-foreground">
-                Password
+                {t("auth.password")}
               </Text>
               <Input
-                placeholder="Enter your password"
+                placeholder={t("auth.passwordPlaceholder")}
                 secureTextEntry={!showPassword}
                 textContentType="password"
                 returnKeyType="go"
@@ -145,7 +148,7 @@ export default function SignInScreen() {
                     hitSlop={10}
                     accessibilityRole="button"
                     accessibilityLabel={
-                      showPassword ? "Hide password" : "Show password"
+                      showPassword ? t("auth.hidePassword") : t("auth.showPassword")
                     }
                   >
                     {showPassword ? (
@@ -163,7 +166,7 @@ export default function SignInScreen() {
             ) : null}
 
             <Button className="mt-2" onPress={handleSignIn} loading={loading}>
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? t("auth.signingIn") : t("auth.signIn")}
             </Button>
           </View>
 
@@ -171,7 +174,7 @@ export default function SignInScreen() {
             <>
               <View className="my-8 flex-row items-center">
                 <View className="h-px flex-1 bg-border" />
-                <Text className="mx-4 text-sm text-muted-foreground">or</Text>
+                <Text className="mx-4 text-sm text-muted-foreground">{t("auth.or")}</Text>
                 <View className="h-px flex-1 bg-border" />
               </View>
 
@@ -183,7 +186,9 @@ export default function SignInScreen() {
                     onPress={() => handleSocialSignIn(id)}
                     disabled={loading}
                   >
-                    {SSO_PROVIDER_LABELS[id] ?? `Continue with ${id}`}
+                    {t("auth.continueWith", {
+                      provider: SSO_PROVIDER_NAMES[id] ?? id,
+                    })}
                   </Button>
                 ))}
               </View>
@@ -192,11 +197,11 @@ export default function SignInScreen() {
 
           <View className="mt-8 flex-row justify-center">
             <Text className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
+              {t("auth.noAccount")}{" "}
             </Text>
             <Link href="/(auth)/sign-up">
               <Text className="text-sm font-semibold text-primary">
-                Sign Up
+                {t("auth.signUp")}
               </Text>
             </Link>
           </View>

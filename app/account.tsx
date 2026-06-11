@@ -64,13 +64,13 @@ export default function AccountScreen() {
   const { toastSuccess, toastError } = useToast();
   const notify = (msg: string) => toastSuccess(msg);
   const fail = (e: unknown) =>
-    toastError(e instanceof Error ? e.message : "Something went wrong");
+    toastError(e instanceof Error ? e.message : t("account.genericError"));
 
   const onSaveName = async () => {
     if (!name.trim()) return;
     try {
       await updateProfile(name.trim());
-      notify("Profile updated.");
+      notify(t("account.profileUpdated"));
     } catch (e) {
       fail(e);
     }
@@ -81,7 +81,7 @@ export default function AccountScreen() {
     try {
       await changeEmail(newEmail.trim());
       setNewEmail("");
-      notify("Verification sent to the new address. The change applies once you confirm it.");
+      notify(t("account.emailChangeSent"));
     } catch (e) {
       fail(e);
     }
@@ -91,7 +91,7 @@ export default function AccountScreen() {
     if (!user?.email) return;
     try {
       await resendVerification(user.email);
-      notify("Verification email sent.");
+      notify(t("account.verificationSent"));
     } catch (e) {
       fail(e);
     }
@@ -100,11 +100,11 @@ export default function AccountScreen() {
   const onChangePassword = async () => {
     if (!currentPassword || !newPassword) return;
     if (newPassword.length < 8) {
-      notify("New password must be at least 8 characters.");
+      notify(t("account.passwordTooShort"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      notify("New password and confirmation do not match.");
+      notify(t("account.passwordMismatch"));
       return;
     }
     try {
@@ -112,7 +112,7 @@ export default function AccountScreen() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      notify("Password changed. Other sessions were signed out.");
+      notify(t("account.passwordChanged"));
     } catch (e) {
       fail(e);
     }
@@ -137,7 +137,7 @@ export default function AccountScreen() {
       setTfCode("");
       setTfUri(null);
       setTfBackupCodes([]);
-      notify("Two-factor authentication is now enabled.");
+      notify(t("account.twoFaEnabledToast"));
     } catch (e) {
       fail(e);
     }
@@ -148,7 +148,7 @@ export default function AccountScreen() {
     try {
       await twoFactor.disable(tfPassword);
       setTfPassword("");
-      notify("Two-factor authentication disabled.");
+      notify(t("account.twoFaDisabledToast"));
     } catch (e) {
       fail(e);
     }
@@ -162,26 +162,27 @@ export default function AccountScreen() {
       <ScreenHeader title={t("more.sectionAccount")} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <Section title="Profile">
+        <Section title={t("account.sectionProfile")}>
           <Field
-            label="Name"
+            label={t("account.name")}
             value={name}
             onChangeText={setName}
-            placeholder="Your name"
+            placeholder={t("account.namePlaceholder")}
             autoCapitalize="words"
           />
           <Button onPress={onSaveName} loading={isSaving} disabled={!name.trim()}>
-            Save profile
+            {t("account.saveProfile")}
           </Button>
         </Section>
 
-        <Section title="Email">
+        <Section title={t("account.sectionEmail")}>
           <Text className="text-sm text-muted-foreground">
-            Current: <Text className="text-foreground">{user?.email ?? "—"}</Text>
-            {user?.emailVerified === false ? " (unverified)" : ""}
+            {t("account.currentColon")}{" "}
+            <Text className="text-foreground">{user?.email ?? "—"}</Text>
+            {user?.emailVerified === false ? t("account.unverifiedSuffix") : ""}
           </Text>
           <Field
-            label="New email"
+            label={t("account.newEmail")}
             value={newEmail}
             onChangeText={setNewEmail}
             placeholder="new@example.com"
@@ -189,16 +190,16 @@ export default function AccountScreen() {
             keyboardType="email-address"
           />
           <Button onPress={onChangeEmail} loading={isSaving} disabled={!newEmail.trim()}>
-            Change email
+            {t("account.changeEmail")}
           </Button>
           <Button variant="outline" onPress={onResendVerification} disabled={isSaving || !user?.email}>
-            Resend verification
+            {t("account.resendVerification")}
           </Button>
         </Section>
 
-        <Section title="Password">
+        <Section title={t("account.sectionPassword")}>
           <Field
-            label="Current password"
+            label={t("account.currentPassword")}
             value={currentPassword}
             onChangeText={setCurrentPassword}
             placeholder="••••••••"
@@ -206,34 +207,34 @@ export default function AccountScreen() {
             autoCapitalize="none"
           />
           <Field
-            label="New password"
+            label={t("account.newPassword")}
             value={newPassword}
             onChangeText={setNewPassword}
-            placeholder="At least 8 characters"
+            placeholder={t("account.passwordHint")}
             secureTextEntry
             autoCapitalize="none"
           />
           <Field
-            label="Confirm new password"
+            label={t("account.confirmPassword")}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            placeholder="Re-enter new password"
+            placeholder={t("account.confirmPlaceholder")}
             secureTextEntry
             autoCapitalize="none"
           />
           <Button onPress={onChangePassword} loading={isSaving} disabled={!currentPassword || !newPassword}>
-            Change password
+            {t("account.changePassword")}
           </Button>
         </Section>
 
-        <Section title="Two-Factor Authentication">
+        <Section title={t("account.section2fa")}>
           {twoFactorEnabled ? (
             <>
               <Text className="text-sm text-muted-foreground">
-                Two-factor authentication is <Text className="text-foreground">enabled</Text>.
+                {t("account.twoFaStatusEnabled")}
               </Text>
               <Field
-                label="Password (to disable)"
+                label={t("account.passwordToDisable")}
                 value={tfPassword}
                 onChangeText={setTfPassword}
                 placeholder="••••••••"
@@ -241,17 +242,19 @@ export default function AccountScreen() {
                 autoCapitalize="none"
               />
               <Button variant="destructive" onPress={onDisable2FA} loading={twoFactor.isBusy} disabled={!tfPassword}>
-                Disable 2FA
+                {t("account.disable2fa")}
               </Button>
             </>
           ) : tfUri ? (
             <>
               <Text className="text-sm text-muted-foreground">
-                Add this secret to your authenticator app, then enter the 6-digit code to confirm.
+                {t("account.setupInstructions")}
               </Text>
               {!!totpSecret && (
                 <View className="rounded-lg bg-muted px-3 py-2">
-                  <Text className="text-xs uppercase text-muted-foreground">Secret</Text>
+                  <Text className="text-xs uppercase text-muted-foreground">
+                    {t("account.secret")}
+                  </Text>
                   <Text className="font-mono text-sm text-foreground" selectable>
                     {totpSecret}
                   </Text>
@@ -260,7 +263,7 @@ export default function AccountScreen() {
               {tfBackupCodes.length > 0 && (
                 <View className="rounded-lg bg-muted px-3 py-2">
                   <Text className="mb-1 text-xs uppercase text-muted-foreground">
-                    Backup codes (save these)
+                    {t("account.backupCodes")}
                   </Text>
                   <Text className="font-mono text-sm text-foreground" selectable>
                     {tfBackupCodes.join("\n")}
@@ -268,7 +271,7 @@ export default function AccountScreen() {
                 </View>
               )}
               <Field
-                label="6-digit code"
+                label={t("account.code6")}
                 value={tfCode}
                 onChangeText={setTfCode}
                 placeholder="123456"
@@ -276,16 +279,16 @@ export default function AccountScreen() {
                 maxLength={6}
               />
               <Button onPress={onVerify2FA} loading={twoFactor.isBusy} disabled={tfCode.length < 6}>
-                Confirm &amp; enable
+                {t("account.confirmEnable")}
               </Button>
             </>
           ) : (
             <>
               <Text className="text-sm text-muted-foreground">
-                Protect your account with a time-based one-time code (TOTP).
+                {t("account.twoFaPromo")}
               </Text>
               <Field
-                label="Password (to enable)"
+                label={t("account.passwordToEnable")}
                 value={tfPassword}
                 onChangeText={setTfPassword}
                 placeholder="••••••••"
@@ -293,7 +296,7 @@ export default function AccountScreen() {
                 autoCapitalize="none"
               />
               <Button onPress={onEnable2FA} loading={twoFactor.isBusy} disabled={!tfPassword}>
-                Enable 2FA
+                {t("account.enable2fa")}
               </Button>
             </>
           )}

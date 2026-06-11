@@ -9,16 +9,18 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { Boxes, Eye, EyeOff } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
 import { authClient } from "~/lib/auth-client";
 import { useServerStore } from "~/stores/server-store";
 
-const SSO_PROVIDER_LABELS: Record<string, string> = {
-  google: "Continue with Google",
-  apple: "Continue with Apple",
-  github: "Continue with GitHub",
+/** Brand names for SSO providers — not translated; only the surrounding copy is. */
+const SSO_PROVIDER_NAMES: Record<string, string> = {
+  google: "Google",
+  apple: "Apple",
+  github: "GitHub",
 };
 
 const PLATFORM_RESTRICTED: Record<string, string[]> = {
@@ -27,6 +29,7 @@ const PLATFORM_RESTRICTED: Record<string, string[]> = {
 
 export default function SignUpScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const ssoProviders = useServerStore((s) => s.ssoProviders);
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -37,11 +40,11 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     if (!name || !email || !password) {
-      setErrorMsg("Please fill in all fields.");
+      setErrorMsg(t("auth.errAllFields"));
       return;
     }
     if (password.length < 8) {
-      setErrorMsg("Password must be at least 8 characters.");
+      setErrorMsg(t("auth.errPasswordLength"));
       return;
     }
     setErrorMsg(null);
@@ -53,12 +56,12 @@ export default function SignUpScreen() {
         password,
       });
       if (error) {
-        setErrorMsg(error.message ?? "Sign up failed. Please try again.");
+        setErrorMsg(error.message ?? t("auth.errSignUpFailed"));
       } else {
         router.replace("/(tabs)");
       }
     } catch {
-      setErrorMsg("Something went wrong. Please try again.");
+      setErrorMsg(t("auth.errGeneric"));
     } finally {
       setLoading(false);
     }
@@ -73,7 +76,7 @@ export default function SignUpScreen() {
         callbackURL: "/(tabs)",
       });
     } catch {
-      setErrorMsg("Something went wrong. Please try again.");
+      setErrorMsg(t("auth.errGeneric"));
     } finally {
       setLoading(false);
     }
@@ -101,20 +104,20 @@ export default function SignUpScreen() {
               <Boxes size={32} color="rgb(30 64 175)" />
             </View>
             <Text className="text-center text-3xl font-bold text-foreground">
-              Create account
+              {t("auth.createAccountTitle")}
             </Text>
             <Text className="mt-2 text-center text-base text-muted-foreground">
-              Sign up to get started with ObjectStack.
+              {t("auth.signUpSubtitle")}
             </Text>
           </View>
 
           <View className="gap-4">
             <View>
               <Text className="mb-1.5 text-sm font-medium text-foreground">
-                Full Name
+                {t("auth.fullName")}
               </Text>
               <Input
-                placeholder="John Doe"
+                placeholder={t("auth.namePlaceholder")}
                 textContentType="name"
                 autoComplete="name"
                 autoCapitalize="words"
@@ -129,10 +132,10 @@ export default function SignUpScreen() {
 
             <View>
               <Text className="mb-1.5 text-sm font-medium text-foreground">
-                Email
+                {t("auth.email")}
               </Text>
               <Input
-                placeholder="you@company.com"
+                placeholder={t("auth.emailPlaceholder")}
                 autoCapitalize="none"
                 autoComplete="email"
                 keyboardType="email-address"
@@ -148,10 +151,10 @@ export default function SignUpScreen() {
 
             <View>
               <Text className="mb-1.5 text-sm font-medium text-foreground">
-                Password
+                {t("auth.password")}
               </Text>
               <Input
-                placeholder="At least 8 characters"
+                placeholder={t("auth.passwordHint")}
                 secureTextEntry={!showPassword}
                 textContentType="newPassword"
                 returnKeyType="go"
@@ -167,7 +170,7 @@ export default function SignUpScreen() {
                     hitSlop={10}
                     accessibilityRole="button"
                     accessibilityLabel={
-                      showPassword ? "Hide password" : "Show password"
+                      showPassword ? t("auth.hidePassword") : t("auth.showPassword")
                     }
                   >
                     {showPassword ? (
@@ -185,7 +188,7 @@ export default function SignUpScreen() {
             ) : null}
 
             <Button className="mt-2" onPress={handleSignUp} loading={loading}>
-              {loading ? "Creating account…" : "Create Account"}
+              {loading ? t("auth.creatingAccount") : t("auth.createAccountCta")}
             </Button>
           </View>
 
@@ -193,7 +196,7 @@ export default function SignUpScreen() {
             <>
               <View className="my-8 flex-row items-center">
                 <View className="h-px flex-1 bg-border" />
-                <Text className="mx-4 text-sm text-muted-foreground">or</Text>
+                <Text className="mx-4 text-sm text-muted-foreground">{t("auth.or")}</Text>
                 <View className="h-px flex-1 bg-border" />
               </View>
 
@@ -205,7 +208,9 @@ export default function SignUpScreen() {
                     onPress={() => handleSocialSignIn(id)}
                     disabled={loading}
                   >
-                    {SSO_PROVIDER_LABELS[id] ?? `Continue with ${id}`}
+                    {t("auth.continueWith", {
+                      provider: SSO_PROVIDER_NAMES[id] ?? id,
+                    })}
                   </Button>
                 ))}
               </View>
@@ -214,11 +219,11 @@ export default function SignUpScreen() {
 
           <View className="mt-8 flex-row justify-center">
             <Text className="text-sm text-muted-foreground">
-              Already have an account?{" "}
+              {t("auth.haveAccount")}{" "}
             </Text>
             <Link href="/(auth)/sign-in">
               <Text className="text-sm font-semibold text-primary">
-                Sign In
+                {t("auth.signIn")}
               </Text>
             </Link>
           </View>
