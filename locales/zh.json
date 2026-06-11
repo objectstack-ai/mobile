@@ -167,7 +167,8 @@
     "approvals": "审批",
     "flows": "流程",
     "language": "语言",
-    "signOut": "退出登录"
+    "signOut": "退出登录",
+    "appearance": "外观"
   },
   "ai": {
     "title": "AI 助手",
@@ -236,5 +237,11 @@
     "dashboard": "仪表盘",
     "noWidgets": "未配置小部件。",
     "refreshing": "刷新中…"
+  },
+  "appearance": {
+    "title": "外观",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
   }
 }

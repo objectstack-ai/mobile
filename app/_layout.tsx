@@ -6,12 +6,14 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Linking from "expo-linking";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { colorScheme } from "nativewind";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ObjectStackProvider } from "@objectstack/client-react";
 import { authClient } from "~/lib/auth-client";
 import { createObjectStackClient } from "~/lib/objectstack";
 import { useServerStore } from "~/stores/server-store";
+import { useUIStore } from "~/stores/ui-store";
 import { usePushNotifications } from "~/hooks/usePushNotifications";
 import { ToastProvider } from "~/components/ui/Toast";
 import { ConfirmProvider } from "~/components/ui/ConfirmDialog";
@@ -71,11 +73,20 @@ export default function RootLayout() {
   const serverUrl = useServerStore((s) => s.serverUrl);
   const isReady = useServerStore((s) => s.isReady);
   const hydrate = useServerStore((s) => s.hydrate);
+  const themeMode = useUIStore((s) => s.theme);
 
   // On mount, load the persisted server URL and re-target the auth/data clients.
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
+
+  // Apply the persisted color scheme from the root (always rendered) — the
+  // store's own module-load side-effect only runs once something imports it,
+  // which the first screen doesn't, so the saved theme wasn't applied on a cold
+  // start.
+  useEffect(() => {
+    colorScheme.set(themeMode);
+  }, [themeMode]);
 
   useProtectedRoute(serverUrl, isReady);
 
@@ -130,6 +141,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="(app)" />
                 <Stack.Screen name="account" />
+                <Stack.Screen name="appearance" />
                 <Stack.Screen name="ai" />
               </Stack>
             </ConfirmProvider>

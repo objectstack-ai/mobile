@@ -10,6 +10,7 @@ import {
   Workflow,
   Inbox,
   Sparkles,
+  Palette,
 } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -144,6 +145,11 @@ export default function MoreScreen() {
 
         {/* Preferences */}
         <SectionHeader title={t("more.sectionPreferences")} />
+        <MenuItem
+          icon={<Palette size={20} color="#64748b" />}
+          label={t("more.appearance")}
+          onPress={() => router.push("/appearance")}
+        />
         <MenuItem
           icon={<Globe size={20} color="#64748b" />}
           label={t("more.language")}

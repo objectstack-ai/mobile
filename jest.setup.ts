@@ -9,6 +9,23 @@ jest.mock("react-native-css-interop", () => ({
   remapProps: jest.fn(),
 }));
 
+/* ---- nativewind (color-scheme API used by ui-store / layouts) ---- */
+jest.mock("nativewind", () => {
+  let scheme: "light" | "dark" | "system" = "system";
+  return {
+    colorScheme: {
+      set: jest.fn((v: "light" | "dark" | "system") => {
+        scheme = v;
+      }),
+      get: jest.fn(() => scheme),
+    },
+    useColorScheme: () => ({
+      colorScheme: scheme === "system" ? "light" : scheme,
+      setColorScheme: jest.fn(),
+    }),
+  };
+});
+
 /* ---- expo/fetch (streaming fetch — native module, unloadable in Node) ---- */
 jest.mock("expo/fetch", () => ({ fetch: jest.fn() }));
 
