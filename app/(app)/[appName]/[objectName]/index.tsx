@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
 import { useClient, useQuery, useView } from "@objectstack/client-react";
 import { useTranslation } from "react-i18next";
+import { tCount } from "~/lib/i18n";
 import { useCallback, useState } from "react";
 import { ListViewRenderer } from "~/components/renderers";
 import type { ListViewMeta } from "~/components/renderers";
@@ -84,7 +85,7 @@ export default function ObjectListScreen() {
   const recordCount = records.length;
   const countLabel = isLoading
     ? undefined
-    : t("records.recordCount", { count: recordCount });
+    : tCount("records.recordCount", recordCount);
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
