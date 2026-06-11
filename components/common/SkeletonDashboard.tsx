@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export interface SkeletonDashboardProps {
   cards?: number;
@@ -10,8 +11,9 @@ export function SkeletonDashboard({
   cards = 4,
   testID = "skeleton-dashboard",
 }: SkeletonDashboardProps) {
+  const { t } = useTranslation();
   return (
-    <View testID={testID} accessibilityLabel="Loading dashboard" accessibilityRole="progressbar">
+    <View testID={testID} accessibilityLabel={t("a11y.loadingDashboard")} accessibilityRole="progressbar">
       <View className="flex-row flex-wrap px-2 py-2">
         {Array.from({ length: cards }).map((_, i) => (
           <View key={i} testID={`${testID}-card-${i}`} className="w-1/2 p-2">

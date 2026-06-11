@@ -261,6 +261,18 @@
     "flowsDesc": "لا توجد تدفقات أتمتة على هذا الخادم بعد.",
     "flowCount": "{{count}} تدفقات"
   },
+  "a11y": {
+    "goBack": "رجوع",
+    "clearSearch": "مسح البحث",
+    "dismiss": "إغلاق",
+    "toolActivity": "نشاط الأداة",
+    "flowDiagram": "مخطط التدفق",
+    "stateMachineDiagram": "مخطط آلة الحالة",
+    "loadingList": "جارٍ تحميل القائمة",
+    "loadingDashboard": "جارٍ تحميل لوحة المعلومات",
+    "loadingDetail": "جارٍ تحميل التفاصيل",
+    "loadingForm": "جارٍ تحميل النموذج"
+  },
   "nav": {
     "home": "الرئيسية",
     "search": "بحث",

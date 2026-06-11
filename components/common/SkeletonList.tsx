@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export interface SkeletonListProps {
   rows?: number;
@@ -8,8 +9,9 @@ export interface SkeletonListProps {
 }
 
 export function SkeletonList({ rows = 5, showAvatar = true, testID = "skeleton-list" }: SkeletonListProps) {
+  const { t } = useTranslation();
   return (
-    <View testID={testID} accessibilityLabel="Loading list" accessibilityRole="progressbar">
+    <View testID={testID} accessibilityLabel={t("a11y.loadingList")} accessibilityRole="progressbar">
       {Array.from({ length: rows }).map((_, i) => (
         <View key={i} className="flex-row items-center px-4 py-3 border-b border-border/30">
           {showAvatar && (

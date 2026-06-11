@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 export interface SkeletonDetailProps {
   sections?: number;
@@ -12,8 +13,9 @@ export function SkeletonDetail({
   fieldsPerSection = 4,
   testID = "skeleton-detail",
 }: SkeletonDetailProps) {
+  const { t } = useTranslation();
   return (
-    <View testID={testID} accessibilityLabel="Loading detail" accessibilityRole="progressbar">
+    <View testID={testID} accessibilityLabel={t("a11y.loadingDetail")} accessibilityRole="progressbar">
       {/* Header skeleton */}
       <View className="px-4 py-5">
         <View className="h-6 w-2/3 rounded bg-muted animate-pulse mb-2" />

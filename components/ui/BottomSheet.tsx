@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 
 export interface BottomSheetProps {
@@ -17,6 +18,7 @@ export function BottomSheet({
   children,
   className,
 }: BottomSheetProps) {
+  const { t } = useTranslation();
   return (
     <Modal
       visible={open}
@@ -27,7 +29,7 @@ export function BottomSheet({
       <Pressable
         className="flex-1 bg-black/50"
         accessibilityRole="button"
-        accessibilityLabel="Close"
+        accessibilityLabel={t("common.close")}
         onPress={() => onOpenChange(false)}
       />
 

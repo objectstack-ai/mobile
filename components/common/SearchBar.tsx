@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { Search, X } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 
 export interface SearchBarProps {
@@ -18,6 +19,7 @@ export function SearchBar({
   debounceMs = 300,
   className,
 }: SearchBarProps) {
+  const { t } = useTranslation();
   const [localValue, setLocalValue] = React.useState(value);
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -70,7 +72,7 @@ export function SearchBar({
           onPress={handleClear}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel="Clear search"
+          accessibilityLabel={t("a11y.clearSearch")}
           className="rounded-full p-1 active:opacity-60"
         >
           <X size={16} className="text-muted-foreground" />

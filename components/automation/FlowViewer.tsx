@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
+import { useTranslation } from "react-i18next";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -46,6 +47,7 @@ function findEdgesForNode(
  * Read-only flow diagram showing automation nodes and edges.
  */
 export function FlowViewer({ nodes, edges }: FlowViewerProps) {
+  const { t } = useTranslation();
   if (nodes.length === 0) {
     return (
       <View className="items-center py-8">
@@ -57,7 +59,7 @@ export function FlowViewer({ nodes, edges }: FlowViewerProps) {
   }
 
   return (
-    <ScrollView className="flex-1" accessibilityRole="list" accessibilityLabel="Flow diagram">
+    <ScrollView className="flex-1" accessibilityRole="list" accessibilityLabel={t("a11y.flowDiagram")}>
       <View className="gap-3 px-4 py-3">
         {nodes.map((node, index) => {
           const outEdges = findEdgesForNode(node.id, edges);
