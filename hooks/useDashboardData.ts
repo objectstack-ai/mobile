@@ -6,6 +6,7 @@ import type {
   DatasetMeasure,
   DatasetMeta,
   DerivedMetricSpec,
+  FieldDefinition,
   MeasureAggregate,
   ResolvedMetricComponent,
 } from "~/components/renderers/types";
@@ -171,6 +172,24 @@ function spanFromLayoutWidth(w: number | undefined): number {
   return typeof w === "number" && w >= 8 ? 2 : 1;
 }
 
+/**
+ * Build a `{ value → label }` map from a field's select options, or `undefined`
+ * when the field has none (e.g. a date/number dimension). Used to label chart
+ * category buckets with the option label instead of the raw stored value.
+ */
+function optionLabelMap(
+  fields: FieldDefinition[] | undefined,
+  fieldName: string,
+): Record<string, string> | undefined {
+  const opts = fields?.find((f) => f.name === fieldName)?.options;
+  if (!opts || opts.length === 0) return undefined;
+  const map: Record<string, string> = {};
+  for (const o of opts) {
+    if (o.label != null) map[String(o.value)] = o.label;
+  }
+  return Object.keys(map).length > 0 ? map : undefined;
+}
+
 /** Narrow a measure's aggregate to the core five the hook evaluates. */
 function normalizeAggregate(agg: string | undefined): MeasureAggregate {
   return agg === "sum" || agg === "avg" || agg === "min" || agg === "max"
@@ -226,6 +245,7 @@ function resolveDerivedMeasure(
 export function resolveDatasetWidget(
   widget: DashboardWidgetMeta,
   dataset: DatasetMeta | undefined,
+  objectFields?: FieldDefinition[],
 ): DashboardWidgetMeta {
   if (!widget.dataset || !dataset) return widget;
 
@@ -240,6 +260,13 @@ export function resolveDatasetWidget(
 
   const options = (widget.options ?? {}) as Record<string, unknown>;
   const color = typeof options.color === "string" ? options.color : undefined;
+
+  // Map the category dimension's stored values to their option labels so chart
+  // buckets read "Completed", not "completed". The labels live on the dataset
+  // object's field metadata, keyed by the dimension's `field`.
+  const categoryLabels = dimension?.field
+    ? optionLabelMap(objectFields, dimension.field)
+    : undefined;
 
   // A `ratio` derived measure renders as a percentage; default its format to
   // `0%` so a bare quotient (e.g. 0.25) still reads as "25%".
@@ -265,6 +292,7 @@ export function resolveDatasetWidget(
     categoryField: dimension?.field,
     span: widget.span ?? spanFromLayoutWidth(widget.layout?.w),
     derivedMetric,
+    ...(categoryLabels ? { categoryLabels } : null),
     chartConfig: {
       ...options,
       ...(color ? { colors: [color] } : null),
@@ -442,11 +470,17 @@ export function useWidgetQuery(widget: DashboardWidgetMeta): WidgetDataPayload {
         // Chart and other types — group into a `{label,value}[]` series so the
         // renderer can draw a real chart, plus a headline total.
         const agg = widget.aggregate ?? "sum";
+        const labels = widget.categoryLabels;
         const chartData = buildChartData(
           records,
           widget.categoryField,
           widget.valueField,
           agg,
+        ).map((p) =>
+          // Map a select category's raw bucket value to its option label
+          // ("completed" → "Completed"); leave unmapped buckets (dates, free
+          // text) untouched.
+          labels && labels[p.label] != null ? { ...p, label: labels[p.label] } : p,
         );
         const value = chartData.reduce((sum, p) => sum + p.value, 0);
         return {

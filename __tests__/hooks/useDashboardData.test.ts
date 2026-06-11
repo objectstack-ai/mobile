@@ -250,6 +250,31 @@ describe("useWidgetQuery", () => {
     expect(result.current.value).toBe(0);
   });
 
+  it("labels chart category buckets with option labels when provided", () => {
+    mockUseQuery.mockReturnValue({
+      data: {
+        records: [
+          { id: "1", status: "open" },
+          { id: "2", status: "open" },
+          { id: "3", status: "done" },
+        ],
+      },
+      isLoading: false,
+    });
+    const widget: DashboardWidgetMeta = {
+      name: "by_status",
+      object: "tasks",
+      type: "bar",
+      aggregate: "count",
+      categoryField: "status",
+      categoryLabels: { open: "Open", done: "Completed" },
+    };
+    const { result } = renderHook(() => useWidgetQuery(widget));
+    const series = result.current.chartData ?? [];
+    expect(series.find((p) => p.value === 2)?.label).toBe("Open");
+    expect(series.find((p) => p.value === 1)?.label).toBe("Completed");
+  });
+
   it("counts rows per bucket for a count-aggregate chart (no valueField)", () => {
     // The common dataset case: a `count` measure has no source field, so chart
     // buckets must count rows — not aggregate an absent value field (→ all 0).
@@ -360,6 +385,45 @@ describe("resolveDatasetWidget", () => {
         { aggregate: "count", field: undefined, filter: undefined },
       ],
     });
+  });
+
+  it("builds categoryLabels from the dataset object's field options", () => {
+    const widget: DashboardWidgetMeta = {
+      name: "by_status",
+      type: "bar",
+      dataset: "task_metrics",
+      values: ["task_count"],
+      dimensions: ["status"],
+    };
+    const objectFields = [
+      {
+        name: "status",
+        type: "select" as const,
+        options: [
+          { label: "Not Started", value: "not_started" },
+          { label: "Completed", value: "completed" },
+        ],
+      },
+    ];
+    const resolved = resolveDatasetWidget(widget, dataset, objectFields);
+    expect(resolved.categoryField).toBe("status");
+    expect(resolved.categoryLabels).toEqual({
+      not_started: "Not Started",
+      completed: "Completed",
+    });
+  });
+
+  it("omits categoryLabels when the dimension field has no options", () => {
+    const widget: DashboardWidgetMeta = {
+      name: "hours_by_status",
+      type: "bar",
+      dataset: "task_metrics",
+      values: ["est_hours"],
+      dimensions: ["status"],
+    };
+    // No object fields supplied → nothing to map.
+    const resolved = resolveDatasetWidget(widget, dataset);
+    expect(resolved.categoryLabels).toBeUndefined();
   });
 
   it("defaults a format-less ratio measure to a `0%` percent metric", () => {

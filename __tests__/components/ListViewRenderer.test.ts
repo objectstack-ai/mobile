@@ -141,4 +141,26 @@ describe("buildListItems", () => {
     expect(items).toHaveLength(3);
     expect(items.every((i) => i.__kind === "row")).toBe(true);
   });
+
+  it("labels group headers with the select field's option label, not the raw value", () => {
+    const meta: ListViewMeta = {
+      grouping: { fields: [{ field: "status", order: "asc", collapsed: false }] },
+    };
+    const fields = [
+      {
+        name: "status",
+        type: "select" as const,
+        options: [
+          { label: "Open", value: "open" },
+          { label: "Closed", value: "closed" },
+        ],
+      },
+    ];
+    const items = buildListItems(data, meta, undefined, fields);
+    const headers = items.filter((i) => i.__kind === "group");
+    expect(headers).toEqual([
+      { __kind: "group", label: "Open", count: 2 },
+      { __kind: "group", label: "Closed", count: 1 },
+    ]);
+  });
 });

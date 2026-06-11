@@ -216,6 +216,13 @@ export interface DashboardWidgetMeta {
    * `resolveDatasetWidget` from a dataset's derived measure (e.g. a ratio).
    */
   derivedMetric?: DerivedMetricSpec;
+  /**
+   * Value → display-label map for the `categoryField`'s options (8.0). Lets a
+   * chart's category buckets render the select field's option label
+   * ("Completed") instead of the raw stored value ("completed"). Populated by
+   * `resolveDatasetWidget` from the dataset object's field metadata.
+   */
+  categoryLabels?: Record<string, string>;
 }
 
 /** Core aggregate operators the RN widget hook can evaluate client-side. */

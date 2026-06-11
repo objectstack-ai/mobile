@@ -3,10 +3,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
 import { ThemeSelector } from "~/components/common/ThemeSelector";
+import { DensitySelector } from "~/components/common/DensitySelector";
 
 /**
- * Appearance — switch the app's color scheme (light / dark / system). Backed by
- * `useUIStore.setTheme` → NativeWind, applied live across every screen.
+ * Appearance — switch the app's color scheme (light / dark / system) and the
+ * default list density. Both are backed by `useUIStore` and applied live.
  */
 export default function AppearanceScreen() {
   const { t } = useTranslation();
@@ -15,6 +16,7 @@ export default function AppearanceScreen() {
       <ScreenHeader title={t("appearance.title")} />
       <ScrollView className="flex-1" contentContainerClassName="px-5 pt-4">
         <ThemeSelector />
+        <DensitySelector className="mt-6" />
       </ScrollView>
     </SafeAreaView>
   );
