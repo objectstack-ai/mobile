@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
+import { useConfirm } from "~/components/ui/ConfirmDialog";
 import { webContentMaxWidth } from "~/lib/responsive";
 import {
   isFieldVisible,
@@ -99,10 +102,15 @@ export interface FormViewRendererProps {
   isSubmitting?: boolean;
   /** Read-only mode (detail display) */
   readonly?: boolean;
-  /** Submit button label */
+  /** Submit button label (defaults to the localized "Save"). */
   submitLabel?: string;
   /** Per-field permissions: field name → { readable, editable } */
   fieldPermissions?: Record<string, { readable: boolean; editable: boolean }>;
+  /**
+   * Notified whenever the form's dirty state flips. Lets the host screen guard
+   * its own back affordance (the in-form Cancel is already guarded here).
+   */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -220,11 +228,21 @@ export function FormViewRenderer({
   onCancel,
   isSubmitting = false,
   readonly = false,
-  submitLabel = "Save",
+  submitLabel,
   fieldPermissions,
+  onDirtyChange,
 }: FormViewRendererProps) {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
+  const insets = useSafeAreaInsets();
   const [values, setValues] = useState<Record<string, unknown>>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [dirty, setDirty] = useState(false);
+
+  // Surface dirty state so the host screen can guard its back affordance.
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   /* ---- Build sections ---- */
   const sections: FormSection[] = useMemo(() => {
@@ -252,6 +270,7 @@ export function FormViewRenderer({
   /* ---- Handlers ---- */
   const handleChange = useCallback((field: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [field]: value }));
+    setDirty(true);
     // Clear error on change
     setErrors((prev) => {
       if (prev[field]) {
@@ -287,8 +306,9 @@ export function FormViewRenderer({
         if (isRequired) {
           const val = values[fieldName];
           if (val == null || val === "") {
-            newErrors[fieldName] =
-              `${fieldDef?.label ?? fieldName} is required`;
+            newErrors[fieldName] = t("records.requiredField", {
+              field: fieldDef?.label ?? fieldName,
+            });
           }
         }
       }
@@ -300,7 +320,22 @@ export function FormViewRenderer({
     }
 
     onSubmit?.(normalizeForSubmit(values, fields));
-  }, [sections, fields, values, onSubmit]);
+  }, [sections, fields, values, onSubmit, t]);
+
+  /** Cancel — confirm a discard first if the form has unsaved edits. */
+  const handleCancel = useCallback(async () => {
+    if (dirty) {
+      const ok = await confirm({
+        title: t("records.discardTitle"),
+        message: t("records.discardMessage"),
+        confirmLabel: t("common.discard"),
+        cancelLabel: t("common.cancel"),
+        destructive: true,
+      });
+      if (!ok) return;
+    }
+    onCancel?.();
+  }, [dirty, confirm, t, onCancel]);
 
   /* ---- Render ---- */
   return (
@@ -330,30 +365,31 @@ export function FormViewRenderer({
             />
           );
         })}
+      </ScrollView>
 
-        {/* Action buttons */}
-        {!readonly && onSubmit && (
-          <View className="flex-row gap-3 pt-2">
-            {onCancel && (
-              <Button
-                variant="outline"
-                onPress={onCancel}
-                disabled={isSubmitting}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-            )}
+      {/* Sticky action bar — Save stays reachable without scrolling to the
+          end of a long form. Pinned below the scroll area, inside the
+          keyboard-avoider so it rides above the keyboard. */}
+      {!readonly && onSubmit && (
+        <View
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+          className="flex-row gap-3 border-t border-border bg-card px-4 pt-3"
+        >
+          {onCancel && (
             <Button
-              onPress={handleSubmit}
-              loading={isSubmitting}
+              variant="outline"
+              onPress={handleCancel}
+              disabled={isSubmitting}
               className="flex-1"
             >
-              {isSubmitting ? "Saving…" : submitLabel}
+              {t("common.cancel")}
             </Button>
-          </View>
-        )}
-      </ScrollView>
+          )}
+          <Button onPress={handleSubmit} loading={isSubmitting} className="flex-1">
+            {isSubmitting ? t("common.saving") : (submitLabel ?? t("common.save"))}
+          </Button>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
