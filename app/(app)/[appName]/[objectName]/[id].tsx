@@ -49,23 +49,43 @@ export default function ObjectDetailScreen() {
   );
   const currentIndex = recordIds.indexOf(id!);
 
+  // The sibling list (already fetched for prev/next) usually holds this record
+  // in full. Seeding from it means navigating between records — or arriving
+  // from the list — paints instantly instead of flashing a skeleton while the
+  // authoritative `data.get` runs in the background.
+  const seedRecord = useMemo<Record<string, unknown> | null>(
+    () =>
+      (listData?.records ?? []).find(
+        (r: Record<string, unknown>) => String(r.id ?? r._id ?? "") === id,
+      ) ?? null,
+    [listData, id],
+  );
+
   const [record, setRecord] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchRecord = useCallback(async () => {
-    if (!objectName || !id) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await client.data.get(objectName, id);
-      setRecord(result.record ?? result);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to load record"));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [client, objectName, id]);
+  // Paint the cached row the moment it's available, before the full fetch lands.
+  useEffect(() => {
+    if (!record && seedRecord) setRecord(seedRecord);
+  }, [record, seedRecord]);
+
+  const fetchRecord = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      if (!objectName || !id) return;
+      if (!silent) setIsLoading(true);
+      setError(null);
+      try {
+        const result = await client.data.get(objectName, id);
+        setRecord(result.record ?? result);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Failed to load record"));
+      } finally {
+        if (!silent) setIsLoading(false);
+      }
+    },
+    [client, objectName, id],
+  );
 
   useEffect(() => {
     fetchRecord();
@@ -132,15 +152,21 @@ export default function ObjectDetailScreen() {
   const handleFieldEdit = useCallback(
     async (field: string, value: unknown) => {
       if (!objectName || !id) return;
+      // Optimistic: reflect the new value instantly, then persist. Snapshot the
+      // prior record so a failed write can roll back cleanly.
+      const prev = record;
+      setRecord((r) => (r ? { ...r, [field]: value } : r));
       try {
         await client.data.update(objectName, id, { [field]: value });
-        await fetchRecord();
+        // Reconcile server-computed fields (formulas, audit) without a spinner.
+        void fetchRecord({ silent: true });
         toastSuccess(t("records.updated"));
       } catch {
+        setRecord(prev);
         toastError(t("records.updateFailed"));
       }
     },
-    [client, objectName, id, fetchRecord, toastSuccess, toastError, t],
+    [client, objectName, id, record, fetchRecord, toastSuccess, toastError, t],
   );
 
   /* ---- Object actions (record_header inline, record_more overflow) ---- */
@@ -194,20 +220,25 @@ export default function ObjectDetailScreen() {
         message: t("workflow.moveToConfirm", { state: toLabel }),
       });
       if (!ok) return;
+      const prev = record;
+      const field = machine.field;
+      // Optimistic status move — the badge/diagram advances immediately.
+      setRecord((r) => (r ? { ...r, [field]: transition.to } : r));
       setPendingEvent(`${machine.key}:${transition.event}`);
       try {
         await client.data.update(objectName, id, {
-          [machine.field]: transition.to,
+          [field]: transition.to,
         });
-        await fetchRecord();
+        void fetchRecord({ silent: true });
         toastSuccess(t("workflow.statusUpdated"));
       } catch {
+        setRecord(prev);
         toastError(t("workflow.statusUpdateFailed"));
       } finally {
         setPendingEvent(null);
       }
     },
-    [confirm, client, objectName, id, t, fetchRecord, toastSuccess, toastError],
+    [confirm, client, objectName, id, record, t, fetchRecord, toastSuccess, toastError],
   );
 
   return (
@@ -217,9 +248,9 @@ export default function ObjectDetailScreen() {
         view={formView}
         fields={fields}
         record={record}
-        isLoading={isLoading}
+        isLoading={isLoading && !record}
         error={error}
-        onRetry={fetchRecord}
+        onRetry={() => fetchRecord()}
         onEdit={() =>
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           router.push(`/(app)/${appName}/${objectName}/${id}/edit` as any)
