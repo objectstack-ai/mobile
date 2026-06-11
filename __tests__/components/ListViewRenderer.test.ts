@@ -118,4 +118,27 @@ describe("buildListItems", () => {
     const headers = items.filter((i) => i.__kind === "group");
     expect(headers).toEqual([{ __kind: "group", label: "—", count: 3 }]);
   });
+
+  it("groups by the override field over the view's configured grouping", () => {
+    const meta: ListViewMeta = {
+      grouping: { fields: [{ field: "status", order: "asc", collapsed: false }] },
+    };
+    // Override regroups by `id` instead of the view's `status`.
+    const items = buildListItems(data, meta, "id");
+    const headers = items.filter((i) => i.__kind === "group");
+    expect(headers).toEqual([
+      { __kind: "group", label: "1", count: 1 },
+      { __kind: "group", label: "2", count: 1 },
+      { __kind: "group", label: "3", count: 1 },
+    ]);
+  });
+
+  it("forces a flat list when the override is null, ignoring view grouping", () => {
+    const meta: ListViewMeta = {
+      grouping: { fields: [{ field: "status", order: "asc", collapsed: false }] },
+    };
+    const items = buildListItems(data, meta, null);
+    expect(items).toHaveLength(3);
+    expect(items.every((i) => i.__kind === "row")).toBe(true);
+  });
 });
