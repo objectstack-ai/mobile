@@ -1,5 +1,6 @@
 import React from "react";
 import { Modal, Pressable, Text, View } from "react-native";
+import Animated, { SlideInDown } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
 import { cn } from "~/lib/utils";
 
@@ -20,10 +21,14 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const { t } = useTranslation();
   return (
+    // animationType="fade" cross-fades the dimmed backdrop on open/close; the
+    // panel additionally springs up from the bottom via reanimated, so it
+    // arrives with the soft physical rise top-tier sheets use rather than a
+    // flat OS slide.
     <Modal
       visible={open}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={() => onOpenChange(false)}
     >
       <Pressable
@@ -33,7 +38,8 @@ export function BottomSheet({
         onPress={() => onOpenChange(false)}
       />
 
-      <View
+      <Animated.View
+        entering={SlideInDown.springify().damping(22).stiffness(220).mass(0.6)}
         className={cn(
           "rounded-t-2xl border-t border-border bg-background pb-8 px-6 pt-4",
           className
@@ -48,7 +54,7 @@ export function BottomSheet({
         ) : null}
 
         {children}
-      </View>
+      </Animated.View>
     </Modal>
   );
 }
