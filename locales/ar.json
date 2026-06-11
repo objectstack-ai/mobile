@@ -59,7 +59,7 @@
     "recordCount_two": "سجلان",
     "recordCount_few": "{{count}} سجلات",
     "recordCount_many": "{{count}} سجلاً",
-    "recordCount_other": "{{count}} سجل",
+    "recordCount_other": "{{n}} سجل",
     "deleteConfirm": "هل أنت متأكد من أنك تريد حذف هذا السجل؟",
     "deleteConfirmNamed": "هل أنت متأكد من أنك تريد حذف \"{{label}}\"؟",
     "deleteFailed": "فشل حذف السجل.",
@@ -139,7 +139,7 @@
   "apps": {
     "title": "التطبيقات",
     "loading": "جارٍ تحميل تطبيقاتك…",
-    "installed_other": "{{count}} تطبيق مثبّت",
+    "installed_other": "{{n}} تطبيق مثبّت",
     "loadErrorTitle": "تعذّر تحميل التطبيقات",
     "emptyTitle": "لا توجد تطبيقات",
     "emptyDesc": "ستظهر تطبيقات مؤسستك هنا بمجرد تثبيتها.",
@@ -227,7 +227,7 @@
     "lookingAcross_two": "يتم البحث في كائنين",
     "lookingAcross_few": "يتم البحث في {{count}} كائنات",
     "lookingAcross_many": "يتم البحث في {{count}} كائناً",
-    "lookingAcross_other": "يتم البحث في {{count}} كائن",
+    "lookingAcross_other": "يتم البحث في {{n}} كائن",
     "noResultsTitle": "لا توجد نتائج",
     "noResultsBody": "لا يوجد ما يطابق \"{{query}}\". جرّب كلمة مفتاحية أخرى.",
     "resultCount_zero": "{{count}} نتيجة",
@@ -235,7 +235,7 @@
     "resultCount_two": "نتيجتان",
     "resultCount_few": "{{count}} نتائج",
     "resultCount_many": "{{count}} نتيجة",
-    "resultCount_other": "{{count}} نتيجة",
+    "resultCount_other": "{{n}} نتيجة",
     "openLabel": "فتح {{title}}"
   },
   "offline": {

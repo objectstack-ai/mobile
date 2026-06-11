@@ -11,6 +11,7 @@ import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { useApps } from "~/hooks/useApps";
 import { getIcon } from "~/lib/getIcon";
 import { getUserErrorMessage } from "~/lib/error-handling";
+import { tCount } from "~/lib/i18n";
 
 export default function AppsScreen() {
   const { apps, isLoading, error, refetch } = useApps();
@@ -46,7 +47,7 @@ export default function AppsScreen() {
           <Text className="mt-1 text-sm text-muted-foreground">
             {showSkeleton
               ? t("apps.loading")
-              : t("apps.installed", { count: apps.length })}
+              : tCount("apps.installed", apps.length)}
           </Text>
         </View>
 

@@ -58,4 +58,21 @@ i18n.use(initReactI18next).init({
   compatibilityJSON: "v4",
 });
 
+/**
+ * Count-aware translation that does NOT depend on `Intl.PluralRules`.
+ *
+ * Hermes (React Native's JS engine) ships without `Intl.PluralRules`, and
+ * i18next's plural resolver relies on it — so on device every plural key falls
+ * back to the fallback language (e.g. "1 app installed" instead of the
+ * localized string) while non-plural keys localize fine. This picks the English
+ * one/other form manually and uses the single "other" form for the other
+ * locales; the strings interpolate `{{n}}` (named so i18next's own plural
+ * handling never triggers).
+ */
+export function tCount(baseKey: string, count: number): string {
+  const isEnglish = (i18n.language || "en").startsWith("en");
+  const suffix = isEnglish && count === 1 ? "_one" : "_other";
+  return i18n.t(`${baseKey}${suffix}`, { n: count });
+}
+
 export default i18n;

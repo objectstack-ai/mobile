@@ -4,6 +4,7 @@ import { webContentMaxWidth } from "~/lib/responsive";
 import { Search as SearchIcon, X, ChevronRight, FileText, SearchX } from "lucide-react-native";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
+import { tCount } from "~/lib/i18n";
 import { Input } from "~/components/ui/Input";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { useGlobalSearch } from "~/hooks/useGlobalSearch";
@@ -49,7 +50,7 @@ export default function SearchScreen() {
           title={t("search.emptyTitle")}
           description={
             objectCount > 0
-              ? t("search.lookingAcross", { count: objectCount })
+              ? tCount("search.lookingAcross", objectCount)
               : t("search.emptyHint")
           }
         />
@@ -73,7 +74,7 @@ export default function SearchScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="mb-3 text-xs font-medium text-muted-foreground">
-            {t("search.resultCount", { count: totalCount })}
+            {tCount("search.resultCount", totalCount)}
           </Text>
           {groups.map((group) => (
             <View key={`${group.appName}:${group.objectName}`} className="mb-5">
