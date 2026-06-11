@@ -7,12 +7,23 @@ import {
   RefreshControl,
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
+import { useTranslation } from "react-i18next";
+import { useColorScheme } from "nativewind";
 import { webContentMaxWidth } from "~/lib/responsive";
-import { ChevronDown, ChevronUp, Check, Search as SearchIcon, AlertCircle } from "lucide-react-native";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Check,
+  Layers,
+  Search as SearchIcon,
+  AlertCircle,
+} from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { EmptyState } from "~/components/common/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
 import { Button } from "~/components/ui/Button";
+import { BottomSheet } from "~/components/ui/BottomSheet";
 import { SearchBar } from "~/components/common/SearchBar";
 import { BatchActionBar } from "~/components/batch/BatchActionBar";
 import { formatDisplayValue, isSelectType, OptionBadge } from "./fields/FieldRenderer";
@@ -115,17 +126,26 @@ export function isGroupHeader(item: ListItem): item is GroupHeaderItem {
 }
 
 /**
- * Flatten records into a render list, inserting group-header sentinels when
- * `meta.grouping` is present. Only the first grouping field is honoured here;
+ * Flatten records into a render list, inserting group-header sentinels when a
+ * grouping field is in effect. Only the first grouping field is honoured here;
  * deeper nesting is a later phase.
+ *
+ * `groupFieldOverride` lets the user's in-session group-by choice take
+ * precedence over the view's configured grouping: pass a field name to group by
+ * it, `null` to force a flat list, or omit it (`undefined`) to fall back to
+ * `meta.grouping`.
  *
  * Exported for unit testing.
  */
 export function buildListItems(
   data: Record<string, unknown>[],
   meta: ListViewMeta | null | undefined,
+  groupFieldOverride?: string | null,
 ): ListItem[] {
-  const groupField = meta?.grouping?.fields?.[0]?.field;
+  const groupField =
+    groupFieldOverride !== undefined
+      ? (groupFieldOverride ?? undefined)
+      : meta?.grouping?.fields?.[0]?.field;
   if (!groupField) {
     return data.map((record) => ({ __kind: "row", record }));
   }
@@ -224,10 +244,21 @@ export function ListViewRenderer({
   onBatchDelete,
   onBatchEdit,
 }: ListViewRendererProps) {
+  const { t } = useTranslation();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const accent = isDark ? "#60a5fa" : "#1e40af";
+
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [filterVisible, setFilterVisible] = useState(false);
   const [activeFilterCount, setActiveFilterCount] = useState(0);
+  // Group-by override: `undefined` defers to the view's configured grouping,
+  // `null` forces a flat list, a string groups by that field.
+  const [groupOverride, setGroupOverride] = useState<string | null | undefined>(
+    undefined,
+  );
+  const [groupSheetOpen, setGroupSheetOpen] = useState(false);
 
   /* ---- Selection state ---- */
   const selectionMode = selectionModeProp ?? view?.selection?.type ?? "none";
@@ -334,13 +365,26 @@ export function ListViewRenderer({
     return [];
   }, [view, fields, records]);
 
+  /* ---- Grouping (view default, overridable in-session) ---- */
+  const effectiveGroupField =
+    groupOverride !== undefined
+      ? groupOverride
+      : (view?.grouping?.fields?.[0]?.field ?? null);
+
   /* ---- Spec-aligned display options ---- */
-  const listItems = useMemo(() => buildListItems(records, view), [records, view]);
+  const listItems = useMemo(
+    () => buildListItems(records, view, effectiveGroupField),
+    [records, view, effectiveGroupField],
+  );
   const densityClass = rowDensityClass(view?.rowHeight);
   const striped = !!view?.striped;
   const bordered = view?.bordered !== false;
   const summaryColumns = useMemo(
     () => columns.filter((c) => c.summary && c.summary !== "none"),
+    [columns],
+  );
+  const sortableColumns = useMemo(
+    () => columns.filter((c) => c.sortable !== false && !c.hidden),
     [columns],
   );
 
@@ -581,12 +625,12 @@ export function ListViewRenderer({
             <AlertCircle size={40} color="#dc2626" />
           </View>
         }
-        title="Couldn't Load Records"
+        title={t("records.loadError")}
         description={error.message}
         action={
           onRefresh ? (
             <Button size="sm" onPress={() => void onRefresh()}>
-              Retry
+              {t("common.retry")}
             </Button>
           ) : undefined
         }
@@ -605,7 +649,7 @@ export function ListViewRenderer({
               <SearchBar
                 value={searchQuery}
                 onChangeText={handleSearchChange}
-                placeholder="Search records…"
+                placeholder={t("records.searchRecords")}
               />
             </View>
           )}
@@ -627,40 +671,73 @@ export function ListViewRenderer({
         </View>
       )}
 
-      {/* Sort chips */}
-      {columns.some((c) => c.sortable !== false) && (
-        <View className="flex-row flex-wrap gap-2 px-4 pb-2 pt-3">
-          {columns
-            .filter((c) => c.sortable !== false && !c.hidden)
-            .slice(0, 4)
-            .map((col) => {
-              const isActive = sortField === col.field;
-              return (
-                <Pressable
-                  key={col.field}
+      {/* Sort + group controls */}
+      {sortableColumns.length > 0 && (
+        <View className="flex-row flex-wrap items-center gap-2 px-4 pb-2 pt-3">
+          {/* Group-by control */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: !!effectiveGroupField }}
+            accessibilityLabel={t("records.groupBy")}
+            className={cn(
+              "flex-row items-center rounded-full border px-3 py-1.5",
+              effectiveGroupField
+                ? "border-primary bg-primary/10"
+                : "border-border bg-card",
+            )}
+            onPress={() => setGroupSheetOpen(true)}
+          >
+            <Layers size={13} color={effectiveGroupField ? accent : "#94a3b8"} />
+            <Text
+              className={cn(
+                "ml-1.5 text-xs font-medium",
+                effectiveGroupField ? "text-primary" : "text-muted-foreground",
+              )}
+            >
+              {effectiveGroupField
+                ? (columns.find((c) => c.field === effectiveGroupField)?.label ??
+                  effectiveGroupField)
+                : t("records.groupBy")}
+            </Text>
+          </Pressable>
+
+          {/* Sort chips — active chip shows direction; the rest hint sortability */}
+          {sortableColumns.slice(0, 4).map((col) => {
+            const isActive = sortField === col.field;
+            return (
+              <Pressable
+                key={col.field}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={`${t("records.sortBy")}: ${col.label ?? col.field}`}
+                className={cn(
+                  "flex-row items-center rounded-full border px-3 py-1.5",
+                  isActive ? "border-primary bg-primary/10" : "border-border bg-card",
+                )}
+                onPress={() => handleSort(col.field)}
+              >
+                <Text
                   className={cn(
-                    "flex-row items-center rounded-full border px-3 py-1.5",
-                    isActive ? "border-primary bg-primary/10" : "border-border bg-card",
+                    "text-xs font-medium",
+                    isActive ? "text-primary" : "text-muted-foreground",
                   )}
-                  onPress={() => handleSort(col.field)}
                 >
-                  <Text
-                    className={cn(
-                      "text-xs font-medium",
-                      isActive ? "text-primary" : "text-muted-foreground",
-                    )}
-                  >
-                    {col.label ?? col.field}
-                  </Text>
-                  {isActive &&
-                    (sortDir === "asc" ? (
-                      <ChevronUp size={12} color="#1e40af" className="ml-1" />
+                  {col.label ?? col.field}
+                </Text>
+                <View className="ml-1">
+                  {isActive ? (
+                    sortDir === "asc" ? (
+                      <ArrowUp size={12} color={accent} />
                     ) : (
-                      <ChevronDown size={12} color="#1e40af" className="ml-1" />
-                    ))}
-                </Pressable>
-              );
-            })}
+                      <ArrowDown size={12} color={accent} />
+                    )
+                  ) : (
+                    <ArrowUpDown size={12} color="#94a3b8" />
+                  )}
+                </View>
+              </Pressable>
+            );
+          })}
         </View>
       )}
 
@@ -691,8 +768,8 @@ export function ListViewRenderer({
                   <SearchIcon size={40} color="#94a3b8" />
                 </View>
               }
-              title="No Records"
-              description="No records found for this view."
+              title={t("records.noRecords")}
+              description={t("records.noRecordsDescription")}
             />
           )
         }
@@ -735,6 +812,60 @@ export function ListViewRenderer({
           onApply={handleFilterApply}
         />
       )}
+
+      {/* Group-by picker */}
+      <BottomSheet
+        open={groupSheetOpen}
+        onOpenChange={setGroupSheetOpen}
+        title={t("records.groupBy")}
+      >
+        <View className="gap-0.5">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: !effectiveGroupField }}
+            className="flex-row items-center justify-between rounded-lg px-3 py-3 active:bg-muted"
+            onPress={() => {
+              setGroupOverride(null);
+              setGroupSheetOpen(false);
+            }}
+          >
+            <Text
+              className={cn(
+                "text-base",
+                effectiveGroupField ? "text-foreground" : "font-semibold text-primary",
+              )}
+            >
+              {t("records.groupNone")}
+            </Text>
+            {!effectiveGroupField && <Check size={18} color={accent} />}
+          </Pressable>
+          {sortableColumns.map((col) => {
+            const selected = effectiveGroupField === col.field;
+            return (
+              <Pressable
+                key={col.field}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                className="flex-row items-center justify-between rounded-lg px-3 py-3 active:bg-muted"
+                onPress={() => {
+                  setGroupOverride(col.field);
+                  setGroupSheetOpen(false);
+                }}
+              >
+                <Text
+                  className={cn(
+                    "text-base",
+                    selected ? "font-semibold text-primary" : "text-foreground",
+                  )}
+                >
+                  {col.label ?? col.field}
+                </Text>
+                {selected && <Check size={18} color={accent} />}
+              </Pressable>
+            );
+          })}
+        </View>
+      </BottomSheet>
     </View>
   );
 }
