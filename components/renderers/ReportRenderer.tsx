@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { FileText, AlertCircle } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { useThemeColors } from "~/lib/theme-colors";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { Skeleton } from "~/components/ui/Skeleton";
@@ -308,6 +309,7 @@ export function ReportRenderer({
   isLoading,
   error,
 }: ReportRendererProps) {
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   if (isLoading) {
     return (
@@ -338,7 +340,7 @@ export function ReportRenderer({
       <EmptyState
         icon={AlertCircle}
         variant="error"
-        title="Couldn't Load Report"
+        title={t("empty.loadReport")}
         description={error.message}
       />
     );
@@ -348,8 +350,8 @@ export function ReportRenderer({
     return (
       <EmptyState
         icon={FileText}
-        title="No Report Data"
-        description="There's nothing to report for the current selection."
+        title={t("empty.reportTitle")}
+        description={t("empty.reportDesc")}
       />
     );
   }

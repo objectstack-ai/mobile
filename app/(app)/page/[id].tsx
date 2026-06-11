@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { useClient } from "@objectstack/client-react";
 import { AlertCircle } from "lucide-react-native";
 import { ScreenHeader } from "~/components/common/ScreenHeader";
@@ -20,6 +21,7 @@ import {
  */
 export default function SDUIPageScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
   const client = useClient();
   const [schema, setSchema] = useState<PageSchema | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function SDUIPageScreen() {
         <EmptyState
           icon={AlertCircle}
           variant="error"
-          title="Couldn't Load Page"
+          title={t("empty.loadPage")}
           description={error.message}
         />
       ) : schema ? (

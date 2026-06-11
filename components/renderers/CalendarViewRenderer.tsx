@@ -6,6 +6,7 @@ import {
   Pressable,
 } from "react-native";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { useThemeColors } from "~/lib/theme-colors";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { cn } from "~/lib/utils";
@@ -113,6 +114,7 @@ export function CalendarViewRenderer({
   initialYear,
   initialMonth,
 }: CalendarViewRendererProps) {
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   const now = new Date();
   const [year, setYear] = useState(initialYear ?? now.getFullYear());
@@ -257,7 +259,7 @@ export function CalendarViewRenderer({
             Events for {selectedDate}
           </Text>
           {selectedEvents.length === 0 ? (
-            <Text className="text-sm text-muted-foreground">No events</Text>
+            <Text className="text-sm text-muted-foreground">{t("empty.calendarEvents")}</Text>
           ) : (
             selectedEvents.map((ev) => (
               <Pressable

@@ -11,6 +11,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { WidgetChart } from "./charts/WidgetChart";
+import { useTranslation } from "react-i18next";
 import { formatByPattern, formatCurrency, formatNumber } from "~/lib/formatting";
 import { useThemeColors } from "~/lib/theme-colors";
 import type { DashboardMeta, DashboardWidgetMeta } from "./types";
@@ -185,6 +186,7 @@ function ListWidget({
   widget: DashboardWidgetMeta;
   data?: WidgetDataPayload;
 }) {
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   const records = data?.records ?? [];
 
@@ -202,7 +204,7 @@ function ListWidget({
         {data?.isLoading ? (
           <ActivityIndicator size="small" />
         ) : records.length === 0 ? (
-          <Text className="text-sm text-muted-foreground">No data</Text>
+          <Text className="text-sm text-muted-foreground">{t("empty.noData")}</Text>
         ) : (
           <View className="gap-2">
             {records.slice(0, 5).map((rec, idx) => {
@@ -243,6 +245,7 @@ function ChartWidget({
   widget: DashboardWidgetMeta;
   data?: WidgetDataPayload;
 }) {
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   const chartType = String(widget.chartConfig?.type ?? widget.type ?? "bar");
   const colors = Array.isArray(widget.chartConfig?.colors)
@@ -275,7 +278,7 @@ function ChartWidget({
           <View className="items-center justify-center py-8">
             <BarChart3 size={48} color="#94a3b8" />
             <Text className="mt-3 text-sm text-muted-foreground">
-              No data to chart
+              {t("empty.noDataToChart")}
             </Text>
           </View>
         )}
@@ -344,6 +347,7 @@ export function DashboardViewRenderer({
   isLoading = false,
   onWidgetPress: _onWidgetPress,
 }: DashboardViewRendererProps) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const numColumns = screenWidth > SINGLE_COLUMN_MAX ? 2 : 1;
 
@@ -357,9 +361,9 @@ export function DashboardViewRenderer({
         <View className="h-20 w-20 items-center justify-center rounded-2xl bg-muted">
           <Activity size={40} color="#94a3b8" />
         </View>
-        <Text className="mt-5 text-lg font-semibold text-foreground">No Dashboard</Text>
+        <Text className="mt-5 text-lg font-semibold text-foreground">{t("empty.dashboardTitle")}</Text>
         <Text className="mt-2 text-center text-sm text-muted-foreground">
-          No dashboard widgets have been configured.
+          {t("empty.dashboardDesc")}
         </Text>
       </View>
     );

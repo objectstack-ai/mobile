@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { BarChart3, TrendingUp, PieChart, Activity, AlertCircle } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { useThemeColors } from "~/lib/theme-colors";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
 import { Skeleton } from "~/components/ui/Skeleton";
@@ -202,12 +203,17 @@ function FunnelChartView({ data, height }: { data: AnalyticsDataPoint[]; height:
 /*  Chart dispatcher                                                   */
 /* ------------------------------------------------------------------ */
 
-function renderChart(type: ChartType, data: AnalyticsDataPoint[], height: number) {
+function renderChart(
+  type: ChartType,
+  data: AnalyticsDataPoint[],
+  height: number,
+  emptyLabel: string,
+) {
   if (data.length === 0) {
     return (
       <View className="items-center justify-center py-12">
         <BarChart3 size={40} color="#94a3b8" />
-        <Text className="mt-3 text-sm text-muted-foreground">No data available</Text>
+        <Text className="mt-3 text-sm text-muted-foreground">{emptyLabel}</Text>
       </View>
     );
   }
@@ -244,6 +250,7 @@ export function ChartViewRenderer({
   error,
   chartHeight = 220,
 }: ChartViewRendererProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16 }}>
@@ -277,7 +284,7 @@ export function ChartViewRenderer({
       <EmptyState
         icon={AlertCircle}
         variant="error"
-        title="Couldn't Load Chart"
+        title={t("empty.loadChart")}
         description={error.message}
       />
     );
@@ -295,7 +302,7 @@ export function ChartViewRenderer({
           </View>
         </CardHeader>
         <CardContent>
-          {renderChart(chartType, data, chartHeight)}
+          {renderChart(chartType, data, chartHeight, t("empty.noDataAvailable"))}
         </CardContent>
       </Card>
     </ScrollView>

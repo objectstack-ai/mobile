@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { MapPin, Navigation } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { useThemeColors } from "~/lib/theme-colors";
 import { Card, CardContent } from "~/components/ui/Card";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
@@ -96,6 +97,7 @@ export function MapViewRenderer({
   isLoading = false,
   onMarkerPress,
 }: MapViewRendererProps) {
+  const { t } = useTranslation();
   const { accent } = useThemeColors();
   if (isLoading) {
     return (
@@ -109,9 +111,9 @@ export function MapViewRenderer({
     return (
       <View className="flex-1 items-center justify-center px-6">
         <MapPin size={48} color="#94a3b8" />
-        <Text className="mt-4 text-lg font-semibold text-foreground">No Locations</Text>
+        <Text className="mt-4 text-lg font-semibold text-foreground">{t("empty.mapTitle")}</Text>
         <Text className="mt-2 text-center text-sm text-muted-foreground">
-          No records with location data were found.
+          {t("empty.mapDesc")}
         </Text>
       </View>
     );

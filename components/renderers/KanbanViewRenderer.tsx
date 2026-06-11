@@ -7,6 +7,7 @@ import {
   Pressable,
 } from "react-native";
 import { GripVertical, Plus } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "~/components/ui/Skeleton";
 import type { FieldDefinition } from "./types";
 
@@ -139,6 +140,7 @@ function KanbanColumnView({
   onCardPress?: (record: Record<string, unknown>) => void;
   onAddCard?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="mr-3 w-64 rounded-xl bg-muted/30 p-2">
       {/* Column header */}
@@ -176,7 +178,7 @@ function KanbanColumnView({
         )}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <Text className="py-4 text-center text-xs text-muted-foreground">No items</Text>
+          <Text className="py-4 text-center text-xs text-muted-foreground">{t("empty.kanbanItems")}</Text>
         }
       />
     </View>
