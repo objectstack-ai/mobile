@@ -10,6 +10,8 @@ import {
   ChevronRight,
   AlertCircle,
   MoreHorizontal,
+  Check,
+  Pencil,
 } from "lucide-react-native";
 import { cn } from "~/lib/utils";
 import { getIcon } from "~/lib/getIcon";
@@ -18,7 +20,7 @@ import { Button } from "~/components/ui/Button";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { isFieldVisible, isSectionVisible } from "~/lib/conditional-fields";
-import { FieldRenderer } from "./fields/FieldRenderer";
+import { FieldRenderer, isSelectType, OptionBadge } from "./fields/FieldRenderer";
 import type { FieldDefinition, FormViewMeta, FormSection, ActionMeta } from "./types";
 
 /** Skeleton placeholder that mirrors the detail's stacked section/field layout. */
@@ -93,6 +95,12 @@ export interface DetailViewRendererProps {
   allowDelete?: boolean;
   /** Extra content rendered at the end of the scroll body (e.g. lifecycle diagram). */
   footer?: React.ReactNode;
+  /**
+   * Inline-edit a select/status field straight from the detail. When provided,
+   * those fields render a tappable badge that opens an option picker; the
+   * handler persists the change. Omit to keep the detail strictly read-only.
+   */
+  onFieldEdit?: (field: string, value: unknown) => void | Promise<void>;
 }
 
 export interface RelatedListConfig {
@@ -471,6 +479,89 @@ function RecordNavigator({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Inline select edit                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A select/status field shown as its coloured badge with a pencil affordance.
+ * Tapping opens a picker; choosing a new option calls `onEdit` (which persists)
+ * and reflects a saving spinner until it resolves.
+ */
+function EditableSelectField({
+  label,
+  field,
+  value,
+  onEdit,
+}: {
+  label: string;
+  field: FieldDefinition;
+  value: unknown;
+  onEdit: (value: unknown) => void | Promise<void>;
+}) {
+  const { t } = useTranslation();
+  const { colorScheme } = useColorScheme();
+  const accent = colorScheme === "dark" ? "#60a5fa" : "#1e40af";
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const options = field.options ?? [];
+
+  return (
+    <View className="gap-1">
+      <Text className="text-sm font-medium text-muted-foreground">{label}</Text>
+      <Pressable
+        className="flex-row items-center gap-2 self-start active:opacity-70"
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={t("records.editField", { field: label })}
+      >
+        {value != null && value !== "" ? (
+          <OptionBadge field={field} value={value} />
+        ) : (
+          <Text className="text-base text-muted-foreground">—</Text>
+        )}
+        {saving ? (
+          <ActivityIndicator size="small" color={accent} />
+        ) : (
+          <Pencil size={13} color="#94a3b8" />
+        )}
+      </Pressable>
+
+      <BottomSheet open={open} onOpenChange={setOpen} title={label}>
+        {options.map((opt) => {
+          const selected = String(opt.value) === String(value);
+          return (
+            <Pressable
+              key={String(opt.value)}
+              className="flex-row items-center justify-between rounded-lg px-2 py-3 active:bg-muted"
+              disabled={saving}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={opt.label ?? String(opt.value)}
+              onPress={async () => {
+                if (selected) {
+                  setOpen(false);
+                  return;
+                }
+                setSaving(true);
+                try {
+                  await onEdit(opt.value);
+                } finally {
+                  setSaving(false);
+                  setOpen(false);
+                }
+              }}
+            >
+              <OptionBadge field={field} value={opt.value} />
+              {selected && <Check size={18} color={accent} />}
+            </Pressable>
+          );
+        })}
+      </BottomSheet>
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Component                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -497,6 +588,7 @@ export function DetailViewRenderer({
   allowEdit = true,
   allowDelete = true,
   footer,
+  onFieldEdit,
 }: DetailViewRendererProps) {
   const { t } = useTranslation();
 
@@ -647,15 +739,37 @@ export function DetailViewRenderer({
                   fieldDef?.label ??
                   fieldName.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+                const fieldShape = {
+                  name: fieldName,
+                  label,
+                  type: fieldDef?.type ?? "text",
+                  options: fieldDef?.options,
+                };
+
+                // Inline-editable select/status fields (when a handler is wired
+                // and the field carries options) become a tappable badge.
+                const editable =
+                  !!onFieldEdit &&
+                  isSelectType(fieldShape.type) &&
+                  (fieldDef?.options?.length ?? 0) > 0 &&
+                  !meta?.readonly;
+
+                if (editable) {
+                  return (
+                    <EditableSelectField
+                      key={fieldName}
+                      label={label}
+                      field={fieldShape}
+                      value={record[fieldName]}
+                      onEdit={(v) => onFieldEdit!(fieldName, v)}
+                    />
+                  );
+                }
+
                 return (
                   <FieldRenderer
                     key={fieldName}
-                    field={{
-                      name: fieldName,
-                      label,
-                      type: fieldDef?.type ?? "text",
-                      options: fieldDef?.options,
-                    }}
+                    field={fieldShape}
                     value={record[fieldName]}
                     readonly
                   />
