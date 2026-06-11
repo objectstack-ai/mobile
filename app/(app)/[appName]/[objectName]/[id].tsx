@@ -19,6 +19,7 @@ import { useToast } from "~/components/ui/Toast";
 import { useConfirm } from "~/components/ui/ConfirmDialog";
 import { isActionVisible } from "~/lib/record-actions";
 import { renderRecordTitle } from "~/lib/record-title";
+import { useRecentStore } from "~/stores/recent-store";
 
 export default function ObjectDetailScreen() {
   const { appName, objectName, id } = useLocalSearchParams<{
@@ -71,6 +72,19 @@ export default function ObjectDetailScreen() {
   }, [fetchRecord]);
 
   const displayName = renderRecordTitle(meta, record, "Record Detail");
+
+  // Remember this record for the Home "Recent" section once it has loaded.
+  const trackRecent = useRecentStore((s) => s.track);
+  useEffect(() => {
+    if (!record || !objectName || !id || !appName) return;
+    trackRecent({
+      appId: appName,
+      object: objectName,
+      recordId: id,
+      title: String(displayName),
+      subtitle: meta?.label as string | undefined,
+    });
+  }, [record, objectName, id, appName, displayName, meta, trackRecent]);
 
   const formView: FormViewMeta | undefined = viewData ?? undefined;
 

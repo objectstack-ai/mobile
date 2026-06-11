@@ -230,7 +230,12 @@
     "dashboardsTitle": "لوحات المعلومات",
     "noDashboardsTitle": "لا توجد لوحات معلومات",
     "noDashboardsDesc": "لم تنشر أي من تطبيقاتك المثبتة لوحة معلومات بعد.",
-    "loadErrorTitle": "تعذّر تحميل لوحات المعلومات"
+    "loadErrorTitle": "تعذّر تحميل لوحات المعلومات",
+    "recentTitle": "الأخيرة",
+    "recentClear": "مسح",
+    "quickCreate": "إنشاء",
+    "quickCreateTitle": "إنشاء سجل",
+    "quickCreateEmpty": "لا توجد كائنات متاحة للإنشاء."
   },
   "search": {
     "title": "بحث",

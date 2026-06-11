@@ -227,7 +227,12 @@
     "dashboardsTitle": "Dashboards",
     "noDashboardsTitle": "No Dashboards",
     "noDashboardsDesc": "None of your installed apps publish a dashboard yet.",
-    "loadErrorTitle": "Couldn't Load Dashboards"
+    "loadErrorTitle": "Couldn't Load Dashboards",
+    "recentTitle": "Recent",
+    "recentClear": "Clear",
+    "quickCreate": "Create",
+    "quickCreateTitle": "Create record",
+    "quickCreateEmpty": "No objects available to create."
   },
   "search": {
     "title": "Search",

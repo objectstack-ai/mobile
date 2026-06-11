@@ -1,5 +1,6 @@
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, Text, ScrollView, Pressable, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useColorScheme } from "nativewind";
 import { webContentMaxWidth } from "~/lib/responsive";
 import {
   LayoutDashboard,
@@ -7,6 +8,8 @@ import {
   Inbox,
   AlertCircle,
   Sparkles,
+  Plus,
+  Clock,
 } from "lucide-react-native";
 import { useClient } from "@objectstack/client-react";
 import { useRouter } from "expo-router";
@@ -16,7 +19,9 @@ import { authClient } from "~/lib/auth-client";
 import { PressableCard } from "~/components/ui/PressableCard";
 import { EmptyState } from "~/components/ui/EmptyState";
 import { ListSkeleton } from "~/components/ui/ListSkeleton";
+import { QuickCreateSheet } from "~/components/home/QuickCreateSheet";
 import { useApps } from "~/hooks/useApps";
+import { useRecentStore } from "~/stores/recent-store";
 
 /** Pick a time-of-day greeting i18n key from the local hour. */
 function greetingKey(hour: number): "greetingMorning" | "greetingAfternoon" | "greetingEvening" {
@@ -44,8 +49,13 @@ export default function HomeScreen() {
   const client = useClient();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colorScheme } = useColorScheme();
+  const accent = colorScheme === "dark" ? "#60a5fa" : "#1e40af";
   const { data: session } = authClient.useSession();
   const { apps, isLoading: appsLoading, refetch: refetchApps } = useApps();
+  const recents = useRecentStore((s) => s.records);
+  const clearRecents = useRecentStore((s) => s.clear);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
 
   const firstName = (session?.user?.name ?? "").trim().split(/\s+/)[0];
   const greeting = t(`home.${greetingKey(new Date().getHours())}`);
@@ -122,11 +132,22 @@ export default function HomeScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#1e40af" />
         }
       >
-        <View className="mb-5">
-          <Text className="text-2xl font-bold text-foreground">{heading}</Text>
-          <Text className="mt-1 text-sm text-muted-foreground">
-            {t("home.subtitle")}
-          </Text>
+        <View className="mb-5 flex-row items-start justify-between">
+          <View className="flex-1 pr-3">
+            <Text className="text-2xl font-bold text-foreground">{heading}</Text>
+            <Text className="mt-1 text-sm text-muted-foreground">
+              {t("home.subtitle")}
+            </Text>
+          </View>
+          {/* Global quick-create — pick any object and open its blank form. */}
+          <Pressable
+            className="h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-80"
+            onPress={() => setQuickCreateOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t("home.quickCreate")}
+          >
+            <Plus size={24} color="#ffffff" />
+          </Pressable>
         </View>
 
         {/* AI Assistant quick entry — surfaces the assistant on the home screen
@@ -150,6 +171,60 @@ export default function HomeScreen() {
           </View>
           <ChevronRight size={20} color="#94a3b8" />
         </PressableCard>
+
+        {/* Recently viewed records — quick re-entry to what you were working on. */}
+        {recents.length > 0 && (
+          <View className="mb-5">
+            <View className="mb-2 flex-row items-center justify-between">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("home.recentTitle")}
+              </Text>
+              <Pressable
+                onPress={clearRecents}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={t("home.recentClear")}
+              >
+                <Text className="text-xs font-medium text-primary">
+                  {t("home.recentClear")}
+                </Text>
+              </Pressable>
+            </View>
+            <View className="gap-2">
+              {recents.slice(0, 5).map((r) => (
+                <PressableCard
+                  key={`${r.appId}/${r.object}/${r.recordId}`}
+                  className="flex-row items-center p-3.5"
+                  onPress={() =>
+                    // Dynamic route — cast, matching the other record links.
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    router.push(`/(app)/${r.appId}/${r.object}/${r.recordId}` as any)
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={r.title}
+                >
+                  <View className="rounded-xl bg-primary/10 p-2.5">
+                    <Clock size={18} color={accent} />
+                  </View>
+                  <View className="ml-3 flex-1">
+                    <Text
+                      className="text-base font-medium text-card-foreground"
+                      numberOfLines={1}
+                    >
+                      {r.title}
+                    </Text>
+                    {r.subtitle ? (
+                      <Text className="text-xs text-muted-foreground" numberOfLines={1}>
+                        {r.subtitle}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <ChevronRight size={18} color="#94a3b8" />
+                </PressableCard>
+              ))}
+            </View>
+          </View>
+        )}
 
         {loading ? (
           <ListSkeleton count={4} />
@@ -212,6 +287,12 @@ export default function HomeScreen() {
           </View>
         )}
       </ScrollView>
+
+      <QuickCreateSheet
+        open={quickCreateOpen}
+        onOpenChange={setQuickCreateOpen}
+        apps={apps}
+      />
     </SafeAreaView>
   );
 }

@@ -225,7 +225,12 @@
     "dashboardsTitle": "仪表盘",
     "noDashboardsTitle": "暂无仪表盘",
     "noDashboardsDesc": "你已安装的应用尚未发布任何仪表盘。",
-    "loadErrorTitle": "无法加载仪表盘"
+    "loadErrorTitle": "无法加载仪表盘",
+    "recentTitle": "最近",
+    "recentClear": "清除",
+    "quickCreate": "新建",
+    "quickCreateTitle": "新建记录",
+    "quickCreateEmpty": "没有可创建的对象。"
   },
   "search": {
     "title": "搜索",
