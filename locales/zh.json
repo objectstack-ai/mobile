@@ -23,7 +23,8 @@
     "refresh": "刷新",
     "more": "更多",
     "settings": "设置",
-    "language": "语言"
+    "language": "语言",
+    "packages": "应用包"
   },
   "auth": {
     "signIn": "登录",

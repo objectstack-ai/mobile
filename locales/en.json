@@ -23,7 +23,8 @@
     "refresh": "Refresh",
     "more": "More",
     "settings": "Settings",
-    "language": "Language"
+    "language": "Language",
+    "packages": "Packages"
   },
   "auth": {
     "signIn": "Sign In",

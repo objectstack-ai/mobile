@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { Package, ToggleLeft, ToggleRight, Trash2 } from "lucide-react-native";
 import { usePackageManagement } from "~/hooks/usePackageManagement";
 import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/Card";
@@ -20,6 +21,7 @@ import { useConfirm } from "~/components/ui/ConfirmDialog";
  * Route: app/(app)/packages.tsx
  */
 export default function PackagesScreen() {
+  const { t } = useTranslation();
   const { packages, isLoading, error, refetch, enable, disable, uninstall } =
     usePackageManagement();
   const confirm = useConfirm();
@@ -53,7 +55,7 @@ export default function PackagesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={["left", "right"]}>
-      <ScreenHeader title="Packages" />
+      <ScreenHeader title={t("common.packages")} />
       <ScrollView className="flex-1 bg-background" contentContainerClassName="pb-4">
         {isLoading && !packages.length ? (
           <View className="p-4">
