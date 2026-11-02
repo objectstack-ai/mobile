@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, View } from "react-native";
 import { Button } from "~/components/ui/Button";
+import i18n from "~/lib/i18n";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -11,10 +12,7 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -33,12 +31,12 @@ export class ErrorBoundary extends React.Component<
       return (
         <View className="flex-1 items-center justify-center gap-4 px-6">
           <Text className="text-xl font-semibold text-foreground">
-            Something went wrong
+            {i18n.t("errorBoundary.title")}
           </Text>
           <Text className="text-center text-sm text-muted-foreground">
-            {this.state.error?.message ?? "An unexpected error occurred."}
+            {this.state.error?.message ?? i18n.t("errorBoundary.message")}
           </Text>
-          <Button onPress={this.handleRetry}>Try Again</Button>
+          <Button onPress={this.handleRetry}>{i18n.t("errorBoundary.retry")}</Button>
         </View>
       );
     }

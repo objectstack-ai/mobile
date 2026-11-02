@@ -26,15 +26,6 @@ jest.mock("nativewind", () => {
   };
 });
 
-/* ---- expo/fetch (streaming fetch — native module, unloadable in Node) ---- */
-jest.mock("expo/fetch", () => ({ fetch: jest.fn() }));
-
-/* ---- expo-clipboard ---- */
-jest.mock("expo-clipboard", () => ({
-  setStringAsync: jest.fn().mockResolvedValue(true),
-  getStringAsync: jest.fn().mockResolvedValue(""),
-}));
-
 /* ---- expo-localization ---- */
 jest.mock("expo-localization", () => ({
   getLocales: () => [{ languageCode: "en", regionCode: "US" }],
@@ -74,27 +65,9 @@ jest.mock("expo-network", () => ({
     isConnected: true,
     type: "wifi",
   }),
+  addNetworkStateListener: jest.fn(() => ({ remove: jest.fn() })),
   NetworkStateType: { WIFI: "wifi", CELLULAR: "cellular" },
 }));
-
-/* ---- expo-sqlite ---- */
-jest.mock("expo-sqlite", () => {
-  const mockDb = {
-    execAsync: jest.fn(),
-    getAllAsync: jest.fn().mockResolvedValue([]),
-    getFirstAsync: jest.fn().mockResolvedValue(null),
-    runAsync: jest.fn().mockResolvedValue({ changes: 0 }),
-    execSync: jest.fn(),
-    getAllSync: jest.fn().mockReturnValue([]),
-    getFirstSync: jest.fn().mockReturnValue(null),
-    runSync: jest.fn().mockReturnValue({ changes: 0 }),
-    withTransactionSync: jest.fn((fn: () => void) => fn()),
-  };
-  return {
-    openDatabaseAsync: jest.fn().mockResolvedValue(mockDb),
-    openDatabaseSync: jest.fn().mockReturnValue(mockDb),
-  };
-});
 
 /* ---- expo-haptics ---- */
 jest.mock("expo-haptics", () => ({
@@ -104,18 +77,6 @@ jest.mock("expo-haptics", () => ({
   ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
   NotificationFeedbackType: { Success: "success", Warning: "warning", Error: "error" },
 }));
-
-/* ---- expo-image ---- */
-jest.mock("expo-image", () => {
-  const { View } = require("react-native");
-  return { Image: View };
-});
-
-/* ---- @shopify/flash-list ---- */
-jest.mock("@shopify/flash-list", () => {
-  const { FlatList } = require("react-native");
-  return { FlashList: FlatList };
-});
 
 /* ---- lucide-react-native (stub all icons) ---- */
 jest.mock("lucide-react-native", () => {
@@ -127,31 +88,17 @@ jest.mock("lucide-react-native", () => {
         if (prop === "__esModule") return true;
         return View;
       },
-    },
+    }
   );
 });
 
 /* ---- expo-router ---- */
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn(), navigate: jest.fn() }),
   useSegments: () => [],
   useLocalSearchParams: () => ({}),
   Link: ({ children }: { children: React.ReactNode }) => children,
   Stack: { Screen: () => null },
-}));
-
-/* ---- @objectstack/client-react ---- */
-jest.mock("@objectstack/client-react", () => ({
-  ObjectStackProvider: ({ children }: { children: React.ReactNode }) => children,
-  useObject: jest.fn().mockReturnValue({ data: null }),
-  useView: jest.fn().mockReturnValue({ data: null }),
-  useFields: jest.fn().mockReturnValue({ data: [] }),
-  useClient: jest.fn().mockReturnValue({}),
-  useQuery: jest.fn().mockReturnValue({ data: null, isLoading: false }),
-  useMutation: jest.fn().mockReturnValue({ mutate: jest.fn(), mutateAsync: jest.fn() }),
-  usePagination: jest.fn().mockReturnValue({ data: null }),
-  useInfiniteQuery: jest.fn().mockReturnValue({ data: null }),
-  useMetadata: jest.fn().mockReturnValue({ data: null }),
 }));
 
 /* ---- expo-local-authentication ---- */
@@ -163,28 +110,6 @@ jest.mock("expo-local-authentication", () => ({
   AuthenticationType: { FINGERPRINT: 1, FACIAL_RECOGNITION: 2, IRIS: 3 },
 }));
 
-/* ---- @objectstack/client ---- */
-jest.mock("@objectstack/client", () => {
-  const MockClient = jest.fn().mockImplementation(() => ({}));
-  return {
-    createClient: jest.fn().mockReturnValue({}),
-    ObjectStackClient: MockClient,
-  };
-});
-
-/* ---- expo-background-fetch ---- */
-jest.mock("expo-background-fetch", () => ({
-  registerTaskAsync: jest.fn().mockResolvedValue(undefined),
-  unregisterTaskAsync: jest.fn().mockResolvedValue(undefined),
-  BackgroundFetchResult: { NoData: 1, NewData: 2, Failed: 3 },
-}));
-
-/* ---- expo-task-manager ---- */
-jest.mock("expo-task-manager", () => ({
-  defineTask: jest.fn(),
-  isTaskRegisteredAsync: jest.fn().mockResolvedValue(false),
-}));
-
 /* ---- @sentry/react-native ---- */
 jest.mock("@sentry/react-native", () => ({
   init: jest.fn(),
@@ -192,9 +117,7 @@ jest.mock("@sentry/react-native", () => ({
   captureMessage: jest.fn().mockReturnValue("mock-event-id"),
   setUser: jest.fn(),
   addBreadcrumb: jest.fn(),
-  startSpan: jest.fn((_opts: unknown, cb: (span: unknown) => unknown) =>
-    cb({ end: jest.fn() }),
-  ),
+  startSpan: jest.fn((_opts: unknown, cb: (span: unknown) => unknown) => cb({ end: jest.fn() })),
 }));
 
 /* ---- react-native-reanimated ---- */
@@ -211,15 +134,26 @@ jest.mock("react-native-reanimated", () => {
   const makeBuilder = () => {
     const builder: Record<string, unknown> = {};
     const chain = () => builder;
-    for (const m of ["delay", "duration", "springify", "damping", "stiffness",
-      "mass", "easing", "withInitialValues", "build", "randomDelay", "reduceMotion"]) {
+    for (const m of [
+      "delay",
+      "duration",
+      "springify",
+      "damping",
+      "stiffness",
+      "mass",
+      "easing",
+      "withInitialValues",
+      "build",
+      "randomDelay",
+      "reduceMotion",
+    ]) {
       builder[m] = chain;
     }
     return builder;
   };
   const animations = new Proxy(
     {},
-    { get: () => new Proxy(makeBuilder(), { get: (t, p) => (t as any)[p] ?? (() => t) }) },
+    { get: () => new Proxy(makeBuilder(), { get: (t, p) => (t as any)[p] ?? (() => t) }) }
   );
   const createAnimatedComponent = (Component: unknown) => Component;
   const Animated = {
@@ -254,7 +188,7 @@ jest.mock("react-native-reanimated", () => {
         // FadeInDown, FadeIn, SlideInRight, Layout, etc. → chainable builder.
         return (animations as any)[prop];
       },
-    },
+    }
   );
 });
 

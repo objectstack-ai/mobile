@@ -4,7 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "ObjectStack Mobile",
   slug: "objectstack-mobile",
-  version: "1.0.0",
+  version: "2.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "objectstack",
@@ -34,6 +34,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     "expo-router",
+    "expo-web-browser",
     [
       "@sentry/react-native/expo",
       {
@@ -43,7 +44,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   ],
   extra: {
-    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3100",
+    // Pre-filled on the server picker (white-label builds point it at their host).
+    defaultServerUrl: process.env.EXPO_PUBLIC_DEFAULT_SERVER_URL ?? "",
+    // Comma-separated hosts that may load inside the WebView besides the
+    // configured server — typically the SSO identity provider.
+    trustedHosts: process.env.EXPO_PUBLIC_TRUSTED_HOSTS ?? "",
     sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? "",
   },
 });

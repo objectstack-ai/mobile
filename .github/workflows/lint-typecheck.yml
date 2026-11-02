@@ -1,6 +1,10 @@
 name: Lint & Type Check
 
 on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
   workflow_dispatch:
 
 permissions:
@@ -20,9 +24,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install
-      - name: Type Check (Mobile)
+      - name: Type Check
         run: npx tsc --noEmit
-      - name: Type Check (Docs)
-        run: cd apps/docs && pnpm run types:check
       - name: Lint
         run: npx eslint . --ext .ts,.tsx

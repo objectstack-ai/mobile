@@ -50,5 +50,5 @@ module.exports = {
       },
     },
   ],
-  ignorePatterns: ["node_modules/", ".expo/", "dist/", "*.config.js", "babel.config.js", "server/hotcrm/"],
+  ignorePatterns: ["node_modules/", ".expo/", "dist/", "*.config.js", "babel.config.js"],
 };
