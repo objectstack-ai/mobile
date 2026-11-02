@@ -23,18 +23,22 @@ import { consoleUrl, routeFromConsoleUrl, safeConsoleRoute } from "~/lib/shell/c
 import { decideNavigation } from "~/lib/shell/navigation-policy";
 import type { RouteRule } from "~/lib/shell/route-owner";
 import {
-  BRIDGE_METHODS,
+  BRIDGE_CAPABILITIES,
   BRIDGE_PROTOCOL_VERSION,
   type BridgeHostInfo,
+  type PushTokenResult,
 } from "~/lib/shell/bridge/protocol";
 import {
   buildBootstrapScript,
   buildNavigateScript,
+  buildPushTokenChangedScript,
   buildResolveScript,
 } from "~/lib/shell/bridge/scripts";
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
+import { getInstallId } from "~/lib/install-id";
 import { addBreadcrumb, captureMessage } from "~/lib/sentry";
 import { useNetworkStatus } from "~/hooks/useNetworkStatus";
+import { usePushTokenChanges } from "~/hooks/usePushRouting";
 
 export interface ConsoleWebViewHandle {
   /** Move the Console to `route` on the configured server. */
@@ -212,7 +216,8 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         protocolVersion: BRIDGE_PROTOCOL_VERSION,
         platform: Platform.OS === "ios" ? "ios" : "android",
         appVersion: APP_VERSION,
-        capabilities: BRIDGE_METHODS,
+        installId: getInstallId(),
+        capabilities: BRIDGE_CAPABILITIES,
         safeArea: {
           top: insets.top,
           bottom: insets.bottom,
@@ -223,6 +228,20 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       [insets.top, insets.bottom, insets.left, insets.right]
     );
     const bootstrap = useMemo(() => buildBootstrapScript(hostInfo), [hostInfo]);
+
+    // A push token the OS reports (rotation) goes to the loaded page as
+    // `objectstack-native:pushTokenChanged`. It is not held for a page that is
+    // still loading or failed: that page reads the current token with
+    // `getPushToken()` once it starts.
+    const deliverPushToken = useCallback(
+      (token: PushTokenResult) => {
+        if (!loadedRef.current || failedRef.current) return;
+        const script = buildPushTokenChangedScript(serverUrl, token);
+        if (script) webviewRef.current?.injectJavaScript(script);
+      },
+      [serverUrl]
+    );
+    usePushTokenChanges(deliverPushToken);
 
     const handleMessage = useMemo(
       () =>

@@ -5,13 +5,15 @@
  * The bootstrap is written as plain ES5 so it runs before the Console bundle on
  * every WebView engine the shell supports.
  */
-import { consoleUrl, safeConsoleRoute } from "../console-url";
+import { consoleUrl, originOf, safeConsoleRoute } from "../console-url";
 import {
   BRIDGE_GLOBAL,
   BRIDGE_RESOLVE_GLOBAL,
   NAVIGATE_EVENT,
+  PUSH_TOKEN_CHANGED_EVENT,
   type BridgeHostInfo,
   type BridgeResult,
+  type PushTokenResult,
 } from "./protocol";
 
 /**
@@ -48,6 +50,7 @@ export function buildBootstrapScript(info: BridgeHostInfo): string {
     version: info.protocolVersion,
     platform: info.platform,
     appVersion: info.appVersion,
+    installId: typeof info.installId === "string" ? info.installId : null,
     capabilities: info.capabilities.slice(),
     safeArea: info.safeArea,
     has: function (capability) { return info.capabilities.indexOf(capability) !== -1; },
@@ -125,6 +128,33 @@ export function buildNavigateScript(serverUrl: string, route: string): string | 
     handled = false;
   }
   if (!handled) window.location.assign(url);
+})();
+true;`;
+}
+
+/**
+ * Snippet that dispatches `objectstack-native:pushTokenChanged`
+ * (`detail: { token, vendor }`) on `window`, or `null` when there is no token
+ * or no server origin to deliver to.
+ *
+ * The token goes only to a page on the configured server's origin — the same
+ * pages `getPushToken` answers. Whatever else is in the main frame when the OS
+ * reports the token (a trusted identity provider's sign-in page) gets nothing.
+ */
+export function buildPushTokenChangedScript(
+  serverUrl: string,
+  token: PushTokenResult
+): string | null {
+  const origin = originOf(serverUrl);
+  if (origin === null || typeof token.token !== "string" || token.token.length === 0) {
+    return null;
+  }
+  return `(function () {
+  if (!window.location || window.location.origin !== ${toScriptLiteral(origin)}) return;
+  if (typeof window.CustomEvent !== "function" || typeof window.dispatchEvent !== "function") return;
+  window.dispatchEvent(new window.CustomEvent(${toScriptLiteral(PUSH_TOKEN_CHANGED_EVENT)}, {
+    detail: ${toScriptLiteral({ token: token.token, vendor: token.vendor })}
+  }));
 })();
 true;`;
 }
