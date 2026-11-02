@@ -1,9 +1,9 @@
-# ObjectStack Mobile
+# ObjectOS Mobile
 
-Native shell for the ObjectStack Console — iOS and Android, built with Expo.
+Native shell for the ObjectOS Console — iOS and Android, built with Expo.
 
 > **2.x is a hybrid shell.** Business UI is the web Console served by your
-> ObjectStack server; this app hosts it and adds what the web cannot do well:
+> ObjectOS server; this app hosts it and adds what the web cannot do well:
 > server selection, push notifications, OS integration and native fallback
 > pages. The 1.x native metadata renderer lives on the
 > [`legacy/native-renderer`](https://github.com/objectstack-ai/mobile/tree/legacy/native-renderer)

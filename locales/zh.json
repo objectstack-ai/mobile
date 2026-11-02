@@ -12,7 +12,7 @@
   },
   "serverConfig": {
     "title": "连接服务器",
-    "subtitle": "输入 ObjectStack 服务器地址开始使用。",
+    "subtitle": "输入 ObjectOS 服务器地址开始使用。",
     "label": "服务器地址",
     "hint": "例如：https://app.example.com",
     "connect": "连接",

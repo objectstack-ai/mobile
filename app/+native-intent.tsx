@@ -2,7 +2,7 @@ import { redirectIncomingPath } from "~/lib/shell/incoming-link";
 
 /**
  * expo-router hook for links that open the app (scheme links, notification
- * deep links). Maps `objectstack://open?route=…` / `objectstack://console/…`
+ * deep links). Maps `objectos://open?route=…` / `objectos://console/…`
  * onto the Console screen; see `lib/shell/incoming-link.ts`.
  */
 export function redirectSystemPath({ path }: { path: string; initial: boolean }): string {

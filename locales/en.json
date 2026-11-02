@@ -12,7 +12,7 @@
   },
   "serverConfig": {
     "title": "Connect to Server",
-    "subtitle": "Enter your ObjectStack server address to get started.",
+    "subtitle": "Enter your ObjectOS server address to get started.",
     "label": "Server URL",
     "hint": "Example: https://app.example.com",
     "connect": "Connect",

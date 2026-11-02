@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "ObjectStack Mobile",
-    "slug": "objectstack-mobile",
+    "name": "ObjectOS",
+    "slug": "objectos-mobile",
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "objectstack",
+    "scheme": "objectos",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -13,13 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "ai.objectos.mobile"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "ai.objectos.mobile"
     },
     "web": {
       "favicon": "./assets/favicon.png",
