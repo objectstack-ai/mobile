@@ -36,6 +36,14 @@
       "notObjectOS": "Dies ist kein ObjectOS-Server. Verwenden Sie die Adresse, mit der Sie ObjectOS im Browser öffnen.",
       "serverError": "Der Server hat mit einem Fehler geantwortet (HTTP {{status}}). Versuchen Sie es später erneut oder fragen Sie Ihren Administrator.",
       "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    },
+    "managed": {
+      "title": "Von Ihrer Organisation eingerichtet",
+      "checking": "Der von Ihrer Organisation eingerichtete Server wird geprüft…",
+      "contactIt": "Bitte wenden Sie sich an Ihre IT-Administration.",
+      "retry": "Erneut versuchen",
+      "edit": "Andere Adresse eingeben",
+      "locked": "Der Server dieser App wird von Ihrer Organisation verwaltet und kann hier nicht geändert werden."
     }
   },
   "serverConfirm": {
@@ -62,6 +70,7 @@
     "title": "Organisation wechseln",
     "add": "Organisation oder Firmenserver hinzufügen",
     "footnote": "Jede Organisation behält ihre eigene Anmeldung. Wischen Sie nach links, um eine zu entfernen und sich dort abzumelden.",
+    "lockedFootnote": "Jede Organisation behält ihre eigene Anmeldung. {{label}} wurde von Ihrer Organisation eingerichtet und kann nicht entfernt werden.",
     "appSettings": "App-Einstellungen",
     "kind": {
       "cloud": "Cloud",

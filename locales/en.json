@@ -36,6 +36,14 @@
       "notObjectOS": "This isn't an ObjectOS server. Use the address you open ObjectOS with in a browser.",
       "serverError": "The server answered with an error (HTTP {{status}}). Try again later or ask your administrator.",
       "unknown": "Something went wrong. Please try again."
+    },
+    "managed": {
+      "title": "Set up by your organization",
+      "checking": "Checking the server your organization set up…",
+      "contactIt": "Please contact your IT administrator.",
+      "retry": "Try again",
+      "edit": "Enter a different address",
+      "locked": "Your organization manages this app's server, so it can't be changed here."
     }
   },
   "serverConfirm": {
@@ -62,6 +70,7 @@
     "title": "Switch organization",
     "add": "Add an organization or company server",
     "footnote": "Each organization keeps its own sign-in. Swipe left to remove one and sign out of it.",
+    "lockedFootnote": "Each organization keeps its own sign-in. {{label}} is set up by your organization and can't be removed.",
     "appSettings": "App settings",
     "kind": {
       "cloud": "Cloud",

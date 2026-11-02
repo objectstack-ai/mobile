@@ -36,6 +36,14 @@
       "notObjectOS": "Esto no es un servidor ObjectOS. Use la dirección con la que abre ObjectOS en un navegador.",
       "serverError": "El servidor respondió con un error (HTTP {{status}}). Inténtelo más tarde o consulte a su administrador.",
       "unknown": "Algo salió mal. Inténtelo de nuevo."
+    },
+    "managed": {
+      "title": "Configurado por tu organización",
+      "checking": "Comprobando el servidor que configuró tu organización…",
+      "contactIt": "Ponte en contacto con tu administrador de TI.",
+      "retry": "Reintentar",
+      "edit": "Introducir otra dirección",
+      "locked": "Tu organización gestiona el servidor de esta app, así que no se puede cambiar aquí."
     }
   },
   "serverConfirm": {
@@ -62,6 +70,7 @@
     "title": "Cambiar de organización",
     "add": "Añadir una organización o un servidor de empresa",
     "footnote": "Cada organización conserva su propio inicio de sesión. Deslice a la izquierda para quitar una y cerrar su sesión.",
+    "lockedFootnote": "Cada organización mantiene su propio inicio de sesión. Tu organización configuró {{label}}, así que no se puede quitar.",
     "appSettings": "Ajustes de la app",
     "kind": {
       "cloud": "Cloud",
