@@ -599,16 +599,17 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     // for history changes). That URL is the excursion's record of where the
     // top frame is. A page message never is.
     const onLoadStart = useCallback(
-      (e: { nativeEvent: { url: string } }) => {
-        const { url } = e.nativeEvent;
+      (e: { nativeEvent: { url?: string } }) => {
+        const url = e.nativeEvent.url ?? "";
         if (url) applyExcursion({ type: "location", url, loaded: false, now: Date.now() });
       },
       [applyExcursion]
     );
 
     const onLoadEnd = useCallback(
-      (e: { nativeEvent: { url: string; loading: boolean } }) => {
-        const { url, loading } = e.nativeEvent;
+      (e: { nativeEvent: { url?: string; loading: boolean } }) => {
+        const { loading } = e.nativeEvent;
+        const url = e.nativeEvent.url ?? "";
         if (url) applyExcursion({ type: "location", url, loaded: !loading, now: Date.now() });
         // `loading` is still true when a load is superseded by a redirect.
         // react-native-webview also calls this after `onError`; the load
@@ -697,7 +698,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
               // excursion page's error is the identity provider's to explain.
               if (
                 excursionRef.current.active &&
-                originOf(e.nativeEvent.url) !== originOf(serverUrlRef.current)
+                originOf(e.nativeEvent.url ?? "") !== originOf(serverUrlRef.current)
               ) {
                 return;
               }

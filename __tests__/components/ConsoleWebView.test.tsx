@@ -9,6 +9,7 @@ import {
   type ConsoleWebViewProps,
 } from "~/components/shell/ConsoleWebView";
 import { READY_TIMEOUT_MS } from "~/lib/shell/console-load";
+import { EXCURSION_MAX_NAVIGATIONS, EXCURSION_TIMEOUT_MS } from "~/lib/shell/sign-in-excursion";
 import { CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
 
 const mockWebView = {
@@ -17,6 +18,7 @@ const mockWebView = {
   injectJavaScript: jest.fn(),
   reload: jest.fn(),
   goBack: jest.fn(),
+  clearHistory: jest.fn(),
 };
 
 jest.mock("react-native-webview", () => {
@@ -31,6 +33,7 @@ jest.mock("react-native-webview", () => {
       injectJavaScript: mockWebView.injectJavaScript,
       reload: mockWebView.reload,
       goBack: mockWebView.goBack,
+      clearHistory: mockWebView.clearHistory,
     }));
     return <View testID={props.testID} />;
   });
@@ -136,6 +139,7 @@ beforeEach(() => {
   mockWebView.injectJavaScript.mockReset();
   mockWebView.reload.mockReset();
   mockWebView.goBack.mockReset();
+  mockWebView.clearHistory.mockReset();
 });
 
 describe("ConsoleWebView", () => {
@@ -832,5 +836,259 @@ describe("ConsoleWebView — saved connections", () => {
       await act(async () => mockWebView.props.onRenderProcessGone());
       expect(result).toBe("no-answer");
     });
+  });
+});
+
+describe("ConsoleWebView — sign-in excursion", () => {
+  const LOGIN = `${SERVER}/_console/login?redirect=%2Fapps%2Fcrm`;
+  const IDP = "https://login.idp-corp.example/oauth2/authorize?client_id=acme";
+  const CALLBACK = `${SERVER}/api/v1/auth/callback/corp?code=abc&state=s`;
+
+  /** What the WebView is told for a navigation request (`true` = load it). */
+  function decide(url: string, isTopFrame: boolean | undefined = true): boolean {
+    let result = false;
+    act(() => {
+      result = mockWebView.props.onShouldStartLoadWithRequest({ url, isTopFrame });
+    });
+    return result;
+  }
+
+  function loadEndAt(url: string) {
+    act(() => mockWebView.props.onLoadEnd({ nativeEvent: { url, loading: false } }));
+  }
+
+  /** The Console's sign-in page, loaded and ready. */
+  async function onSignInPage(overrides: Partial<ConsoleWebViewProps> = {}) {
+    const rendered = renderConsole({ initialRoute: "/login", serverLabel: "Acme ERP", ...overrides });
+    loadStart(LOGIN);
+    loadEndAt(LOGIN);
+    await consoleReady();
+    mockWebView.injectJavaScript.mockReset();
+    return rendered;
+  }
+
+  /** The sign-in page went to the provider, whose first page has loaded. */
+  async function inExcursion(overrides: Partial<ConsoleWebViewProps> = {}) {
+    const rendered = await onSignInPage(overrides);
+    expect(decide(IDP)).toBe(true);
+    loadEndAt(IDP);
+    return rendered;
+  }
+
+  async function postCall(method: string, url: string, id = "c1") {
+    await act(async () => {
+      mockWebView.props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type: "call", id, method }), url },
+      });
+    });
+  }
+
+  it("loads the provider from the sign-in page, uncovered, under a bar with its host and the server", async () => {
+    const { props } = await inExcursion();
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+    expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent("login.idp-corp.example");
+    expect(screen.getByText("Signing in on an external page · Acme ERP")).toBeTruthy();
+    expect(screen.queryByText("Loading…")).toBeNull();
+  });
+
+  it("names the server by its host when the connection has no label", async () => {
+    await inExcursion({ serverLabel: null });
+    expect(screen.getByText("Signing in on an external page · acme.example.com")).toBeTruthy();
+  });
+
+  it("sends the same page to the system browser from any other Console page", async () => {
+    const { props } = renderConsole();
+    loadEndAt(`${SERVER}/_console/apps/crm`);
+    await consoleReady();
+    expect(decide(IDP)).toBe(false);
+    expect(props.onOpenExternal).toHaveBeenCalledWith(IDP);
+    expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+  });
+
+  it("keeps the system browser for plain http, even from the sign-in page", async () => {
+    const { props } = await onSignInPage();
+    expect(decide("http://login.idp-corp.example/authorize")).toBe(false);
+    expect(props.onOpenExternal).toHaveBeenCalledWith("http://login.idp-corp.example/authorize");
+    expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+  });
+
+  it("never starts one from a sub-frame the platform reports as such", async () => {
+    await onSignInPage();
+    // iOS reports `isTopFrame: false`; the plain policy loads sub-frames.
+    expect(decide(IDP, false)).toBe(true);
+    expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+  });
+
+  it("follows the host of the page on screen", async () => {
+    await inExcursion();
+    expect(decide("https://mfa.idp-corp.example/verify")).toBe(true);
+    expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent("mfa.idp-corp.example");
+    // A page Android loads without asking (a form POST) is reported at its load.
+    loadEndAt("https://federation.partner.example/saml");
+    expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent("federation.partner.example");
+  });
+
+  describe("the bridge", () => {
+    it("answers no call while an excursion page is on screen, whatever origin it names", async () => {
+      const { props } = await inExcursion();
+      await postCall("getPushToken", IDP);
+      await postCall("getPushToken", `${SERVER}/_console/login`);
+      expect(props.capabilities.getPushToken).not.toHaveBeenCalled();
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it("drops the answer to a call the Console made before it left for the provider", async () => {
+      let settle: (value: null) => void = () => {};
+      const getPushToken = jest.fn(() => new Promise<null>((resolve) => (settle = resolve)));
+      await onSignInPage({
+        capabilities: {
+          getPushToken,
+          haptic: jest.fn(),
+          openExternal: jest.fn().mockResolvedValue(undefined),
+          resetServer: jest.fn().mockResolvedValue(undefined),
+          scan: jest.fn().mockResolvedValue(null),
+          showConnectionSwitcher: jest.fn(),
+        },
+      });
+      await postCall("getPushToken", LOGIN, "d1.1");
+      expect(getPushToken).toHaveBeenCalledTimes(1);
+      expect(decide(IDP)).toBe(true);
+      await act(async () => settle(null));
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it("answers the Console again once it is back", async () => {
+      await inExcursion();
+      expect(decide(CALLBACK)).toBe(true);
+      loadEndAt(`${SERVER}/_console/home`);
+      await postCall("getPushToken", `${SERVER}/_console/home`);
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('"id":"c1","ok":true')
+      );
+    });
+  });
+
+  describe("the end", () => {
+    afterEach(() => jest.useRealTimers());
+
+    it("returns: holds a route asked for meanwhile until the Console is ready again", async () => {
+      jest.useFakeTimers();
+      const { ref } = await inExcursion();
+      act(() => ref.current!.navigate("/apps/crm/lead/9"));
+      // The provider's page finishing its load never releases the route into it.
+      loadEndAt("https://login.idp-corp.example/login");
+      act(() => jest.advanceTimersByTime(READY_TIMEOUT_MS * 2));
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+
+      expect(decide(CALLBACK)).toBe(true);
+      expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+      // The Console boots behind the cover, as on a cold start.
+      expect(screen.getByText("Loading…")).toBeTruthy();
+      loadEndAt(`${SERVER}/_console/home`);
+      await consoleReady();
+      expect(screen.queryByText("Loading…")).toBeNull();
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(navigatedTo("/apps/crm/lead/9"));
+      expect(mockWebView.mounts).toBe(1);
+    });
+
+    it("returns on a server page Android loads without asking (a SAML form POST)", async () => {
+      await inExcursion();
+      loadEndAt(`${SERVER}/_console/home`);
+      expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+      expect(mockWebView.mounts).toBe(1);
+    });
+
+    it("clears Android's history back on the server, so back cannot reach the provider's pages", async () => {
+      const Platform = require("react-native").Platform;
+      const original = Platform.OS;
+      Platform.OS = "android";
+      try {
+        await inExcursion();
+        expect(decide(CALLBACK)).toBe(true);
+        expect(mockWebView.clearHistory).not.toHaveBeenCalled();
+        loadEndAt(`${SERVER}/_console/home`);
+        expect(mockWebView.clearHistory).toHaveBeenCalledTimes(1);
+        loadEndAt(`${SERVER}/_console/home`);
+        expect(mockWebView.clearHistory).toHaveBeenCalledTimes(1);
+      } finally {
+        Platform.OS = original;
+      }
+    });
+
+    it("取消 goes back to the server's sign-in page in a new WebView", async () => {
+      await inExcursion();
+      fireEvent.press(screen.getByTestId("shell-excursion-cancel"));
+      expect(mockWebView.mounts).toBe(2);
+      expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+      expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+      expect(screen.queryByTestId("shell-excursion-notice")).toBeNull();
+    });
+
+    it(`ends with an error after ${EXCURSION_MAX_NAVIGATIONS} navigations`, async () => {
+      await inExcursion();
+      for (let n = 2; n <= EXCURSION_MAX_NAVIGATIONS; n += 1) {
+        expect(decide(`https://login.idp-corp.example/step/${n}`)).toBe(true);
+      }
+      expect(decide("https://login.idp-corp.example/loop")).toBe(false);
+      expect(screen.getByTestId("shell-excursion-notice-redirects")).toBeTruthy();
+      expect(mockWebView.mounts).toBe(2);
+      expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+      fireEvent.press(screen.getByTestId("shell-excursion-notice-dismiss"));
+      expect(screen.queryByTestId("shell-excursion-notice")).toBeNull();
+    });
+
+    it("ends with an error after the time limit", async () => {
+      jest.useFakeTimers();
+      await inExcursion();
+      act(() => jest.advanceTimersByTime(EXCURSION_TIMEOUT_MS - 1));
+      expect(screen.getByTestId("shell-excursion-bar")).toBeTruthy();
+      act(() => jest.advanceTimersByTime(1));
+      expect(screen.getByTestId("shell-excursion-notice-timeout")).toBeTruthy();
+      expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+      expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+    });
+
+    it("ends with an error when a page is plain http", async () => {
+      const { props } = await inExcursion();
+      expect(decide("http://login.idp-corp.example/next")).toBe(false);
+      expect(props.onOpenExternal).not.toHaveBeenCalled();
+      expect(screen.getByTestId("shell-excursion-notice-insecure")).toBeTruthy();
+      expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+    });
+
+    it("says the sign-in method is not supported yet for a provider that refuses WebViews", async () => {
+      const { props } = await onSignInPage();
+      expect(decide("https://accounts.google.com/o/oauth2/v2/auth?client_id=x")).toBe(false);
+      expect(props.onOpenExternal).not.toHaveBeenCalled();
+      expect(screen.getByTestId("shell-excursion-notice-unsupported")).toHaveTextContent(
+        "This sign-in method isn't supported in the app yet. Choose another way to sign in."
+      );
+      expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+    });
+
+    it("ends when the user switches to another connection", async () => {
+      const { props, view } = await inExcursion();
+      view.rerender(
+        <ConsoleWebView {...props} serverUrl="https://erp.example.com" resumeRoute={null} />
+      );
+      expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+      expect(mockWebView.props.source).toEqual({ uri: "https://erp.example.com/_console/home" });
+      // The other server's pages are not the excursion's.
+      expect(decide(IDP)).toBe(false);
+    });
+
+    it("ends when a network failure replaces the page", async () => {
+      await inExcursion();
+      failLoad();
+      expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
+      expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+    });
+  });
+
+  it("leaves an excursion page's own HTTP error to the provider", async () => {
+    await inExcursion();
+    act(() => mockWebView.props.onHttpError({ nativeEvent: { statusCode: 503, url: IDP } }));
+    expect(screen.queryByTestId("shell-offline-fallback")).toBeNull();
+    expect(screen.getByTestId("shell-excursion-bar")).toBeTruthy();
   });
 });

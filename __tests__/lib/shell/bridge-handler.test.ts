@@ -52,6 +52,38 @@ describe("bridge handler", () => {
     await expect(handle(call("getPushToken"), PAGE)).resolves.toMatchObject({ ok: true });
   });
 
+  describe("during a sign-in excursion", () => {
+    const IDP_PAGE = "https://login.idp-corp.example/oauth2/authorize";
+
+    it("never trusts the excursion page's origin, in an excursion or after it", async () => {
+      let inExcursion = true;
+      const { handle, deps } = setup({ inExcursion: () => inExcursion });
+      await expect(handle(call("getPushToken"), IDP_PAGE)).resolves.toBeNull();
+      inExcursion = false;
+      await expect(handle(call("getPushToken"), IDP_PAGE)).resolves.toBeNull();
+      await handle(JSON.stringify({ type: "event", name: "ready" }), IDP_PAGE);
+      expect(deps.getPushToken).not.toHaveBeenCalled();
+      expect(deps.onEvent).not.toHaveBeenCalled();
+    });
+
+    it("answers no call and takes no event, even one naming the server's origin", async () => {
+      // The main frame is the provider's page, and a reply runs there. On iOS
+      // a server-origin sub-frame inside that page reports its own URL.
+      let inExcursion = true;
+      const { handle, deps } = setup({ inExcursion: () => inExcursion });
+      await expect(handle(call("getPushToken"), PAGE)).resolves.toBeNull();
+      await expect(handle(call("scan"), PAGE)).resolves.toBeNull();
+      await handle(JSON.stringify({ type: "event", name: "ready" }), PAGE);
+      expect(deps.getPushToken).not.toHaveBeenCalled();
+      expect(deps.scan).not.toHaveBeenCalled();
+      expect(deps.onEvent).not.toHaveBeenCalled();
+
+      // Back on the server, the Console is answered again.
+      inExcursion = false;
+      await expect(handle(call("getPushToken"), PAGE)).resolves.toMatchObject({ ok: true });
+    });
+  });
+
   it("drops events from another origin", async () => {
     const { handle, deps } = setup();
     await handle(JSON.stringify({ type: "event", name: "ready" }), "https://evil.example.com/");
