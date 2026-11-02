@@ -23,13 +23,15 @@ import { consoleUrl, routeFromConsoleUrl, safeConsoleRoute } from "~/lib/shell/c
 import { decideNavigation } from "~/lib/shell/navigation-policy";
 import type { RouteRule } from "~/lib/shell/route-owner";
 import {
-  BRIDGE_METHODS,
+  BRIDGE_CAPABILITIES,
   BRIDGE_PROTOCOL_VERSION,
   type BridgeHostInfo,
+  type PushTokenResult,
 } from "~/lib/shell/bridge/protocol";
 import {
   buildBootstrapScript,
   buildNavigateScript,
+  buildPushTokenChangedScript,
   buildResolveScript,
 } from "~/lib/shell/bridge/scripts";
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
@@ -41,8 +43,10 @@ import {
   type ConsoleLoadEvent,
   type ConsoleLoadPhase,
 } from "~/lib/shell/console-load";
+import { getInstallId } from "~/lib/install-id";
 import { addBreadcrumb, captureMessage } from "~/lib/sentry";
 import { useNetworkStatus } from "~/hooks/useNetworkStatus";
+import { usePushTokenChanges } from "~/hooks/usePushRouting";
 
 export interface ConsoleWebViewHandle {
   /** Move the Console to `route` on the configured server. */
@@ -128,6 +132,14 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       [serverUrl]
     );
 
+    const sendPushToken = useCallback(
+      (token: PushTokenResult) => {
+        const script = buildPushTokenChangedScript(serverUrl, token);
+        if (script) webviewRef.current?.injectJavaScript(script);
+      },
+      [serverUrl]
+    );
+
     const clearReadyTimer = useCallback(() => {
       if (readyTimerRef.current !== null) clearTimeout(readyTimerRef.current);
       readyTimerRef.current = null;
@@ -142,6 +154,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           switch (effect.type) {
             case "goTo":
               goTo(effect.route);
+              break;
+            case "sendPushToken":
+              sendPushToken(effect.token);
               break;
             case "armReadyTimer":
               clearReadyTimer();
@@ -162,7 +177,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           }
         }
       },
-      [goTo, clearReadyTimer]
+      [goTo, sendPushToken, clearReadyTimer]
     );
     dispatchRef.current = dispatch;
     useEffect(() => clearReadyTimer, [clearReadyTimer]);
@@ -234,7 +249,8 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         protocolVersion: BRIDGE_PROTOCOL_VERSION,
         platform: Platform.OS === "ios" ? "ios" : "android",
         appVersion: APP_VERSION,
-        capabilities: BRIDGE_METHODS,
+        installId: getInstallId(),
+        capabilities: BRIDGE_CAPABILITIES,
         safeArea: {
           top: insets.top,
           bottom: insets.bottom,
@@ -244,7 +260,25 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       }),
       [insets.top, insets.bottom, insets.left, insets.right]
     );
-    const bootstrap = useMemo(() => buildBootstrapScript(hostInfo), [hostInfo]);
+    const bootstrap = useMemo(
+      () => buildBootstrapScript(hostInfo, serverUrl),
+      [hostInfo, serverUrl]
+    );
+
+    // A push token the OS reports (rotation) goes to the page as
+    // `objectstack-native:pushTokenChanged`. The Console installs its shell
+    // event listeners in the same commit that posts `ready`, so the load
+    // state machine holds a token reported outside `ready` (cold start, a
+    // reload, a re-created WebView, the failure page) — the latest one only —
+    // and sends it on entering `ready`, by the event or the ready timeout.
+    // `onLoadStart` is not a document start: on Android react-native-webview
+    // also fires it for SPA history changes (`doUpdateVisitedHistory`), and no
+    // second `ready` follows those.
+    const deliverPushToken = useCallback(
+      (token: PushTokenResult) => dispatch({ type: "pushToken", token }),
+      [dispatch]
+    );
+    usePushTokenChanges(deliverPushToken);
 
     const handleMessage = useMemo(
       () =>

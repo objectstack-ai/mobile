@@ -16,6 +16,14 @@ server ──APNs / FCM──▶ device ──tap──▶ shell (hooks/usePushR
 - The Console asks for the token over the bridge once the user is signed in and
   registers it under its own session. The OS permission prompt therefore
   appears when the Console decides, and the shell needs no API credential.
+- The Console registers with `deviceId = installId` (the bridge's host info,
+  a random id the shell keeps in SecureStore), so clearing the WebView's
+  storage does not create a second device row on the server.
+- When APNs / FCM rotate the token, the shell dispatches
+  `objectstack-native:pushTokenChanged` (`detail: { token, vendor }`, the
+  `pushTokenChanged` capability) and the Console re-registers. The shell only
+  listens (`Notifications.addPushTokenListener`); it never asks for a token
+  on its own. Delivery rules: [HYBRID-SHELL.md](./HYBRID-SHELL.md#shell--console-events).
 - A notification names where a tap goes with one of two keys (see the payload
   contract below):
   - `route`: a Console route, e.g. `"/apps/crm/opportunity/123"` (preferred);
@@ -31,7 +39,9 @@ server ──APNs / FCM──▶ device ──tap──▶ shell (hooks/usePushR
 `route` / `url` are custom keys, delivered differently by each transport.
 `routeFromResponse` (`lib/push-notifications.ts`) reads, in order, the
 notification's `content.data`, then the iOS `trigger.payload` (the full APNs
-`userInfo`) and its `body` dictionary, and uses the first valid one.
+`userInfo`), its `body` dictionary, and last its `data` dictionary, and uses
+the first valid one. `userInfo.data` is off-contract (never put the key under
+`data` on iOS); it is read only as a fallback, after the other three.
 
 **APNs (iOS)** — put the key at the top level of the payload, beside `aps`:
 

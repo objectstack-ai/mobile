@@ -20,11 +20,19 @@
  *   routes go straight to the page.
  * - `failed`: the failure page is up; routes are held for the next WebView.
  *
+ * A push token the OS reports (`objectstack-native:pushTokenChanged`) follows
+ * the same rule as a route: the Console installs that listener in the commit
+ * that posts `ready`, so a token reported outside `ready` is held — the latest
+ * one only — and delivered on entering `ready`, by the event or the timeout.
+ * Unlike a held route it survives a re-created WebView, whose start URL cannot
+ * carry it.
+ *
  * Pure and synchronous: `stepConsoleLoad` returns the next state plus the side
- * effects the component performs (inject a route, arm or clear the ready
- * timer, re-create the WebView).
+ * effects the component performs (inject a route or a token, arm or clear the
+ * ready timer, re-create the WebView).
  */
 import { safeConsoleRoute } from "./console-url";
+import type { PushTokenResult } from "./bridge/protocol";
 
 /**
  * How long after the document has loaded the shell waits for the Console's
@@ -43,6 +51,8 @@ export interface ConsoleLoadState {
   phase: ConsoleLoadPhase;
   /** A route asked for before the page could take it; applied once, at `ready`. */
   pendingRoute: string | null;
+  /** The latest push token reported before the page could take it; sent once, at `ready`. */
+  heldPushToken: PushTokenResult | null;
   /** The last Console route the page was on — where a re-created WebView resumes. */
   lastRoute: string | null;
   /**
@@ -69,6 +79,8 @@ export type ConsoleLoadEvent =
   | { type: "recreate" }
   /** A web-owned, already validated Console route was asked for. */
   | { type: "navigate"; route: string }
+  /** The OS reported a (rotated) push token, already validated. */
+  | { type: "pushToken"; token: PushTokenResult }
   /** The Console's `routeChanged` bridge event, payload already parsed. */
   | { type: "routeChanged"; route: string }
   /** `onNavigationStateChange`, reduced to the Console route it points at. */
@@ -77,6 +89,8 @@ export type ConsoleLoadEvent =
 export type ConsoleLoadEffect =
   /** Move the loaded page to `route` (navigate event, else a page load). */
   | { type: "goTo"; route: string }
+  /** Dispatch `objectstack-native:pushTokenChanged` in the page. */
+  | { type: "sendPushToken"; token: PushTokenResult }
   | { type: "armReadyTimer" }
   | { type: "clearReadyTimer" }
   /** Mount a new WebView, at `startRoute` when one is given. */
@@ -90,14 +104,18 @@ export interface ConsoleLoadStep {
 export const INITIAL_CONSOLE_LOAD_STATE: ConsoleLoadState = {
   phase: "loading",
   pendingRoute: null,
+  heldPushToken: null,
   lastRoute: null,
   routeReported: false,
 };
 
-/** Enter `ready`: dispatch the held route, if any. */
+/** Enter `ready`: dispatch the held route and send the held push token, if any. */
 function becomeReady(state: ConsoleLoadState, effects: ConsoleLoadEffect[]): ConsoleLoadStep {
   if (state.pendingRoute !== null) effects.push({ type: "goTo", route: state.pendingRoute });
-  return { state: { ...state, phase: "ready", pendingRoute: null }, effects };
+  if (state.heldPushToken !== null) {
+    effects.push({ type: "sendPushToken", token: state.heldPushToken });
+  }
+  return { state: { ...state, phase: "ready", pendingRoute: null, heldPushToken: null }, effects };
 }
 
 export function stepConsoleLoad(state: ConsoleLoadState, event: ConsoleLoadEvent): ConsoleLoadStep {
@@ -149,6 +167,12 @@ export function stepConsoleLoad(state: ConsoleLoadState, event: ConsoleLoadEvent
         return { state, effects: [{ type: "goTo", route: event.route }] };
       }
       return { state: { ...state, pendingRoute: event.route }, effects: [] };
+
+    case "pushToken":
+      if (state.phase === "ready") {
+        return { state, effects: [{ type: "sendPushToken", token: event.token }] };
+      }
+      return { state: { ...state, heldPushToken: event.token }, effects: [] };
 
     case "routeChanged":
       return { state: { ...state, lastRoute: event.route, routeReported: true }, effects: [] };

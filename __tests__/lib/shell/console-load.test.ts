@@ -26,6 +26,7 @@ describe("console load state machine", () => {
     expect(INITIAL_CONSOLE_LOAD_STATE).toEqual({
       phase: "loading",
       pendingRoute: null,
+      heldPushToken: null,
       lastRoute: null,
       routeReported: false,
     });
@@ -130,6 +131,66 @@ describe("console load state machine", () => {
     expect(state.phase).toBe("loading");
     expect(state.pendingRoute).toBe("/apps/hr");
     expect(effects).toEqual([]);
+  });
+
+  describe("push token", () => {
+    const apns = (token: string) => ({ token, vendor: "apns" as const });
+    const send = (token: string): ConsoleLoadEffect => ({ type: "sendPushToken", token: apns(token) });
+
+    it("holds the latest token until ready, then sends it once, after the held route", () => {
+      const { state, effects } = run(
+        { type: "pushToken", token: apns("a") },
+        { type: "navigate", route: "/apps/hr" },
+        { type: "loadEnd" },
+        { type: "pushToken", token: apns("b") },
+        { type: "ready" },
+        { type: "ready" }
+      );
+      expect(state.heldPushToken).toBeNull();
+      expect(effects).toEqual([
+        { type: "armReadyTimer" },
+        { type: "clearReadyTimer" },
+        goTo("/apps/hr"),
+        send("b"),
+      ]);
+    });
+
+    it("sends the held token on the ready timeout", () => {
+      const { effects } = run(
+        { type: "pushToken", token: apns("a") },
+        { type: "loadEnd" },
+        { type: "readyTimeout" }
+      );
+      expect(effects).toEqual([{ type: "armReadyTimer" }, send("a")]);
+    });
+
+    it("sends straight to a ready page, and holds again after a reload", () => {
+      const ready = run({ type: "ready" }, { type: "pushToken", token: apns("a") });
+      expect(ready.effects).toEqual([send("a")]);
+      const reloaded = stepConsoleLoad(
+        stepConsoleLoad(ready.state, { type: "reload" }).state,
+        { type: "pushToken", token: apns("b") }
+      );
+      expect(reloaded.effects).toEqual([]);
+      expect(reloaded.state.heldPushToken).toEqual(apns("b"));
+    });
+
+    it("keeps the held token through a failure and a re-created WebView", () => {
+      const { state, effects } = run(
+        { type: "fail" },
+        { type: "pushToken", token: apns("a") },
+        { type: "recreate" },
+        { type: "loadEnd" },
+        { type: "ready" }
+      );
+      expect(state.heldPushToken).toBeNull();
+      expect(effects).toEqual([
+        { type: "recreate", startRoute: null },
+        { type: "armReadyTimer" },
+        { type: "clearReadyTimer" },
+        send("a"),
+      ]);
+    });
   });
 
   describe("last route", () => {
