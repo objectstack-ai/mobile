@@ -17,6 +17,7 @@
     "hint": "例如：https://erp.example.com",
     "connect": "继续",
     "scan": "扫描二维码",
+    "backTo": "返回 {{server}}",
     "where": {
       "title": "在哪里找到地址？",
       "step1": "在电脑浏览器中打开 ObjectOS 并登录。",

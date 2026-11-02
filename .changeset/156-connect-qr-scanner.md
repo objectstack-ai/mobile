@@ -13,7 +13,10 @@ information", "Enter address manually"). It accepts the
 plain `https://` server URL; anything else shows "This isn't a connect QR
 code". The same `objectos://connect` link opens the app from an invite email.
 Either way the address is probed and the user confirms the server before
-anything is saved, also when a server is already saved. A link carrying any
+anything is saved, also when a server is already saved. When a link
+cold-starts the app onto the picker while a server is saved, the address step
+offers a way back to that server's Console (a "Back to" button, and Android
+back). A link carrying any
 parameter besides `server` is refused, and an unusable address shows in the
 field with its error. Adds `expo-camera` (~55.0.18, camera only: no
 microphone, no `RECORD_AUDIO`), with the camera permission text localized in

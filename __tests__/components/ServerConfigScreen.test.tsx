@@ -1,4 +1,5 @@
 import React from "react";
+import { BackHandler } from "react-native";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 // Types for the matchers jest.config registers through setupFilesAfterEnv.
 import type {} from "@testing-library/react-native/extend-expect";
@@ -7,10 +8,18 @@ import type { ProbeResult } from "~/lib/server-probe";
 
 const mockDismissTo = jest.fn();
 const mockPush = jest.fn();
+// Whether a screen sits behind the picker (pushed over the Console) or not
+// (the app cold-started onto it from a connect link).
+const mockCanGoBack = jest.fn(() => false);
 // The screen's search params: what a connect link or the scanner hands over.
 let mockParams: { server?: string; n?: string } = {};
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ dismissTo: mockDismissTo, push: mockPush, replace: jest.fn() }),
+  useRouter: () => ({
+    dismissTo: mockDismissTo,
+    push: mockPush,
+    replace: jest.fn(),
+    canGoBack: mockCanGoBack,
+  }),
   useLocalSearchParams: () => mockParams,
 }));
 
@@ -66,6 +75,7 @@ beforeEach(() => {
   mockProbeServer.mockReset();
   mockDismissTo.mockReset();
   mockPush.mockReset();
+  mockCanGoBack.mockReset().mockReturnValue(false);
   connect.mockClear();
   useServerStore.setState({ serverUrl: null, connect });
 });
@@ -206,6 +216,68 @@ describe("ServerConfigScreen", () => {
     await flush();
     expect(mockProbeServer).toHaveBeenCalledTimes(2);
     expect(screen.getByTestId("server-confirm")).toBeTruthy();
+  });
+
+  describe("way back to the saved server", () => {
+    it("cold-started onto the picker with a server saved: offers it, and confirm's 'Not this server' keeps it", async () => {
+      useServerStore.setState({ serverUrl: "https://old.example.com" });
+      mockProbeServer.mockResolvedValue(OK);
+      mockParams = { server: "https://erp.example.com", n: "1" };
+      render(<ServerConfigScreen />);
+      await flush();
+
+      // Confirm step: no way back there, "Not this server" behaves as before.
+      expect(screen.queryByTestId("server-back-to-saved")).toBeNull();
+      fireEvent.press(screen.getByTestId("server-reject"));
+      expect(screen.getByTestId("server-url-input").props.value).toBe("https://erp.example.com");
+
+      const back = screen.getByTestId("server-back-to-saved");
+      expect(back).toHaveTextContent("Back to old.example.com");
+      fireEvent.press(back);
+      expect(mockDismissTo).toHaveBeenCalledWith("/console");
+      expect(connect).not.toHaveBeenCalled();
+      expect(useServerStore.getState().serverUrl).toBe("https://old.example.com");
+    });
+
+    it("Android back on the address step does the same", () => {
+      useServerStore.setState({ serverUrl: "https://old.example.com" });
+      let handler: (() => boolean | null | undefined) | undefined;
+      const spy = jest.spyOn(BackHandler, "addEventListener").mockImplementation((_e, h) => {
+        handler = h;
+        return { remove: jest.fn() };
+      });
+      try {
+        render(<ServerConfigScreen />);
+        expect(handler?.()).toBe(true);
+        expect(mockDismissTo).toHaveBeenCalledWith("/console");
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it("pushed over the Console (a screen to go back to): no extra way back", () => {
+      useServerStore.setState({ serverUrl: "https://old.example.com" });
+      mockCanGoBack.mockReturnValue(true);
+      const spy = jest.spyOn(BackHandler, "addEventListener");
+      try {
+        render(<ServerConfigScreen />);
+        expect(screen.queryByTestId("server-back-to-saved")).toBeNull();
+        expect(spy).not.toHaveBeenCalled();
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it("with no saved server, nothing changes", () => {
+      const spy = jest.spyOn(BackHandler, "addEventListener");
+      try {
+        render(<ServerConfigScreen />);
+        expect(screen.queryByTestId("server-back-to-saved")).toBeNull();
+        expect(spy).not.toHaveBeenCalled();
+      } finally {
+        spy.mockRestore();
+      }
+    });
   });
 
   it("shows the where-to-find-it steps and the VPN hint", () => {

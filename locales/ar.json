@@ -17,6 +17,7 @@
     "hint": "مثال: https://erp.example.com",
     "connect": "متابعة",
     "scan": "مسح رمز QR",
+    "backTo": "العودة إلى {{server}}",
     "where": {
       "title": "أين أجد العنوان؟",
       "step1": "افتح ObjectOS في متصفح على الكمبيوتر وسجّل الدخول.",

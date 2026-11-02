@@ -111,7 +111,10 @@ probes it at once (`/server-config?server=…&n=…`; `n` makes a repeat of the
 same address probe again). **A connect link never connects silently**: the
 user always sees the confirm step, or the error beside the address. That holds
 when a server is already saved too — confirming replaces it, "Not this server"
-keeps it.
+keeps it. A link can cold-start the app onto the picker with nothing behind it;
+when a server is saved and the picker cannot go back, the address step offers
+"Back to" the saved host (Android back does the same), which opens that
+server's Console and saves nothing.
 
 - **The link.** `connectRequestFromLink` (`lib/shell/incoming-link.ts`) reads
   the `server` param and normalizes it with `normalizeServerUrl`. A link with

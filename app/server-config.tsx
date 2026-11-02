@@ -1,5 +1,13 @@
 import React from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -14,6 +22,7 @@ import {
   type ProbeFailureKind,
 } from "~/lib/server-probe";
 import { shellConfig } from "~/lib/shell/config";
+import { parseUrl } from "~/lib/shell/console-url";
 import { useThemeColors } from "~/lib/theme-colors";
 import { useServerStore } from "~/stores/server-store";
 
@@ -49,6 +58,11 @@ const HELP_STEPS = [
  * `objectos://connect?server=…` link, come back here as `?server=…&n=…`: the
  * address is filled in and probed, so the user always sees the confirm step,
  * or the error beside the address that failed.
+ *
+ * Way back: a connect link can cold-start the app straight onto this screen
+ * while a server is already saved, with nothing behind it to go back to. The
+ * address step then offers "Back to <host>" (and Android back does the same),
+ * which opens the saved server's Console. Nothing is saved by leaving.
  */
 export default function ServerConfigScreen() {
   const router = useRouter();
@@ -118,6 +132,19 @@ export default function ServerConfigScreen() {
   };
 
   const handleReject = React.useCallback(() => setProbed(null), []);
+
+  // Only when there is a saved server and no screen behind this one: pushed
+  // over the Console, the back gesture already returns there.
+  const showWayBack = !!current && !probed && !router.canGoBack();
+  const backToSaved = React.useCallback(() => router.dismissTo("/console"), [router]);
+  React.useEffect(() => {
+    if (!showWayBack) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      backToSaved();
+      return true;
+    });
+    return () => sub.remove();
+  }, [showWayBack, backToSaved]);
 
   if (probed) {
     return (
@@ -213,6 +240,12 @@ export default function ServerConfigScreen() {
             >
               {t("serverConfig.connect")}
             </Button>
+
+            {showWayBack && current ? (
+              <Button variant="ghost" onPress={backToSaved} testID="server-back-to-saved">
+                {t("serverConfig.backTo", { server: parseUrl(current)?.host ?? current })}
+              </Button>
+            ) : null}
           </View>
 
           <View className="mt-10 gap-2">

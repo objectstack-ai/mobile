@@ -17,6 +17,7 @@
     "hint": "Example: https://erp.example.com",
     "connect": "Continue",
     "scan": "Scan QR code",
+    "backTo": "Back to {{server}}",
     "where": {
       "title": "Where do I find the address?",
       "step1": "On a computer, open ObjectOS in your browser and sign in.",
