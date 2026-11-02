@@ -14,6 +14,7 @@ import {
   type ProbeFailureKind,
 } from "~/lib/server-probe";
 import { shellConfig } from "~/lib/shell/config";
+import { useLayoutDirection } from "~/lib/rtl";
 import { useThemeColors } from "~/lib/theme-colors";
 import { useServerStore } from "~/stores/server-store";
 
@@ -52,6 +53,7 @@ export default function ServerConfigScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const colors = useThemeColors();
+  const direction = useLayoutDirection();
   const current = useServerStore((s) => s.serverUrl);
   const connect = useServerStore((s) => s.connect);
   const [url, setUrl] = React.useState(current ?? shellConfig.defaultServerUrl);
@@ -104,7 +106,7 @@ export default function ServerConfigScreen() {
 
   if (probed) {
     return (
-      <SafeAreaView className="flex-1 bg-background">
+      <SafeAreaView className="flex-1 bg-background" style={{ direction }}>
         <ServerConfirm
           server={probed}
           onConfirm={handleConfirm}
@@ -117,7 +119,7 @@ export default function ServerConfigScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background" style={{ direction }}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
