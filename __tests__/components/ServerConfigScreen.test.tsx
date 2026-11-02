@@ -43,6 +43,20 @@ const connect = jest.fn(async (url: string) => {
   useServerStore.setState({ serverUrl: url });
 });
 
+/**
+ * Cold-load cost, paid once outside any test's 5 s budget. react-native exports
+ * its components through lazy getters, so the first render requires and
+ * babel-transforms them. Measured with a cold transform cache (`--no-cache -w 1
+ * --coverage`, as on a fresh CI runner): Text ~1.0 s, ScrollView ~2.2 s, Image
+ * ~0.4 s, then ~1.4 s more for the first render's remaining requires. The second
+ * render takes ~7 ms. Left inside the first test, that cost exceeded the 5 s
+ * timeout on CI.
+ */
+const COLD_LOAD_TIMEOUT_MS = 30_000;
+beforeAll(() => {
+  render(<ServerConfigScreen />).unmount();
+}, COLD_LOAD_TIMEOUT_MS);
+
 beforeEach(() => {
   mockProbeServer.mockReset();
   mockDismissTo.mockReset();

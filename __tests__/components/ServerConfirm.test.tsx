@@ -32,6 +32,20 @@ function renderConfirm(server: Partial<ProbedServer> = {}, props: Record<string,
   return { onConfirm, onReject };
 }
 
+/**
+ * Cold-load cost, paid once outside any test's 5 s budget. react-native exports
+ * its components through lazy getters, so the first render requires and
+ * babel-transforms them. Measured with a cold transform cache (`--no-cache -w 1
+ * --coverage`, as on a fresh CI runner): Text ~1.0 s, ScrollView ~2.2 s, Image
+ * ~0.4 s, then ~1.4 s more for the first render's remaining requires. The second
+ * render takes ~7 ms. Left inside the first test, that cost exceeded the 5 s
+ * timeout on CI.
+ */
+const COLD_LOAD_TIMEOUT_MS = 30_000;
+beforeAll(() => {
+  render(<ServerConfirm server={SERVER} onConfirm={() => {}} onReject={() => {}} />).unmount();
+}, COLD_LOAD_TIMEOUT_MS);
+
 describe("ServerConfirm", () => {
   it("shows the logo, product name, full URL, lock row, sign-in methods and version", () => {
     renderConfirm();
