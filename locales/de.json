@@ -58,6 +58,17 @@
     "serverErrorMessage": "Der Server hat mit Fehler {{code}} geantwortet. Versuchen Sie es gleich noch einmal.",
     "retry": "Erneut versuchen"
   },
+  "excursion": {
+    "signingIn": "Anmeldung auf einer externen Seite · {{server}}",
+    "secure": "Sichere Verbindung",
+    "cancel": "Abbrechen",
+    "endedTitle": "Anmeldung nicht abgeschlossen",
+    "redirects": "Die Anmeldeseite hat zu oft weitergeleitet. Versuchen Sie es erneut oder fragen Sie Ihren Administrator.",
+    "timeout": "Die Anmeldung hat länger als {{minutes}} Minuten gedauert. Beginnen Sie erneut.",
+    "insecure": "Die Anmeldeseite wollte über eine unsichere Verbindung (http) fortfahren und wurde gestoppt.",
+    "unsupported": "Diese Anmeldemethode wird in der App noch nicht unterstützt. Wählen Sie eine andere Anmeldemethode.",
+    "dismiss": "Schließen"
+  },
   "switcher": {
     "title": "Organisation wechseln",
     "add": "Organisation oder Firmenserver hinzufügen",

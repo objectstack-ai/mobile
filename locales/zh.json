@@ -58,6 +58,17 @@
     "serverErrorMessage": "服务器返回错误 {{code}}，请稍后重试。",
     "retry": "重试"
   },
+  "excursion": {
+    "signingIn": "正在外部页面登录 · {{server}}",
+    "secure": "安全连接",
+    "cancel": "取消",
+    "endedTitle": "登录未完成",
+    "redirects": "登录页面重定向次数过多。请重试，或联系管理员。",
+    "timeout": "登录用时超过 {{minutes}} 分钟。请重新开始。",
+    "insecure": "登录页面试图通过不安全的连接（http）继续，已被停止。",
+    "unsupported": "应用暂不支持此登录方式。请选择其他登录方式。",
+    "dismiss": "关闭"
+  },
   "switcher": {
     "title": "切换组织",
     "add": "添加组织或公司服务器",

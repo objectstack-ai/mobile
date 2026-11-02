@@ -2,6 +2,10 @@
  * Native side of the bridge: validates an inbound message, checks it came from
  * the configured server, and dispatches it to the shell's capabilities.
  *
+ * The trust list is the configured server's origin and nothing else. A sign-in
+ * excursion (`lib/shell/sign-in-excursion.ts`) never adds its origin to it. While
+ * an excursion is on screen the bridge is closed altogether.
+ *
  * Kept free of React and of native modules — everything platform-specific is
  * injected through `BridgeDeps`, so the policy is unit-testable.
  */
@@ -38,6 +42,14 @@ export interface BridgeDeps {
   /** Open the native connection switcher (screen 8). */
   showConnectionSwitcher: () => void | Promise<void>;
   onEvent?: (name: BridgeEventName, payload: unknown) => void;
+  /**
+   * `true` while a sign-in excursion is on screen. The main frame is then an
+   * off-server page, and a reply runs in the main frame, so no call is answered
+   * and no event is accepted, whatever origin the message names. On iOS a
+   * sub-frame reports its own URL, so a server-origin frame inside the
+   * provider's page would otherwise pass the origin check.
+   */
+  inExcursion?: () => boolean;
 }
 
 const EXTERNAL_SCHEMES = /^(https?|mailto|tel|sms):/i;
@@ -83,6 +95,7 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
   return async (raw, sourceUrl) => {
     const msg = parseInbound(raw);
     if (!msg) return null;
+    if (deps.inExcursion?.()) return null;
 
     const trusted = serverOrigin !== null && originOf(sourceUrl) === serverOrigin;
 
