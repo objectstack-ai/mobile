@@ -5,9 +5,11 @@
  * The bootstrap is written as plain ES5 so it runs before the Console bundle on
  * every WebView engine the shell supports.
  */
+import { consoleUrl, safeConsoleRoute } from "../console-url";
 import {
   BRIDGE_GLOBAL,
   BRIDGE_RESOLVE_GLOBAL,
+  NAVIGATE_EVENT,
   type BridgeHostInfo,
   type BridgeResult,
 } from "./protocol";
@@ -93,7 +95,36 @@ export function buildResolveScript(result: BridgeResult): string {
   return `window.${BRIDGE_RESOLVE_GLOBAL} && window.${BRIDGE_RESOLVE_GLOBAL}(${toScriptLiteral(result)}); true;`;
 }
 
-/** Snippet that moves the Console to another route on the same server. */
-export function buildNavigateScript(url: string): string {
-  return `window.location.assign(${toScriptLiteral(url)}); true;`;
+/**
+ * Snippet that moves the Console to `route` on `serverUrl`, or `null` when the
+ * route fails {@link safeConsoleRoute}.
+ *
+ * It first dispatches a cancelable `objectstack-native:navigate` event
+ * (`detail: { route }`) on `window`, so a Console that listens can navigate
+ * with its own router — no reload of the bundle — and signal that with
+ * `preventDefault()`. Unhandled (no listener, an older Console, or no
+ * `CustomEvent` support), it falls back to loading the `consoleUrl` of the
+ * route.
+ */
+export function buildNavigateScript(serverUrl: string, route: string): string | null {
+  const safe = safeConsoleRoute(route);
+  if (safe === null) return null;
+  return `(function () {
+  var route = ${toScriptLiteral(safe)};
+  var url = ${toScriptLiteral(consoleUrl(serverUrl, safe))};
+  var handled = false;
+  try {
+    if (typeof window.CustomEvent === "function" && typeof window.dispatchEvent === "function") {
+      var event = new window.CustomEvent(${toScriptLiteral(NAVIGATE_EVENT)}, {
+        detail: { route: route },
+        cancelable: true
+      });
+      handled = window.dispatchEvent(event) === false || event.defaultPrevented === true;
+    }
+  } catch (e) {
+    handled = false;
+  }
+  if (!handled) window.location.assign(url);
+})();
+true;`;
 }

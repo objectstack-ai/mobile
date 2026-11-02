@@ -17,14 +17,24 @@ function extra(): ShellExtra {
   return (Constants.expoConfig?.extra ?? {}) as ShellExtra;
 }
 
-/** Parse a comma-separated host list into lower-case, de-duplicated hosts. */
+/**
+ * Parse a comma-separated host list into lower-case, de-duplicated hosts.
+ * A default port (`:443`, `:80`) is dropped, as `parseUrl` drops it from the
+ * hosts it is compared with — so `idp.example.com:443` matches
+ * `https://idp.example.com/…`. Other ports are kept.
+ */
 export function parseHostList(value: string | undefined): string[] {
   if (!value) return [];
   return Array.from(
     new Set(
       value
         .split(",")
-        .map((h) => h.trim().toLowerCase())
+        .map((h) =>
+          h
+            .trim()
+            .toLowerCase()
+            .replace(/:(443|80)$/, "")
+        )
         .filter((h) => h.length > 0)
     )
   );

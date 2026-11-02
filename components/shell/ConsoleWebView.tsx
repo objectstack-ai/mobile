@@ -113,7 +113,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
 
     const goTo = useCallback(
       (route: string) => {
-        webviewRef.current?.injectJavaScript(buildNavigateScript(consoleUrl(serverUrl, route)));
+        // The Console's router handles it when it listens; else a page load.
+        const script = buildNavigateScript(serverUrl, route);
+        if (script) webviewRef.current?.injectJavaScript(script);
       },
       [serverUrl]
     );

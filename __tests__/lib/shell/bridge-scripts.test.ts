@@ -4,7 +4,11 @@ import {
   buildResolveScript,
   toScriptLiteral,
 } from "~/lib/shell/bridge/scripts";
-import { BRIDGE_PROTOCOL_VERSION, type BridgeHostInfo } from "~/lib/shell/bridge/protocol";
+import {
+  BRIDGE_PROTOCOL_VERSION,
+  NAVIGATE_EVENT,
+  type BridgeHostInfo,
+} from "~/lib/shell/bridge/protocol";
 
 const info: BridgeHostInfo = {
   protocolVersion: BRIDGE_PROTOCOL_VERSION,
@@ -105,11 +109,72 @@ describe("bootstrap script", () => {
 });
 
 describe("navigate script", () => {
-  it("assigns the location", () => {
+  const SERVER = "https://acme.example.com";
+
+  /** A fake page window with real DOM events and a spied `location.assign`. */
+  function makeNavPage() {
+    const target = new EventTarget();
     const assign = jest.fn();
-    new Function("window", buildNavigateScript("https://acme.example.com/_console/home"))({
+    const window = {
+      CustomEvent,
+      dispatchEvent: target.dispatchEvent.bind(target),
+      addEventListener: target.addEventListener.bind(target),
       location: { assign },
+    };
+    const run = (script: string | null) => {
+      if (script === null) throw new Error("no script");
+      return new Function("window", script)(window);
+    };
+    return { window, assign, run };
+  }
+
+  it("lets a Console that handles the event navigate with its router", () => {
+    const page = makeNavPage();
+    const seen: unknown[] = [];
+    page.window.addEventListener(NAVIGATE_EVENT, (event: Event) => {
+      seen.push((event as CustomEvent).detail);
+      event.preventDefault();
     });
-    expect(assign).toHaveBeenCalledWith("https://acme.example.com/_console/home");
+    page.run(buildNavigateScript(SERVER, "/apps/crm/lead/1?tab=2"));
+    expect(seen).toEqual([{ route: "/apps/crm/lead/1?tab=2" }]);
+    expect(page.assign).not.toHaveBeenCalled();
+  });
+
+  it("falls back to loading the Console URL when nobody handles the event", () => {
+    const page = makeNavPage();
+    const seen: unknown[] = [];
+    page.window.addEventListener(NAVIGATE_EVENT, (event: Event) => {
+      seen.push((event as CustomEvent).detail);
+    });
+    page.run(buildNavigateScript(`${SERVER}/os`, "/apps/hr"));
+    expect(seen).toEqual([{ route: "/apps/hr" }]);
+    expect(page.assign).toHaveBeenCalledWith(`${SERVER}/os/_console/apps/hr`);
+  });
+
+  it("falls back to loading the Console URL without CustomEvent support", () => {
+    const assign = jest.fn();
+    new Function("window", buildNavigateScript(SERVER, "/home")!)({ location: { assign } });
+    expect(assign).toHaveBeenCalledWith(`${SERVER}/_console/home`);
+  });
+
+  it("refuses a route that would escape the Console", () => {
+    expect(buildNavigateScript(SERVER, "/../../api/v1/me")).toBeNull();
+    expect(buildNavigateScript(SERVER, "/%2e%2e/api/v1/me")).toBeNull();
+    expect(buildNavigateScript(SERVER, "//evil.example/x")).toBeNull();
+  });
+
+  it("splices the route as escaped JSON", () => {
+    const route = '/apps/x?q=");alert(1);("</script>\u2028end';
+    const script = buildNavigateScript(SERVER, route)!;
+    expect(script).not.toContain("</script>");
+    expect(script).not.toContain("\u2028");
+    const page = makeNavPage();
+    const seen: unknown[] = [];
+    page.window.addEventListener(NAVIGATE_EVENT, (event: Event) => {
+      seen.push((event as CustomEvent).detail);
+    });
+    page.run(script);
+    expect(seen).toEqual([{ route }]);
+    expect(page.assign).toHaveBeenCalledWith(`${SERVER}/_console${route}`);
   });
 });

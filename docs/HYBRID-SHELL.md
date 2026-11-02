@@ -131,7 +131,29 @@ interface ObjectStackNative {
 Safe-area insets are also published as CSS variables:
 `--os-native-safe-top|bottom|left|right`.
 
-Wire format: calls are posted as
+### Shell → Console events
+
+When a notification tap, an app link or a bridge `navigate()` asks for a
+Console route while the page is loaded, the shell dispatches on `window`:
+
+```ts
+new CustomEvent("objectstack-native:navigate", {
+  detail: { route: "/apps/crm/lead/123" }, // a Console route, query/fragment kept
+  cancelable: true,
+});
+```
+
+A Console that handles it navigates with its own router and calls
+`event.preventDefault()`; nothing else happens, and the bundle is not
+reloaded. If no listener cancels the event (an older Console, or the route is
+not one its router knows), the shell falls back to
+`window.location.assign(<server>/_console<route>)`, a full page load. The
+route has passed `safeConsoleRoute` before the event is dispatched
+(`buildNavigateScript` in `bridge/scripts.ts`).
+
+### Wire format
+
+Calls are posted as
 `{ type: 'call', id, method, args }` through
 `window.ReactNativeWebView.postMessage`; the shell answers by calling
 `window.__objectstackNativeResolve({ id, ok, value | error })`. Errors carry a
@@ -164,6 +186,10 @@ The Console needs, in `@object-ui/mobile`:
 - a `useNativeHost()` hook that detects `window.ObjectStackNative`;
 - in the shell: hide desktop chrome, pad with the safe-area variables, call
   `ready()` once interactive and `routeChanged()` on navigation;
+- listen for `objectstack-native:navigate` on `window`, navigate to
+  `event.detail.route` with the Console router, and call
+  `event.preventDefault()` (otherwise the shell reloads the page at the
+  route);
 - register the push token after sign-in (`getPushToken()` → the server's device
   registry) and unregister on sign-out.
 
@@ -177,7 +203,7 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 ## Testing
 
 - Pure modules (`lib/shell/**`, push, stores) — unit tests under `__tests__/lib`.
-- The bootstrap script is executed against a fake `window` in
+- The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`
   (`__tests__/components/ConsoleWebView.test.tsx`).
