@@ -1,5 +1,30 @@
 import { I18nManager, Platform } from "react-native";
+import { useTranslation } from "react-i18next";
 import { isRTL } from "./i18n";
+
+/** Yoga's `direction` style value for a screen root. */
+export type LayoutDirection = "ltr" | "rtl";
+
+/** The layout direction of a language: `rtl` for Arabic (and the other RTL codes), else `ltr`. */
+export function layoutDirection(lang?: string): LayoutDirection {
+  return isRTL(lang) ? "rtl" : "ltr";
+}
+
+/**
+ * The layout direction of the current shell language, re-evaluated when the
+ * language changes.
+ *
+ * Native screens put it on their root view as `style={{ direction }}`. Yoga
+ * flips `flex-direction: row`, `start`/`end` insets and natural text alignment
+ * for that subtree at once — unlike `I18nManager.forceRTL` ({@link syncRTL}),
+ * which only takes effect after the next launch. So a phone switched to Arabic
+ * gets right-to-left native screens on the first launch, and a language change
+ * picked up on foreground flips them without a restart.
+ */
+export function useLayoutDirection(): LayoutDirection {
+  const { i18n } = useTranslation();
+  return layoutDirection(i18n.language);
+}
 
 /**
  * Apply the writing direction for a language.

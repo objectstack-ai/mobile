@@ -1,0 +1,80 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "retry": "Erneut versuchen",
+    "error": "Fehler"
+  },
+  "errorBoundary": {
+    "title": "Etwas ist schiefgelaufen",
+    "message": "Ein unerwarteter Fehler ist aufgetreten.",
+    "retry": "Erneut versuchen"
+  },
+  "serverConfig": {
+    "title": "Mit Server verbinden",
+    "subtitle": "Geben Sie die Adresse Ihres ObjectOS-Servers ein.",
+    "label": "Server-URL",
+    "hint": "Beispiel: https://erp.example.com",
+    "connect": "Weiter",
+    "scan": "QR-Code scannen",
+    "backTo": "Zurück zu {{server}}",
+    "where": {
+      "title": "Wo finde ich die Adresse?",
+      "step1": "Öffnen Sie ObjectOS auf einem Computer im Browser und melden Sie sich an.",
+      "step2": "Kopieren Sie die Adresse aus der Adressleiste. Sie können den ganzen Link einfügen – die App behält nur den Serverteil.",
+      "step3": "Unsicher? Fragen Sie Ihren Administrator."
+    },
+    "vpnHint": "Für einen Server im Firmennetz muss dieses Telefon eventuell zuerst mit dem Firmen-VPN verbunden sein.",
+    "error": {
+      "empty": "Bitte geben Sie eine Server-URL ein.",
+      "invalid": "Das sieht nicht nach einer Serveradresse aus.",
+      "insecure": "Verwenden Sie eine https://-Adresse – unverschlüsseltes http ist nur für lokale Server erlaubt.",
+      "unreachable": "Der Server ist nicht erreichbar. Prüfen Sie die Adresse und Ihr Netzwerk – ein Firmenserver benötigt eventuell VPN.",
+      "tls": "Das Zertifikat des Servers ist ungültig, daher ist die Verbindung nicht sicher. Bitten Sie Ihren Administrator, es zu beheben.",
+      "timeout": "Der Server hat zu lange nicht geantwortet. Prüfen Sie Ihr Netzwerk oder VPN und versuchen Sie es erneut.",
+      "notObjectOS": "Dies ist kein ObjectOS-Server. Verwenden Sie die Adresse, mit der Sie ObjectOS im Browser öffnen.",
+      "serverError": "Der Server hat mit einem Fehler geantwortet (HTTP {{status}}). Versuchen Sie es später erneut oder fragen Sie Ihren Administrator.",
+      "unknown": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+    }
+  },
+  "serverConfirm": {
+    "title": "Ist das Ihr Server?",
+    "secure": "Sichere Verbindung (HTTPS)",
+    "signInLabel": "Anmelden mit",
+    "signIn": {
+      "sso": "Single Sign-On (SSO)",
+      "emailPassword": "E-Mail und Passwort"
+    },
+    "versionLabel": "Plattformversion",
+    "confirm": "Verbinden und anmelden",
+    "reject": "Nicht dieser Server"
+  },
+  "shell": {
+    "loading": "Wird geladen…",
+    "offlineTitle": "Sie sind offline",
+    "offlineMessage": "Prüfen Sie Ihre Verbindung. Die Seite lädt automatisch neu, sobald Sie wieder online sind.",
+    "serverErrorTitle": "Der Server antwortet nicht",
+    "serverErrorMessage": "Der Server hat mit Fehler {{code}} geantwortet. Versuchen Sie es gleich noch einmal.",
+    "retry": "Erneut versuchen",
+    "changeServer": "Anderen Server verwenden"
+  },
+  "scanner": {
+    "hint": "Halten Sie den QR-Code in den Rahmen",
+    "connectNote": "Enthält nur die Serveradresse, keine Kontodaten",
+    "manual": "Adresse manuell eingeben",
+    "notConnectCode": "Das ist kein Verbindungs-QR-Code",
+    "close": "Schließen",
+    "torchOn": "Taschenlampe einschalten",
+    "torchOff": "Taschenlampe ausschalten",
+    "permission": {
+      "title": "Kamerazugriff erforderlich",
+      "body": "Erlauben Sie den Kamerazugriff, um den QR-Code zu scannen.",
+      "blocked": "Der Kamerazugriff für ObjectOS ist deaktiviert. Aktivieren Sie ihn in den Einstellungen oder geben Sie die Adresse manuell ein.",
+      "allow": "Kamera erlauben",
+      "settings": "Einstellungen öffnen"
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS verwendet die Kamera, um den QR-Code zu scannen, der die App mit Ihrem Server verbindet."
+  }
+}
