@@ -3,7 +3,8 @@
     "ok": "OK",
     "cancel": "キャンセル",
     "retry": "再試行",
-    "error": "エラー"
+    "error": "エラー",
+    "close": "閉じる"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

@@ -1,10 +1,12 @@
 import {
   BRIDGE_CAPABILITIES,
   BRIDGE_METHODS,
+  CONNECTION_REMOVED_EVENT,
   MAX_MESSAGE_LENGTH,
   SCAN_FORMATS,
   PUSH_TOKEN_CHANGED_EVENT,
   SHELL_EVENTS,
+  parseConnectionRemovedDone,
   parseInbound,
   shellEventType,
 } from "~/lib/shell/bridge/protocol";
@@ -26,6 +28,34 @@ describe("capabilities", () => {
   it("names a shell event's DOM type after its capability", () => {
     expect(shellEventType("pushTokenChanged")).toBe(PUSH_TOKEN_CHANGED_EVENT);
     expect(PUSH_TOKEN_CHANGED_EVENT).toBe("objectstack-native:pushTokenChanged");
+    expect(shellEventType("connectionRemoved")).toBe(CONNECTION_REMOVED_EVENT);
+    expect(CONNECTION_REMOVED_EVENT).toBe("objectstack-native:connectionRemoved");
+  });
+
+  it("announces the connection switcher and the removal event", () => {
+    expect(BRIDGE_CAPABILITIES).toContain("showConnectionSwitcher");
+    expect(BRIDGE_CAPABILITIES).toContain("connectionRemoved");
+  });
+});
+
+describe("parseConnectionRemovedDone", () => {
+  it("reads { id, handled, ok }", () => {
+    expect(parseConnectionRemovedDone({ id: "rm1", handled: true, ok: false })).toEqual({
+      id: "rm1",
+      handled: true,
+      ok: false,
+    });
+  });
+
+  it.each([
+    ["no payload", undefined],
+    ["a missing id", { handled: true, ok: true }],
+    ["an empty id", { id: "", handled: true, ok: true }],
+    ["an overlong id", { id: "x".repeat(65), handled: true, ok: true }],
+    ["a non-boolean handled", { id: "rm1", handled: "yes", ok: true }],
+    ["a missing ok", { id: "rm1", handled: true }],
+  ])("refuses %s", (_label, payload) => {
+    expect(parseConnectionRemovedDone(payload)).toBeNull();
   });
 });
 

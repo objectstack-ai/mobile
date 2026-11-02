@@ -3,7 +3,8 @@
     "ok": "Aceptar",
     "cancel": "Cancelar",
     "retry": "Reintentar",
-    "error": "Error"
+    "error": "Error",
+    "close": "Cerrar"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

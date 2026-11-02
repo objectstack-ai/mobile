@@ -3,7 +3,8 @@
     "ok": "OK",
     "cancel": "Abbrechen",
     "retry": "Erneut versuchen",
-    "error": "Fehler"
+    "error": "Fehler",
+    "close": "Schließen"
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

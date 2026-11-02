@@ -21,6 +21,7 @@ function setup(overrides: Partial<BridgeDeps> = {}) {
     navigate: jest.fn(),
     resetServer: jest.fn().mockResolvedValue(undefined),
     scan: jest.fn().mockResolvedValue("4006381333931"),
+    showConnectionSwitcher: jest.fn(),
     onEvent: jest.fn(),
     ...overrides,
   };
@@ -66,6 +67,13 @@ describe("bridge handler", () => {
       )
     ).resolves.toBeNull();
     expect(deps.onEvent).toHaveBeenCalledWith("routeChanged", { route: "/a" });
+  });
+
+  it("forwards the removal script's answer", async () => {
+    const { handle, deps } = setup();
+    const payload = { id: "rm1", handled: true, ok: true };
+    await handle(JSON.stringify({ type: "event", name: "connectionRemovedDone", payload }), PAGE);
+    expect(deps.onEvent).toHaveBeenCalledWith("connectionRemovedDone", payload);
   });
 
   it("ignores unknown events", async () => {
@@ -134,6 +142,36 @@ describe("bridge handler", () => {
     const { handle, deps } = setup();
     await expect(handle(call("resetServer"), PAGE)).resolves.toMatchObject({ ok: true });
     expect(deps.resetServer).toHaveBeenCalled();
+  });
+
+  describe("showConnectionSwitcher", () => {
+    it("opens the switcher and resolves null", async () => {
+      const { handle, deps } = setup();
+      await expect(handle(call("showConnectionSwitcher"), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: true,
+        value: null,
+      });
+      expect(deps.showConnectionSwitcher).toHaveBeenCalledTimes(1);
+    });
+
+    it("answers nothing, and opens nothing, for a page on another origin", async () => {
+      const { handle, deps } = setup();
+      await expect(
+        handle(call("showConnectionSwitcher"), "https://evil.example.com/")
+      ).resolves.toBeNull();
+      expect(deps.showConnectionSwitcher).not.toHaveBeenCalled();
+    });
+
+    it("follows the current connection: the connection switched away from gets no answer", async () => {
+      // After a switch the handler is built for the new current server.
+      const { handle, deps } = setup({ serverUrl: "https://erp.example.com" });
+      await expect(handle(call("showConnectionSwitcher"), PAGE)).resolves.toBeNull();
+      expect(deps.showConnectionSwitcher).not.toHaveBeenCalled();
+      await expect(
+        handle(call("showConnectionSwitcher"), "https://erp.example.com/_console/home")
+      ).resolves.toMatchObject({ ok: true });
+    });
   });
 
   it("reports unknown methods", async () => {

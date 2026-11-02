@@ -3,7 +3,8 @@
     "ok": "موافق",
     "cancel": "إلغاء",
     "retry": "إعادة المحاولة",
-    "error": "خطأ"
+    "error": "خطأ",
+    "close": "إغلاق"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

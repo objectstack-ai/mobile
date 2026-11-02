@@ -3,7 +3,8 @@
     "ok": "확인",
     "cancel": "취소",
     "retry": "다시 시도",
-    "error": "오류"
+    "error": "오류",
+    "close": "닫기"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

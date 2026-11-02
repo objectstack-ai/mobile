@@ -4,15 +4,16 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 // Types for the matchers jest.config registers through setupFilesAfterEnv.
 import type {} from "@testing-library/react-native/extend-expect";
 import "~/lib/i18n";
-import type { ProbeResult } from "~/lib/server-probe";
+import type { ProbedServer, ProbeResult } from "~/lib/server-probe";
 
 const mockDismissTo = jest.fn();
 const mockPush = jest.fn();
 // Whether a screen sits behind the picker (pushed over the Console) or not
 // (the app cold-started onto it from a connect link).
 const mockCanGoBack = jest.fn(() => false);
-// The screen's search params: what a connect link or the scanner hands over.
-let mockParams: { server?: string; n?: string } = {};
+// The screen's search params: what a connect link or the scanner hands over,
+// or the switcher's "add" entry.
+let mockParams: { server?: string; n?: string; add?: string } = {};
 jest.mock("expo-router", () => ({
   useRouter: () => ({
     dismissTo: mockDismissTo,
@@ -38,22 +39,20 @@ import ServerConfigScreen from "~/app/server-config";
 import { xhrFetch } from "~/lib/server-probe";
 import { useServerStore } from "~/stores/server-store";
 
-const OK: ProbeResult = {
-  kind: "ok",
-  server: {
-    serverUrl: "https://www.erp.example.com",
-    secure: true,
-    platformName: "ObjectOS",
-    version: "17.4.0",
-    productName: "Acme ERP",
-    logoUrl: null,
-    brandColor: null,
-    signIn: null,
-  },
+const PROBED: ProbedServer = {
+  serverUrl: "https://www.erp.example.com",
+  secure: true,
+  platformName: "ObjectOS",
+  version: "17.4.0",
+  productName: "Acme ERP",
+  logoUrl: null,
+  brandColor: null,
+  signIn: null,
 };
+const OK: ProbeResult = { kind: "ok", server: PROBED };
 
-const connect = jest.fn(async (url: string) => {
-  useServerStore.setState({ serverUrl: url });
+const connect = jest.fn(async (server: ProbedServer) => {
+  useServerStore.setState({ serverUrl: server.serverUrl });
 });
 
 /**
@@ -109,8 +108,24 @@ describe("ServerConfigScreen", () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId("server-confirm"));
     });
-    expect(connect).toHaveBeenCalledWith("https://www.erp.example.com");
+    expect(connect).toHaveBeenCalledWith(PROBED);
     expect(mockDismissTo).toHaveBeenCalledWith("/console");
+  });
+
+  it("from the switcher's add entry, starts with an empty address, not the current server's", () => {
+    useServerStore.setState({ serverUrl: "https://old.example.com" });
+    mockParams = { add: "1" };
+    mockCanGoBack.mockReturnValue(true);
+    render(<ServerConfigScreen />);
+    expect(screen.getByTestId("server-url-input").props.value).toBe("");
+    expect(connect).not.toHaveBeenCalled();
+  });
+
+  it("without the add entry, starts with the current server's address", () => {
+    useServerStore.setState({ serverUrl: "https://old.example.com" });
+    mockCanGoBack.mockReturnValue(true);
+    render(<ServerConfigScreen />);
+    expect(screen.getByTestId("server-url-input").props.value).toBe("https://old.example.com");
   });
 
   it("'Not this server' returns to the address step with the address kept, saving nothing", async () => {
@@ -174,7 +189,7 @@ describe("ServerConfigScreen", () => {
     expect(connect).not.toHaveBeenCalled();
   });
 
-  it("with a server already saved, still asks; confirming replaces the saved server", async () => {
+  it("with a server already saved, still asks; confirming adds the server and makes it current", async () => {
     useServerStore.setState({ serverUrl: "https://old.example.com" });
     mockProbeServer.mockResolvedValue(OK);
     mockParams = { server: "https://erp.example.com", n: "1" };
@@ -185,7 +200,7 @@ describe("ServerConfigScreen", () => {
     await act(async () => {
       fireEvent.press(screen.getByTestId("server-confirm"));
     });
-    expect(connect).toHaveBeenCalledWith("https://www.erp.example.com");
+    expect(connect).toHaveBeenCalledWith(PROBED);
     expect(useServerStore.getState().serverUrl).toBe("https://www.erp.example.com");
   });
 
