@@ -227,7 +227,10 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       }),
       [insets.top, insets.bottom, insets.left, insets.right]
     );
-    const bootstrap = useMemo(() => buildBootstrapScript(hostInfo), [hostInfo]);
+    const bootstrap = useMemo(
+      () => buildBootstrapScript(hostInfo, serverUrl),
+      [hostInfo, serverUrl]
+    );
 
     // A push token the OS reports (rotation) goes to the page as
     // `objectstack-native:pushTokenChanged`. The Console installs its shell

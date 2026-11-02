@@ -12,8 +12,10 @@ server's device registry.
 - `window.ObjectStackNative.installId`: a random UUID v4 generated on first
   launch and kept in SecureStore (`AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`), so
   it survives the WebView's storage being cleared. It is not a hardware or
-  advertising id. It is `null` when secure storage is unavailable at page
-  start. The Console sends it as `deviceId`.
+  advertising id. Only pages on the configured server's origin see it; any
+  other main-frame page, such as a trusted sign-in host, reads `null`. It is
+  also `null` when secure storage is unavailable at page start. The Console
+  sends it as `deviceId`.
 - New capability and window event `pushTokenChanged`: when APNs / FCM report a
   token, the shell dispatches `objectstack-native:pushTokenChanged` with
   `detail: { token, vendor }`. Only pages on the configured server's origin

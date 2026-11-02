@@ -23,12 +23,15 @@ const info: BridgeHostInfo = {
   safeArea: { top: 47, bottom: 34, left: 0, right: 0 },
 };
 
-/** Run injected page script against a fake `window` / `document`. */
-function makePage() {
+const SERVER_URL = "https://acme.example.com/os";
+
+/** Run injected page script against a fake `window` / `document` on `origin`. */
+function makePage(origin = "https://acme.example.com") {
   const posted: unknown[] = [];
   const cssVars: Record<string, string> = {};
   const listeners: Record<string, () => void> = {};
   const window: Record<string, any> = {
+    location: { origin },
     ReactNativeWebView: { postMessage: (m: string) => posted.push(JSON.parse(m)) },
   };
   const document = {
@@ -48,7 +51,7 @@ describe("toScriptLiteral", () => {
 describe("bootstrap script", () => {
   it("exposes a frozen ObjectStackNative with host info", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const api = page.window.ObjectStackNative;
     expect(api.version).toBe(BRIDGE_PROTOCOL_VERSION);
     expect(api.platform).toBe("ios");
@@ -58,24 +61,47 @@ describe("bootstrap script", () => {
     expect(Object.isFrozen(api.capabilities)).toBe(true);
   });
 
-  it("exposes the install id, read-only", () => {
+  it("exposes the install id, read-only, to a page on the configured server's origin", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const api = page.window.ObjectStackNative;
     expect(api.installId).toBe(INSTALL_ID);
     expect(Object.getOwnPropertyDescriptor(api, "installId")?.writable).toBe(false);
     expect(Object.isFrozen(api)).toBe(true);
   });
 
+  it("exposes a null install id to a page on another origin (a trusted sign-in host)", () => {
+    const page = makePage("https://login.idp.example");
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const api = page.window.ObjectStackNative;
+    expect(api.installId).toBeNull();
+    // The rest of host info is unchanged there; the id is not in reach at all.
+    expect(api.platform).toBe("ios");
+    expect(JSON.stringify(api)).not.toContain(INSTALL_ID);
+  });
+
+  it("compares the page origin with the default port dropped", () => {
+    const page = makePage("https://acme.example.com");
+    page.run(buildBootstrapScript(info, "https://acme.example.com:443/os"));
+    expect(page.window.ObjectStackNative.installId).toBe(INSTALL_ID);
+  });
+
+  it("exposes a null install id with no usable server URL", () => {
+    const page = makePage("https://acme.example.com");
+    page.run(buildBootstrapScript(info, "not a url"));
+    expect(page.window.ObjectStackNative.installId).toBeNull();
+    expect(buildBootstrapScript(info, "not a url")).not.toContain(INSTALL_ID);
+  });
+
   it("exposes a null install id when the shell has none", () => {
     const page = makePage();
-    page.run(buildBootstrapScript({ ...info, installId: null }));
+    page.run(buildBootstrapScript({ ...info, installId: null }, SERVER_URL));
     expect(page.window.ObjectStackNative.installId).toBeNull();
   });
 
   it("publishes the safe area as CSS variables", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     expect(page.cssVars["--os-native-safe-top"]).toBe("47px");
     expect(page.cssVars["--os-native-safe-bottom"]).toBe("34px");
     expect(page.listeners.DOMContentLoaded).toBeDefined();
@@ -83,7 +109,7 @@ describe("bootstrap script", () => {
 
   it("posts calls and settles them through the resolve global", async () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const pending = page.window.ObjectStackNative.haptic("success");
     expect(page.posted).toEqual([
       { type: "call", id: "c1", method: "haptic", args: { kind: "success" } },
@@ -94,7 +120,7 @@ describe("bootstrap script", () => {
 
   it("rejects failed calls with the error code", async () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const pending = page.window.ObjectStackNative.navigate("bad");
     page.run(
       buildResolveScript({ id: "c1", ok: false, error: { code: "bad_args", message: "nope" } })
@@ -104,13 +130,13 @@ describe("bootstrap script", () => {
 
   it("ignores results for unknown calls", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     expect(() => page.run(buildResolveScript({ id: "c99", ok: true, value: 1 }))).not.toThrow();
   });
 
   it("posts events", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     page.window.ObjectStackNative.ready();
     page.window.ObjectStackNative.routeChanged("/apps/crm");
     expect(page.posted).toEqual([
@@ -121,9 +147,9 @@ describe("bootstrap script", () => {
 
   it("is idempotent across re-injection", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const first = page.window.ObjectStackNative;
-    page.run(buildBootstrapScript({ ...info, appVersion: "9.9.9" }));
+    page.run(buildBootstrapScript({ ...info, appVersion: "9.9.9" }, SERVER_URL));
     expect(page.window.ObjectStackNative).toBe(first);
   });
 });

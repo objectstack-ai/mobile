@@ -120,7 +120,7 @@ describe("ConsoleWebView", () => {
 
   it("announces the install id and the pushTokenChanged capability", () => {
     renderConsole();
-    const window: Record<string, any> = {};
+    const window: Record<string, any> = { location: { origin: SERVER } };
     const document = { documentElement: null, addEventListener: () => undefined };
     new Function("window", "document", mockWebView.props.injectedJavaScriptBeforeContentLoaded)(
       window,

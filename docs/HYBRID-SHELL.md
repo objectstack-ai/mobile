@@ -148,8 +148,10 @@ re-registration refreshes the device's row instead of minting a second one.
   `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`: never restored onto another device.
 - `null` when secure storage could not be read or written when the WebView
   was created (the Console then falls back to a server-minted `deviceId`).
-- Read-only, and only in the main frame — see Known limits for which pages
-  that includes.
+- Read-only, and only for the Console: the bootstrap runs in every main-frame
+  document (a trusted sign-in host's pages too), so it exposes `installId`
+  only when `window.location.origin` is the configured server's origin; any
+  other page reads `null`. Sub-frames never see host info (Known limits).
 
 ### Shell → Console events
 
@@ -318,15 +320,13 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - **Old Android WebViews cannot tell an iframe's bridge message from the
   page's.** Without `WebMessageListener` support, the message URL is the main
   frame's, so the origin check sees the Console's origin for any frame.
-- **Host info, `installId` included, reaches every main-frame page, and no
-  sub-frame.** The bootstrap is injected into the main frame only: iOS adds it
-  as a main-frame-only user script, and Android evaluates it in the main frame
-  from `onPageStarted` (react-native-webview 13.16 supports nothing else
-  there). No bridge method returns host info, and a cross-origin sub-frame
-  cannot read the main frame's `window`. But the bootstrap is not
-  origin-gated: every page the navigation policy loads in the main frame gets
-  it — the configured server and the hosts in `EXPO_PUBLIC_TRUSTED_HOSTS`
-  (an identity provider's sign-in page). Bridge calls from those hosts are
-  never answered, and `pushTokenChanged` is not delivered to them.
+- **Host info reaches main-frame documents only.** The bootstrap is injected
+  into the main frame only: iOS adds it as a main-frame-only user script, and
+  Android evaluates it in the main frame from `onPageStarted`
+  (react-native-webview 13.16 supports nothing else there). No bridge method
+  returns host info, and a cross-origin sub-frame cannot read the main frame's
+  `window`. A trusted host's page in the main frame gets the non-identifying
+  fields (`platform`, `appVersion`, `capabilities`, `safeArea`), and `null` for
+  `installId`.
 - **Downloads and file inputs** rely on the WebView defaults until the
   Phase 4 bridge methods land.

@@ -28,11 +28,24 @@ export function toScriptLiteral(value: unknown): string {
     .replace(/\u2029/g, "\\u2029");
 }
 
-/** Bootstrap for `injectedJavaScriptBeforeContentLoaded`. */
-export function buildBootstrapScript(info: BridgeHostInfo): string {
+/**
+ * Bootstrap for `injectedJavaScriptBeforeContentLoaded`.
+ *
+ * Injected into every main-frame document, which includes a trusted sign-in
+ * host's pages. So `installId`, like every datum only the Console should see,
+ * is exposed only when the document is on `serverUrl`'s origin; any other page
+ * reads `null`.
+ */
+export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): string {
+  const { installId, ...shared } = info;
+  const serverOrigin = originOf(serverUrl);
+  const gatedInstallId =
+    serverOrigin !== null && typeof installId === "string" ? installId : null;
   return `(function () {
   if (window.${BRIDGE_GLOBAL}) return;
-  var info = ${toScriptLiteral(info)};
+  var info = ${toScriptLiteral(shared)};
+  var onServer = !!window.location && window.location.origin === ${toScriptLiteral(serverOrigin)};
+  var installId = onServer ? ${toScriptLiteral(gatedInstallId)} : null;
   var pending = {};
   var seq = 0;
   function post(msg) {
@@ -50,7 +63,7 @@ export function buildBootstrapScript(info: BridgeHostInfo): string {
     version: info.protocolVersion,
     platform: info.platform,
     appVersion: info.appVersion,
-    installId: typeof info.installId === "string" ? info.installId : null,
+    installId: installId,
     capabilities: info.capabilities.slice(),
     safeArea: info.safeArea,
     has: function (capability) { return info.capabilities.indexOf(capability) !== -1; },
