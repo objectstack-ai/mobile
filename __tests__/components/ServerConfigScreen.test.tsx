@@ -1,5 +1,7 @@
 import React from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+// Types for the matchers jest.config registers through setupFilesAfterEnv.
+import type {} from "@testing-library/react-native/extend-expect";
 import "~/lib/i18n";
 import type { ProbeResult } from "~/lib/server-probe";
 

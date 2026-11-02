@@ -1,6 +1,8 @@
 import React from "react";
 import { BackHandler } from "react-native";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+// Types for the matchers jest.config registers through setupFilesAfterEnv.
+import type {} from "@testing-library/react-native/extend-expect";
 import "~/lib/i18n";
 import { ServerConfirm } from "~/components/shell/ServerConfirm";
 import { DEFAULT_BRAND_COLOR, type ProbedServer } from "~/lib/server-probe";
