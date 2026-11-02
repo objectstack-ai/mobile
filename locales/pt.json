@@ -1,0 +1,80 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancelar",
+    "retry": "Tentar novamente",
+    "error": "Erro"
+  },
+  "errorBoundary": {
+    "title": "Algo deu errado",
+    "message": "Ocorreu um erro inesperado.",
+    "retry": "Tentar novamente"
+  },
+  "serverConfig": {
+    "title": "Conectar ao servidor",
+    "subtitle": "Digite o endereço do seu servidor ObjectOS.",
+    "label": "URL do servidor",
+    "hint": "Exemplo: https://erp.example.com",
+    "connect": "Continuar",
+    "scan": "Escanear código QR",
+    "backTo": "Voltar para {{server}}",
+    "where": {
+      "title": "Onde encontro o endereço?",
+      "step1": "Em um computador, abra o ObjectOS no navegador e entre.",
+      "step2": "Copie o endereço da barra de endereços. Você pode colar o link inteiro: o app mantém só a parte do servidor.",
+      "step3": "Não tem certeza? Pergunte ao seu administrador."
+    },
+    "vpnHint": "Um servidor na rede da empresa pode exigir que este celular esteja conectado à VPN da empresa primeiro.",
+    "error": {
+      "empty": "Digite a URL do servidor.",
+      "invalid": "Isso não parece um endereço de servidor.",
+      "insecure": "Use um endereço https://: http sem criptografia só é permitido para servidores locais.",
+      "unreachable": "Não foi possível acessar o servidor. Verifique o endereço e sua rede: um servidor da empresa pode exigir VPN.",
+      "tls": "O certificado do servidor é inválido, então a conexão não é segura. Peça ao seu administrador para corrigi-lo.",
+      "timeout": "O servidor demorou demais para responder. Verifique sua rede ou VPN e tente novamente.",
+      "notObjectOS": "Este não é um servidor ObjectOS. Use o endereço com que você abre o ObjectOS no navegador.",
+      "serverError": "O servidor respondeu com um erro (HTTP {{status}}). Tente novamente mais tarde ou pergunte ao seu administrador.",
+      "unknown": "Algo deu errado. Tente novamente."
+    }
+  },
+  "serverConfirm": {
+    "title": "Este é o seu servidor?",
+    "secure": "Conexão segura (HTTPS)",
+    "signInLabel": "Entrar com",
+    "signIn": {
+      "sso": "Login único (SSO)",
+      "emailPassword": "E-mail e senha"
+    },
+    "versionLabel": "Versão da plataforma",
+    "confirm": "Conectar e entrar",
+    "reject": "Não é este servidor"
+  },
+  "shell": {
+    "loading": "Carregando…",
+    "offlineTitle": "Você está offline",
+    "offlineMessage": "Verifique sua conexão. A página recarrega sozinha quando você voltar a ficar online.",
+    "serverErrorTitle": "O servidor não está respondendo",
+    "serverErrorMessage": "O servidor respondeu com o erro {{code}}. Tente novamente em instantes.",
+    "retry": "Tentar novamente",
+    "changeServer": "Usar outro servidor"
+  },
+  "scanner": {
+    "hint": "Posicione o código QR dentro da moldura",
+    "connectNote": "Contém apenas o endereço do servidor, sem dados da conta",
+    "manual": "Digitar o endereço manualmente",
+    "notConnectCode": "Este não é um código QR de conexão",
+    "close": "Fechar",
+    "torchOn": "Ligar a lanterna",
+    "torchOff": "Desligar a lanterna",
+    "permission": {
+      "title": "Acesso à câmera necessário",
+      "body": "Permita o acesso à câmera para escanear o código QR.",
+      "blocked": "O acesso à câmera está desativado para o ObjectOS. Ative-o em Configurações ou digite o endereço manualmente.",
+      "allow": "Permitir câmera",
+      "settings": "Abrir Configurações"
+    }
+  },
+  "permissions": {
+    "camera": "O ObjectOS usa a câmera para escanear o código QR que o conecta ao seu servidor."
+  }
+}

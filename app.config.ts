@@ -1,15 +1,34 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
 import ar from "./locales/ar.json";
+import de from "./locales/de.json";
 import en from "./locales/en.json";
+import es from "./locales/es.json";
+import fr from "./locales/fr.json";
+import ja from "./locales/ja.json";
+import ko from "./locales/ko.json";
+import pt from "./locales/pt.json";
+import ru from "./locales/ru.json";
 import zh from "./locales/zh.json";
 
 // System permission prompts, localized from the app's own bundles (key
 // `permissions.camera`) so one file holds each language's copy. iOS reads them
 // from `<lproj>/InfoPlist.strings`; Android's camera prompt is the system's own
-// text. Keys are iOS localization names (`zh` is Simplified Chinese).
+// text. Keys are iOS localization names, written verbatim as `<key>.lproj`:
+// one per shell language (lib/i18n.ts). `zh` is Simplified Chinese, so it is
+// `zh-Hans`; Traditional Chinese (`zh-Hant`) gets the same `zh` copy, because
+// the shell resolves `zh-TW`/`zh-HK` to `zh` as the Console does. `pt` and `es`
+// stay unqualified so every regional variant falls back to them.
 const PERMISSION_LOCALES: Record<string, { permissions: { camera: string } }> = {
   en,
   "zh-Hans": zh,
+  "zh-Hant": zh,
+  ja,
+  ko,
+  de,
+  fr,
+  es,
+  pt,
+  ru,
   ar,
 };
 

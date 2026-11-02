@@ -1,6 +1,6 @@
 import "../global.css";
-import i18n from "~/lib/i18n"; // Initialize i18next before any screen calls useTranslation()
-import { syncRTL } from "~/lib/rtl";
+import i18n, { followDeviceLanguageOnForeground } from "~/lib/i18n"; // Initialize i18next before any screen calls useTranslation()
+import { syncRTL, useLayoutDirection } from "~/lib/rtl";
 
 import { useCallback, useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
@@ -35,8 +35,18 @@ export default function RootLayout() {
     void hydrate();
   }, [hydrate]);
 
+  // The phone language is the only source: follow a change on next foreground,
+  // and keep the persisted native direction flag in step with the language.
+  const direction = useLayoutDirection();
   useEffect(() => {
     syncRTL(i18n.language);
+    const onLanguageChanged = (lang: string) => syncRTL(lang);
+    i18n.on("languageChanged", onLanguageChanged);
+    const stopFollowing = followDeviceLanguageOnForeground();
+    return () => {
+      stopFollowing();
+      i18n.off("languageChanged", onLanguageChanged);
+    };
   }, []);
 
   const openRoute = useCallback(
@@ -46,7 +56,7 @@ export default function RootLayout() {
   usePushRouting(serverUrl, openRoute);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, direction }}>
       <SafeAreaProvider>
         <ErrorBoundary>
           <StatusBar style="auto" />
