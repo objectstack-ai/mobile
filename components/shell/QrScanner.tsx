@@ -1,6 +1,12 @@
 import React from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { CameraView, useCameraPermissions, type BarcodeScanningResult } from "expo-camera";
+import {
+  CameraView,
+  useCameraPermissions,
+  type BarcodeScanningResult,
+  type BarcodeType,
+  type PermissionStatus,
+} from "expo-camera";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Flashlight, FlashlightOff, X } from "lucide-react-native";
@@ -27,7 +33,18 @@ export interface QrScannerProps<T> {
   note?: string;
   /** A way to finish without the camera, e.g. "Enter address manually". */
   manualAction?: { label: string; onPress: () => void };
+  /** Code formats the camera reads; defaults to QR codes only. */
+  barcodeTypes?: BarcodeType[];
+  /**
+   * The permission panel's copy when the default (which speaks of the QR code
+   * and of entering the address) does not fit the caller.
+   */
+  permissionText?: { body: string; blocked: string };
+  /** Told the camera permission's status each time it is read or changes. */
+  onPermissionStatus?: (status: PermissionStatus) => void;
 }
+
+const QR_ONLY: BarcodeType[] = ["qr"];
 
 const WHITE = "#ffffff";
 
@@ -48,6 +65,9 @@ export function QrScanner<T>({
   hint,
   note,
   manualAction,
+  barcodeTypes = QR_ONLY,
+  permissionText,
+  onPermissionStatus,
 }: QrScannerProps<T>) {
   const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
@@ -67,6 +87,11 @@ export function QrScanner<T>({
     askedRef.current = true;
     void requestPermission();
   }, [permission, requestPermission]);
+
+  const status = permission?.status;
+  React.useEffect(() => {
+    if (status) onPermissionStatus?.(status);
+  }, [status, onPermissionStatus]);
 
   React.useEffect(
     () => () => {
@@ -135,7 +160,9 @@ export function QrScanner<T>({
               {t("scanner.permission.title")}
             </Text>
             <Text className="text-center text-base text-white/80">
-              {t(blocked ? "scanner.permission.blocked" : "scanner.permission.body")}
+              {permissionText
+                ? permissionText[blocked ? "blocked" : "body"]
+                : t(blocked ? "scanner.permission.blocked" : "scanner.permission.body")}
             </Text>
             {blocked ? (
               <Button testID="qr-scanner-settings" onPress={() => void Linking.openSettings()}>
@@ -160,7 +187,7 @@ export function QrScanner<T>({
         style={StyleSheet.absoluteFill}
         facing="back"
         enableTorch={torch}
-        barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+        barcodeScannerSettings={{ barcodeTypes }}
         onBarcodeScanned={done ? undefined : handleScanned}
       />
       <SafeAreaView className="flex-1" pointerEvents="box-none">

@@ -59,8 +59,30 @@ export const BRIDGE_METHODS = [
   "openExternal",
   "navigate",
   "resetServer",
+  "scan",
 ] as const;
 export type BridgeMethod = (typeof BRIDGE_METHODS)[number];
+
+/**
+ * Code formats `scan()` reads, named as `expo-camera`'s `BarcodeType`. A call
+ * may narrow the set with `formats`; without it the scanner reads all of them.
+ */
+export const SCAN_FORMATS = [
+  "qr",
+  "aztec",
+  "datamatrix",
+  "pdf417",
+  "ean13",
+  "ean8",
+  "upc_a",
+  "upc_e",
+  "code39",
+  "code93",
+  "code128",
+  "codabar",
+  "itf14",
+] as const;
+export type ScanFormat = (typeof SCAN_FORMATS)[number];
 
 /** Everything the shell announces in `capabilities`: its methods and its events. */
 export const BRIDGE_CAPABILITIES: readonly string[] = [...BRIDGE_METHODS, ...SHELL_EVENTS];

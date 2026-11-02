@@ -114,6 +114,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     // The last Console route the page was on, so a re-created WebView resumes
     // there instead of at the start route.
     const lastRouteRef = useRef<string | null>(null);
+    // Counts documents: a new one starts on every load start and every
+    // re-created WebView. A call's answer goes only to the document that made
+    // the call. A `scan()` stays open as long as the user takes, and the page
+    // can be replaced meanwhile (a reload, recovery, a sign-in redirect).
+    const documentRef = useRef(0);
 
     const goTo = useCallback(
       (route: string) => {
@@ -175,6 +180,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       loadedRef.current = false;
       setFailure(null);
       setLoaded(false);
+      documentRef.current += 1;
       setInstance((i) => i + 1);
     }, []);
 
@@ -262,6 +268,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       if (held) sendPushToken(held);
     }, [sendPushToken]);
     const onDocumentStart = useCallback(() => {
+      documentRef.current += 1;
       consoleReadyRef.current = false;
     }, []);
 
@@ -282,8 +289,10 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
 
     const onMessage = useCallback(
       (event: WebViewMessageEvent) => {
+        const caller = documentRef.current;
         void handleMessage(event.nativeEvent.data, event.nativeEvent.url).then((result) => {
-          if (result) webviewRef.current?.injectJavaScript(buildResolveScript(result));
+          if (!result || documentRef.current !== caller) return;
+          webviewRef.current?.injectJavaScript(buildResolveScript(result));
         });
       },
       [handleMessage]

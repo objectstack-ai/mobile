@@ -48,13 +48,17 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
   var installId = onServer ? ${toScriptLiteral(gatedInstallId)} : null;
   var pending = {};
   var seq = 0;
+  // Call ids carry a token of this document. An answer the shell sends after
+  // the page was replaced (a reload, a re-created WebView, a sign-in redirect)
+  // then matches no call of the new document, which numbers its calls afresh.
+  var doc = Math.floor(Math.random() * 2176782336).toString(36) + Date.now().toString(36);
   function post(msg) {
     if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg));
   }
   function call(method, args) {
     return new Promise(function (resolve, reject) {
       seq += 1;
-      var id = "c" + seq;
+      var id = doc + "." + seq;
       pending[id] = { resolve: resolve, reject: reject };
       post({ type: "call", id: id, method: method, args: args });
     });
@@ -72,6 +76,7 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
     openExternal: function (url) { return call("openExternal", { url: url }); },
     navigate: function (route) { return call("navigate", { route: route }); },
     resetServer: function () { return call("resetServer"); },
+    scan: function (opts) { return call("scan", opts); },
     ready: function () { post({ type: "event", name: "ready" }); },
     routeChanged: function (route) { post({ type: "event", name: "routeChanged", payload: { route: route } }); }
   };

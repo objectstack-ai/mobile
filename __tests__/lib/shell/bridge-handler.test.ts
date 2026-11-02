@@ -1,4 +1,13 @@
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
+import { SCAN_FORMATS } from "~/lib/shell/bridge/protocol";
+import {
+  SCAN_BUSY_MESSAGE,
+  SCAN_DENIED_MESSAGE,
+  currentScan,
+  requestScan,
+  settleScan,
+  type ScanOutcome,
+} from "~/lib/shell/bridge/scan-session";
 
 const SERVER = "https://acme.example.com";
 const PAGE = `${SERVER}/_console/home`;
@@ -11,6 +20,7 @@ function setup(overrides: Partial<BridgeDeps> = {}) {
     openExternal: jest.fn().mockResolvedValue(undefined),
     navigate: jest.fn(),
     resetServer: jest.fn().mockResolvedValue(undefined),
+    scan: jest.fn().mockResolvedValue("4006381333931"),
     onEvent: jest.fn(),
     ...overrides,
   };
@@ -131,6 +141,107 @@ describe("bridge handler", () => {
     await expect(handle(call("selfDestruct"), PAGE)).resolves.toMatchObject({
       ok: false,
       error: { code: "unknown_method" },
+    });
+  });
+
+  describe("scan", () => {
+    it("reads every format when the call names none", async () => {
+      const { handle, deps } = setup();
+      for (const args of [undefined, null, {}]) {
+        await expect(handle(call("scan", args), PAGE)).resolves.toEqual({
+          id: "c1",
+          ok: true,
+          value: "4006381333931",
+        });
+      }
+      expect(deps.scan).toHaveBeenCalledTimes(3);
+      for (const [formats] of (deps.scan as jest.Mock).mock.calls) {
+        expect(formats).toEqual(SCAN_FORMATS);
+      }
+    });
+
+    it("reads only the formats the call names", async () => {
+      const { handle, deps } = setup();
+      await expect(
+        handle(call("scan", { formats: ["ean13", "qr", "ean13"] }), PAGE)
+      ).resolves.toMatchObject({ ok: true });
+      expect(deps.scan).toHaveBeenCalledWith(["qr", "ean13"]);
+    });
+
+    it.each([
+      ["an empty format list", { formats: [] }],
+      ["an unknown format", { formats: ["qr", "barcode"] }],
+      ["a format that is not a string", { formats: ["qr", 5] }],
+      ["formats that are not a list", { formats: "qr" }],
+      ["an unknown option", { format: ["qr"] }],
+      ["an extra option", { formats: ["qr"], torch: true }],
+      ["options that are a list", ["qr"]],
+      ["options that are a string", "qr"],
+    ])("refuses %s as bad_args without opening the scanner", async (_label, args) => {
+      const { handle, deps } = setup();
+      await expect(handle(call("scan", args), PAGE)).resolves.toMatchObject({
+        ok: false,
+        error: { code: "bad_args" },
+      });
+      expect(deps.scan).not.toHaveBeenCalled();
+    });
+
+    it("answers nothing, and opens no scanner, for a page on another origin", async () => {
+      const { handle, deps } = setup();
+      await expect(handle(call("scan"), "https://evil.example.com/")).resolves.toBeNull();
+      expect(deps.scan).not.toHaveBeenCalled();
+    });
+
+    describe("through the scan session", () => {
+      const show = jest.fn();
+      const scanThroughSession = () =>
+        setup({ scan: (formats) => requestScan(formats, show) }).handle;
+
+      /** Settle the open scan once the handler has opened it. */
+      async function settleOpen(outcome: ScanOutcome) {
+        await Promise.resolve();
+        const open = currentScan();
+        if (!open) throw new Error("no scan open");
+        settleScan(open.token, outcome);
+      }
+
+      beforeEach(() => show.mockReset());
+
+      it("resolves the decoded text", async () => {
+        const answer = scanThroughSession()(call("scan", { formats: ["code128"] }), PAGE);
+        await settleOpen({ kind: "result", text: "SKU-0042" });
+        await expect(answer).resolves.toEqual({ id: "c1", ok: true, value: "SKU-0042" });
+        expect(show).toHaveBeenCalledTimes(1);
+      });
+
+      it("resolves null on cancel", async () => {
+        const answer = scanThroughSession()(call("scan"), PAGE);
+        await settleOpen({ kind: "cancel" });
+        await expect(answer).resolves.toEqual({ id: "c1", ok: true, value: null });
+      });
+
+      it("fails when the camera permission is denied", async () => {
+        const answer = scanThroughSession()(call("scan"), PAGE);
+        await settleOpen({ kind: "denied" });
+        await expect(answer).resolves.toEqual({
+          id: "c1",
+          ok: false,
+          error: { code: "failed", message: SCAN_DENIED_MESSAGE },
+        });
+      });
+
+      it("refuses a second scan while one is open, and leaves the open one alone", async () => {
+        const handle = scanThroughSession();
+        const first = handle(call("scan", undefined, "c1"), PAGE);
+        await expect(handle(call("scan", undefined, "c2"), PAGE)).resolves.toEqual({
+          id: "c2",
+          ok: false,
+          error: { code: "failed", message: SCAN_BUSY_MESSAGE },
+        });
+        expect(show).toHaveBeenCalledTimes(1);
+        await settleOpen({ kind: "result", text: "first" });
+        await expect(first).resolves.toEqual({ id: "c1", ok: true, value: "first" });
+      });
     });
   });
 
