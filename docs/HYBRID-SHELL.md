@@ -25,12 +25,16 @@ The native metadata renderer that 1.x shipped is kept on the
 app/
   _layout.tsx         providers, Sentry, push-tap routing
   index.tsx           waits for the stored server, then redirects
-  server-config.tsx   native server picker
+  server-config.tsx   native server picker: address step, then confirm step
   console.tsx         the Console screen (one long-lived WebView)
   +native-intent.tsx  app links → Console routes
 components/shell/
   ConsoleWebView.tsx  WebView + navigation policy + bridge + back button + load states
+  ServerConfirm.tsx   "is this your server?" step of the picker
   OfflineFallback.tsx native page for network / 5xx failures
+lib/
+  server-probe.ts     anonymous probe of a server before it is saved
+  server-url.ts       persistence of the chosen server URL
 lib/shell/
   console-url.ts      server URL normalisation, Console URL ⇄ route
   console-load.ts     load states: loading cover, held route, last route
@@ -48,8 +52,52 @@ lib/shell/
 The Console is same-origin with the API and authenticates with the session
 cookie. The WebView keeps that cookie (`sharedCookiesEnabled` on iOS,
 `thirdPartyCookiesEnabled` on Android), so **the shell holds no API credential
-and makes no API calls of its own**. Sign-in, sign-up, 2FA and password reset
-are the Console's pages.
+and makes no authenticated API calls of its own** — its only requests are the
+anonymous server probe below. Sign-in, sign-up, 2FA and password reset are the
+Console's pages.
+
+## Server selection
+
+The picker (`app/server-config.tsx`) has two steps, and the server is saved
+only when the user confirms the second.
+
+1. **Address.** The typed address is normalized (`normalizeServerUrl`: https
+   added, a pasted Console link cut at `/_console`, plain http refused except
+   for local hosts) and probed by `probeServer` (`lib/server-probe.ts`).
+2. **Confirm.** `ServerConfirm` shows who answered: the logo (or the initial on
+   the brand colour), the product name, the full URL, a lock row for https, the
+   sign-in methods and the platform version. "Connect and sign in" saves the
+   server and opens the Console; "Not this server" goes back with the address
+   kept.
+
+The probe reads three anonymous endpoints, sends no cookie, and never throws:
+
+| Endpoint                       | Body                                                                    | Used for                           |
+| ------------------------------ | ----------------------------------------------------------------------- | ---------------------------------- |
+| `GET /.well-known/objectstack` | `{ success: true, data: { name, version, routes, … } }`                 | is this ObjectOS; platform version |
+| `GET /api/v1/runtime/config`   | bare `{ branding: { productName, logoUrl, brandColor }, … }`            | name, logo, colour (best-effort)   |
+| `GET /api/v1/auth/config`      | `{ success: true, data: { emailPassword, socialProviders, features } }` | sign-in methods (best-effort)      |
+
+Discovery alone decides whether the host is an ObjectOS server: a 4xx, a body
+that is not JSON, or JSON without the envelope, `name`, `version` and `routes`
+is "not an ObjectOS server". A redirect of the discovery request to another
+origin (apex → www, http → https) is adopted as the server URL
+(`serverUrlAfterRedirect`); a redirect onto plain http to a public host is
+refused like typed http.
+
+Each outcome has its own copy (`serverConfig.error.<kind>`): `not-objectos`,
+`unreachable` (with the VPN hint), `tls` (certificate invalid), `timeout`
+(8 s per request), `server-error` (5xx), `insecure-http`, `empty`,
+`invalid`.
+
+React Native's `fetch` reports every transport failure as the same
+`TypeError: Network request failed`, so a certificate error would read as
+"unreachable". The picker therefore injects `xhrFetch`, a transport over RN's
+`XMLHttpRequest`, which keeps the native error text (iOS `NSURLErrorDomain`,
+Android `javax.net.ssl` / `java.security.cert`) for the probe to classify.
+
+The QR scanner is not built yet; its button and the `objectos://connect` link
+will feed the scanned address into the same probe and confirm steps.
 
 Sign-in through an external identity provider: the IdP's host must be listed in
 `EXPO_PUBLIC_TRUSTED_HOSTS`, or the navigation policy opens it in the system
@@ -244,8 +292,11 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 
 ## Testing
 
-- Pure modules (`lib/shell/**`, push, stores) — unit tests under `__tests__/lib`.
-  The load state machine: `__tests__/lib/shell/console-load.test.ts`.
+- Pure modules (`lib/shell/**`, the server probe, push, stores) — unit tests
+  under `__tests__/lib`. The load state machine:
+  `__tests__/lib/shell/console-load.test.ts`.
+- The picker and its confirm step — component tests under
+  `__tests__/components` (`ServerConfigScreen`, `ServerConfirm`).
 - The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`

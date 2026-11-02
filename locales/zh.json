@@ -12,18 +12,40 @@
   },
   "serverConfig": {
     "title": "连接服务器",
-    "subtitle": "输入 ObjectOS 服务器地址开始使用。",
+    "subtitle": "输入你的 ObjectOS 服务器地址。",
     "label": "服务器地址",
-    "hint": "例如：https://app.example.com",
-    "connect": "连接",
-    "help": "如果不知道服务器地址，请联系管理员。",
+    "hint": "例如：https://erp.example.com",
+    "connect": "继续",
+    "where": {
+      "title": "在哪里找到地址？",
+      "step1": "在电脑浏览器中打开 ObjectOS 并登录。",
+      "step2": "复制浏览器地址栏中的地址。可以直接粘贴整个链接，应用只保留服务器部分。",
+      "step3": "仍不确定？请联系管理员。"
+    },
+    "vpnHint": "公司内网的服务器可能需要手机先连接公司 VPN。",
     "error": {
       "empty": "请输入服务器地址。",
       "invalid": "这看起来不是有效的服务器地址。",
       "insecure": "请使用 https:// 地址，http 仅允许用于本地服务器。",
-      "unreachable": "无法连接服务器，请检查地址后重试。",
+      "unreachable": "无法连接服务器。请检查地址和网络，公司内网的服务器可能需要先连接 VPN。",
+      "tls": "证书无效：无法验证服务器的安全证书，连接不安全。请联系管理员修复。",
+      "timeout": "服务器响应超时。请检查网络或 VPN 后重试。",
+      "notObjectOS": "这不是 ObjectOS 服务器。请使用在浏览器中打开 ObjectOS 的地址。",
+      "serverError": "服务器返回错误（HTTP {{status}}）。请稍后重试或联系管理员。",
       "unknown": "出现问题，请重试。"
     }
+  },
+  "serverConfirm": {
+    "title": "这是你的服务器吗？",
+    "secure": "安全连接（HTTPS）",
+    "signInLabel": "登录方式",
+    "signIn": {
+      "sso": "单点登录（SSO）",
+      "emailPassword": "邮箱和密码"
+    },
+    "versionLabel": "平台版本",
+    "confirm": "连接并登录",
+    "reject": "不是这台服务器"
   },
   "shell": {
     "loading": "加载中…",
