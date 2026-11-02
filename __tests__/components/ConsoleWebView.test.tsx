@@ -859,7 +859,11 @@ describe("ConsoleWebView — sign-in excursion", () => {
 
   /** The Console's sign-in page, loaded and ready. */
   async function onSignInPage(overrides: Partial<ConsoleWebViewProps> = {}) {
-    const rendered = renderConsole({ initialRoute: "/login", serverLabel: "Acme ERP", ...overrides });
+    const rendered = renderConsole({
+      initialRoute: "/login",
+      serverLabel: "Acme ERP",
+      ...overrides,
+    });
     loadStart(LOGIN);
     loadEndAt(LOGIN);
     await consoleReady();
@@ -925,7 +929,9 @@ describe("ConsoleWebView — sign-in excursion", () => {
     expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent("mfa.idp-corp.example");
     // A page Android loads without asking (a form POST) is reported at its load.
     loadEndAt("https://federation.partner.example/saml");
-    expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent("federation.partner.example");
+    expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent(
+      "federation.partner.example"
+    );
   });
 
   describe("the bridge", () => {

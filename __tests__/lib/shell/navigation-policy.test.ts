@@ -107,7 +107,9 @@ describe("isSignInSurface", () => {
   });
 
   it("is a path under the auth API", () => {
-    expect(isSignInSurface(server, `${server}/api/v1/auth/sign-in/social?provider=corp`)).toBe(true);
+    expect(isSignInSurface(server, `${server}/api/v1/auth/sign-in/social?provider=corp`)).toBe(
+      true
+    );
     expect(isSignInSurface(server, `${server}/api/v1/auth/oauth2/authorize`)).toBe(true);
   });
 

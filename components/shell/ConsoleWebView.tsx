@@ -663,7 +663,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
         {excursion ? (
-          <SignInExcursionBar host={excursion.host} serverLabel={label} onCancel={cancelExcursion} />
+          <SignInExcursionBar
+            host={excursion.host}
+            serverLabel={label}
+            onCancel={cancelExcursion}
+          />
         ) : null}
         {excursionNotice ? (
           <SignInExcursionNotice

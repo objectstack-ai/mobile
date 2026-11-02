@@ -8,10 +8,7 @@ import { StyleSheet } from "react-native";
 // Types for the matchers jest.config registers through setupFilesAfterEnv.
 import type {} from "@testing-library/react-native/extend-expect";
 import i18n from "~/lib/i18n";
-import {
-  SignInExcursionBar,
-  SignInExcursionNotice,
-} from "~/components/shell/SignInExcursionBar";
+import { SignInExcursionBar, SignInExcursionNotice } from "~/components/shell/SignInExcursionBar";
 
 afterEach(async () => {
   await act(async () => {
@@ -45,7 +42,9 @@ describe("SignInExcursionBar", () => {
     await act(async () => {
       await i18n.changeLanguage("zh");
     });
-    render(<SignInExcursionBar host="sso.corp.example" serverLabel="Acme ERP" onCancel={jest.fn()} />);
+    render(
+      <SignInExcursionBar host="sso.corp.example" serverLabel="Acme ERP" onCancel={jest.fn()} />
+    );
     expect(screen.getByText("正在外部页面登录 · Acme ERP")).toBeTruthy();
     expect(screen.getByText("取消")).toBeTruthy();
   });
@@ -73,7 +72,10 @@ describe("SignInExcursionBar", () => {
 
 describe("SignInExcursionNotice", () => {
   it.each([
-    ["redirects", "The sign-in page redirected too many times. Try again, or ask your administrator."],
+    [
+      "redirects",
+      "The sign-in page redirected too many times. Try again, or ask your administrator.",
+    ],
     ["timeout", "Sign-in took longer than 10 minutes. Start again."],
     [
       "insecure",

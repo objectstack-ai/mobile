@@ -144,7 +144,12 @@ export function refusesEmbeddedWebView(url: string): boolean {
 }
 
 /** Why an excursion page at `url` ends the excursion, or `null` if it does not. */
-function failureAt(url: string, scheme: string, active: ActiveExcursion, now: number): ExcursionFailure | null {
+function failureAt(
+  url: string,
+  scheme: string,
+  active: ActiveExcursion,
+  now: number
+): ExcursionFailure | null {
   if (refusesEmbeddedWebView(url)) return "unsupported";
   if (scheme !== "https") return "insecure";
   if (now - active.startedAt >= EXCURSION_TIMEOUT_MS) return "timeout";

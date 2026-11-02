@@ -106,7 +106,10 @@ describe("sign-in excursion: the start", () => {
   it("refuses plain http, which keeps the existing policy (system browser)", () => {
     const step = request(at(LOGIN), "http://login.idp-corp.example/authorize");
     expect(step.started).toBeUndefined();
-    expect(step.decision).toEqual({ kind: "external", url: "http://login.idp-corp.example/authorize" });
+    expect(step.decision).toEqual({
+      kind: "external",
+      url: "http://login.idp-corp.example/authorize",
+    });
     expect(step.state.active).toBeNull();
   });
 
@@ -123,7 +126,12 @@ describe("sign-in excursion: the start", () => {
     const base = "https://acme.example.com/erp";
     const step = stepExcursion(
       report(IDLE_EXCURSION, `${base}/_console/login`, true).state,
-      { type: "request", url: IDP, base: decideNavigation(IDP, { ...ctx, serverUrl: base }), now: T0 },
+      {
+        type: "request",
+        url: IDP,
+        base: decideNavigation(IDP, { ...ctx, serverUrl: base }),
+        now: T0,
+      },
       base
     );
     expect(step.started).toBe(true);
@@ -166,7 +174,10 @@ describe("sign-in excursion: while it lasts", () => {
 
   it("ends when the provider hands over to one that refuses embedded WebViews", () => {
     expect(request(started(), "https://accounts.google.com/signin").ended).toBe("unsupported");
-    const marker = request(started(), "https://login.idp-corp.example/error?code=disallowed_useragent");
+    const marker = request(
+      started(),
+      "https://login.idp-corp.example/error?code=disallowed_useragent"
+    );
     expect(marker.ended).toBe("unsupported");
     expect(marker.decision).toEqual({ kind: "block" });
   });
@@ -192,7 +203,9 @@ describe("sign-in excursion: while it lasts", () => {
     const next = request(started(), "https://login.idp-corp.example/next", late);
     expect(next.ended).toBe("timeout");
     expect(next.decision).toEqual({ kind: "block" });
-    expect(report(started(), "https://login.idp-corp.example/next", true, late).ended).toBe("timeout");
+    expect(report(started(), "https://login.idp-corp.example/next", true, late).ended).toBe(
+      "timeout"
+    );
   });
 
   it("does not count or end on a trusted host", () => {
@@ -207,7 +220,10 @@ describe("sign-in excursion: the end", () => {
     const step = request(started(), `${SERVER}/api/v1/auth/callback/corp?code=abc`);
     expect(step.decision).toEqual({ kind: "load" });
     expect(step.ended).toBe("returned");
-    expect(step.state).toEqual({ location: `${SERVER}/api/v1/auth/callback/corp?code=abc`, active: null });
+    expect(step.state).toEqual({
+      location: `${SERVER}/api/v1/auth/callback/corp?code=abc`,
+      active: null,
+    });
   });
 
   it("ends on a server page the WebView reports loaded, after an excursion page loaded", () => {

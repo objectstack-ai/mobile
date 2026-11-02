@@ -34,11 +34,7 @@ export function SignInExcursionBar({ host, serverLabel, onCancel }: SignInExcurs
       style={{ direction }}
       testID="shell-excursion-bar"
     >
-      <View
-        accessible
-        accessibilityLabel={t("excursion.secure")}
-        testID="shell-excursion-lock"
-      >
+      <View accessible accessibilityLabel={t("excursion.secure")} testID="shell-excursion-lock">
         <Lock size={16} color={colors.foreground} />
       </View>
       <View className="flex-1">

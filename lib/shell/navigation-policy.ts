@@ -16,7 +16,13 @@
  * load in the WebView only when the excursion started from the server's sign-in
  * surface ({@link isSignInSurface}).
  */
-import { originOf, parseUrl, routeFromConsoleUrl, routePath, safeConsoleRoute } from "./console-url";
+import {
+  originOf,
+  parseUrl,
+  routeFromConsoleUrl,
+  routePath,
+  safeConsoleRoute,
+} from "./console-url";
 import { resolveRoute, type RouteRule } from "./route-owner";
 
 /** The Console route of the server's sign-in page (`<server>/_console/login`). */
