@@ -1,7 +1,6 @@
 import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { AppState } from "react-native";
-import * as Localization from "expo-localization";
 import i18n, {
   DEFAULT_LANGUAGE,
   detectDeviceLanguage,
@@ -20,6 +19,19 @@ import i18n, {
  * The shell must match this list one-to-one.
  */
 const CONSOLE_LANGUAGE_CODES = ["en", "zh", "ja", "ko", "de", "fr", "es", "pt", "ru", "ar"];
+
+// jest.setup.ts mocks this module without a `default`, which is what
+// `react-native`'s `AppState` getter reads; give it one for this file.
+jest.mock("react-native/Libraries/AppState/AppState", () => {
+  const appState = {
+    currentState: "active",
+    addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  };
+  return { __esModule: true, default: appState, ...appState };
+});
+
+// The module object `~/lib/i18n` calls `getLocales` on, so a spy reaches it.
+const Localization = jest.requireMock("expo-localization") as typeof import("expo-localization");
 
 const LOCALES_DIR = join(__dirname, "..", "..", "locales");
 

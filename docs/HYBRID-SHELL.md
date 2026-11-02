@@ -33,6 +33,8 @@ components/shell/
   ServerConfirm.tsx   "is this your server?" step of the picker
   OfflineFallback.tsx native page for network / 5xx failures
 lib/
+  i18n.ts             shell strings in the Console's ten locales; follows the phone language
+  rtl.ts              right-to-left layout for Arabic
   server-probe.ts     anonymous probe of a server before it is saved
   server-url.ts       persistence of the chosen server URL
 lib/shell/
@@ -54,6 +56,41 @@ cookie. The WebView keeps that cookie (`sharedCookiesEnabled` on iOS,
 and makes no authenticated API calls of its own** — its only requests are the
 anonymous server probe below. Sign-in, sign-up, 2FA and password reset are the
 Console's pages.
+
+## Language
+
+The shell translates only its own native screens (server picker, confirm step,
+loading and offline pages); everything inside the WebView is the Console's.
+
+- **The locale set mirrors the Console UI's.** The shell ships the same ten
+  locales under the same short codes as the Console's built-in catalogues
+  (objectstack `ui/packages/i18n/src/locales/`): `en`, `zh`, `ja`, `ko`, `de`,
+  `fr`, `es`, `pt`, `ru`, `ar`. A test pins `SUPPORTED_LANGUAGES` to that list,
+  and another fails when any bundle in `locales/` misses a key `en.json` has —
+  a new native string ships in all ten.
+- **The phone language decides, with the Console's matching rule.** The shell
+  walks the phone's preferred languages in order and takes the first one that
+  resolves to a bundled locale, else `en`. A tag resolves exactly, else through
+  its base language: the Console's `matchLanguageTag`
+  (`ui/packages/i18n/src/locales/registry.ts`), ported as is. So `zh-Hans-CN` →
+  `zh`, `pt-BR` → `pt`, `es-MX` → `es`, and Traditional Chinese (`zh-TW`,
+  `zh-HK`, `zh-Hant`) → `zh`, because the Console has no Traditional Chinese
+  catalogue either.
+- **No in-app language picker.** The phone setting is the only source for the
+  native screens. A phone-language change is picked up the next time the app
+  comes to the foreground.
+- **Arabic lays out right-to-left.** Each native screen root carries Yoga's
+  `direction` style for the current language, so the switch applies on first
+  render and on a language change without a restart. `I18nManager.forceRTL` is
+  kept in step as well; what reads it (for example the navigation stack's
+  transition direction) follows on the next launch.
+- **Once signed in, the user's Console locale wins inside the Console.** The
+  Console resolves its own language: the user's `sys_user.locale`, else the
+  request's `Accept-Language` (the WebView sends the phone's languages), else
+  the deployment default. So a user whose Console locale differs from the
+  phone sees the native screens in the phone's language and the Console in
+  their own. Built-in object and field labels exist in fewer locales than the
+  Console chrome; that gap is the platform's, not the shell's.
 
 ## Server selection
 
@@ -254,6 +291,9 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   under `__tests__/lib`.
 - The picker and its confirm step — component tests under
   `__tests__/components` (`ServerConfigScreen`, `ServerConfirm`).
+- Locale list, phone-language matching and bundle completeness —
+  `__tests__/lib/i18n.test.ts`; right-to-left native screens under `ar` —
+  `__tests__/components/RtlLayout.test.tsx`.
 - The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`
