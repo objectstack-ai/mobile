@@ -11,7 +11,7 @@ server ──APNs / FCM──▶ device ──tap──▶ shell (hooks/usePushR
 ```
 
 - The shell obtains the **native** token (`getDevicePushTokenAsync`), not an
-  Expo push token: the ObjectStack server delivers through APNs and FCM
+  Expo push token: the ObjectOS server delivers through APNs and FCM
   directly (ADR-0012).
 - The Console asks for the token over the bridge once the user is signed in and
   registers it under its own session. The OS permission prompt therefore

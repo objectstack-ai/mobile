@@ -2,12 +2,12 @@ import { ExpoConfig, ConfigContext } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "ObjectStack Mobile",
-  slug: "objectstack-mobile",
+  name: "ObjectOS",
+  slug: "objectos-mobile",
   version: "2.0.0",
   orientation: "portrait",
   icon: "./assets/icon.png",
-  scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "objectstack",
+  scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "objectos",
   userInterfaceStyle: "automatic",
   // SDK 55 dropped legacy architecture — New Architecture is always on, so the
   // `newArchEnabled` flag was removed from ExpoConfig.
@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.objectstack.mobile",
+    bundleIdentifier: "ai.objectos.mobile",
   },
   android: {
     adaptiveIcon: {
@@ -26,7 +26,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#ffffff",
     },
     // SDK 55 removed `edgeToEdgeEnabled` — edge-to-edge is always on now.
-    package: "com.objectstack.mobile",
+    package: "ai.objectos.mobile",
   },
   web: {
     favicon: "./assets/favicon.png",

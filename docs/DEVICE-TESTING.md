@@ -34,7 +34,7 @@ anything public must be `https://`.
 | Server error | a 5xx from the server shows the server error page |
 | Change server | offline page → "Use a different server" → picker → new Console |
 | Session | sign in, kill the app, reopen — still signed in |
-| Links | `xcrun simctl openurl booted "objectstack://console/apps"` / `adb shell am start -d "objectstack://console/apps"` opens that route |
+| Links | `xcrun simctl openurl booted "objectos://console/apps"` / `adb shell am start -d "objectos://console/apps"` opens that route |
 | Push | see [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md) — needs the server device registry |
 
 ## Debugging the page

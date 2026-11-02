@@ -1,4 +1,4 @@
-# ObjectStack Mobile — Roadmap
+# ObjectOS Mobile — Roadmap
 
 > 2.x: hybrid shell around the web Console. Decision record: the native
 > metadata renderer (1.x) could not keep pace with the platform — it ended on
@@ -19,7 +19,7 @@
 - Bridge v1: `getPushToken`, `haptic`, `openExternal`, `navigate`, `resetServer`,
   `ready` / `routeChanged` events, safe-area CSS variables
 - Native device push token + tap routing to Console routes; app links
-  (`objectstack://open?route=…`, `objectstack://console/…`)
+  (`objectos://open?route=…`, `objectos://console/…`)
 - Sentry, i18n (en / zh / ar)
 
 ## Phase 2 — Console integration (framework repository)
