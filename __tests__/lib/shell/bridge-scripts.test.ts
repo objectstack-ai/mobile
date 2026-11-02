@@ -1,29 +1,37 @@
 import {
   buildBootstrapScript,
   buildNavigateScript,
+  buildPushTokenChangedScript,
   buildResolveScript,
   toScriptLiteral,
 } from "~/lib/shell/bridge/scripts";
 import {
   BRIDGE_PROTOCOL_VERSION,
   NAVIGATE_EVENT,
+  PUSH_TOKEN_CHANGED_EVENT,
   type BridgeHostInfo,
 } from "~/lib/shell/bridge/protocol";
+
+const INSTALL_ID = "3b241101-e2bb-4255-8caf-4136c566a962";
 
 const info: BridgeHostInfo = {
   protocolVersion: BRIDGE_PROTOCOL_VERSION,
   platform: "ios",
   appVersion: "2.0.0",
+  installId: INSTALL_ID,
   capabilities: ["haptic", "getPushToken"],
   safeArea: { top: 47, bottom: 34, left: 0, right: 0 },
 };
 
-/** Run injected page script against a fake `window` / `document`. */
-function makePage() {
+const SERVER_URL = "https://acme.example.com/os";
+
+/** Run injected page script against a fake `window` / `document` on `origin`. */
+function makePage(origin = "https://acme.example.com") {
   const posted: unknown[] = [];
   const cssVars: Record<string, string> = {};
   const listeners: Record<string, () => void> = {};
   const window: Record<string, any> = {
+    location: { origin },
     ReactNativeWebView: { postMessage: (m: string) => posted.push(JSON.parse(m)) },
   };
   const document = {
@@ -43,7 +51,7 @@ describe("toScriptLiteral", () => {
 describe("bootstrap script", () => {
   it("exposes a frozen ObjectStackNative with host info", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const api = page.window.ObjectStackNative;
     expect(api.version).toBe(BRIDGE_PROTOCOL_VERSION);
     expect(api.platform).toBe("ios");
@@ -53,9 +61,47 @@ describe("bootstrap script", () => {
     expect(Object.isFrozen(api.capabilities)).toBe(true);
   });
 
+  it("exposes the install id, read-only, to a page on the configured server's origin", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const api = page.window.ObjectStackNative;
+    expect(api.installId).toBe(INSTALL_ID);
+    expect(Object.getOwnPropertyDescriptor(api, "installId")?.writable).toBe(false);
+    expect(Object.isFrozen(api)).toBe(true);
+  });
+
+  it("exposes a null install id to a page on another origin (a trusted sign-in host)", () => {
+    const page = makePage("https://login.idp.example");
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const api = page.window.ObjectStackNative;
+    expect(api.installId).toBeNull();
+    // The rest of host info is unchanged there; the id is not in reach at all.
+    expect(api.platform).toBe("ios");
+    expect(JSON.stringify(api)).not.toContain(INSTALL_ID);
+  });
+
+  it("compares the page origin with the default port dropped", () => {
+    const page = makePage("https://acme.example.com");
+    page.run(buildBootstrapScript(info, "https://acme.example.com:443/os"));
+    expect(page.window.ObjectStackNative.installId).toBe(INSTALL_ID);
+  });
+
+  it("exposes a null install id with no usable server URL", () => {
+    const page = makePage("https://acme.example.com");
+    page.run(buildBootstrapScript(info, "not a url"));
+    expect(page.window.ObjectStackNative.installId).toBeNull();
+    expect(buildBootstrapScript(info, "not a url")).not.toContain(INSTALL_ID);
+  });
+
+  it("exposes a null install id when the shell has none", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript({ ...info, installId: null }, SERVER_URL));
+    expect(page.window.ObjectStackNative.installId).toBeNull();
+  });
+
   it("publishes the safe area as CSS variables", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     expect(page.cssVars["--os-native-safe-top"]).toBe("47px");
     expect(page.cssVars["--os-native-safe-bottom"]).toBe("34px");
     expect(page.listeners.DOMContentLoaded).toBeDefined();
@@ -63,7 +109,7 @@ describe("bootstrap script", () => {
 
   it("posts calls and settles them through the resolve global", async () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const pending = page.window.ObjectStackNative.haptic("success");
     expect(page.posted).toEqual([
       { type: "call", id: "c1", method: "haptic", args: { kind: "success" } },
@@ -74,7 +120,7 @@ describe("bootstrap script", () => {
 
   it("rejects failed calls with the error code", async () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const pending = page.window.ObjectStackNative.navigate("bad");
     page.run(
       buildResolveScript({ id: "c1", ok: false, error: { code: "bad_args", message: "nope" } })
@@ -84,13 +130,13 @@ describe("bootstrap script", () => {
 
   it("ignores results for unknown calls", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     expect(() => page.run(buildResolveScript({ id: "c99", ok: true, value: 1 }))).not.toThrow();
   });
 
   it("posts events", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     page.window.ObjectStackNative.ready();
     page.window.ObjectStackNative.routeChanged("/apps/crm");
     expect(page.posted).toEqual([
@@ -101,9 +147,9 @@ describe("bootstrap script", () => {
 
   it("is idempotent across re-injection", () => {
     const page = makePage();
-    page.run(buildBootstrapScript(info));
+    page.run(buildBootstrapScript(info, SERVER_URL));
     const first = page.window.ObjectStackNative;
-    page.run(buildBootstrapScript({ ...info, appVersion: "9.9.9" }));
+    page.run(buildBootstrapScript({ ...info, appVersion: "9.9.9" }, SERVER_URL));
     expect(page.window.ObjectStackNative).toBe(first);
   });
 });
@@ -176,5 +222,70 @@ describe("navigate script", () => {
     page.run(script);
     expect(seen).toEqual([{ route }]);
     expect(page.assign).toHaveBeenCalledWith(`${SERVER}/_console${route}`);
+  });
+});
+
+describe("pushTokenChanged script", () => {
+  const SERVER = "https://acme.example.com";
+
+  /** A fake page window on `origin` with real DOM events. */
+  function makeEventPage(origin: string) {
+    const target = new EventTarget();
+    const window = {
+      CustomEvent,
+      dispatchEvent: target.dispatchEvent.bind(target),
+      addEventListener: target.addEventListener.bind(target),
+      location: { origin },
+    };
+    const seen: Array<{ detail: unknown; cancelable: boolean }> = [];
+    window.addEventListener(PUSH_TOKEN_CHANGED_EVENT, (event: Event) => {
+      seen.push({ detail: (event as CustomEvent).detail, cancelable: event.cancelable });
+    });
+    const run = (script: string | null) => {
+      if (script === null) throw new Error("no script");
+      return new Function("window", script)(window);
+    };
+    return { seen, run };
+  }
+
+  it("dispatches { token, vendor } on a page of the configured server", () => {
+    const page = makeEventPage(SERVER);
+    page.run(buildPushTokenChangedScript(`${SERVER}/os`, { token: "fcm-2", vendor: "fcm" }));
+    expect(PUSH_TOKEN_CHANGED_EVENT).toBe("objectstack-native:pushTokenChanged");
+    expect(page.seen).toEqual([{ detail: { token: "fcm-2", vendor: "fcm" }, cancelable: false }]);
+  });
+
+  it("delivers nothing to a page on another origin (a trusted sign-in host)", () => {
+    const page = makeEventPage("https://login.idp.example");
+    page.run(buildPushTokenChangedScript(SERVER, { token: "fcm-2", vendor: "fcm" }));
+    expect(page.seen).toEqual([]);
+  });
+
+  it("compares origins with the default port dropped", () => {
+    const page = makeEventPage(SERVER);
+    page.run(buildPushTokenChangedScript(`${SERVER}:443`, { token: "t", vendor: "apns" }));
+    expect(page.seen).toHaveLength(1);
+  });
+
+  it("does nothing without CustomEvent support", () => {
+    expect(() =>
+      new Function("window", buildPushTokenChangedScript(SERVER, { token: "t", vendor: "apns" })!)({
+        location: { origin: SERVER },
+      })
+    ).not.toThrow();
+  });
+
+  it("builds no script for an empty token or an unusable server URL", () => {
+    expect(buildPushTokenChangedScript(SERVER, { token: "", vendor: "fcm" })).toBeNull();
+    expect(buildPushTokenChangedScript("not a url", { token: "t", vendor: "fcm" })).toBeNull();
+  });
+
+  it("splices the token as escaped JSON", () => {
+    const token = '");alert(1);("</script>\u2028';
+    const script = buildPushTokenChangedScript(SERVER, { token, vendor: "apns" })!;
+    expect(script).not.toContain("</script>");
+    const page = makeEventPage(SERVER);
+    page.run(script);
+    expect(page.seen).toEqual([{ detail: { token, vendor: "apns" }, cancelable: false }]);
   });
 });

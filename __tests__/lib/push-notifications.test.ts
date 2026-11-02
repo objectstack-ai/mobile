@@ -1,11 +1,19 @@
 import {
   acquireDeviceToken,
+  addPushTokenChangeListener,
   ensurePermission,
+  pushTokenFromDevice,
   routeFromPushData,
   routeFromResponse,
   ANDROID_DEFAULT_CHANNEL_ID,
 } from "~/lib/push-notifications";
 import * as Notifications from "expo-notifications";
+
+// The shared manual mock predates token events; add the one listener used here.
+jest.mock("expo-notifications", () => ({
+  ...jest.requireActual("../../__mocks__/expo-notifications"),
+  addPushTokenListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
 // The mock is `__esModule: true`, so this namespace is the same object the lib
 // imports (`import * as Device`) — mutating `Device.isDevice` here is observed
 // by the code under test. (`jest.requireMock` returns a *different* object.)
@@ -112,6 +120,116 @@ describe("routeFromResponse", () => {
   it("rejects an escaping route in trigger.payload too", () => {
     const response = iosResponse({ aps: {}, route: "/%2e%2e/api/v1/me" });
     expect(routeFromResponse(response, SERVER)).toBeNull();
+  });
+
+  it("falls back to userInfo.data.route (iOS, keys nested under data)", () => {
+    const response = iosResponse({ aps: {}, data: { route: "/apps/crm/lead/4" } });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/4");
+  });
+
+  it("reads userInfo.data only after the other three candidates", () => {
+    const data = { route: "/from/data" };
+    // Each of the three earlier candidates wins over userInfo.data.
+    expect(
+      routeFromResponse(
+        {
+          notification: {
+            request: {
+              content: { data: { route: "/from/content" } },
+              trigger: { type: "push", payload: { aps: {}, data } },
+            },
+          },
+        } as unknown as Notifications.NotificationResponse,
+        SERVER
+      )
+    ).toBe("/from/content");
+    expect(routeFromResponse(iosResponse({ aps: {}, route: "/from/top", data }), SERVER)).toBe(
+      "/from/top"
+    );
+    // No content.data and no top-level route: `body`, the third, still wins.
+    expect(
+      routeFromResponse(
+        {
+          notification: {
+            request: {
+              content: { data: null },
+              trigger: { type: "push", payload: { aps: {}, body: { route: "/from/body" }, data } },
+            },
+          },
+        } as unknown as Notifications.NotificationResponse,
+        SERVER
+      )
+    ).toBe("/from/body");
+  });
+
+  it("skips an invalid earlier candidate and still reads userInfo.data", () => {
+    const response = iosResponse({
+      aps: {},
+      route: "/%2e%2e/api/v1/me",
+      data: { route: "/apps/crm/lead/5" },
+    });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/5");
+  });
+
+  it("refuses an escaping route under userInfo.data", () => {
+    const response = iosResponse({ aps: {}, data: { route: "//evil.example/x" } });
+    expect(routeFromResponse(response, SERVER)).toBeNull();
+  });
+});
+
+describe("pushTokenFromDevice", () => {
+  it("maps a native token to the bridge shape", () => {
+    expect(pushTokenFromDevice({ type: "ios", data: "apns-tok" })).toEqual({
+      token: "apns-tok",
+      vendor: "apns",
+    });
+    expect(pushTokenFromDevice({ type: "android", data: "fcm-tok" })).toEqual({
+      token: "fcm-tok",
+      vendor: "fcm",
+    });
+  });
+
+  it("refuses anything that is not a native APNs / FCM string", () => {
+    expect(pushTokenFromDevice(null)).toBeNull();
+    expect(pushTokenFromDevice({ type: "ios", data: "" })).toBeNull();
+    expect(
+      pushTokenFromDevice({ type: "web", data: { endpoint: "x" } } as unknown as Notifications.DevicePushToken)
+    ).toBeNull();
+  });
+});
+
+describe("addPushTokenChangeListener", () => {
+  const mockAdd = Notifications.addPushTokenListener as jest.Mock;
+
+  beforeEach(() => {
+    mockAdd.mockReset();
+  });
+
+  it("reports each rotated native token as { token, vendor }", () => {
+    const remove = jest.fn();
+    mockAdd.mockReturnValue({ remove });
+    const seen: unknown[] = [];
+    const sub = addPushTokenChangeListener((token) => seen.push(token));
+
+    const osListener = mockAdd.mock.calls[0][0];
+    osListener({ type: "android", data: "fcm-1" });
+    osListener({ type: "android", data: "fcm-2" });
+    osListener({ type: "android", data: "" });
+    expect(seen).toEqual([
+      { token: "fcm-1", vendor: "fcm" },
+      { token: "fcm-2", vendor: "fcm" },
+    ]);
+
+    sub.remove();
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+
+  it("is a no-op subscription where token events are unavailable", () => {
+    mockAdd.mockImplementation(() => {
+      throw new Error("removed from Expo Go");
+    });
+    const sub = addPushTokenChangeListener(jest.fn());
+    expect(() => sub.remove()).not.toThrow();
   });
 });
 

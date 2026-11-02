@@ -28,6 +28,27 @@ export const BRIDGE_RESOLVE_GLOBAL = "__objectstackNativeResolve";
  */
 export const NAVIGATE_EVENT = "objectstack-native:navigate";
 
+/**
+ * Shell → Console events, each a DOM event `objectstack-native:<name>` on
+ * `window` and announced as a capability of the same name, so the Console
+ * feature-detects with `has(name)` before it listens.
+ */
+export const SHELL_EVENTS = ["pushTokenChanged"] as const;
+export type ShellEventName = (typeof SHELL_EVENTS)[number];
+
+/** The DOM event type the shell dispatches for a {@link ShellEventName}. */
+export function shellEventType(name: ShellEventName): string {
+  return `objectstack-native:${name}`;
+}
+
+/**
+ * DOM event the shell dispatches on `window` when the OS reports a push token
+ * for this install (`detail: { token, vendor }`, not cancelable): on rotation,
+ * and possibly again with an unchanged token. The Console re-registers the
+ * token under the signed-in session; registration is idempotent.
+ */
+export const PUSH_TOKEN_CHANGED_EVENT = shellEventType("pushTokenChanged");
+
 /** Largest message the shell will parse (bytes of JSON text). */
 export const MAX_MESSAGE_LENGTH = 64 * 1024;
 
@@ -40,6 +61,9 @@ export const BRIDGE_METHODS = [
   "resetServer",
 ] as const;
 export type BridgeMethod = (typeof BRIDGE_METHODS)[number];
+
+/** Everything the shell announces in `capabilities`: its methods and its events. */
+export const BRIDGE_CAPABILITIES: readonly string[] = [...BRIDGE_METHODS, ...SHELL_EVENTS];
 
 /** Fire-and-forget notifications from the Console. */
 export const BRIDGE_EVENTS = ["ready", "routeChanged"] as const;
@@ -89,6 +113,13 @@ export interface BridgeHostInfo {
   protocolVersion: number;
   platform: "ios" | "android";
   appVersion: string;
+  /**
+   * A random id for this install (UUID v4), kept in SecureStore so it survives
+   * the WebView's storage being cleared. Not a hardware or advertising id.
+   * `null` when secure storage could not be read or written at page start.
+   * See `lib/install-id.ts`.
+   */
+  installId: string | null;
   capabilities: readonly string[];
   safeArea: { top: number; bottom: number; left: number; right: number };
 }

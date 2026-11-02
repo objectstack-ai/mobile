@@ -1,4 +1,24 @@
-import { MAX_MESSAGE_LENGTH, parseInbound } from "~/lib/shell/bridge/protocol";
+import {
+  BRIDGE_CAPABILITIES,
+  BRIDGE_METHODS,
+  MAX_MESSAGE_LENGTH,
+  PUSH_TOKEN_CHANGED_EVENT,
+  SHELL_EVENTS,
+  parseInbound,
+  shellEventType,
+} from "~/lib/shell/bridge/protocol";
+
+describe("capabilities", () => {
+  it("announces every method and every shell event", () => {
+    expect(BRIDGE_CAPABILITIES).toEqual([...BRIDGE_METHODS, ...SHELL_EVENTS]);
+    expect(BRIDGE_CAPABILITIES).toContain("pushTokenChanged");
+  });
+
+  it("names a shell event's DOM type after its capability", () => {
+    expect(shellEventType("pushTokenChanged")).toBe(PUSH_TOKEN_CHANGED_EVENT);
+    expect(PUSH_TOKEN_CHANGED_EVENT).toBe("objectstack-native:pushTokenChanged");
+  });
+});
 
 describe("parseInbound", () => {
   it("parses a call", () => {
