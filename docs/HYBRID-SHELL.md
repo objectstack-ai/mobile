@@ -33,6 +33,7 @@ components/shell/
   OfflineFallback.tsx native page for network / 5xx failures
 lib/shell/
   console-url.ts      server URL normalisation, Console URL ⇄ route
+  console-load.ts     load states: loading cover, held route, last route
   route-owner.ts      per-route ownership: web (default) or native
   native-screens.ts   native screens a route rule may target (empty today)
   navigation-policy.ts what each WebView navigation is allowed to do
@@ -123,18 +124,21 @@ interface ObjectStackNative {
   navigate(route: string): Promise<null>; // Console route; route ownership applies
   resetServer(): Promise<null>; // forget the server, back to the picker
 
-  ready(): void; // event: page is interactive (hides the loading cover)
-  routeChanged(route: string): void; // event: SPA route changed
+  ready(): void; // event: the Console has mounted (lifts the cover, releases a held route)
+  routeChanged(route: string): void; // event: SPA route changed (the shell's last route)
 }
 ```
 
 Safe-area insets are also published as CSS variables:
-`--os-native-safe-top|bottom|left|right`.
+`--os-native-safe-top|bottom|left|right`. They are informational: the shell
+pads the WebView with the safe area itself (see "Safe area"), so a page must
+not pad with them again.
 
 ### Shell → Console events
 
 When a notification tap, an app link or a bridge `navigate()` asks for a
-Console route while the page is loaded, the shell dispatches on `window`:
+Console route once the page is ready (see "Load states"), the shell
+dispatches on `window`:
 
 ```ts
 new CustomEvent("objectstack-native:navigate", {
@@ -179,13 +183,50 @@ same name), handle it in `bridge/handler.ts`, expose it in the bootstrap
 (`bridge/scripts.ts`), and document it here. That is additive — no protocol
 version bump.
 
+### Load states
+
+`lib/shell/console-load.ts` is one state machine for the loading cover, a held
+route and the last route:
+
+| Phase     | Entered on                                   | Cover | A requested route    |
+| --------- | -------------------------------------------- | ----- | -------------------- |
+| `loading` | mount, `reload()`, a re-created WebView      | up    | held                 |
+| `loaded`  | the WebView's load end                       | up    | held                 |
+| `ready`   | `ready()`, or 8 s after load end without it  | down  | dispatched to page   |
+| `failed`  | a network error or a 5xx on the document     | —     | held for the next WebView |
+
+- **Why the cover waits for `ready`.** The Console boots after its document
+  has loaded (boot round-trips, then the first render), and its
+  `objectstack-native:navigate` listener mounts with that first render. A
+  route dispatched at load end goes unhandled and the fallback reloads the
+  page, so a held route — a notification tap on cold start — waits for
+  `ready` too. `ready` that arrives before load end counts.
+- **Timeout.** A Console that never posts `ready` (one older than shell mode,
+  or a boot that failed before the app mounted) gets the cover lifted and the
+  held route dispatched `READY_TIMEOUT_MS` (8 s) after load end. A held route
+  is dispatched once, whichever comes first. The timeout does not run before
+  load end or on a failed load.
+- **Last route.** Once the page has posted `routeChanged`, its `route` is the
+  last route; WebView navigation state (which misses SPA `pushState` on some
+  engines) is used only until then. A re-created WebView starts at the held
+  route, else at the last route.
+
+## Safe area
+
+The shell owns the safe area: it pads the WebView natively with the top and
+bottom insets, and the failure page with the top inset. The Console adds no
+padding of its own; `--os-native-safe-*` and `ObjectStackNative.safeArea` are
+informational. Handing the padding to the Console would need a handshake, so
+that a Console older than the change does not lose its padding.
+
 ## Console-side integration (framework repository)
 
 The Console needs, in `@object-ui/mobile`:
 
 - a `useNativeHost()` hook that detects `window.ObjectStackNative`;
-- in the shell: hide desktop chrome, pad with the safe-area variables, call
-  `ready()` once interactive and `routeChanged()` on navigation;
+- in the shell: hide desktop chrome, call `ready()` once its router has
+  mounted and `routeChanged()` on navigation; do not pad for the safe area
+  (the shell does);
 - listen for `objectstack-native:navigate` on `window`, navigate to
   `event.detail.route` with the Console router, and call
   `event.preventDefault()` (otherwise the shell reloads the page at the
@@ -193,8 +234,9 @@ The Console needs, in `@object-ui/mobile`:
 - register the push token after sign-in (`getPushToken()` → the server's device
   registry) and unregister on sign-out.
 
-Until then the shell works without it: the loading cover lifts on the WebView's
-own load event and the shell pads the WebView with the safe area itself.
+A Console without it still works in the shell: the cover lifts and a held
+route is dispatched at the ready timeout, a held route then reloads the page
+at that route, and the last route comes from WebView navigation state.
 
 ## Push notifications
 
@@ -203,6 +245,7 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 ## Testing
 
 - Pure modules (`lib/shell/**`, push, stores) — unit tests under `__tests__/lib`.
+  The load state machine: `__tests__/lib/shell/console-load.test.ts`.
 - The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`
@@ -219,7 +262,8 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - **Recovery re-creates the WebView.** After a load failure ("Try again", or
   the network coming back) or a dead web content process, the WebView is
   re-created at the route a notification or link asked for meanwhile, else at
-  the last Console route it reported. In-page state and history are lost.
+  the last Console route (`routeChanged`, else WebView navigation state). In-page
+  state and history are lost.
 - **Android reports every navigation as top-frame.** react-native-webview
   always sends `isTopFrame: true` on Android, so a cross-origin iframe
   navigation is treated as a top-frame one (opened outside, not in the frame).
