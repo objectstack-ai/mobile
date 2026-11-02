@@ -184,10 +184,11 @@ export default function ServerConfigScreen() {
     setConnectError(null);
     confirmed.current = true;
     try {
-      await connect(
-        probed,
-        managedAddress !== null ? { managedFrom: managedServerKey(managedAddress) } : undefined
-      );
+      if (managedAddress !== null) {
+        await connect(probed, { managedFrom: managedServerKey(managedAddress) });
+      } else {
+        await connect(probed);
+      }
       router.dismissTo("/console");
     } catch {
       confirmed.current = false;

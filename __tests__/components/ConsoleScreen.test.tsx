@@ -80,6 +80,7 @@ jest.mock("~/lib/connections/cookies", () => ({
 
 import ConsoleScreen from "~/app/console";
 import { EMPTY_CONNECTIONS, addConnection, rememberRoute } from "~/lib/connections/model";
+import { NO_MANAGED_CONFIG } from "~/lib/managed-config/model";
 import { CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
 import { useServerStore } from "~/stores/server-store";
 
@@ -105,6 +106,8 @@ function seed() {
     pushLeftRegistered: [],
     serverUrl: ERP,
     isReady: true,
+    managed: NO_MANAGED_CONFIG,
+    managedDeclined: null,
   });
 }
 
@@ -262,5 +265,66 @@ describe("ConsoleScreen with saved connections", () => {
     expect(useServerStore.getState().serverUrl).toBeNull();
     expect(screen.getByTestId("redirect")).toHaveTextContent("/server-config");
     expect(mockClearHostCookies).toHaveBeenLastCalledWith(ERP, []);
+  });
+});
+
+describe("ConsoleScreen under a managed deployment (MDM)", () => {
+  const LOCKED = { serverUrl: ERP, lockServer: true };
+
+  it("locked: the managed connection has no Remove, nothing can be added, and resetServer() is refused", async () => {
+    useServerStore.setState({ managed: LOCKED });
+    render(<ConsoleScreen />);
+    await consoleReady();
+    await openSwitcherFromConsole();
+
+    expect(screen.queryByTestId("switcher-add")).toBeNull();
+    expect(screen.queryByTestId(`switcher-remove-erp.example.com`)).toBeNull();
+    await act(async () => {
+      fireEvent(screen.getByTestId("switcher-row-erp.example.com"), "accessibilityAction", {
+        nativeEvent: { actionName: "remove" },
+      });
+    });
+    expect(useServerStore.getState().connections).toHaveLength(2);
+    expect(mockClearHostCookies).not.toHaveBeenCalled();
+
+    mockWebView.injectJavaScript.mockClear();
+    await post({ type: "call", id: "r1", method: "resetServer" }, `${ERP}/_console/home`);
+    const answer = mockWebView.injectJavaScript.mock.calls
+      .map(([script]: [string]) => script)
+      .find((script: string) => script.includes("r1"));
+    expect(answer).toContain('"ok":false');
+    expect(answer).toContain('"failed"');
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(useServerStore.getState().currentHost).toBe("erp.example.com");
+  });
+
+  it("locked: the other saved connections can still be removed", async () => {
+    useServerStore.setState({ managed: LOCKED });
+    render(<ConsoleScreen />);
+    await openSwitcherFromConsole();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("switcher-remove-acme.objectos.ai"));
+    });
+    expect(useServerStore.getState().connections.map((c) => c.host)).toEqual(["erp.example.com"]);
+  });
+
+  it("a managed address that waits for its confirm step hands over to the picker, before any WebView", () => {
+    useServerStore.setState({
+      managed: { serverUrl: "https://new.example.com", lockServer: false },
+    });
+    render(<ConsoleScreen />);
+    expect(screen.getByTestId("redirect")).toHaveTextContent("/server-config");
+    expect(mockWebView.props).toBeNull();
+  });
+
+  it("an address the MDM pushes while the app runs hands over to the picker", () => {
+    render(<ConsoleScreen />);
+    expect(screen.queryByTestId("redirect")).toBeNull();
+    act(() => {
+      useServerStore
+        .getState()
+        .applyManaged({ serverUrl: "https://new.example.com", lockServer: true });
+    });
+    expect(screen.getByTestId("redirect")).toHaveTextContent("/server-config");
   });
 });

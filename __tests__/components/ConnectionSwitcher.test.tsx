@@ -193,6 +193,35 @@ describe("ConnectionSwitcher", () => {
     expect(props.onOpenSettings).toHaveBeenCalled();
   });
 
+  it("while the organization locks the server: no add, and no Remove on the managed connection", async () => {
+    const props = renderSwitcher({ lockedHost: "erp.example.com" });
+    expect(screen.queryByTestId("switcher-add")).toBeNull();
+    expect(screen.queryByTestId("switcher-remove-erp.example.com")).toBeNull();
+    const [erpSwipe, acmeSwipe] = screen.getAllByTestId("swipeable");
+    expect(erpSwipe).toHaveProp("accessibilityState", { disabled: true });
+    expect(acmeSwipe).toHaveProp("accessibilityState", { disabled: false });
+
+    const erp = screen.getByTestId("switcher-row-erp.example.com");
+    expect(erp).toHaveProp("accessibilityActions", []);
+    fireEvent(erp, "accessibilityAction", { nativeEvent: { actionName: "remove" } });
+    expect(props.onRemove).not.toHaveBeenCalled();
+
+    // The managed row still switches; the other connections stay removable.
+    fireEvent.press(erp);
+    expect(props.onSelect).toHaveBeenCalledWith("erp.example.com");
+    fireEvent.press(screen.getByTestId("switcher-remove-acme.objectos.ai"));
+    expect(props.onRemove).toHaveBeenCalledWith("acme.objectos.ai");
+
+    expect(screen.getByTestId("switcher-footnote")).toHaveTextContent(
+      "Each organization keeps its own sign-in. Example ERP is set up by your organization and can't be removed."
+    );
+
+    await act(async () => {
+      await i18n.changeLanguage("zh");
+    });
+    expect(screen.queryByText("添加组织或公司服务器")).toBeNull();
+  });
+
   it("shows only the add action when nothing is saved", () => {
     renderSwitcher({ connections: [], currentHost: null });
     expect(screen.queryAllByTestId(/^switcher-row-/)).toEqual([]);

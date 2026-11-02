@@ -11,6 +11,100 @@
 
 Profiles and their values live in `eas.json`.
 
+## Managed deployment (MDM)
+
+An organization that distributes the app through its MDM can preconfigure the
+server, so employees type nothing. The app reads the platform's standard managed
+app configuration channel:
+
+- **iOS:** Managed App Configuration — the dictionary the MDM server installs
+  for the app under `com.apple.configuration.managed` in its user defaults.
+- **Android:** managed configurations (app restrictions), read through
+  `RestrictionsManager`. The app declares its keys in
+  `res/xml/app_restrictions.xml`, which EMM consoles read to offer them.
+
+### Keys
+
+| Key          | Type    | Meaning |
+| ------------ | ------- | ------- |
+| `serverUrl`  | string  | The ObjectOS server the app opens, e.g. `https://erp.example.com` — the same address users would type. |
+| `lockServer` | boolean | `true`: users cannot add another server or remove the managed one, and cannot edit the address. Ignored without `serverUrl`. |
+
+`lockServer` may also be sent as the string `"true"` or `"false"`. Any other
+value that is present locks, so a lock the admin meant to set is never dropped.
+Other keys are ignored. `trustedHosts` is **not** read from MDM: the hosts
+allowed in the WebView (an SSO identity provider) still come only from the
+build's `EXPO_PUBLIC_TRUSTED_HOSTS`.
+
+### What the app does
+
+- **Precedence.** Managed config > the build's `EXPO_PUBLIC_DEFAULT_SERVER_URL`
+  > what the user enters. Once the managed server is saved, it is made the
+  current connection at launch and whenever the managed config changes.
+- **The managed server is still checked and confirmed.** With `serverUrl` set
+  and not yet saved, the app skips the address step and the scanner: it probes
+  the server at once and shows the "is this your server?" step; confirming saves
+  it and opens its sign-in page. A managed value never skips the probe.
+- **A server that fails the probe** shows the probe's error with "Please
+  contact your IT administrator." and "Try again". Unlocked, the user may also
+  choose "Enter a different address" (asked again on the next launch); locked,
+  there is no way to edit.
+- **Locked** (`lockServer`), the "Switch organization" sheet has no "Add an
+  organization or company server", the managed connection has no Remove, the
+  Console's `resetServer()` is refused, and a connect link cannot bring another
+  server in. Other connections saved before the lock can still be switched to
+  and removed.
+- **Changes while the app runs.** The app reads the configuration on launch
+  and every time it comes to the foreground, and also on the platform's change
+  signal where there is one (Android's `ACTION_APPLICATION_RESTRICTIONS_CHANGED`,
+  delivered only while the app runs). A new `serverUrl` opens the check-and-confirm
+  step; a new `lockServer` applies at once. Removing the configuration lifts
+  the lock; the saved connection stays.
+
+### Samples
+
+iOS — the managed app configuration dictionary, as a property list. MDM
+consoles that take app configuration as XML (for example Intune's app
+configuration policy for managed devices, or Jamf Pro's app configuration for a
+mobile device app) take the dictionary body:
+
+```xml
+<dict>
+  <key>serverUrl</key>
+  <string>https://erp.example.com</string>
+  <key>lockServer</key>
+  <true/>
+</dict>
+```
+
+Android — the app publishes its keys in `app_restrictions.xml`, so a console
+that uses managed configurations (for example Intune or Jamf through managed
+Google Play) lists **Server URL** (`serverUrl`, string) and **Lock the server**
+(`lockServer`, bool) for the app; set them there. For a test device without an
+EMM, Google's Test DPC app can set the same app restrictions.
+
+The schema the build declares:
+
+```xml
+<restrictions xmlns:android="http://schemas.android.com/apk/res/android">
+  <restriction android:key="serverUrl" android:restrictionType="string"
+    android:title="@string/managed_config_server_url_title"
+    android:description="@string/managed_config_server_url_description" />
+  <restriction android:key="lockServer" android:restrictionType="bool"
+    android:defaultValue="false"
+    android:title="@string/managed_config_lock_server_title"
+    android:description="@string/managed_config_lock_server_description" />
+</restrictions>
+```
+
+### Native module
+
+The reader is a small local Expo module, `modules/managed-config/` (autolinked
+from `./modules`), with a config plugin that writes the Android schema at
+prebuild. It reads only; the app never writes the managed configuration. It is
+native code, so it ships in a new store or development build, not over the air;
+a build without it reads no managed config.
+
 ## Builds
 
 ```bash

@@ -22,6 +22,10 @@ jest.mock("expo-router", () => ({
     canGoBack: mockCanGoBack,
   }),
   useLocalSearchParams: () => mockParams,
+  Redirect: ({ href }: { href: string }) => {
+    const { Text } = require("react-native");
+    return <Text testID="redirect">{href}</Text>;
+  },
 }));
 
 jest.mock("react-native-safe-area-context", () => {
@@ -37,6 +41,8 @@ jest.mock("~/lib/server-probe", () => ({
 
 import ServerConfigScreen from "~/app/server-config";
 import { xhrFetch } from "~/lib/server-probe";
+import { EMPTY_CONNECTIONS, addConnection, connectionFromProbe } from "~/lib/connections/model";
+import { NO_MANAGED_CONFIG, type ManagedConfig } from "~/lib/managed-config/model";
 import { useServerStore } from "~/stores/server-store";
 
 const PROBED: ProbedServer = {
@@ -76,7 +82,13 @@ beforeEach(() => {
   mockPush.mockReset();
   mockCanGoBack.mockReset().mockReturnValue(false);
   connect.mockClear();
-  useServerStore.setState({ serverUrl: null, connect });
+  useServerStore.setState({
+    serverUrl: null,
+    connect,
+    connections: [],
+    managed: NO_MANAGED_CONFIG,
+    managedDeclined: null,
+  });
 });
 
 /** Let a probe started by an effect settle. */
@@ -299,5 +311,176 @@ describe("ServerConfigScreen", () => {
     render(<ServerConfigScreen />);
     expect(screen.getByText("Where do I find the address?")).toBeTruthy();
     expect(screen.getByText(/A server on a company network may need/)).toBeTruthy();
+  });
+});
+
+describe("ServerConfigScreen — managed deployment (MDM)", () => {
+  const MANAGED: ManagedConfig = { serverUrl: "https://erp.example.com", lockServer: false };
+  const LOCKED: ManagedConfig = { ...MANAGED, lockServer: true };
+
+  function managedBy(managed: ManagedConfig) {
+    useServerStore.setState({ managed });
+  }
+
+  it("probes the managed address at once, with no address step or scanner, then confirms it", async () => {
+    managedBy(MANAGED);
+    mockProbeServer.mockResolvedValue(OK);
+    render(<ServerConfigScreen />);
+    expect(screen.queryByTestId("server-url-input")).toBeNull();
+    expect(screen.queryByTestId("server-scan")).toBeNull();
+    await flush();
+
+    // The managed value never skips the probe or the confirm step.
+    expect(mockProbeServer).toHaveBeenCalledWith(
+      "https://erp.example.com",
+      expect.objectContaining({ fetch: xhrFetch })
+    );
+    expect(screen.getByTestId("server-confirm-name")).toHaveTextContent("Acme ERP");
+    expect(connect).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("server-confirm"));
+    });
+    expect(connect).toHaveBeenCalledWith(PROBED, { managedFrom: "https://erp.example.com" });
+    expect(mockDismissTo).toHaveBeenCalledWith("/console");
+  });
+
+  it("shows checking while the probe runs", () => {
+    managedBy(MANAGED);
+    mockProbeServer.mockReturnValue(new Promise(() => {}));
+    render(<ServerConfigScreen />);
+    expect(screen.getByText("Set up by your organization")).toBeTruthy();
+    expect(screen.getByTestId("managed-address")).toHaveTextContent("erp.example.com");
+    expect(screen.getByTestId("managed-checking")).toBeTruthy();
+  });
+
+  it("locked, a failed probe shows the error with 'contact your IT administrator' and no way to edit", async () => {
+    managedBy(LOCKED);
+    mockProbeServer.mockResolvedValue({ kind: "unreachable" });
+    render(<ServerConfigScreen />);
+    await flush();
+
+    expect(screen.getByTestId("managed-error")).toHaveTextContent("Could not reach the server.", {
+      exact: false,
+    });
+    expect(screen.getByTestId("managed-contact-it")).toHaveTextContent(
+      "Please contact your IT administrator."
+    );
+    expect(screen.getByTestId("managed-locked")).toBeTruthy();
+    expect(screen.queryByTestId("managed-edit")).toBeNull();
+    expect(screen.queryByTestId("server-url-input")).toBeNull();
+
+    mockProbeServer.mockResolvedValue(OK);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("managed-retry"));
+    });
+    expect(mockProbeServer).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId("server-confirm-name")).toHaveTextContent("Acme ERP");
+  });
+
+  it("shows 「请联系 IT 管理员」 in Chinese", async () => {
+    const i18n = require("~/lib/i18n").default;
+    await act(async () => {
+      await i18n.changeLanguage("zh");
+    });
+    try {
+      managedBy(LOCKED);
+      mockProbeServer.mockResolvedValue({ kind: "timeout" });
+      render(<ServerConfigScreen />);
+      await flush();
+      expect(screen.getByTestId("managed-contact-it")).toHaveTextContent("请联系 IT 管理员。");
+    } finally {
+      await act(async () => {
+        await i18n.changeLanguage("en");
+      });
+    }
+  });
+
+  it("locked, 'Not this server' offers nothing to edit, only contact IT and try again", async () => {
+    managedBy(LOCKED);
+    mockProbeServer.mockResolvedValue(OK);
+    render(<ServerConfigScreen />);
+    await flush();
+    fireEvent.press(screen.getByTestId("server-reject"));
+
+    expect(screen.getByTestId("managed-contact-it")).toBeTruthy();
+    expect(screen.queryByTestId("managed-edit")).toBeNull();
+    expect(screen.queryByTestId("server-url-input")).toBeNull();
+    expect(useServerStore.getState().managedDeclined).toBeNull();
+  });
+
+  it("unlocked, 'Enter a different address' opens the address step with the managed address", async () => {
+    managedBy(MANAGED);
+    mockProbeServer.mockResolvedValue({ kind: "not-objectos" });
+    render(<ServerConfigScreen />);
+    await flush();
+    expect(screen.getByTestId("managed-contact-it")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("managed-edit"));
+    });
+    expect(useServerStore.getState().managedDeclined).toBe("https://erp.example.com");
+    expect(screen.getByTestId("server-url-input").props.value).toBe("https://erp.example.com");
+    expect(screen.getByTestId("server-url-message")).toHaveTextContent(
+      "This isn't an ObjectOS server.",
+      {
+        exact: false,
+      }
+    );
+
+    mockProbeServer.mockResolvedValue(OK);
+    await submit("other.example.com");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("server-confirm"));
+    });
+    expect(connect).toHaveBeenCalledWith(PROBED);
+  });
+
+  it("unlocked, a connect link still opens the address flow for the linked server", async () => {
+    managedBy(MANAGED);
+    mockProbeServer.mockResolvedValue(OK);
+    mockParams = { server: "https://other.example.com", n: "1" };
+    render(<ServerConfigScreen />);
+    await flush();
+    expect(mockProbeServer).toHaveBeenCalledTimes(1);
+    expect(mockProbeServer).toHaveBeenCalledWith("https://other.example.com", expect.anything());
+  });
+
+  it("locked and not yet saved, a connect link cannot bring another address in", async () => {
+    managedBy(LOCKED);
+    mockProbeServer.mockResolvedValue(OK);
+    mockParams = { server: "https://other.example.com", n: "1" };
+    render(<ServerConfigScreen />);
+    await flush();
+    expect(mockProbeServer).toHaveBeenCalledTimes(1);
+    expect(mockProbeServer).toHaveBeenCalledWith("https://erp.example.com", expect.anything());
+  });
+
+  it("locked with the managed server saved, the picker goes back to the Console", () => {
+    const saved = addConnection(
+      EMPTY_CONNECTIONS,
+      connectionFromProbe({ ...PROBED, serverUrl: "https://erp.example.com" }),
+      1
+    );
+    useServerStore.setState({ connections: saved.list, serverUrl: "https://erp.example.com" });
+    managedBy(LOCKED);
+    mockParams = { add: "1" };
+    render(<ServerConfigScreen />);
+    expect(screen.getByTestId("redirect")).toHaveTextContent("/console");
+    expect(mockProbeServer).not.toHaveBeenCalled();
+  });
+
+  it("unlocked with the managed server saved, the picker is the ordinary one", () => {
+    const saved = addConnection(
+      EMPTY_CONNECTIONS,
+      connectionFromProbe({ ...PROBED, serverUrl: "https://erp.example.com" }),
+      1
+    );
+    useServerStore.setState({ connections: saved.list, serverUrl: "https://erp.example.com" });
+    managedBy(MANAGED);
+    mockParams = { add: "1" };
+    render(<ServerConfigScreen />);
+    expect(screen.getByTestId("server-url-input").props.value).toBe("");
+    expect(mockProbeServer).not.toHaveBeenCalled();
   });
 });
