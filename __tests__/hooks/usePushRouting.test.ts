@@ -1,6 +1,16 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 import * as Notifications from "expo-notifications";
-import { usePushRouting, _resetRoutedNotifications } from "~/hooks/usePushRouting";
+import {
+  usePushRouting,
+  usePushTokenChanges,
+  _resetRoutedNotifications,
+} from "~/hooks/usePushRouting";
+
+// The shared manual mock predates token events; add the one listener used here.
+jest.mock("expo-notifications", () => ({
+  ...jest.requireActual("../../__mocks__/expo-notifications"),
+  addPushTokenListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
 
 const mockListen = Notifications.addNotificationResponseReceivedListener as jest.Mock;
 const mockLast = Notifications.getLastNotificationResponseAsync as jest.Mock;
@@ -61,5 +71,36 @@ describe("usePushRouting", () => {
     const { unmount } = renderHook(() => usePushRouting(SERVER, jest.fn()));
     unmount();
     expect(remove).toHaveBeenCalled();
+  });
+});
+
+describe("usePushTokenChanges", () => {
+  const mockAddToken = Notifications.addPushTokenListener as jest.Mock;
+
+  beforeEach(() => {
+    mockAddToken.mockReset();
+    mockAddToken.mockReturnValue({ remove: jest.fn() });
+  });
+
+  it("reports a rotated token to the latest callback, subscribing once", () => {
+    const first = jest.fn();
+    const second = jest.fn();
+    const { rerender } = renderHook(({ cb }) => usePushTokenChanges(cb), {
+      initialProps: { cb: first },
+    });
+    rerender({ cb: second });
+    expect(mockAddToken).toHaveBeenCalledTimes(1);
+
+    mockAddToken.mock.calls[0][0]({ type: "ios", data: "apns-2" });
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledWith({ token: "apns-2", vendor: "apns" });
+  });
+
+  it("unsubscribes on unmount", () => {
+    const remove = jest.fn();
+    mockAddToken.mockReturnValue({ remove });
+    const { unmount } = renderHook(() => usePushTokenChanges(jest.fn()));
+    unmount();
+    expect(remove).toHaveBeenCalledTimes(1);
   });
 });

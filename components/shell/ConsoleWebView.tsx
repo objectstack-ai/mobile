@@ -23,18 +23,22 @@ import { consoleUrl, routeFromConsoleUrl, safeConsoleRoute } from "~/lib/shell/c
 import { decideNavigation } from "~/lib/shell/navigation-policy";
 import type { RouteRule } from "~/lib/shell/route-owner";
 import {
-  BRIDGE_METHODS,
+  BRIDGE_CAPABILITIES,
   BRIDGE_PROTOCOL_VERSION,
   type BridgeHostInfo,
+  type PushTokenResult,
 } from "~/lib/shell/bridge/protocol";
 import {
   buildBootstrapScript,
   buildNavigateScript,
+  buildPushTokenChangedScript,
   buildResolveScript,
 } from "~/lib/shell/bridge/scripts";
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
+import { getInstallId } from "~/lib/install-id";
 import { addBreadcrumb, captureMessage } from "~/lib/sentry";
 import { useNetworkStatus } from "~/hooks/useNetworkStatus";
+import { usePushTokenChanges } from "~/hooks/usePushRouting";
 
 export interface ConsoleWebViewHandle {
   /** Move the Console to `route` on the configured server. */
@@ -212,7 +216,8 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         protocolVersion: BRIDGE_PROTOCOL_VERSION,
         platform: Platform.OS === "ios" ? "ios" : "android",
         appVersion: APP_VERSION,
-        capabilities: BRIDGE_METHODS,
+        installId: getInstallId(),
+        capabilities: BRIDGE_CAPABILITIES,
         safeArea: {
           top: insets.top,
           bottom: insets.bottom,
@@ -222,7 +227,43 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       }),
       [insets.top, insets.bottom, insets.left, insets.right]
     );
-    const bootstrap = useMemo(() => buildBootstrapScript(hostInfo), [hostInfo]);
+    const bootstrap = useMemo(
+      () => buildBootstrapScript(hostInfo, serverUrl),
+      [hostInfo, serverUrl]
+    );
+
+    // A push token the OS reports (rotation) goes to the page as
+    // `objectstack-native:pushTokenChanged`. The Console installs its shell
+    // event listeners in the same commit that posts `ready`, after the
+    // document's load end, so a token reported before this document's `ready`
+    // (cold start, a reload, the failure page) is held — the latest one only —
+    // and delivered at `ready`. A new document start re-arms the hold.
+    const consoleReadyRef = useRef(false);
+    const heldPushTokenRef = useRef<PushTokenResult | null>(null);
+    const sendPushToken = useCallback(
+      (token: PushTokenResult) => {
+        const script = buildPushTokenChangedScript(serverUrl, token);
+        if (script) webviewRef.current?.injectJavaScript(script);
+      },
+      [serverUrl]
+    );
+    const deliverPushToken = useCallback(
+      (token: PushTokenResult) => {
+        if (consoleReadyRef.current) sendPushToken(token);
+        else heldPushTokenRef.current = token;
+      },
+      [sendPushToken]
+    );
+    usePushTokenChanges(deliverPushToken);
+    const onConsoleReady = useCallback(() => {
+      consoleReadyRef.current = true;
+      const held = heldPushTokenRef.current;
+      heldPushTokenRef.current = null;
+      if (held) sendPushToken(held);
+    }, [sendPushToken]);
+    const onDocumentStart = useCallback(() => {
+      consoleReadyRef.current = false;
+    }, []);
 
     const handleMessage = useMemo(
       () =>
@@ -232,10 +273,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           navigate,
           onEvent: (name, payload) => {
             if (name === "ready") markLoaded();
+            if (name === "ready") onConsoleReady();
             addBreadcrumb({ category: "bridge", message: name, data: { payload } });
           },
         }),
-      [capabilities, serverUrl, navigate, markLoaded]
+      [capabilities, serverUrl, navigate, markLoaded, onConsoleReady]
     );
 
     const onMessage = useCallback(
@@ -313,6 +355,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           onMessage={onMessage}
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
           onNavigationStateChange={onNavigationStateChange}
+          // A new document: its Console has not installed listeners yet.
+          // (iOS reports an SPA history change as a load end, never a start.)
+          onLoadStart={onDocumentStart}
           onLoadEnd={(e) => {
             // `loading` is still true when a load is superseded by a redirect.
             // react-native-webview also calls this after `onError`;
