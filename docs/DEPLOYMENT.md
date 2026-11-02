@@ -7,7 +7,7 @@
 | `EXPO_PUBLIC_DEFAULT_SERVER_URL` | pre-filled on the server picker (white-label builds) |
 | `EXPO_PUBLIC_TRUSTED_HOSTS` | extra hosts allowed in the WebView, comma-separated (SSO IdP) |
 | `EXPO_PUBLIC_SENTRY_DSN` | crash reporting |
-| `EXPO_PUBLIC_APP_SCHEME` | URL scheme for app links (default `objectstack`) |
+| `EXPO_PUBLIC_APP_SCHEME` | URL scheme for app links (default `objectos`) |
 
 Profiles and their values live in `eas.json`.
 

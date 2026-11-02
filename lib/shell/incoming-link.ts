@@ -1,10 +1,10 @@
 /**
  * Incoming app links → Console routes.
  *
- * The shell answers two link shapes on its URL scheme (default `objectstack`):
+ * The shell answers two link shapes on its URL scheme (default `objectos`):
  *
- *   objectstack://open?route=%2Fapps%2Fcrm%2Fopportunity%2F123
- *   objectstack://console/apps/crm/opportunity/123
+ *   objectos://open?route=%2Fapps%2Fcrm%2Fopportunity%2F123
+ *   objectos://console/apps/crm/opportunity/123
  *
  * Both open the Console at that route. Anything else lands on the shell's start
  * screen rather than on an expo-router "not found" page.

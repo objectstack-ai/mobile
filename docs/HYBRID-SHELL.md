@@ -1,8 +1,8 @@
 # Hybrid Shell — Architecture
 
-ObjectStack Mobile 2.x is a **native shell around the web Console**. Business UI
+ObjectOS Mobile 2.x is a **native shell around the web Console**. Business UI
 (lists, forms, record pages, dashboards, approvals, AI-authored pages) is
-rendered by the Console, served by the ObjectStack server at `/_console/`. The
+rendered by the Console, served by the ObjectOS server at `/_console/`. The
 shell does only what the web cannot do well: pick the server, host the page,
 push notifications, OS integration, and native fallback pages.
 
@@ -36,7 +36,7 @@ lib/shell/
   route-owner.ts      per-route ownership: web (default) or native
   native-screens.ts   native screens a route rule may target (empty today)
   navigation-policy.ts what each WebView navigation is allowed to do
-  incoming-link.ts    objectstack:// links
+  incoming-link.ts    objectos:// links
   config.ts           build-time config from app.config.ts `extra`
   external.ts         open URLs in the in-app browser / OS
   bridge/             protocol, injected scripts, native handler

@@ -12,7 +12,7 @@
   },
   "serverConfig": {
     "title": "الاتصال بالخادم",
-    "subtitle": "أدخل عنوان خادم ObjectStack للبدء.",
+    "subtitle": "أدخل عنوان خادم ObjectOS للبدء.",
     "label": "عنوان الخادم",
     "hint": "مثال: https://app.example.com",
     "connect": "اتصال",
