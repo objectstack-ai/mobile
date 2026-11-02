@@ -6,12 +6,12 @@
 
 /* ---- Mock expo-secure-store ---- */
 const store: Record<string, string> = {};
-let failWrites = false;
+let mockFailWrites = false;
 
 jest.mock("expo-secure-store", () => ({
   getItemAsync: jest.fn(async (key: string) => store[key] ?? null),
   setItemAsync: jest.fn(async (key: string, value: string) => {
-    if (failWrites) throw new Error("keychain unavailable");
+    if (mockFailWrites) throw new Error("keychain unavailable");
     store[key] = value;
   }),
   deleteItemAsync: jest.fn(async (key: string) => {
@@ -37,7 +37,7 @@ const NOW = 1_762_000_000_000;
 
 beforeEach(() => {
   Object.keys(store).forEach((k) => delete store[k]);
-  failWrites = false;
+  mockFailWrites = false;
   jest.clearAllMocks();
 });
 
@@ -87,12 +87,12 @@ describe("loadConnections", () => {
 
   it("keeps the old key for the next launch when the document cannot be written", async () => {
     store[LEGACY_SERVER_URL_KEY] = "https://erp.example.com";
-    failWrites = true;
+    mockFailWrites = true;
     const migrated = await loadConnections(NOW);
     expect(migrated.current).toBe("erp.example.com");
     expect(store[LEGACY_SERVER_URL_KEY]).toBe("https://erp.example.com");
 
-    failWrites = false;
+    mockFailWrites = false;
     await expect(loadConnections(NOW)).resolves.toEqual(migrated);
     expect(store[LEGACY_SERVER_URL_KEY]).toBeUndefined();
   });
@@ -146,7 +146,7 @@ describe("saveConnections", () => {
   });
 
   it("throws when storage refuses the write", async () => {
-    failWrites = true;
+    mockFailWrites = true;
     await expect(saveConnections(EMPTY_CONNECTIONS)).rejects.toThrow("keychain unavailable");
   });
 });

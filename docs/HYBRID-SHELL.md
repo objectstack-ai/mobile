@@ -28,10 +28,11 @@ app/
   server-config.tsx   native server picker: address step, then confirm step
   connect-scan.tsx    QR scanner for the server address (screen 6)
   bridge-scan.tsx     scanner for the bridge's `scan()` (Console fields)
-  console.tsx         the Console screen (one long-lived WebView)
+  console.tsx         the Console screen (one long-lived WebView) and the switcher
   +native-intent.tsx  app links → Console routes
 components/shell/
   ConsoleWebView.tsx  WebView + navigation policy + bridge + back button + load states
+  ConnectionSwitcher.tsx "Switch organization" sheet (screen 8)
   ServerConfirm.tsx   "is this your server?" step of the picker
   QrScanner.tsx       full-screen camera QR scanner (reusable; `accept` decides)
   OfflineFallback.tsx native page for network / 5xx failures
@@ -39,7 +40,13 @@ lib/
   i18n.ts             shell strings in the Console's ten locales; follows the phone language
   rtl.ts              right-to-left layout for Arabic
   server-probe.ts     anonymous probe of a server before it is saved
-  server-url.ts       persistence of the chosen server URL
+  server-url.ts       persistence of the saved connections (and the one-time migration)
+lib/connections/
+  model.ts            saved connections: the list, the current one, the storage form
+  cookies.ts          clearing one host's own cookies from the WebView cookie store
+  sign-out.ts         removing a connection: push token through the Console, then cookies
+stores/
+  server-store.ts     the saved connections in memory, for the screens
 lib/shell/
   console-url.ts      server URL normalisation, Console URL ⇄ route
   console-load.ts     load states: loading cover, held route and push token, last route
@@ -60,6 +67,15 @@ cookie. The WebView keeps that cookie (`sharedCookiesEnabled` on iOS,
 and makes no authenticated API calls of its own** — its only requests are the
 anonymous server probe below. Sign-in, sign-up, 2FA and password reset are the
 Console's pages.
+
+Each saved connection keeps its own sign-in without anything from the shell:
+both WebViews keep one cookie store and scope cookies by host (RFC 6265), so a
+host-only cookie — the platform's session cookie by default — is sent only to
+the host that set it. What is shared is shared by the cookie's own design: a
+cookie set with a `Domain` attribute (the platform's `OS_COOKIE_DOMAIN`) goes
+to every host under that domain, and cookies ignore ports. Keeping those apart
+would take a data store per connection (iOS 17 `WKWebsiteDataStore(forIdentifier:)`,
+Android WebView profiles), which react-native-webview 13.16 does not expose.
 
 ## Language
 
@@ -99,7 +115,9 @@ loading and offline pages); everything inside the WebView is the Console's.
 ## Server selection
 
 The picker (`app/server-config.tsx`) has two steps, and the server is saved
-only when the user confirms the second.
+only when the user confirms the second: as a new saved connection, or
+refreshing the saved connection with the same host, and it becomes the current
+one (see "Saved connections").
 
 1. **Address.** The typed address is normalized (`normalizeServerUrl`: https
    added, a pasted Console link cut at `/_console`, plain http refused except
@@ -107,7 +125,7 @@ only when the user confirms the second.
 2. **Confirm.** `ServerConfirm` shows who answered: the logo (or the initial on
    the brand colour), the product name, the full URL, a lock row for https, the
    sign-in methods and the platform version. "Connect and sign in" saves the
-   server and opens the Console; "Not this server" goes back with the address
+   server and opens its Console; "Not this server" goes back with the address
    kept.
 
 The probe reads three anonymous endpoints, sends no cookie, and never throws:
@@ -149,8 +167,8 @@ Both end on the picker's address step with the address filled in, which
 probes it at once (`/server-config?server=…&n=…`; `n` makes a repeat of the
 same address probe again). **A connect link never connects silently**: the
 user always sees the confirm step, or the error beside the address. That holds
-when a server is already saved too — confirming replaces it, "Not this server"
-keeps it. A link can cold-start the app onto the picker with nothing behind it;
+when a server is already saved too — confirming adds the linked server and
+makes it current, "Not this server" keeps the current one. A link can cold-start the app onto the picker with nothing behind it;
 when a server is saved and the picker cannot go back, the address step offers
 "Back to" the saved host (Android back does the same), which opens that
 server's Console and saves nothing.
@@ -179,6 +197,94 @@ server's Console and saves nothing.
 refusal text, the optional note and manual action, and optionally the code
 formats and the permission panel's copy. The bridge's `scan()` for Console
 fields reuses it (see "Scanning codes"). The iOS prompt text names both uses.
+
+### Saved connections
+
+The user keeps several **connections** and switches between them: ObjectOS
+Cloud organizations (kind `cloud`, each opening its organization's single
+production environment) and company servers (kind `server`, shown as
+"Private"). The app's nouns are organization and environment, as in the Cloud
+console; there is no third noun.
+
+- **The record** (`lib/connections/model.ts`): `kind`, `label` (the
+  organization name, or the server's branded product name), `host`,
+  `serverUrl` (the normalized base URL the Console loads from — a host alone
+  loses the scheme and a base path), `brandColor` and `initial`, `lastRoute`,
+  `addedAt`. A connection is its host: saving a host again refreshes that
+  record in place (its last route is kept unless the base URL changed).
+- **The list** is ordered by when each was added, and one connection is
+  current. Saving makes the saved one current; removing the current one makes
+  the first remaining one current, and removing the last leaves none (the start
+  screen opens the picker).
+- **Storage.** One JSON document in SecureStore (`objectstack_connections`,
+  versioned). Records that do not check out on load are dropped. Builds before
+  saved connections kept one URL under `objectstack_server_url`: the first
+  launch that finds no document makes that URL the first connection (labelled
+  with its host — that build kept no branding), writes the document, and
+  deletes the old key, so its value is read by exactly one migration. A failed
+  write leaves the old key for the next launch.
+- **Last route.** The Console's `routeChanged` (else WebView navigation state)
+  is recorded on the current connection, and a switch back to it starts there.
+  A cold start opens the Console's default route, as before.
+- **Kinds today.** The picker saves `server` connections. Saving a Cloud
+  organization as `cloud` on landing is the Cloud path's (mobile#153).
+
+**The switcher** (`ConnectionSwitcher`, screen 8) is a native bottom sheet over
+the Console screen, opened by the bridge's `showConnectionSwitcher()` or by
+the failure page's secondary action. Each row shows the initial on the brand
+colour, the label, the kind badge (Cloud / Private) and the host, with a check
+on the current one; tapping a row switches to it. "Add an organization or
+company server" goes back to the address step (`/server-config?add=1`, the
+address starting empty), so a connection is still saved only from the confirm
+step — a connect link and the scanner feed the same step. "App settings" opens
+the system settings page for the app.
+
+**Switching** makes the chosen connection current, and the WebView follows it
+through the load state machine's `switch` event (see "Load states"): a new
+WebView on the chosen host at that connection's last route. The bridge's
+origin check is the current connection's from that render on, so the page
+left behind gets no answer.
+
+**Removing** (swipe a row left; screen readers get a "Remove" action on the
+row) signs the connection out (`lib/connections/sign-out.ts`), in this order:
+
+1. Only for the current connection, and only when its Console is loaded and
+   ready: the shell dispatches `objectstack-native:connectionRemoved` (see
+   "Shell → Console events") so the Console unregisters this install's push
+   token under its session, and waits for it — at most 10 s.
+2. The connection leaves the list. The current one hands over to the next
+   connection, re-creating the WebView there, or the Console screen gives way
+   to the picker.
+3. The host's own cookies are cleared from the WebView cookie store.
+
+When the Console was not asked (another connection, the failure page, not
+ready), or did not confirm, the host is recorded as removed with its push token
+left registered (`pushLeftRegistered` in the stored document); saving the host
+again clears the record. The shell calls no API itself.
+
+**Clearing one host's cookies** (`lib/connections/cookies.ts`) uses
+`@preeternal/react-native-cookie-manager` 7.0.0, a New Architecture
+TurboModule, with its Expo config plugin in `app.config.ts`. Its
+`clearByName(url, name)` clears every cookie of that name that applies to the
+URL — a parent-domain cookie of the same name included — so the shell picks
+the names itself:
+
+- A cookie is the host's own when it is host-only for this host name, or a
+  domain cookie for exactly this host name that no other saved connection's
+  host falls under. Another saved connection on the same host name (another
+  port) shares every cookie.
+- A name is cleared only when none of its cookies is shared; shared cookies
+  are left in place and counted. `clearAll` is never called: it empties every
+  host's cookies.
+- iOS: both stores are cleared, the WebKit store
+  (`WKWebsiteDataStore.default().httpCookieStore`, one cookie at a time) and
+  `HTTPCookieStorage`, because with `sharedCookiesEnabled` react-native-webview
+  copies each into the other. A name is cleared on every path at once.
+- Android: one app-wide `CookieManager`, which has no delete call; the module
+  writes an expired cookie over each one, which needs the WebView provider's
+  `GET_COOKIE_INFO`. The shell reads and clears through the server's root,
+  base path, Console mount and API mount, since Android only reports cookies
+  whose path covers the URL. Without `GET_COOKIE_INFO` nothing is cleared.
 
 Sign-in through an external identity provider: the IdP's host must be listed in
 `EXPO_PUBLIC_TRUSTED_HOSTS`, or the navigation policy opens it in the system
@@ -252,8 +358,9 @@ interface ObjectStackNative {
   ): Promise<null>;
   openExternal(url: string): Promise<null>; // http(s), mailto, tel, sms
   navigate(route: string): Promise<null>; // Console route; route ownership applies
-  resetServer(): Promise<null>; // forget the server, back to the picker
+  resetServer(): Promise<null>; // forget the current connection, back to the picker
   scan(opts?: { formats?: string[] }): Promise<string | null>; // see "Scanning codes"
+  showConnectionSwitcher(): Promise<null>; // open the native switcher sheet (screen 8)
 
   ready(): void; // event: the Console has mounted (lifts the cover, releases a held route)
   routeChanged(route: string): void; // event: SPA route changed (the shell's last route)
@@ -319,6 +426,20 @@ if (ObjectStackNative.has("scan")) {
 }
 ```
 
+### Opening the switcher
+
+`showConnectionSwitcher()` opens the "Switch organization" sheet over the
+Console and resolves `null` once it is open; it takes no arguments. What the
+user does there is the shell's: switching re-creates the WebView on the chosen
+host (the calling page goes away with it), and adding goes to the picker. Like
+every method, only a page on the current connection's origin is answered; any
+other page gets no answer and opens nothing. The Console's header organization
+button calls it when `has("showConnectionSwitcher")`.
+
+`resetServer()` forgets the current connection — it leaves the saved list, the
+next one becomes current — and opens the picker. It does not sign out: like the
+single-server shell before it, it clears no cookies.
+
 ### Shell → Console events
 
 When a notification tap, an app link or a bridge `navigate()` asks for a
@@ -367,6 +488,32 @@ The Console re-registers `detail` under the signed-in session (with
   treat every event as "register this token".
 - Not cancelable; the shell does nothing else with it.
 
+Before the shell removes the current connection, it asks its Console to
+unregister this install's push token, if the page announces the
+`connectionRemoved` capability and the Console is ready:
+
+```ts
+new CustomEvent("objectstack-native:connectionRemoved", {
+  detail: { waitUntil(promise: Promise<unknown>): void },
+  cancelable: true,
+});
+```
+
+A Console that handles it calls `event.preventDefault()`, unregisters the
+token from the device registry under its session (`deviceId = installId`), and
+hands that work to `detail.waitUntil`. The shell clears the host's cookies only
+after it settles — the session it needs is gone afterwards.
+
+- The shell's script reports back with the bridge event
+  `connectionRemovedDone` (`{ id, handled, ok }`): `handled` when a listener
+  called `preventDefault()`, `ok` when everything handed to `waitUntil`
+  resolved. Only `handled` and `ok` count as unregistered.
+- Asked only of a page on the current connection's origin; another page
+  dispatches nothing and posts nothing. The shell waits at most 10 s, and a
+  re-created WebView ends the wait.
+- No listener (an older Console): the removal goes ahead at once, and the push
+  token is recorded as left registered.
+
 Shell events are named `objectstack-native:<capability>`
 (`SHELL_EVENTS` in `bridge/protocol.ts`).
 
@@ -382,10 +529,11 @@ document that made it.
 
 Security:
 
-- The handler answers only pages on the configured server's origin (default
-  ports ignored). A call from anything else gets no answer at all — a reply runs
-  in the main frame, where its id could settle one of the Console's own calls —
-  and events from it are dropped.
+- The handler answers only pages on the configured server's origin — the
+  current connection's (default ports ignored). A call from anything else,
+  including a page of a connection switched away from, gets no answer at all —
+  a reply runs in the main frame, where its id could settle one of the
+  Console's own calls — and events from it are dropped.
 - Messages over 64 KB or not matching the protocol are ignored.
 - Arguments are validated per method (URL schemes, haptic kinds). A route —
   from `navigate`, an app link or a notification — must pass
@@ -453,6 +601,14 @@ route, a held push token and the last route:
 | `ready`   | `ready()`, or 8 s after load end without it  | down  | dispatched to page   |
 | `failed`  | a network error or a 5xx on the document     | —     | held for the next WebView |
 
+Switching connections (`switch`) enters `loading` from any phase with a new
+WebView on the new current host, at that connection's last route (none: the
+Console's default route). The route held for the host left and its last route
+are dropped; a held push token is kept — it is this install's token, for
+whichever Console registers it. The `switch` event's `recreate` effect is the
+same one recovery uses, the one place a new WebView is counted for bridge
+answers.
+
 - **Why the cover waits for `ready`.** The Console boots after its document
   has loaded (boot round-trips, then the first render), and its
   `objectstack-native:navigate` listener mounts with that first render. A
@@ -506,7 +662,12 @@ The Console needs, in `@object-ui/mobile`:
   `has("pushTokenChanged")` and re-register `event.detail` while signed in;
 - register no Service Worker inside the shell (see above);
 - offer a scan affordance on text and lookup fields when `has("scan")`, and
-  fill the field with what `scan()` resolves (nothing on `null`).
+  fill the field with what `scan()` resolves (nothing on `null`);
+- when `has("showConnectionSwitcher")`, make the header's organization button
+  call `showConnectionSwitcher()`;
+- when `has("connectionRemoved")`, listen for
+  `objectstack-native:connectionRemoved`, call `preventDefault()`, and hand
+  the push-token unregistration to `event.detail.waitUntil`.
 
 A Console without it still works in the shell: the cover lifts and a held
 route is dispatched at the ready timeout, a held route then reloads the page
@@ -521,6 +682,13 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - Pure modules (`lib/shell/**`, the server probe, push, stores) — unit tests
   under `__tests__/lib`. The load state machine:
   `__tests__/lib/shell/console-load.test.ts`.
+- Saved connections: the list and its storage form
+  (`__tests__/lib/connections/model.test.ts`), the migration
+  (`__tests__/lib/server-url.test.ts`), the store, cookie scoping against a
+  stand-in cookie store per platform (`cookies.test.ts`) and the sign-out order
+  (`sign-out.test.ts`). The sheet: `__tests__/components/ConnectionSwitcher.test.tsx`
+  (the swipe itself is native and stubbed); switching and removal wired
+  through the Console screen: `__tests__/components/ConsoleScreen.test.tsx`.
 - The picker and its confirm step — component tests under
   `__tests__/components` (`ServerConfigScreen`, `ServerConfirm`).
 - Locale list, phone-language matching and bundle completeness —
@@ -564,3 +732,18 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   `installId`.
 - **Downloads and file inputs** rely on the WebView defaults until the
   Phase 4 bridge methods land.
+- **Removal clears cookies, not other web storage.** A removed host's
+  localStorage and IndexedDB stay in the WebView (react-native-webview has no
+  per-origin call, and iOS removes website data per registrable domain, which
+  would take every `*.objectos.ai` environment with it). Cookies shared with
+  other hosts stay too (see "Saved connections"), and so does the session on
+  the server: clearing the cookie signs this device out, it revokes nothing.
+- **Android without `GET_COOKIE_INFO`.** On a WebView provider that lacks it,
+  the cookie store reports no domains and refuses per-name clearing, so a
+  removed connection's cookies stay.
+- **Push taps carry no connection.** A notification is routed by its `route`
+  to the current connection's Console; a tap on one from another saved server
+  opens that route on the current one.
+- **Swipe direction under Arabic before a restart.** The switcher's swipe
+  actions are laid out from `I18nManager.isRTL`, which follows a language
+  change on the next launch (see "Language").
