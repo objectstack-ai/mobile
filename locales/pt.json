@@ -16,6 +16,8 @@
     "label": "URL do servidor",
     "hint": "Exemplo: https://erp.example.com",
     "connect": "Continuar",
+    "scan": "Escanear código QR",
+    "backTo": "Voltar para {{server}}",
     "where": {
       "title": "Onde encontro o endereço?",
       "step1": "Em um computador, abra o ObjectOS no navegador e entre.",
@@ -55,5 +57,24 @@
     "serverErrorMessage": "O servidor respondeu com o erro {{code}}. Tente novamente em instantes.",
     "retry": "Tentar novamente",
     "changeServer": "Usar outro servidor"
+  },
+  "scanner": {
+    "hint": "Posicione o código QR dentro da moldura",
+    "connectNote": "Contém apenas o endereço do servidor, sem dados da conta",
+    "manual": "Digitar o endereço manualmente",
+    "notConnectCode": "Este não é um código QR de conexão",
+    "close": "Fechar",
+    "torchOn": "Ligar a lanterna",
+    "torchOff": "Desligar a lanterna",
+    "permission": {
+      "title": "Acesso à câmera necessário",
+      "body": "Permita o acesso à câmera para escanear o código QR.",
+      "blocked": "O acesso à câmera está desativado para o ObjectOS. Ative-o em Configurações ou digite o endereço manualmente.",
+      "allow": "Permitir câmera",
+      "settings": "Abrir Configurações"
+    }
+  },
+  "permissions": {
+    "camera": "O ObjectOS usa a câmera para escanear o código QR que o conecta ao seu servidor."
   }
 }

@@ -16,6 +16,8 @@
     "label": "서버 URL",
     "hint": "예: https://erp.example.com",
     "connect": "계속",
+    "scan": "QR 코드 스캔",
+    "backTo": "{{server}}(으)로 돌아가기",
     "where": {
       "title": "주소는 어디에서 찾나요?",
       "step1": "컴퓨터의 브라우저에서 ObjectOS를 열고 로그인하세요.",
@@ -55,5 +57,24 @@
     "serverErrorMessage": "서버에서 오류 {{code}}을(를) 반환했습니다. 잠시 후 다시 시도하세요.",
     "retry": "다시 시도",
     "changeServer": "다른 서버 사용"
+  },
+  "scanner": {
+    "hint": "QR 코드를 프레임 안에 맞춰 주세요",
+    "connectNote": "서버 주소만 포함되며 계정 정보는 포함되지 않습니다",
+    "manual": "주소 직접 입력",
+    "notConnectCode": "연결용 QR 코드가 아닙니다",
+    "close": "닫기",
+    "torchOn": "손전등 켜기",
+    "torchOff": "손전등 끄기",
+    "permission": {
+      "title": "카메라 접근 권한이 필요합니다",
+      "body": "QR 코드를 스캔하려면 카메라 접근을 허용하세요.",
+      "blocked": "ObjectOS의 카메라 접근이 꺼져 있습니다. 설정에서 켜거나 주소를 직접 입력하세요.",
+      "allow": "카메라 허용",
+      "settings": "설정 열기"
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS는 서버에 연결하기 위한 QR 코드를 스캔하는 데 카메라를 사용합니다."
   }
 }

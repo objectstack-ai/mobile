@@ -14,4 +14,7 @@ region tag falls back to its base language: `pt-BR` → `pt`, `zh-Hans-CN` →
 phone-language change is picked up when the app next comes to the foreground.
 Under Arabic the native screens lay out right-to-left from the first render.
 There is no in-app language picker: the phone setting decides, and a language
-stored by an earlier in-app picker is no longer read.
+stored by an earlier in-app picker is no longer read. The QR scanner's strings
+and the iOS camera permission prompt are localized in all ten languages too
+(Traditional Chinese phones get the Simplified Chinese prompt, matching the
+app's own strings).

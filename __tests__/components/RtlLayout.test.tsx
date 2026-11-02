@@ -13,7 +13,14 @@ import i18n from "~/lib/i18n";
 import { layoutDirection } from "~/lib/rtl";
 
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ dismissTo: jest.fn(), push: jest.fn(), replace: jest.fn() }),
+  useRouter: () => ({
+    dismissTo: jest.fn(),
+    push: jest.fn(),
+    replace: jest.fn(),
+    // Nothing behind the picker: with a saved server, "Back to <host>" shows.
+    canGoBack: () => false,
+  }),
+  useLocalSearchParams: () => ({}),
 }));
 
 jest.mock("react-native-safe-area-context", () => {
@@ -23,6 +30,7 @@ jest.mock("react-native-safe-area-context", () => {
 
 import ServerConfigScreen from "~/app/server-config";
 import { OfflineFallback } from "~/components/shell/OfflineFallback";
+import { useServerStore } from "~/stores/server-store";
 
 /** The direction on the outermost host view the screen renders. */
 function rootDirection(): unknown {
@@ -53,6 +61,7 @@ beforeAll(() => {
 }, COLD_LOAD_TIMEOUT_MS);
 
 afterEach(async () => {
+  useServerStore.setState({ serverUrl: null });
   await act(async () => {
     await i18n.changeLanguage("en");
   });
@@ -94,6 +103,42 @@ describe("server picker", () => {
     });
     expect(rootDirection()).toBe("ltr");
     expect(screen.getByText("サーバーに接続")).toBeTruthy();
+  });
+});
+
+describe("server picker controls under ar", () => {
+  it("keeps the scan button and the way-back button inside the right-to-left root, in Arabic", async () => {
+    useServerStore.setState({ serverUrl: "https://erp.example.com" });
+    await act(async () => {
+      await i18n.changeLanguage("ar");
+    });
+    render(<ServerConfigScreen />);
+
+    expect(rootDirection()).toBe("rtl");
+    const scan = screen.getByTestId("server-scan");
+    expect(scan.props.accessibilityLabel).toBe("مسح رمز QR");
+    expect(screen.getByTestId("server-back-to-saved")).toHaveTextContent(
+      "العودة إلى erp.example.com"
+    );
+    // Neither control, nor anything between it and the root, pins a
+    // physical left/right or its own direction, so the root's rtl reaches it.
+    for (const id of ["server-scan", "server-back-to-saved"]) {
+      let node = screen.getByTestId(id).parent;
+      while (node) {
+        const style = StyleSheet.flatten(node.props.style) ?? {};
+        if (style.direction !== undefined) {
+          expect({ id, direction: style.direction }).toEqual({ id, direction: "rtl" });
+        }
+        for (const key of ["left", "right", "marginLeft", "marginRight", "paddingLeft", "paddingRight"]) {
+          expect({ id, key, value: (style as Record<string, unknown>)[key] }).toEqual({
+            id,
+            key,
+            value: undefined,
+          });
+        }
+        node = node.parent;
+      }
+    }
   });
 });
 

@@ -26,11 +26,13 @@ app/
   _layout.tsx         providers, Sentry, push-tap routing
   index.tsx           waits for the stored server, then redirects
   server-config.tsx   native server picker: address step, then confirm step
+  connect-scan.tsx    QR scanner for the server address (screen 6)
   console.tsx         the Console screen (one long-lived WebView)
   +native-intent.tsx  app links → Console routes
 components/shell/
   ConsoleWebView.tsx  WebView + navigation policy + bridge + back button + load states
   ServerConfirm.tsx   "is this your server?" step of the picker
+  QrScanner.tsx       full-screen camera QR scanner (reusable; `accept` decides)
   OfflineFallback.tsx native page for network / 5xx failures
 lib/
   i18n.ts             shell strings in the Console's ten locales; follows the phone language
@@ -42,7 +44,7 @@ lib/shell/
   route-owner.ts      per-route ownership: web (default) or native
   native-screens.ts   native screens a route rule may target (empty today)
   navigation-policy.ts what each WebView navigation is allowed to do
-  incoming-link.ts    objectos:// links
+  incoming-link.ts    objectos:// links: Console routes, `connect`, scanned codes
   config.ts           build-time config from app.config.ts `extra`
   external.ts         open URLs in the in-app browser / OS
   bridge/             protocol, injected scripts, native handler
@@ -132,8 +134,48 @@ React Native's `fetch` reports every transport failure as the same
 `XMLHttpRequest`, which keeps the native error text (iOS `NSURLErrorDomain`,
 Android `javax.net.ssl` / `java.security.cert`) for the probe to classify.
 
-The QR scanner is not built yet; its button and the `objectos://connect` link
-will feed the scanned address into the same probe and confirm steps.
+### Connect by QR code or link
+
+The Console's mobile-app page shows a QR code, and an invite email carries the
+same link. It holds the server address and nothing else — never a credential:
+
+```
+objectos://connect?server=https%3A%2F%2Ferp.example.com
+```
+
+Both end on the picker's address step with the address filled in, which
+probes it at once (`/server-config?server=…&n=…`; `n` makes a repeat of the
+same address probe again). **A connect link never connects silently**: the
+user always sees the confirm step, or the error beside the address. That holds
+when a server is already saved too — confirming replaces it, "Not this server"
+keeps it. A link can cold-start the app onto the picker with nothing behind it;
+when a server is saved and the picker cannot go back, the address step offers
+"Back to" the saved host (Android back does the same), which opens that
+server's Console and saves nothing.
+
+- **The link.** `connectRequestFromLink` (`lib/shell/incoming-link.ts`) reads
+  the `server` param and normalizes it with `normalizeServerUrl`. A link with
+  no `server`, a repeated `server`, any other param, or a path after `connect`
+  is refused and lands on the start screen, like any unknown link. An address
+  that does not normalize (plain http to a public host, not a URL, empty) still
+  opens the picker, with the value in the field and its error shown.
+- **The scanner.** The scan button in the address field opens
+  `app/connect-scan.tsx`, which renders `QrScanner` with
+  `serverAddressFromCode`: it accepts `objectos://connect` codes, and a plain
+  `https://` server URL as a convenience. Anything else shows "This isn't a
+  connect QR code" and keeps scanning. The first accepted code goes back to the
+  picker (`router.dismissTo`) and the scanner stops reading.
+- **Camera permission.** The scanner asks on open. Refused for good, it offers
+  the system Settings and "Enter address manually". The iOS prompt text is
+  `permissions.camera` in each locale bundle, written by `app.config.ts` into
+  the `expo-camera` plugin and per-language `InfoPlist.strings` for all ten
+  shell languages (`zh-Hans`, plus `zh-Hant` reusing the `zh` text, as the
+  shell's own strings do); the plugin is
+  configured for the camera only (no microphone, no `RECORD_AUDIO`).
+
+`QrScanner` knows nothing about servers: the caller passes `accept`, the
+refusal text and the optional note and manual action, so the bridge's `scan()`
+for Console fields can reuse it.
 
 Sign-in through an external identity provider: the IdP's host must be listed in
 `EXPO_PUBLIC_TRUSTED_HOSTS`, or the navigation policy opens it in the system
@@ -388,6 +430,8 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - Locale list, phone-language matching and bundle completeness —
   `__tests__/lib/i18n.test.ts`; right-to-left native screens under `ar` —
   `__tests__/components/RtlLayout.test.tsx`.
+- The scanner and screen 6 — `__tests__/components/QrScanner.test.tsx`, with a
+  mocked `expo-camera` (permission states, refused and accepted codes, torch).
 - The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`

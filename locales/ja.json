@@ -16,6 +16,8 @@
     "label": "サーバー URL",
     "hint": "例: https://erp.example.com",
     "connect": "続行",
+    "scan": "QR コードをスキャン",
+    "backTo": "{{server}} に戻る",
     "where": {
       "title": "アドレスはどこで確認できますか？",
       "step1": "パソコンのブラウザで ObjectOS を開き、サインインします。",
@@ -55,5 +57,24 @@
     "serverErrorMessage": "サーバーがエラー {{code}} を返しました。しばらくしてからもう一度お試しください。",
     "retry": "再試行",
     "changeServer": "別のサーバーを使用"
+  },
+  "scanner": {
+    "hint": "QR コードを枠内に合わせてください",
+    "connectNote": "サーバーのアドレスのみが含まれ、アカウント情報は含まれません",
+    "manual": "アドレスを手動で入力",
+    "notConnectCode": "接続用の QR コードではありません",
+    "close": "閉じる",
+    "torchOn": "ライトをオン",
+    "torchOff": "ライトをオフ",
+    "permission": {
+      "title": "カメラへのアクセスが必要です",
+      "body": "QR コードをスキャンするには、カメラへのアクセスを許可してください。",
+      "blocked": "ObjectOS のカメラへのアクセスがオフになっています。設定でオンにするか、アドレスを手動で入力してください。",
+      "allow": "カメラを許可",
+      "settings": "設定を開く"
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS は、サーバーに接続するための QR コードをスキャンするためにカメラを使用します。"
   }
 }

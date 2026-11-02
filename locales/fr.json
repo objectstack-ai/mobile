@@ -16,6 +16,8 @@
     "label": "URL du serveur",
     "hint": "Exemple : https://erp.example.com",
     "connect": "Continuer",
+    "scan": "Scanner le code QR",
+    "backTo": "Retour à {{server}}",
     "where": {
       "title": "Où trouver l'adresse ?",
       "step1": "Sur un ordinateur, ouvrez ObjectOS dans votre navigateur et connectez-vous.",
@@ -55,5 +57,24 @@
     "serverErrorMessage": "Le serveur a répondu avec l'erreur {{code}}. Réessayez dans un instant.",
     "retry": "Réessayer",
     "changeServer": "Utiliser un autre serveur"
+  },
+  "scanner": {
+    "hint": "Placez le code QR dans le cadre",
+    "connectNote": "Contient uniquement l'adresse du serveur, aucune information de compte",
+    "manual": "Saisir l'adresse manuellement",
+    "notConnectCode": "Ce n'est pas un code QR de connexion",
+    "close": "Fermer",
+    "torchOn": "Allumer la lampe torche",
+    "torchOff": "Éteindre la lampe torche",
+    "permission": {
+      "title": "Accès à l'appareil photo requis",
+      "body": "Autorisez l'accès à l'appareil photo pour scanner le code QR.",
+      "blocked": "L'accès à l'appareil photo est désactivé pour ObjectOS. Activez-le dans les Paramètres ou saisissez l'adresse manuellement.",
+      "allow": "Autoriser l'appareil photo",
+      "settings": "Ouvrir les Paramètres"
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS utilise l'appareil photo pour scanner le code QR qui le connecte à votre serveur."
   }
 }
