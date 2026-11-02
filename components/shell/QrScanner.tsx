@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Flashlight, FlashlightOff, X } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
+import { useLayoutDirection } from "~/lib/rtl";
 
 /** How long "not a … code" stays up after a refused code leaves the frame. */
 export const REJECT_MESSAGE_MS = 3000;
@@ -70,6 +71,9 @@ export function QrScanner<T>({
   onPermissionStatus,
 }: QrScannerProps<T>) {
   const { t } = useTranslation();
+  // On the screen root, as every native screen does: right-to-left under `ar`
+  // without relying on the app root's direction reaching a pushed screen.
+  const direction = useLayoutDirection();
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = React.useState(false);
   const [rejected, setRejected] = React.useState(false);
@@ -152,7 +156,7 @@ export function QrScanner<T>({
   if (!permission || !permission.granted) {
     const blocked = !!permission && !permission.canAskAgain;
     return (
-      <SafeAreaView className="flex-1 bg-black">
+      <SafeAreaView className="flex-1 bg-black" style={{ direction }}>
         <View className="flex-row px-4 pt-2">{closeButton}</View>
         {permission ? (
           <View testID="qr-scanner-permission" className="flex-1 justify-center gap-4 px-8">
@@ -181,7 +185,7 @@ export function QrScanner<T>({
   }
 
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-black" style={{ direction }}>
       <CameraView
         testID="qr-scanner-camera"
         style={StyleSheet.absoluteFill}

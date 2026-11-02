@@ -60,9 +60,11 @@
   },
   "scanner": {
     "hint": "Halten Sie den QR-Code in den Rahmen",
+    "codeHint": "Halten Sie den Code in den Rahmen",
     "connectNote": "Enthält nur die Serveradresse, keine Kontodaten",
     "manual": "Adresse manuell eingeben",
     "notConnectCode": "Das ist kein Verbindungs-QR-Code",
+    "unreadable": "Dieser Code kann nicht gelesen werden",
     "close": "Schließen",
     "torchOn": "Taschenlampe einschalten",
     "torchOff": "Taschenlampe ausschalten",
@@ -71,10 +73,12 @@
       "body": "Erlauben Sie den Kamerazugriff, um den QR-Code zu scannen.",
       "blocked": "Der Kamerazugriff für ObjectOS ist deaktiviert. Aktivieren Sie ihn in den Einstellungen oder geben Sie die Adresse manuell ein.",
       "allow": "Kamera erlauben",
-      "settings": "Einstellungen öffnen"
+      "settings": "Einstellungen öffnen",
+      "codeBody": "Erlauben Sie den Kamerazugriff, um den Code zu scannen.",
+      "codeBlocked": "Der Kamerazugriff für ObjectOS ist deaktiviert. Aktivieren Sie ihn in den Einstellungen, um Codes zu scannen."
     }
   },
   "permissions": {
-    "camera": "ObjectOS verwendet die Kamera, um den QR-Code zu scannen, der die App mit Ihrem Server verbindet."
+    "camera": "ObjectOS verwendet die Kamera, um QR-Codes und Barcodes zu scannen, etwa den Code, der die App mit Ihrem Server verbindet."
   }
 }

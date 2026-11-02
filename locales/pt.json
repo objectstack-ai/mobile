@@ -60,9 +60,11 @@
   },
   "scanner": {
     "hint": "Posicione o código QR dentro da moldura",
+    "codeHint": "Posicione o código dentro da moldura",
     "connectNote": "Contém apenas o endereço do servidor, sem dados da conta",
     "manual": "Digitar o endereço manualmente",
     "notConnectCode": "Este não é um código QR de conexão",
+    "unreadable": "Não é possível ler este código",
     "close": "Fechar",
     "torchOn": "Ligar a lanterna",
     "torchOff": "Desligar a lanterna",
@@ -71,10 +73,12 @@
       "body": "Permita o acesso à câmera para escanear o código QR.",
       "blocked": "O acesso à câmera está desativado para o ObjectOS. Ative-o em Configurações ou digite o endereço manualmente.",
       "allow": "Permitir câmera",
-      "settings": "Abrir Configurações"
+      "settings": "Abrir Configurações",
+      "codeBody": "Permita o acesso à câmera para escanear o código.",
+      "codeBlocked": "O acesso à câmera está desativado para o ObjectOS. Ative-o em Configurações para escanear códigos."
     }
   },
   "permissions": {
-    "camera": "O ObjectOS usa a câmera para escanear o código QR que o conecta ao seu servidor."
+    "camera": "O ObjectOS usa a câmera para escanear códigos QR e códigos de barras, como o código que o conecta ao seu servidor."
   }
 }

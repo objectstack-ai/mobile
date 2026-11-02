@@ -2,16 +2,25 @@ import {
   BRIDGE_CAPABILITIES,
   BRIDGE_METHODS,
   MAX_MESSAGE_LENGTH,
+  SCAN_FORMATS,
   PUSH_TOKEN_CHANGED_EVENT,
   SHELL_EVENTS,
   parseInbound,
   shellEventType,
 } from "~/lib/shell/bridge/protocol";
+import type { BarcodeType } from "expo-camera";
 
 describe("capabilities", () => {
   it("announces every method and every shell event", () => {
     expect(BRIDGE_CAPABILITIES).toEqual([...BRIDGE_METHODS, ...SHELL_EVENTS]);
     expect(BRIDGE_CAPABILITIES).toContain("pushTokenChanged");
+  });
+
+  it("announces scan, with formats named as the camera names them", () => {
+    expect(BRIDGE_CAPABILITIES).toContain("scan");
+    // Compile-time: every scan format is a format expo-camera reads.
+    const readable: readonly BarcodeType[] = SCAN_FORMATS;
+    expect(new Set(readable).size).toBe(SCAN_FORMATS.length);
   });
 
   it("names a shell event's DOM type after its capability", () => {
