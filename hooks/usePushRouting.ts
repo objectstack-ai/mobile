@@ -7,11 +7,17 @@
  *
  * Token acquisition is NOT done here: the Console asks for the token over the
  * bridge (`getPushToken`) once the user is signed in, so the OS permission
- * prompt appears at a moment the Console chooses.
+ * prompt appears at a moment the Console chooses. `usePushTokenChanges` only
+ * listens for tokens the OS reports (rotation) — it never asks for one.
  */
 import { useEffect, useRef } from "react";
 import * as Notifications from "expo-notifications";
-import { configureForegroundHandler, routeFromResponse } from "~/lib/push-notifications";
+import {
+  addPushTokenChangeListener,
+  configureForegroundHandler,
+  routeFromResponse,
+} from "~/lib/push-notifications";
+import type { PushTokenResult } from "~/lib/shell/bridge/protocol";
 
 const routed = new Set<string>();
 
@@ -53,4 +59,21 @@ export function usePushRouting(serverUrl: string | null, onRoute: (route: string
       });
     return () => sub.remove();
   }, [serverUrl]);
+}
+
+/**
+ * Calls `onToken` with each native push token the OS reports while mounted
+ * (see `addPushTokenChangeListener`). Subscribes once; the latest `onToken`
+ * is used without re-subscribing.
+ */
+export function usePushTokenChanges(onToken: (token: PushTokenResult) => void): void {
+  const onTokenRef = useRef(onToken);
+  useEffect(() => {
+    onTokenRef.current = onToken;
+  }, [onToken]);
+
+  useEffect(() => {
+    const sub = addPushTokenChangeListener((token) => onTokenRef.current(token));
+    return () => sub.remove();
+  }, []);
 }

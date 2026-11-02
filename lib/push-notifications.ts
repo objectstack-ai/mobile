@@ -8,6 +8,9 @@
  *  - hand that token to the Console over the bridge (`getPushToken`). The
  *    Console registers it with the server under the signed-in session, so the
  *    shell never holds an API credential;
+ *  - tell the Console when the OS reports a token (rotation), so it can
+ *    register the new one (`addPushTokenChangeListener`, delivered as the
+ *    `objectstack-native:pushTokenChanged` window event);
  *  - turn a tapped notification into a Console route.
  *
  * No React here; `hooks/usePushRouting` owns the listener lifecycle.
@@ -106,6 +109,46 @@ export async function acquireDeviceToken(): Promise<PushTokenResult | null> {
 }
 
 /**
+ * A device token as the bridge hands it to the Console, or `null` for a token
+ * that is not a native APNs / FCM string (web, Expo push-service, empty).
+ */
+export function pushTokenFromDevice(
+  token: Notifications.DevicePushToken | null | undefined
+): PushTokenResult | null {
+  if (!token || typeof token.data !== "string" || token.data.length === 0) return null;
+  if (token.type === "ios") return { token: token.data, vendor: "apns" };
+  if (token.type === "android") return { token: token.data, vendor: "fcm" };
+  return null;
+}
+
+export interface PushTokenSubscription {
+  remove(): void;
+}
+
+/**
+ * Call `listener` whenever the OS reports a native push token for this app:
+ * when APNs / FCM rotate it, and possibly again with an unchanged token (iOS
+ * reports every completed registration, including the one `getPushToken`
+ * triggers; Android replays the last known token to a new listener).
+ *
+ * Never throws: where token events are unavailable (expo-notifications refuses
+ * remote push in Expo Go on Android) the subscription is a no-op.
+ */
+export function addPushTokenChangeListener(
+  listener: (token: PushTokenResult) => void
+): PushTokenSubscription {
+  try {
+    const sub = Notifications.addPushTokenListener((devicePushToken) => {
+      const token = pushTokenFromDevice(devicePushToken);
+      if (token) listener(token);
+    });
+    return { remove: () => sub.remove() };
+  } catch {
+    return { remove: () => undefined };
+  }
+}
+
+/**
  * The Console route a notification payload asks to open, or `null`.
  * Prefers `route`; otherwise accepts a `url` that points into this server's
  * Console. A URL anywhere else is ignored — a notification must not be able to
@@ -143,6 +186,9 @@ function asPayload(value: unknown): PushDataPayload | null {
  *   `trigger.payload`, the full `userInfo`.
  *
  * So `content.data` is read first, then `trigger.payload` and its `body`.
+ * Last, `trigger.payload.data`: a sender that nests the keys under `data` on
+ * iOS (the FCM habit) is off-contract, so that dictionary is read only after
+ * the other three.
  * See docs/PUSH-NOTIFICATIONS.md for the payload contract.
  */
 export function routeFromResponse(
@@ -153,7 +199,12 @@ export function routeFromResponse(
   if (!request) return null;
   const trigger = request.trigger as { payload?: unknown } | null | undefined;
   const userInfo = asPayload(trigger?.payload);
-  const candidates = [asPayload(request.content?.data), userInfo, asPayload(userInfo?.body)];
+  const candidates = [
+    asPayload(request.content?.data),
+    userInfo,
+    asPayload(userInfo?.body),
+    asPayload(userInfo?.data),
+  ];
   for (const data of candidates) {
     const route = routeFromPushData(data, serverUrl);
     if (route) return route;
