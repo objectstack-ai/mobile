@@ -204,7 +204,8 @@ function absoluteLogoUrl(raw: string | null, serverUrl: string): string | null {
   if (/^https?:\/\//i.test(raw)) return raw;
   const server = parseUrl(serverUrl);
   if (!server) return null;
-  if (raw.startsWith("/") && !raw.startsWith("//")) return `${server.scheme}://${server.host}${raw}`;
+  if (raw.startsWith("/") && !raw.startsWith("//"))
+    return `${server.scheme}://${server.host}${raw}`;
   return null;
 }
 
@@ -246,7 +247,10 @@ function readSignIn(body: string): SignInMethods | null {
  * Whether a redirect left the https rule behind: the probe ended on plain
  * http to a host the rule refuses.
  */
-function redirectedToInsecure(finalUrl: string | null | undefined, allowInsecure: boolean): boolean {
+function redirectedToInsecure(
+  finalUrl: string | null | undefined,
+  allowInsecure: boolean
+): boolean {
   const final = finalUrl ? parseUrl(finalUrl) : null;
   if (!final || final.scheme !== "http") return false;
   const check = normalizeServerUrl(`http://${final.host}`, { allowInsecure });

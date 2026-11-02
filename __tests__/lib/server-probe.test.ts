@@ -108,7 +108,12 @@ describe("probeServer", () => {
         productName: "Acme ERP",
         logoUrl: "https://cdn.example.com/acme.png",
         brandColor: "#0F766E",
-        signIn: { emailPassword: true, sso: true, ssoEnforced: false, providers: ["GitHub", "Okta"] },
+        signIn: {
+          emailPassword: true,
+          sso: true,
+          ssoEnforced: false,
+          providers: ["GitHub", "Okta"],
+        },
       },
     });
     expect(fetch.mock.calls.map(([url]) => url)).toEqual([
@@ -186,7 +191,7 @@ describe("probeServer", () => {
     "Network request failed",
     "The Internet connection appears to be offline.",
     "A server with the specified hostname could not be found.",
-    "Unable to resolve host \"erp.example.com\": No address associated with hostname",
+    'Unable to resolve host "erp.example.com": No address associated with hostname',
     "Failed to connect to erp.example.com/10.0.0.5:443",
   ])("reports an unreachable server: %s", async (message) => {
     const fetch = fakeFetch({ [DISCOVERY_PATH]: new Error(message) });
@@ -195,7 +200,10 @@ describe("probeServer", () => {
 
   it("adopts the origin discovery was redirected to", async () => {
     const fetch = objectOS({
-      [DISCOVERY_PATH]: { body: DISCOVERY, url: "https://www.erp.example.com/.well-known/objectstack" },
+      [DISCOVERY_PATH]: {
+        body: DISCOVERY,
+        url: "https://www.erp.example.com/.well-known/objectstack",
+      },
     });
     const result = await probeServer(SERVER, { fetch });
     expect(result.kind === "ok" && result.server.serverUrl).toBe("https://www.erp.example.com");

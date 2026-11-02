@@ -29,7 +29,11 @@ const ERROR_KEYS: Readonly<Record<ProbeFailureKind, string>> = {
   "server-error": "serverConfig.error.serverError",
 };
 
-const HELP_STEPS = ["serverConfig.where.step1", "serverConfig.where.step2", "serverConfig.where.step3"];
+const HELP_STEPS = [
+  "serverConfig.where.step1",
+  "serverConfig.where.step2",
+  "serverConfig.where.step3",
+];
 
 /**
  * Native server picker — the one screen the shell must render itself, because
@@ -71,7 +75,10 @@ export default function ServerConfigScreen() {
         setProbed(result.server);
       } else {
         setErrorMsg(
-          t(ERROR_KEYS[result.kind], result.kind === "server-error" ? { status: result.status } : {})
+          t(
+            ERROR_KEYS[result.kind],
+            result.kind === "server-error" ? { status: result.status } : {}
+          )
         );
       }
     } finally {

@@ -16,11 +16,7 @@ jest.mock("expo-secure-store", () => ({
   }),
 }));
 
-import {
-  getServerUrl,
-  setServerUrl,
-  clearServerUrl,
-} from "~/lib/server-url";
+import { getServerUrl, setServerUrl, clearServerUrl } from "~/lib/server-url";
 
 beforeEach(() => {
   // Clear the mock store

@@ -84,7 +84,10 @@ export function ServerConfirm({
             <Text className="text-4xl font-bold text-white">{serverInitial(server)}</Text>
           </View>
         )}
-        <Text testID="server-confirm-name" className="text-center text-2xl font-bold text-foreground">
+        <Text
+          testID="server-confirm-name"
+          className="text-center text-2xl font-bold text-foreground"
+        >
           {name}
         </Text>
         <Text
