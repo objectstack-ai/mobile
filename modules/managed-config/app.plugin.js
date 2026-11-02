@@ -12,7 +12,12 @@
  * `lib/managed-config/model.ts`; `__tests__/lib/managed-config/plugin.test.ts`
  * pins it.
  */
-const { AndroidConfig, withAndroidManifest, withDangerousMod, withStringsXml } = require("expo/config-plugins");
+const {
+  AndroidConfig,
+  withAndroidManifest,
+  withDangerousMod,
+  withStringsXml,
+} = require("expo/config-plugins");
 const fs = require("fs");
 const path = require("path");
 
