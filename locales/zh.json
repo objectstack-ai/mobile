@@ -16,6 +16,8 @@
     "label": "服务器地址",
     "hint": "例如：https://erp.example.com",
     "connect": "继续",
+    "scan": "扫描二维码",
+    "backTo": "返回 {{server}}",
     "where": {
       "title": "在哪里找到地址？",
       "step1": "在电脑浏览器中打开 ObjectOS 并登录。",
@@ -55,5 +57,24 @@
     "serverErrorMessage": "服务器返回错误 {{code}}，请稍后重试。",
     "retry": "重试",
     "changeServer": "更换服务器"
+  },
+  "scanner": {
+    "hint": "将二维码放入框内",
+    "connectNote": "只包含服务器地址，不含任何账号信息",
+    "manual": "手动输入地址",
+    "notConnectCode": "不是连接二维码",
+    "close": "关闭",
+    "torchOn": "打开手电筒",
+    "torchOff": "关闭手电筒",
+    "permission": {
+      "title": "需要相机权限",
+      "body": "允许使用相机以扫描二维码。",
+      "blocked": "ObjectOS 的相机权限已关闭。请在设置中开启，或手动输入地址。",
+      "allow": "允许使用相机",
+      "settings": "打开设置"
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS 使用相机扫描二维码，以连接到你的服务器。"
   }
 }

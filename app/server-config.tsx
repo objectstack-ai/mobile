@@ -1,9 +1,17 @@
 import React from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import {
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { ServerCog } from "lucide-react-native";
+import { ScanQrCode, ServerCog } from "lucide-react-native";
 import { ServerConfirm } from "~/components/shell/ServerConfirm";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
@@ -14,6 +22,7 @@ import {
   type ProbeFailureKind,
 } from "~/lib/server-probe";
 import { shellConfig } from "~/lib/shell/config";
+import { parseUrl } from "~/lib/shell/console-url";
 import { useThemeColors } from "~/lib/theme-colors";
 import { useServerStore } from "~/stores/server-store";
 
@@ -44,9 +53,16 @@ const HELP_STEPS = [
  * 2. Confirm (screen 7): shows who answered. The server is saved only when the
  *    user confirms.
  *
- * Scan entry point: the QR scanner is not built yet, so screen 5 renders no
- * scan button. The scanner lands its button beside the address field and
- * hands the scanned address to `runProbe`.
+ * Scan entry point: the button in the address field opens the scanner
+ * (`app/connect-scan.tsx`, screen 6). The scanner, and an incoming
+ * `objectos://connect?server=…` link, come back here as `?server=…&n=…`: the
+ * address is filled in and probed, so the user always sees the confirm step,
+ * or the error beside the address that failed.
+ *
+ * Way back: a connect link can cold-start the app straight onto this screen
+ * while a server is already saved, with nothing behind it to go back to. The
+ * address step then offers "Back to <host>" (and Android back does the same),
+ * which opens the saved server's Console. Nothing is saved by leaving.
  */
 export default function ServerConfigScreen() {
   const router = useRouter();
@@ -54,7 +70,11 @@ export default function ServerConfigScreen() {
   const colors = useThemeColors();
   const current = useServerStore((s) => s.serverUrl);
   const connect = useServerStore((s) => s.connect);
-  const [url, setUrl] = React.useState(current ?? shellConfig.defaultServerUrl);
+  const params = useLocalSearchParams<{ server?: string; n?: string }>();
+  const linkedServer = typeof params.server === "string" ? params.server : null;
+  const [url, setUrl] = React.useState(
+    linkedServer ?? current ?? shellConfig.defaultServerUrl
+  );
   const [probing, setProbing] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [probed, setProbed] = React.useState<ProbedServer | null>(null);
@@ -86,6 +106,17 @@ export default function ServerConfigScreen() {
     }
   };
 
+  // A scanned code or a connect link: fill in the address and probe it. `n`
+  // changes on every request, so the same address scanned twice probes twice.
+  const runProbeRef = React.useRef(runProbe);
+  runProbeRef.current = runProbe;
+  React.useEffect(() => {
+    if (linkedServer === null) return;
+    setUrl(linkedServer);
+    setProbed(null);
+    void runProbeRef.current(linkedServer);
+  }, [linkedServer, params.n]);
+
   const handleConfirm = async () => {
     if (!probed) return;
     setConnecting(true);
@@ -101,6 +132,19 @@ export default function ServerConfigScreen() {
   };
 
   const handleReject = React.useCallback(() => setProbed(null), []);
+
+  // Only when there is a saved server and no screen behind this one: pushed
+  // over the Console, the back gesture already returns there.
+  const showWayBack = !!current && !probed && !router.canGoBack();
+  const backToSaved = React.useCallback(() => router.dismissTo("/console"), [router]);
+  React.useEffect(() => {
+    if (!showWayBack) return;
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      backToSaved();
+      return true;
+    });
+    return () => sub.remove();
+  }, [showWayBack, backToSaved]);
 
   if (probed) {
     return (
@@ -154,6 +198,17 @@ export default function ServerConfigScreen() {
                 autoCorrect={false}
                 returnKeyType="go"
                 error={!!errorMsg}
+                rightSlot={
+                  <Pressable
+                    testID="server-scan"
+                    accessibilityRole="button"
+                    accessibilityLabel={t("serverConfig.scan")}
+                    hitSlop={8}
+                    onPress={() => router.push("/connect-scan")}
+                  >
+                    <ScanQrCode size={22} color={colors.accent} />
+                  </Pressable>
+                }
                 value={url}
                 onChangeText={(text) => {
                   setUrl(text);
@@ -185,6 +240,12 @@ export default function ServerConfigScreen() {
             >
               {t("serverConfig.connect")}
             </Button>
+
+            {showWayBack && current ? (
+              <Button variant="ghost" onPress={backToSaved} testID="server-back-to-saved">
+                {t("serverConfig.backTo", { server: parseUrl(current)?.host ?? current })}
+              </Button>
+            ) : null}
           </View>
 
           <View className="mt-10 gap-2">

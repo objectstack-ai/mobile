@@ -1,4 +1,17 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
+import ar from "./locales/ar.json";
+import en from "./locales/en.json";
+import zh from "./locales/zh.json";
+
+// System permission prompts, localized from the app's own bundles (key
+// `permissions.camera`) so one file holds each language's copy. iOS reads them
+// from `<lproj>/InfoPlist.strings`; Android's camera prompt is the system's own
+// text. Keys are iOS localization names (`zh` is Simplified Chinese).
+const PERMISSION_LOCALES: Record<string, { permissions: { camera: string } }> = {
+  en,
+  "zh-Hans": zh,
+  ar,
+};
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -11,6 +24,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: "automatic",
   // SDK 55 dropped legacy architecture — New Architecture is always on, so the
   // `newArchEnabled` flag was removed from ExpoConfig.
+  locales: Object.fromEntries(
+    Object.entries(PERMISSION_LOCALES).map(([lproj, bundle]) => [
+      lproj,
+      { ios: { NSCameraUsageDescription: bundle.permissions.camera } },
+    ])
+  ),
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
@@ -35,6 +54,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     "expo-router",
     "expo-web-browser",
+    [
+      // The server QR scanner (screen 6). Camera only: no recording, so no
+      // microphone prompt and no RECORD_AUDIO permission.
+      "expo-camera",
+      {
+        cameraPermission: en.permissions.camera,
+        microphonePermission: false,
+        recordAudioAndroid: false,
+      },
+    ],
     [
       "@sentry/react-native/expo",
       {
