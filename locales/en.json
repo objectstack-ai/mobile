@@ -16,6 +16,7 @@
     "label": "Server URL",
     "hint": "Example: https://erp.example.com",
     "connect": "Continue",
+    "scan": "Scan QR code",
     "where": {
       "title": "Where do I find the address?",
       "step1": "On a computer, open ObjectOS in your browser and sign in.",
@@ -55,5 +56,24 @@
     "serverErrorMessage": "The server answered with error {{code}}. Try again in a moment.",
     "retry": "Try again",
     "changeServer": "Use a different server"
+  },
+  "scanner": {
+    "hint": "Place the QR code inside the frame",
+    "connectNote": "Contains only the server address, no account information",
+    "manual": "Enter address manually",
+    "notConnectCode": "This isn't a connect QR code",
+    "close": "Close",
+    "torchOn": "Turn on flashlight",
+    "torchOff": "Turn off flashlight",
+    "permission": {
+      "title": "Camera access needed",
+      "body": "Allow camera access to scan the QR code.",
+      "blocked": "Camera access is off for ObjectOS. Turn it on in Settings, or enter the address manually.",
+      "allow": "Allow camera",
+      "settings": "Open Settings"
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS uses the camera to scan the QR code that connects it to your server."
   }
 }
