@@ -55,8 +55,19 @@
     "offlineMessage": "请检查网络连接。恢复联网后页面会自动重新加载。",
     "serverErrorTitle": "服务器无响应",
     "serverErrorMessage": "服务器返回错误 {{code}}，请稍后重试。",
-    "retry": "重试",
-    "changeServer": "更换服务器"
+    "retry": "重试"
+  },
+  "switcher": {
+    "title": "切换组织",
+    "add": "添加组织或公司服务器",
+    "footnote": "每个组织单独保存登录状态。左滑可移除，并退出该组织的登录。",
+    "appSettings": "App 设置",
+    "kind": {
+      "cloud": "Cloud",
+      "server": "私有"
+    },
+    "remove": "移除",
+    "removeNamed": "移除{{label}}"
   },
   "scanner": {
     "hint": "将二维码放入框内",

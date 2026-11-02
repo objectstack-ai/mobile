@@ -52,7 +52,12 @@ const HELP_STEPS = [
  * 1. Address (screen 5): accepts a bare host, a full URL, or a pasted Console
  *    link, and probes it (`lib/server-probe.ts`).
  * 2. Confirm (screen 7): shows who answered. The server is saved only when the
- *    user confirms.
+ *    user confirms: as a new connection, or refreshing the saved connection
+ *    with the same host, and it becomes the current one.
+ *
+ * The switcher's "Add an organization or company server" opens this screen
+ * with `?add=1`: the address starts empty (or the build's default server)
+ * rather than showing the current connection's.
  *
  * Scan entry point: the button in the address field opens the scanner
  * (`app/connect-scan.tsx`, screen 6). The scanner, and an incoming
@@ -72,10 +77,11 @@ export default function ServerConfigScreen() {
   const direction = useLayoutDirection();
   const current = useServerStore((s) => s.serverUrl);
   const connect = useServerStore((s) => s.connect);
-  const params = useLocalSearchParams<{ server?: string; n?: string }>();
+  const params = useLocalSearchParams<{ server?: string; n?: string; add?: string }>();
   const linkedServer = typeof params.server === "string" ? params.server : null;
+  const adding = params.add === "1";
   const [url, setUrl] = React.useState(
-    linkedServer ?? current ?? shellConfig.defaultServerUrl
+    linkedServer ?? (adding ? null : current) ?? shellConfig.defaultServerUrl
   );
   const [probing, setProbing] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
@@ -124,7 +130,7 @@ export default function ServerConfigScreen() {
     setConnecting(true);
     setConnectError(null);
     try {
-      await connect(probed.serverUrl);
+      await connect(probed);
       router.dismissTo("/console");
     } catch {
       setConnectError(t("serverConfig.error.unknown"));

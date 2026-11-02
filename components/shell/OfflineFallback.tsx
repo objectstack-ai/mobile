@@ -14,7 +14,8 @@ export interface OfflineFallbackProps {
   failure: LoadFailure;
   serverUrl: string;
   onRetry: () => void;
-  onChangeServer: () => void;
+  /** Secondary action (screen 9): open the connection switcher. */
+  onSwitchConnection: () => void;
 }
 
 /**
@@ -25,7 +26,7 @@ export function OfflineFallback({
   failure,
   serverUrl,
   onRetry,
-  onChangeServer,
+  onSwitchConnection,
 }: OfflineFallbackProps) {
   const { t } = useTranslation();
   const colors = useThemeColors();
@@ -58,8 +59,8 @@ export function OfflineFallback({
         <Button onPress={onRetry} testID="shell-retry">
           {t("shell.retry")}
         </Button>
-        <Button variant="ghost" onPress={onChangeServer} testID="shell-change-server">
-          {t("shell.changeServer")}
+        <Button variant="ghost" onPress={onSwitchConnection} testID="shell-switch-connection">
+          {t("switcher.title")}
         </Button>
       </View>
     </View>

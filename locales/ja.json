@@ -55,8 +55,19 @@
     "offlineMessage": "接続を確認してください。オンラインに戻るとページが自動的に再読み込みされます。",
     "serverErrorTitle": "サーバーが応答しません",
     "serverErrorMessage": "サーバーがエラー {{code}} を返しました。しばらくしてからもう一度お試しください。",
-    "retry": "再試行",
-    "changeServer": "別のサーバーを使用"
+    "retry": "再試行"
+  },
+  "switcher": {
+    "title": "組織を切り替え",
+    "add": "組織または会社のサーバーを追加",
+    "footnote": "サインイン状態は組織ごとに保存されます。左にスワイプすると削除され、その組織からサインアウトします。",
+    "appSettings": "アプリの設定",
+    "kind": {
+      "cloud": "Cloud",
+      "server": "プライベート"
+    },
+    "remove": "削除",
+    "removeNamed": "{{label}}を削除"
   },
   "scanner": {
     "hint": "QR コードを枠内に合わせてください",

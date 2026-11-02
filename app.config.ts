@@ -83,6 +83,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         recordAudioAndroid: false,
       },
     ],
+    // Cookie manager (removing a connection clears that host's cookies,
+    // lib/connections/cookies.ts). Autolinking links the TurboModule; the
+    // plugin only pins `androidx.webkit` when given `androidWebkitVersion`,
+    // and the module's default (1.16.0) covers `GET_COOKIE_INFO` (>= 1.6.0).
+    "@preeternal/react-native-cookie-manager",
     [
       "@sentry/react-native/expo",
       {

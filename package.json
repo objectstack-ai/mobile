@@ -16,6 +16,7 @@
     "release": "changeset publish"
   },
   "dependencies": {
+    "@preeternal/react-native-cookie-manager": "7.0.0",
     "@sentry/react-native": "~7.11.0",
     "clsx": "^2.1.1",
     "expo": "~55.0.26",

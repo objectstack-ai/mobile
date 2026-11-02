@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -25,15 +26,18 @@ import type { RouteRule } from "~/lib/shell/route-owner";
 import {
   BRIDGE_CAPABILITIES,
   BRIDGE_PROTOCOL_VERSION,
+  parseConnectionRemovedDone,
   type BridgeHostInfo,
   type PushTokenResult,
 } from "~/lib/shell/bridge/protocol";
 import {
   buildBootstrapScript,
+  buildConnectionRemovedScript,
   buildNavigateScript,
   buildPushTokenChangedScript,
   buildResolveScript,
 } from "~/lib/shell/bridge/scripts";
+import type { ConsoleRemovalAnswer } from "~/lib/connections/sign-out";
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
 import {
   INITIAL_CONSOLE_LOAD_STATE,
@@ -52,12 +56,30 @@ export interface ConsoleWebViewHandle {
   /** Move the Console to `route` on the configured server. */
   navigate: (route: string) => void;
   reload: () => void;
+  /**
+   * Before the current connection is removed: ask the loaded Console to
+   * unregister this install's push token (`objectstack-native:connectionRemoved`)
+   * and wait, at most {@link CONSOLE_REMOVAL_TIMEOUT_MS}, for its answer.
+   */
+  askConsoleToRemove: () => Promise<ConsoleRemovalAnswer>;
 }
 
+/** How long removing the current connection waits for its Console to unregister the push token. */
+export const CONSOLE_REMOVAL_TIMEOUT_MS = 10_000;
+
 export interface ConsoleWebViewProps {
+  /**
+   * The current connection's server. A change is a switch: the WebView is
+   * re-created on the new host, at `resumeRoute`, through the load state
+   * machine's `switch` event.
+   */
   serverUrl: string;
   /** Route loaded on first mount. Later route changes go through `navigate`. */
   initialRoute?: string | null;
+  /** The current connection's last route — where a switch to it starts. */
+  resumeRoute?: string | null;
+  /** The Console's route changed (`routeChanged`, else navigation state) on `serverUrl`. */
+  onRouteChange?: (serverUrl: string, route: string) => void;
   rules: readonly RouteRule[];
   availableScreens: ReadonlySet<string>;
   trustedHosts?: readonly string[];
@@ -67,8 +89,8 @@ export interface ConsoleWebViewProps {
   onOpenNative: (screen: string, route: string) => void;
   /** Open a URL outside the WebView (system browser / OS handler). */
   onOpenExternal: (url: string) => void;
-  /** The user asked to pick another server (fallback page or bridge). */
-  onChangeServer: () => void;
+  /** The failure page's secondary action: open the connection switcher. */
+  onSwitchConnection: () => void;
 }
 
 const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
@@ -82,13 +104,15 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     {
       serverUrl,
       initialRoute,
+      resumeRoute,
+      onRouteChange,
       rules,
       availableScreens,
       trustedHosts,
       capabilities,
       onOpenNative,
       onOpenExternal,
-      onChangeServer,
+      onSwitchConnection,
     },
     ref
   ) {
@@ -99,16 +123,35 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     const [failure, setFailure] = useState<LoadFailure | null>(null);
 
     // The WebView is re-created (new `key`) after a failed load or a dead web
-    // content process: an instance whose renderer is gone cannot be reloaded.
-    // A re-created WebView starts at `sourceRoute`, which is fixed between
-    // re-creations — re-deriving the source on every render would reload the
-    // page. Moves within a live page go through `navigate`.
+    // content process — an instance whose renderer is gone cannot be
+    // reloaded — and on a switch to another connection. A re-created WebView
+    // starts at `start`, a server and a route fixed between re-creations:
+    // re-deriving the source on every render would reload the page, and a
+    // switch must not move the old WebView to the new host. Moves within a
+    // live page go through `navigate`.
     const [instance, setInstance] = useState(0);
-    const [sourceRoute, setSourceRoute] = useState<string | null>(initialRoute ?? null);
-    const source = useMemo(
-      () => ({ uri: consoleUrl(serverUrl, sourceRoute) }),
-      [serverUrl, sourceRoute]
-    );
+    const [start, setStart] = useState<{ serverUrl: string; route: string | null }>({
+      serverUrl,
+      route: initialRoute ?? null,
+    });
+    const source = useMemo(() => ({ uri: consoleUrl(start.serverUrl, start.route) }), [start]);
+    const serverUrlRef = useRef(serverUrl);
+    serverUrlRef.current = serverUrl;
+    const resumeRouteRef = useRef(resumeRoute ?? null);
+    resumeRouteRef.current = resumeRoute ?? null;
+    const onRouteChangeRef = useRef(onRouteChange);
+    onRouteChangeRef.current = onRouteChange;
+
+    // A pending `askConsoleToRemove`: the id its script carries, and how to settle it.
+    const removalRef = useRef<{
+      id: string;
+      settle: (answer: ConsoleRemovalAnswer) => void;
+    } | null>(null);
+    const settleRemoval = useCallback((answer: ConsoleRemovalAnswer) => {
+      const pending = removalRef.current;
+      removalRef.current = null;
+      pending?.settle(answer);
+    }, []);
 
     // Cover, held route and last route follow one state machine
     // (`lib/shell/console-load.ts`). A route requested before the Console can
@@ -154,9 +197,17 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
 
     const dispatch = useCallback(
       (event: ConsoleLoadEvent) => {
-        const { state, effects } = stepConsoleLoad(loadRef.current, event);
+        const previous = loadRef.current;
+        const { state, effects } = stepConsoleLoad(previous, event);
         loadRef.current = state;
         setPhase(state.phase);
+        if (
+          (event.type === "routeChanged" || event.type === "navigationState") &&
+          state.lastRoute !== null &&
+          state.lastRoute !== previous.lastRoute
+        ) {
+          onRouteChangeRef.current?.(serverUrlRef.current, state.lastRoute);
+        }
         for (const effect of effects) {
           switch (effect.type) {
             case "goTo":
@@ -176,20 +227,41 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
             case "clearReadyTimer":
               clearReadyTimer();
               break;
-            case "recreate":
-              if (effect.startRoute !== null) setSourceRoute(effect.startRoute);
+            case "recreate": {
+              // On the current server; after a switch that is a new one,
+              // whose start is never the old host's route.
+              const server = serverUrlRef.current;
+              setStart((prev) => ({
+                serverUrl: server,
+                route: effect.startRoute ?? (prev.serverUrl === server ? prev.route : null),
+              }));
               setFailure(null);
-              // A new WebView: answers to the old one's calls are dropped.
+              // A new WebView: answers to the old one's calls are dropped, and
+              // a Console asked to unregister its push token is gone.
               documentRef.current += 1;
+              settleRemoval("no-answer");
               setInstance((i) => i + 1);
               break;
+            }
           }
         }
       },
-      [goTo, sendPushToken, clearReadyTimer]
+      [goTo, sendPushToken, clearReadyTimer, settleRemoval]
     );
     dispatchRef.current = dispatch;
     useEffect(() => clearReadyTimer, [clearReadyTimer]);
+    useEffect(() => () => settleRemoval("no-answer"), [settleRemoval]);
+
+    // A switch to another connection: the current server changed under the
+    // live WebView. The machine re-creates the WebView on the new host, at
+    // that connection's last route. A layout effect, so the old WebView never
+    // renders a frame pointed at the new server's routes.
+    const shownServerRef = useRef(serverUrl);
+    useLayoutEffect(() => {
+      if (shownServerRef.current === serverUrl) return;
+      shownServerRef.current = serverUrl;
+      dispatch({ type: "switch", route: safeConsoleRoute(resumeRouteRef.current) });
+    }, [serverUrl, dispatch]);
 
     const navigate = useCallback(
       (requested: string) => {
@@ -230,7 +302,37 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       webviewRef.current.reload();
     }, [remount, dispatch]);
 
-    useImperativeHandle(ref, () => ({ navigate, reload }), [navigate, reload]);
+    const askConsoleToRemove = useCallback(
+      () =>
+        new Promise<ConsoleRemovalAnswer>((resolve) => {
+          const id = `rm${Date.now().toString(36)}${Math.floor(Math.random() * 2176782336).toString(36)}`;
+          const script =
+            loadRef.current.phase === "ready" && webviewRef.current
+              ? buildConnectionRemovedScript(serverUrl, id)
+              : null;
+          if (!script) {
+            resolve("not-loaded");
+            return;
+          }
+          settleRemoval("no-answer");
+          const timer = setTimeout(() => settleRemoval("no-answer"), CONSOLE_REMOVAL_TIMEOUT_MS);
+          removalRef.current = {
+            id,
+            settle: (answer) => {
+              clearTimeout(timer);
+              resolve(answer);
+            },
+          };
+          webviewRef.current?.injectJavaScript(script);
+        }),
+      [serverUrl, settleRemoval]
+    );
+
+    useImperativeHandle(ref, () => ({ navigate, reload, askConsoleToRemove }), [
+      navigate,
+      reload,
+      askConsoleToRemove,
+    ]);
 
     // Coming back online after a network failure retries on its own.
     const { isConnected } = useNetworkStatus();
@@ -301,10 +403,16 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
               const route = routeChangedRoute(payload);
               if (route !== null) dispatch({ type: "routeChanged", route });
             }
+            if (name === "connectionRemovedDone") {
+              const done = parseConnectionRemovedDone(payload);
+              if (done && done.id === removalRef.current?.id) {
+                settleRemoval(done.handled ? (done.ok ? "unregistered" : "failed") : "not-handled");
+              }
+            }
             addBreadcrumb({ category: "bridge", message: name, data: { payload } });
           },
         }),
-      [capabilities, serverUrl, navigate, dispatch]
+      [capabilities, serverUrl, navigate, dispatch, settleRemoval]
     );
 
     const onMessage = useCallback(
@@ -360,7 +468,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
             failure={failure}
             serverUrl={serverUrl}
             onRetry={reload}
-            onChangeServer={onChangeServer}
+            onSwitchConnection={onSwitchConnection}
           />
         </View>
       );

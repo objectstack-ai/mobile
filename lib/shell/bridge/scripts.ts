@@ -9,6 +9,7 @@ import { consoleUrl, originOf, safeConsoleRoute } from "../console-url";
 import {
   BRIDGE_GLOBAL,
   BRIDGE_RESOLVE_GLOBAL,
+  CONNECTION_REMOVED_EVENT,
   NAVIGATE_EVENT,
   PUSH_TOKEN_CHANGED_EVENT,
   type BridgeHostInfo,
@@ -77,6 +78,7 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
     navigate: function (route) { return call("navigate", { route: route }); },
     resetServer: function () { return call("resetServer"); },
     scan: function (opts) { return call("scan", opts); },
+    showConnectionSwitcher: function () { return call("showConnectionSwitcher"); },
     ready: function () { post({ type: "event", name: "ready" }); },
     routeChanged: function (route) { post({ type: "event", name: "routeChanged", payload: { route: route } }); }
   };
@@ -173,6 +175,67 @@ export function buildPushTokenChangedScript(
   window.dispatchEvent(new window.CustomEvent(${toScriptLiteral(PUSH_TOKEN_CHANGED_EVENT)}, {
     detail: ${toScriptLiteral({ token: token.token, vendor: token.vendor })}
   }));
+})();
+true;`;
+}
+
+/**
+ * Snippet that asks the Console to unregister this install's push token before
+ * the shell removes its connection, or `null` when there is no server origin
+ * or no usable request id.
+ *
+ * It dispatches the cancelable `objectstack-native:connectionRemoved` event
+ * with `detail: { waitUntil(promise) }`, then posts `connectionRemovedDone`
+ * (`{ id, handled, ok }`) once whatever the listeners handed `waitUntil` has
+ * settled: `handled` is whether one called `preventDefault()`, `ok` whether
+ * every handed promise resolved. Only a page on the configured server's
+ * origin is asked; any other page posts nothing, and the shell's wait for an
+ * answer runs out.
+ */
+export function buildConnectionRemovedScript(serverUrl: string, id: string): string | null {
+  const origin = originOf(serverUrl);
+  if (origin === null || !/^[A-Za-z0-9._-]{1,64}$/.test(id)) return null;
+  return `(function () {
+  if (!window.location || window.location.origin !== ${toScriptLiteral(origin)}) return;
+  var id = ${toScriptLiteral(id)};
+  function done(handled, ok) {
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: "event",
+        name: "connectionRemovedDone",
+        payload: { id: id, handled: handled, ok: ok }
+      }));
+    }
+  }
+  var waits = [];
+  var handled = false;
+  try {
+    if (typeof window.CustomEvent === "function" && typeof window.dispatchEvent === "function") {
+      var event = new window.CustomEvent(${toScriptLiteral(CONNECTION_REMOVED_EVENT)}, {
+        cancelable: true,
+        detail: { waitUntil: function (promise) { waits.push(promise); } }
+      });
+      handled = window.dispatchEvent(event) === false || event.defaultPrevented === true;
+    }
+  } catch (e) {
+    handled = false;
+  }
+  if (!handled || waits.length === 0) {
+    done(handled, handled);
+    return;
+  }
+  var left = waits.length;
+  var ok = true;
+  function settle() {
+    left -= 1;
+    if (left === 0) done(true, ok);
+  }
+  for (var i = 0; i < waits.length; i += 1) {
+    Promise.resolve(waits[i]).then(settle, function () {
+      ok = false;
+      settle();
+    });
+  }
 })();
 true;`;
 }

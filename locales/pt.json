@@ -55,8 +55,19 @@
     "offlineMessage": "Verifique sua conexão. A página recarrega sozinha quando você voltar a ficar online.",
     "serverErrorTitle": "O servidor não está respondendo",
     "serverErrorMessage": "O servidor respondeu com o erro {{code}}. Tente novamente em instantes.",
-    "retry": "Tentar novamente",
-    "changeServer": "Usar outro servidor"
+    "retry": "Tentar novamente"
+  },
+  "switcher": {
+    "title": "Trocar de organização",
+    "add": "Adicionar uma organização ou um servidor da empresa",
+    "footnote": "Cada organização mantém o próprio login. Deslize para a esquerda para remover uma e sair dela.",
+    "appSettings": "Configurações do app",
+    "kind": {
+      "cloud": "Cloud",
+      "server": "Privado"
+    },
+    "remove": "Remover",
+    "removeNamed": "Remover {{label}}"
   },
   "scanner": {
     "hint": "Posicione o código QR dentro da moldura",
