@@ -6,6 +6,7 @@ import {
   type ConsoleWebViewHandle,
   type ConsoleWebViewProps,
 } from "~/components/shell/ConsoleWebView";
+import { READY_TIMEOUT_MS } from "~/lib/shell/console-load";
 
 const mockWebView = {
   props: null as any,
@@ -81,6 +82,20 @@ function finishLoad() {
   act(() => mockWebView.props.onLoadEnd({ nativeEvent: { loading: false } }));
 }
 
+/** A bridge event posted by the page, from the configured server's origin. */
+async function postEvent(name: string, payload?: unknown, url = `${SERVER}/_console/home`) {
+  await act(async () => {
+    mockWebView.props.onMessage({
+      nativeEvent: { data: JSON.stringify({ type: "event", name, payload }), url },
+    });
+  });
+}
+
+const consoleReady = () => postEvent("ready");
+
+const navigatedTo = (route: string) =>
+  expect.stringContaining(`${SERVER}/_console${route}`);
+
 beforeEach(() => {
   mockIsConnected = true;
   mockWebView.props = null;
@@ -103,11 +118,28 @@ describe("ConsoleWebView", () => {
     expect(mockWebView.props.applicationNameForUserAgent).toMatch(/^ObjectStackShell\//);
   });
 
-  it("shows a loading overlay until the page finishes loading", () => {
+  it("keeps the loading cover up past load end until the Console says ready", async () => {
     renderConsole();
     expect(screen.getByText("Loading…")).toBeTruthy();
-    act(() => mockWebView.props.onLoadEnd({ nativeEvent: { loading: false } }));
+    finishLoad();
+    expect(screen.getByText("Loading…")).toBeTruthy();
+    await consoleReady();
     expect(screen.queryByText("Loading…")).toBeNull();
+  });
+
+  it("lifts the cover on ready even before load end", async () => {
+    renderConsole();
+    await consoleReady();
+    expect(screen.queryByText("Loading…")).toBeNull();
+    finishLoad();
+    expect(screen.queryByText("Loading…")).toBeNull();
+  });
+
+  it("ignores ready from a page on another origin", async () => {
+    renderConsole();
+    finishLoad();
+    await postEvent("ready", undefined, "https://evil.example.com/");
+    expect(screen.getByText("Loading…")).toBeTruthy();
   });
 
   it("applies the navigation policy", () => {
@@ -151,19 +183,65 @@ describe("ConsoleWebView", () => {
     expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
   });
 
-  it("holds a route requested before the page loads, then applies it", () => {
+  it("holds a route asked for on cold start past load end, and dispatches it on ready", async () => {
+    // A notification tap on cold start: the Console's navigate listener mounts
+    // only after its boot, so a route injected at load end would reload the page.
     const { ref } = renderConsole();
     act(() => ref.current!.navigate("/apps/hr"));
+    finishLoad();
     expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
-    act(() => mockWebView.props.onLoadEnd({ nativeEvent: { loading: false } }));
-    expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
-      expect.stringContaining(`${SERVER}/_console/apps/hr`)
-    );
+    await consoleReady();
+    expect(mockWebView.injectJavaScript).toHaveBeenCalledTimes(1);
+    expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(navigatedTo("/apps/hr"));
   });
 
-  it("navigates the page, or hands native routes off, on request", () => {
+  it("dispatches a held route on ready that arrives before load end, once", async () => {
+    const { ref } = renderConsole();
+    act(() => ref.current!.navigate("/apps/hr"));
+    await consoleReady();
+    finishLoad();
+    expect(mockWebView.injectJavaScript).toHaveBeenCalledTimes(1);
+    expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(navigatedTo("/apps/hr"));
+  });
+
+  describe("when the Console never says ready", () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it("lifts the cover and dispatches the held route after the ready timeout", () => {
+      const { ref } = renderConsole();
+      act(() => ref.current!.navigate("/apps/hr"));
+      finishLoad();
+      act(() => jest.advanceTimersByTime(READY_TIMEOUT_MS - 1));
+      expect(screen.getByText("Loading…")).toBeTruthy();
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+      act(() => jest.advanceTimersByTime(1));
+      expect(screen.queryByText("Loading…")).toBeNull();
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledTimes(1);
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(navigatedTo("/apps/hr"));
+    });
+
+    it("does not start the timeout before the document has loaded", () => {
+      renderConsole();
+      act(() => jest.advanceTimersByTime(READY_TIMEOUT_MS * 3));
+      expect(screen.getByText("Loading…")).toBeTruthy();
+    });
+
+    it("does not fire the timeout into a failed load", () => {
+      const { ref } = renderConsole();
+      act(() => ref.current!.navigate("/apps/hr"));
+      finishLoad();
+      act(() => mockWebView.props.onHttpError({ nativeEvent: { statusCode: 502 } }));
+      act(() => jest.advanceTimersByTime(READY_TIMEOUT_MS));
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+      expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
+    });
+  });
+
+  it("navigates the page, or hands native routes off, on request", async () => {
     const { ref, props } = renderConsole();
-    act(() => mockWebView.props.onLoadEnd({ nativeEvent: { loading: false } }));
+    finishLoad();
+    await consoleReady();
     act(() => ref.current!.navigate("/apps/hr"));
     expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
       expect.stringContaining(`${SERVER}/_console/apps/hr`)
@@ -172,15 +250,16 @@ describe("ConsoleWebView", () => {
     expect(props.onOpenNative).toHaveBeenCalledWith("approvals", "/approvals/3");
   });
 
-  it("refuses a route that would escape the Console", () => {
+  it("refuses a route that would escape the Console", async () => {
     const { ref } = renderConsole();
     finishLoad();
+    await consoleReady();
     act(() => ref.current!.navigate("/../../api/v1/me"));
     act(() => ref.current!.navigate("/%2e%2e/api/v1/me"));
     expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
   });
 
-  it("keeps a route queued on cold start across a failed load, and opens it on retry", () => {
+  it("keeps a route queued on cold start across a failed load, and opens it on retry", async () => {
     const { ref } = renderConsole();
     act(() => ref.current!.navigate("/apps/hr"));
     failLoad();
@@ -193,6 +272,7 @@ describe("ConsoleWebView", () => {
     expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/hr` });
     // It is the start route of the new WebView, so it is not injected again.
     finishLoad();
+    await consoleReady();
     expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
     expect(screen.queryByText("Loading…")).toBeNull();
   });
@@ -281,6 +361,31 @@ describe("ConsoleWebView", () => {
     expect(mockWebView.reload).not.toHaveBeenCalled();
     expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm/lead/9` });
     expect(screen.getByText("Loading…")).toBeTruthy();
+  });
+
+  it("re-creates the WebView at the route the Console reported, over navigation state", async () => {
+    renderConsole();
+    finishLoad();
+    await consoleReady();
+    await postEvent("routeChanged", { route: "/apps/crm/lead/9?tab=notes" });
+    // Some engines do not report SPA pushState here; once routeChanged has
+    // been seen, navigation state no longer moves the last route.
+    act(() =>
+      mockWebView.props.onNavigationStateChange({ url: `${SERVER}/_console/apps/crm`, canGoBack: true })
+    );
+    act(() => mockWebView.props.onContentProcessDidTerminate());
+    expect(mockWebView.props.source).toEqual({
+      uri: `${SERVER}/_console/apps/crm/lead/9?tab=notes`,
+    });
+  });
+
+  it("drops a routeChanged payload that is not a safe Console route", async () => {
+    renderConsole();
+    finishLoad();
+    await postEvent("routeChanged", { route: "/../../api/v1/me" });
+    await postEvent("routeChanged", "/apps/hr");
+    act(() => mockWebView.props.onContentProcessDidTerminate());
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm` });
   });
 
   it("re-creates the WebView when the iOS web content process dies", () => {

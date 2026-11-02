@@ -33,6 +33,14 @@ import {
   buildResolveScript,
 } from "~/lib/shell/bridge/scripts";
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
+import {
+  INITIAL_CONSOLE_LOAD_STATE,
+  READY_TIMEOUT_MS,
+  routeChangedRoute,
+  stepConsoleLoad,
+  type ConsoleLoadEvent,
+  type ConsoleLoadPhase,
+} from "~/lib/shell/console-load";
 import { addBreadcrumb, captureMessage } from "~/lib/sentry";
 import { useNetworkStatus } from "~/hooks/useNetworkStatus";
 
@@ -84,7 +92,6 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     const insets = useSafeAreaInsets();
     const webviewRef = useRef<WebView>(null);
     const canGoBackRef = useRef(false);
-    const [loaded, setLoaded] = useState(false);
     const [failure, setFailure] = useState<LoadFailure | null>(null);
 
     // The WebView is re-created (new `key`) after a failed load or a dead web
@@ -99,17 +106,18 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       [serverUrl, sourceRoute]
     );
 
-    // A route requested while there is no loaded page to move — before the
-    // first load (a notification tap on cold start), or while the failure page
-    // is up — is held: injecting into a page that is still loading, or into no
-    // page at all, would lose it. It is applied once a page has loaded, or
-    // becomes the start route of the next re-created WebView.
-    const loadedRef = useRef(false);
-    const failedRef = useRef(false);
-    const pendingRouteRef = useRef<string | null>(null);
-    // The last Console route the page was on, so a re-created WebView resumes
-    // there instead of at the start route.
-    const lastRouteRef = useRef<string | null>(null);
+    // Cover, held route and last route follow one state machine
+    // (`lib/shell/console-load.ts`). A route requested before the Console can
+    // take it — while the page loads or boots (a notification tap on cold
+    // start), or while the failure page is up — is held, and dispatched once
+    // the Console says `ready` (or the ready timeout passes), or becomes the
+    // start route of the next re-created WebView. The machine lives in a ref
+    // so a bridge call sees the state the previous event left; `phase`
+    // mirrors it for rendering.
+    const loadRef = useRef(INITIAL_CONSOLE_LOAD_STATE);
+    const [phase, setPhase] = useState<ConsoleLoadPhase>(INITIAL_CONSOLE_LOAD_STATE.phase);
+    const readyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const dispatchRef = useRef<(event: ConsoleLoadEvent) => void>(() => {});
 
     const goTo = useCallback(
       (route: string) => {
@@ -119,6 +127,45 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       },
       [serverUrl]
     );
+
+    const clearReadyTimer = useCallback(() => {
+      if (readyTimerRef.current !== null) clearTimeout(readyTimerRef.current);
+      readyTimerRef.current = null;
+    }, []);
+
+    const dispatch = useCallback(
+      (event: ConsoleLoadEvent) => {
+        const { state, effects } = stepConsoleLoad(loadRef.current, event);
+        loadRef.current = state;
+        setPhase(state.phase);
+        for (const effect of effects) {
+          switch (effect.type) {
+            case "goTo":
+              goTo(effect.route);
+              break;
+            case "armReadyTimer":
+              clearReadyTimer();
+              readyTimerRef.current = setTimeout(() => {
+                readyTimerRef.current = null;
+                addBreadcrumb({ category: "shell", message: "ready timeout" });
+                dispatchRef.current({ type: "readyTimeout" });
+              }, READY_TIMEOUT_MS);
+              break;
+            case "clearReadyTimer":
+              clearReadyTimer();
+              break;
+            case "recreate":
+              if (effect.startRoute !== null) setSourceRoute(effect.startRoute);
+              setFailure(null);
+              setInstance((i) => i + 1);
+              break;
+          }
+        }
+      },
+      [goTo, clearReadyTimer]
+    );
+    dispatchRef.current = dispatch;
+    useEffect(() => clearReadyTimer, [clearReadyTimer]);
 
     const navigate = useCallback(
       (requested: string) => {
@@ -134,55 +181,30 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           onOpenNative(decision.screen, decision.route);
           return;
         }
-        if (!loadedRef.current || failedRef.current) {
-          pendingRouteRef.current = route;
-          return;
-        }
-        goTo(route);
+        dispatch({ type: "navigate", route });
       },
-      [serverUrl, rules, availableScreens, trustedHosts, onOpenNative, goTo]
+      [serverUrl, rules, availableScreens, trustedHosts, onOpenNative, dispatch]
     );
 
-    const markLoaded = useCallback(() => {
-      // A failed load also ends with `onLoadEnd`; there is no page to show or
-      // to move, so the pending route stays pending.
-      if (failedRef.current) return;
-      loadedRef.current = true;
-      setLoaded(true);
-      const pending = pendingRouteRef.current;
-      if (pending) {
-        pendingRouteRef.current = null;
-        goTo(pending);
-      }
-    }, [goTo]);
-
-    const fail = useCallback((next: LoadFailure) => {
-      failedRef.current = true;
-      loadedRef.current = false;
-      setFailure(next);
-    }, []);
+    const fail = useCallback(
+      (next: LoadFailure) => {
+        dispatch({ type: "fail" });
+        setFailure(next);
+      },
+      [dispatch]
+    );
 
     /** Re-create the WebView at the pending route, else where the page was. */
-    const remount = useCallback(() => {
-      const next = pendingRouteRef.current ?? lastRouteRef.current;
-      pendingRouteRef.current = null;
-      if (next !== null) setSourceRoute(next);
-      failedRef.current = false;
-      loadedRef.current = false;
-      setFailure(null);
-      setLoaded(false);
-      setInstance((i) => i + 1);
-    }, []);
+    const remount = useCallback(() => dispatch({ type: "recreate" }), [dispatch]);
 
     const reload = useCallback(() => {
-      if (failedRef.current || !webviewRef.current) {
+      if (loadRef.current.phase === "failed" || !webviewRef.current) {
         remount();
         return;
       }
-      loadedRef.current = false;
-      setLoaded(false);
+      dispatch({ type: "reload" });
       webviewRef.current.reload();
-    }, [remount]);
+    }, [remount, dispatch]);
 
     useImperativeHandle(ref, () => ({ navigate, reload }), [navigate, reload]);
 
@@ -231,11 +253,15 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           serverUrl,
           navigate,
           onEvent: (name, payload) => {
-            if (name === "ready") markLoaded();
+            if (name === "ready") dispatch({ type: "ready" });
+            if (name === "routeChanged") {
+              const route = routeChangedRoute(payload);
+              if (route !== null) dispatch({ type: "routeChanged", route });
+            }
             addBreadcrumb({ category: "bridge", message: name, data: { payload } });
           },
         }),
-      [capabilities, serverUrl, navigate, markLoaded]
+      [capabilities, serverUrl, navigate, dispatch]
     );
 
     const onMessage = useCallback(
@@ -275,10 +301,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     const onNavigationStateChange = useCallback(
       (nav: WebViewNavigation) => {
         canGoBackRef.current = nav.canGoBack;
+        // Fallback only: once the Console posts `routeChanged`, it decides.
         const route = nav.url ? routeFromConsoleUrl(serverUrl, nav.url) : null;
-        if (route !== null) lastRouteRef.current = route;
+        dispatch({ type: "navigationState", route });
       },
-      [serverUrl]
+      [serverUrl, dispatch]
     );
 
     if (failure) {
@@ -315,9 +342,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           onNavigationStateChange={onNavigationStateChange}
           onLoadEnd={(e) => {
             // `loading` is still true when a load is superseded by a redirect.
-            // react-native-webview also calls this after `onError`;
-            // `markLoaded` ignores a failed load.
-            if (!e.nativeEvent.loading) markLoaded();
+            // react-native-webview also calls this after `onError`; the
+            // load state ignores it on a failed load.
+            if (!e.nativeEvent.loading) dispatch({ type: "loadEnd" });
           }}
           onError={(e) => {
             captureMessage(`console load failed: ${e.nativeEvent.description}`, "warning");
@@ -347,7 +374,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           webviewDebuggingEnabled={__DEV__}
           style={{ flex: 1 }}
         />
-        {!loaded ? (
+        {phase !== "ready" ? (
           <View className="absolute inset-0" pointerEvents="none">
             <LoadingScreen message={t("shell.loading")} />
           </View>
