@@ -42,7 +42,7 @@ Rules shared by every path:
 | 1 | Welcome | Native | mobile#153, mobile#156 |
 | 2 | Cloud: pick an organization | **Cloud console** in the WebView | cloud#3489 (page), mobile#153 (shell) |
 | 3 | External sign-in bar | Native top bar; the form is the customer's IdP page | mobile#155 |
-| 4 | Console | **objectstack Console** in the WebView | objectstack#29039, objectstack#29040 |
+| 4 | Console (screenshot of the real Console, not a design) | **objectstack Console** in the WebView | objectstack#29039, objectstack#29040 |
 | 5 | Private: enter address | Native | mobile#154 |
 | 6 | Private: scan | Native | mobile#156 |
 | 7 | Private: confirm server | Native | mobile#154 |
@@ -111,13 +111,44 @@ The page body is the customer's IdP; only the top bar is native.
 
 ### 4 Console (shell mode)
 
-![Console in shell mode](./connection-flow/04-console.png)
+| Landing (`/home`) | Navigation drawer | Record |
+|:--:|:--:|:--:|
+| ![Console home in shell mode](./connection-flow/04-console.png) | ![Console navigation drawer](./connection-flow/04b-console-drawer.png) | ![Console record view](./connection-flow/04c-console-record.png) |
 
-The objectstack Console in the WebView, in shell mode (objectstack#29039) and reviewed at 375 px
-(objectstack#29040). Native code contributes nothing to this screen except safe-area insets
-through the `--os-native-safe-*` CSS variables. The organization button in the Console header
-opens screen 8 when `ObjectStackNative.has('showConnectionSwitcher')` (consumer card filed after
-mobile#152 lands).
+These are **screenshots of the real Console, not designs**. They were taken 2026-11-02 at 390×844
+from the showcase example on objectstack `main` (2f7977cd), signed in, with
+`window.ObjectStackNative` injected (`<html data-os-native-shell="ios">`). The shell draws nothing
+here and adds no home page, tab bar or native navigation. Any change to this screen is a Console
+card in objectstack-ai/objectstack, never a mobile card.
+
+What the Console shows at phone width today:
+
+- **Home (`/home`).**
+  - The header has the product logo, search, the notification bell and the avatar menu (profile,
+    organizations, theme, language, sign out).
+  - The body has a greeting with the count of pending approvals, then **Your apps** (app tiles and
+    Add app), **My work** (Awaiting approval, Notifications), Recently accessed and the activity
+    feed.
+- **Inside an app.**
+  - A sidebar toggle opens a left drawer with the app's navigation. Its grid icon returns to
+    `/home`, the app launcher.
+  - Lists are cards with a floating create button.
+- **Record.**
+  - There is a back link with previous and next, then the fields, then tabs (Details, related
+    lists).
+  - The bottom bar holds record actions (Edit, …), not navigation.
+- **No bottom tab bar anywhere.**
+
+Where a signed-in user lands is the Console's own rule (`RootLandingRedirect` in
+`ui/apps/console/src/components/RootLandingRedirect.tsx`):
+
+1. the app marked `isDefault` → that app, at its first navigation item;
+2. otherwise the only visible app → that app;
+3. otherwise `/home`, the multi-app workspace (apps strip, action center, continue, activity).
+
+The shell's only contributions are the safe-area padding around the WebView and, after
+mobile#152, the switcher in screen 8: the Console's organization button opens it when
+`ObjectStackNative.has('showConnectionSwitcher')` (consumer card filed after mobile#152 lands).
 
 ### 5 Private: enter address
 
