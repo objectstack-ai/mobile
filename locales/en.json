@@ -60,9 +60,11 @@
   },
   "scanner": {
     "hint": "Place the QR code inside the frame",
+    "codeHint": "Place the code inside the frame",
     "connectNote": "Contains only the server address, no account information",
     "manual": "Enter address manually",
     "notConnectCode": "This isn't a connect QR code",
+    "unreadable": "This code can't be read",
     "close": "Close",
     "torchOn": "Turn on flashlight",
     "torchOff": "Turn off flashlight",
@@ -71,10 +73,12 @@
       "body": "Allow camera access to scan the QR code.",
       "blocked": "Camera access is off for ObjectOS. Turn it on in Settings, or enter the address manually.",
       "allow": "Allow camera",
-      "settings": "Open Settings"
+      "settings": "Open Settings",
+      "codeBody": "Allow camera access to scan the code.",
+      "codeBlocked": "Camera access is off for ObjectOS. Turn it on in Settings to scan codes."
     }
   },
   "permissions": {
-    "camera": "ObjectOS uses the camera to scan the QR code that connects it to your server."
+    "camera": "ObjectOS uses the camera to scan QR codes and barcodes, such as the code that connects it to your server."
   }
 }

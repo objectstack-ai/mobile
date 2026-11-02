@@ -27,6 +27,7 @@ app/
   index.tsx           waits for the stored server, then redirects
   server-config.tsx   native server picker: address step, then confirm step
   connect-scan.tsx    QR scanner for the server address (screen 6)
+  bridge-scan.tsx     scanner for the bridge's `scan()` (Console fields)
   console.tsx         the Console screen (one long-lived WebView)
   +native-intent.tsx  app links → Console routes
 components/shell/
@@ -174,8 +175,9 @@ server's Console and saves nothing.
   configured for the camera only (no microphone, no `RECORD_AUDIO`).
 
 `QrScanner` knows nothing about servers: the caller passes `accept`, the
-refusal text and the optional note and manual action, so the bridge's `scan()`
-for Console fields can reuse it.
+refusal text, the optional note and manual action, and optionally the code
+formats and the permission panel's copy. The bridge's `scan()` for Console
+fields reuses it (see "Scanning codes"). The iOS prompt text names both uses.
 
 Sign-in through an external identity provider: the IdP's host must be listed in
 `EXPO_PUBLIC_TRUSTED_HOSTS`, or the navigation policy opens it in the system
@@ -250,6 +252,7 @@ interface ObjectStackNative {
   openExternal(url: string): Promise<null>; // http(s), mailto, tel, sms
   navigate(route: string): Promise<null>; // Console route; route ownership applies
   resetServer(): Promise<null>; // forget the server, back to the picker
+  scan(opts?: { formats?: string[] }): Promise<string | null>; // see "Scanning codes"
 
   ready(): void; // event: page is interactive (hides the loading cover)
   routeChanged(route: string): void; // event: SPA route changed
@@ -279,6 +282,39 @@ re-registration refreshes the device's row instead of minting a second one.
   document (a trusted sign-in host's pages too), so it exposes `installId`
   only when `window.location.origin` is the configured server's origin; any
   other page reads `null`. Sub-frames never see host info (Known limits).
+
+### Scanning codes
+
+`scan()` opens a native full-screen scanner (`app/bridge-scan.tsx`, the same
+`QrScanner` as screen 6) with close and torch controls. It resolves the decoded
+text of the first code read, or `null` when the user closes the scanner
+(the close control, Android back or the iOS swipe).
+
+- `formats` narrows what the camera reads. The names are `expo-camera`'s:
+  `qr`, `aztec`, `datamatrix`, `pdf417`, `ean13`, `ean8`, `upc_a`, `upc_e`,
+  `code39`, `code93`, `code128`, `codabar`, `itf14` (`SCAN_FORMATS`). Without
+  `formats` it reads all of them. An empty list, an unknown name or any other
+  option is `bad_args`, and no scanner opens.
+- Camera permission refused: the scanner shows its permission panel (with
+  Settings when the refusal is final), and leaving it rejects the call with
+  `failed` ("Camera permission denied"). Closed before the prompt was
+  answered, it resolves `null`.
+- One scan at a time: a `scan()` while another is open rejects with `failed`
+  ("A scan is already open") and leaves the open one alone.
+- The answer goes only to the document that called. Call ids carry a
+  per-document token, so a page that replaced it while the scanner was up (a
+  reload, a redirect) cannot match the answer, and a WebView re-created after
+  a failure is not sent it at all. The Console's pending promise went away
+  with the old page.
+- Like every method, only a page on the configured server's origin is
+  answered. The scanner never opens for anything else.
+
+```js
+if (ObjectStackNative.has("scan")) {
+  const text = await ObjectStackNative.scan({ formats: ["ean13", "code128"] });
+  if (text !== null) field.value = text;
+}
+```
 
 ### Shell → Console events
 
@@ -333,7 +369,9 @@ Calls are posted as
 `{ type: 'call', id, method, args }` through
 `window.ReactNativeWebView.postMessage`; the shell answers by calling
 `window.__objectstackNativeResolve({ id, ok, value | error })`. Errors carry a
-`code`: `unknown_method`, `bad_args`, `failed`.
+`code`: `unknown_method`, `bad_args`, `failed`. A call id is a per-document
+token and a counter (`<token>.<n>`), so an answer settles only a call of the
+document that made it.
 
 Security:
 
@@ -412,7 +450,9 @@ The Console needs, in `@object-ui/mobile`:
   sign-out;
 - listen for `objectstack-native:pushTokenChanged` when
   `has("pushTokenChanged")` and re-register `event.detail` while signed in;
-- register no Service Worker inside the shell (see above).
+- register no Service Worker inside the shell (see above);
+- offer a scan affordance on text and lookup fields when `has("scan")`, and
+  fill the field with what `scan()` resolves (nothing on `null`).
 
 Until then the shell works without it: the loading cover lifts on the WebView's
 own load event and the shell pads the WebView with the safe area itself.
@@ -432,6 +472,8 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   `__tests__/components/RtlLayout.test.tsx`.
 - The scanner and screen 6 — `__tests__/components/QrScanner.test.tsx`, with a
   mocked `expo-camera` (permission states, refused and accepted codes, torch).
+- The bridge's `scan()`: the handler (`bridge-handler.test.ts`), the session
+  (`scan-session.test.ts`) and the scanner screen (`QrScanner.test.tsx`).
 - The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`

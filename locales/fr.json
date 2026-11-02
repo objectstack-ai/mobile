@@ -60,9 +60,11 @@
   },
   "scanner": {
     "hint": "Placez le code QR dans le cadre",
+    "codeHint": "Placez le code dans le cadre",
     "connectNote": "Contient uniquement l'adresse du serveur, aucune information de compte",
     "manual": "Saisir l'adresse manuellement",
     "notConnectCode": "Ce n'est pas un code QR de connexion",
+    "unreadable": "Impossible de lire ce code",
     "close": "Fermer",
     "torchOn": "Allumer la lampe torche",
     "torchOff": "Éteindre la lampe torche",
@@ -71,10 +73,12 @@
       "body": "Autorisez l'accès à l'appareil photo pour scanner le code QR.",
       "blocked": "L'accès à l'appareil photo est désactivé pour ObjectOS. Activez-le dans les Paramètres ou saisissez l'adresse manuellement.",
       "allow": "Autoriser l'appareil photo",
-      "settings": "Ouvrir les Paramètres"
+      "settings": "Ouvrir les Paramètres",
+      "codeBody": "Autorisez l'accès à l'appareil photo pour scanner le code.",
+      "codeBlocked": "L'accès à l'appareil photo est désactivé pour ObjectOS. Activez-le dans les Paramètres pour scanner des codes."
     }
   },
   "permissions": {
-    "camera": "ObjectOS utilise l'appareil photo pour scanner le code QR qui le connecte à votre serveur."
+    "camera": "ObjectOS utilise l'appareil photo pour scanner des codes QR et des codes-barres, comme le code qui le connecte à votre serveur."
   }
 }

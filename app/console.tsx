@@ -10,6 +10,7 @@ import { acquireDeviceToken } from "~/lib/push-notifications";
 import { triggerHaptic } from "~/lib/haptics";
 import { shellConfig } from "~/lib/shell/config";
 import { openExternalUrl } from "~/lib/shell/external";
+import { requestScan } from "~/lib/shell/bridge/scan-session";
 import { DEFAULT_ROUTE_RULES } from "~/lib/shell/route-owner";
 import { AVAILABLE_NATIVE_SCREENS, NATIVE_SCREENS } from "~/lib/shell/native-screens";
 import { useServerStore } from "~/stores/server-store";
@@ -48,6 +49,7 @@ export default function ConsoleScreen() {
         await reset();
         router.replace("/server-config");
       },
+      scan: (formats) => requestScan(formats, () => router.push("/bridge-scan")),
     }),
     [reset, router]
   );

@@ -8,12 +8,14 @@
 import { originOf, safeConsoleRoute } from "../console-url";
 import {
   HAPTIC_KINDS,
+  SCAN_FORMATS,
   parseInbound,
   type BridgeErrorCode,
   type BridgeEventName,
   type BridgeResult,
   type HapticKind,
   type PushTokenResult,
+  type ScanFormat,
 } from "./protocol";
 
 export interface BridgeDeps {
@@ -26,10 +28,36 @@ export interface BridgeDeps {
   navigate: (route: string) => void;
   /** Forget the server and return to the server picker. */
   resetServer: () => Promise<void>;
+  /**
+   * Open the native scanner for `formats` (never empty). Resolves the decoded
+   * text, or `null` when the user cancels; rejects when the scan cannot run
+   * (camera permission refused, another scan already open).
+   */
+  scan: (formats: readonly ScanFormat[]) => Promise<string | null>;
   onEvent?: (name: BridgeEventName, payload: unknown) => void;
 }
 
 const EXTERNAL_SCHEMES = /^(https?|mailto|tel|sms):/i;
+
+const SCAN_ARGS_MESSAGE = `scan takes { formats?: string[] } with formats from ${SCAN_FORMATS.join(", ")}`;
+
+/**
+ * The formats a `scan` call asks for: every format when it names none, `null`
+ * when the arguments are not `{ formats?: ScanFormat[] }` with at least one
+ * format. Unknown keys are refused rather than ignored.
+ */
+function scanFormatsOf(args: unknown): readonly ScanFormat[] | null {
+  if (args === undefined || args === null) return SCAN_FORMATS;
+  if (typeof args !== "object" || Array.isArray(args)) return null;
+  const keys = Object.keys(args);
+  if (keys.some((key) => key !== "formats")) return null;
+  const formats = (args as { formats?: unknown }).formats;
+  if (formats === undefined) return SCAN_FORMATS;
+  if (!Array.isArray(formats) || formats.length === 0) return null;
+  const known = SCAN_FORMATS as readonly unknown[];
+  if (!formats.every((f) => known.includes(f))) return null;
+  return SCAN_FORMATS.filter((f) => formats.includes(f));
+}
 
 function fail(id: string, code: BridgeErrorCode, message: string): BridgeResult {
   return { id, ok: false, error: { code, message } };
@@ -105,6 +133,12 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
         case "resetServer":
           await deps.resetServer();
           return { id, ok: true, value: null };
+
+        case "scan": {
+          const formats = scanFormatsOf(args);
+          if (formats === null) return fail(id, "bad_args", SCAN_ARGS_MESSAGE);
+          return { id, ok: true, value: await deps.scan(formats) };
+        }
 
         default:
           return fail(id, "unknown_method", `Unknown bridge method: ${method}`);
