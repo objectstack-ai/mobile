@@ -229,19 +229,38 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     );
     const bootstrap = useMemo(() => buildBootstrapScript(hostInfo), [hostInfo]);
 
-    // A push token the OS reports (rotation) goes to the loaded page as
-    // `objectstack-native:pushTokenChanged`. It is not held for a page that is
-    // still loading or failed: that page reads the current token with
-    // `getPushToken()` once it starts.
-    const deliverPushToken = useCallback(
+    // A push token the OS reports (rotation) goes to the page as
+    // `objectstack-native:pushTokenChanged`. The Console installs its shell
+    // event listeners in the same commit that posts `ready`, after the
+    // document's load end, so a token reported before this document's `ready`
+    // (cold start, a reload, the failure page) is held — the latest one only —
+    // and delivered at `ready`. A new document start re-arms the hold.
+    const consoleReadyRef = useRef(false);
+    const heldPushTokenRef = useRef<PushTokenResult | null>(null);
+    const sendPushToken = useCallback(
       (token: PushTokenResult) => {
-        if (!loadedRef.current || failedRef.current) return;
         const script = buildPushTokenChangedScript(serverUrl, token);
         if (script) webviewRef.current?.injectJavaScript(script);
       },
       [serverUrl]
     );
+    const deliverPushToken = useCallback(
+      (token: PushTokenResult) => {
+        if (consoleReadyRef.current) sendPushToken(token);
+        else heldPushTokenRef.current = token;
+      },
+      [sendPushToken]
+    );
     usePushTokenChanges(deliverPushToken);
+    const onConsoleReady = useCallback(() => {
+      consoleReadyRef.current = true;
+      const held = heldPushTokenRef.current;
+      heldPushTokenRef.current = null;
+      if (held) sendPushToken(held);
+    }, [sendPushToken]);
+    const onDocumentStart = useCallback(() => {
+      consoleReadyRef.current = false;
+    }, []);
 
     const handleMessage = useMemo(
       () =>
@@ -251,10 +270,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           navigate,
           onEvent: (name, payload) => {
             if (name === "ready") markLoaded();
+            if (name === "ready") onConsoleReady();
             addBreadcrumb({ category: "bridge", message: name, data: { payload } });
           },
         }),
-      [capabilities, serverUrl, navigate, markLoaded]
+      [capabilities, serverUrl, navigate, markLoaded, onConsoleReady]
     );
 
     const onMessage = useCallback(
@@ -332,6 +352,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           onMessage={onMessage}
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
           onNavigationStateChange={onNavigationStateChange}
+          // A new document: its Console has not installed listeners yet.
+          // (iOS reports an SPA history change as a load end, never a start.)
+          onLoadStart={onDocumentStart}
           onLoadEnd={(e) => {
             // `loading` is still true when a load is superseded by a redirect.
             // react-native-webview also calls this after `onError`;
