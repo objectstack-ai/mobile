@@ -86,7 +86,7 @@ loading and offline pages); everything inside the WebView is the Console's.
   transition direction) follows on the next launch.
 - **Once signed in, the user's Console locale wins inside the Console.** The
   Console resolves its own language: the user's `sys_user.locale`, else the
-  request's `Accept-Language` (the WebView sends the phone's languages), else
+  request's `Accept-Language` (the WebView's own; the shell does not set it), else
   the deployment default. So a user whose Console locale differs from the
   phone sees the native screens in the phone's language and the Console in
   their own. Built-in object and field labels exist in fewer locales than the
