@@ -301,11 +301,11 @@ text of the first code read, or `null` when the user closes the scanner
   answered, it resolves `null`.
 - One scan at a time: a `scan()` while another is open rejects with `failed`
   ("A scan is already open") and leaves the open one alone.
-- The answer goes only to the document that called. If the page is replaced
-  while the scanner is up (a reload, the WebView re-created after a failure,
-  a redirect), the shell drops the answer, and the new page's calls cannot
-  match it either (call ids carry a per-document token). The Console's
-  pending promise went away with the old page.
+- The answer goes only to the document that called. Call ids carry a
+  per-document token, so a page that replaced it while the scanner was up (a
+  reload, a redirect) cannot match the answer, and a WebView re-created after
+  a failure is not sent it at all. The Console's pending promise went away
+  with the old page.
 - Like every method, only a page on the configured server's origin is
   answered. The scanner never opens for anything else.
 
@@ -370,8 +370,8 @@ Calls are posted as
 `window.ReactNativeWebView.postMessage`; the shell answers by calling
 `window.__objectstackNativeResolve({ id, ok, value | error })`. Errors carry a
 `code`: `unknown_method`, `bad_args`, `failed`. A call id is a per-document
-token and a counter (`<token>.<n>`), and an answer is injected only while the
-document that made the call is still the one loaded.
+token and a counter (`<token>.<n>`), so an answer settles only a call of the
+document that made it.
 
 Security:
 

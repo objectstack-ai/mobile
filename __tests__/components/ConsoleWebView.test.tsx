@@ -310,11 +310,16 @@ describe("ConsoleWebView", () => {
       );
     });
 
-    it("is dropped when a new document started meanwhile (a reload, a redirect)", async () => {
+    it("still settles the call after a load start in the same WebView (an in-app navigation)", async () => {
+      // Android reports a load start for every SPA history change. A page that
+      // really was replaced cannot match the answer: its call ids carry a
+      // token of their own document (bridge-scripts.test.ts).
       const settle = openScan();
       act(() => mockWebView.props.onLoadStart());
       await settle("4006381333931");
-      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('"id":"d1.1","ok":true,"value":"4006381333931"')
+      );
     });
 
     it("is dropped when the WebView was re-created meanwhile", async () => {

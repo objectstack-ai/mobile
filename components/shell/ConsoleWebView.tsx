@@ -114,10 +114,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     // The last Console route the page was on, so a re-created WebView resumes
     // there instead of at the start route.
     const lastRouteRef = useRef<string | null>(null);
-    // Counts documents: a new one starts on every load start and every
-    // re-created WebView. A call's answer goes only to the document that made
-    // the call. A `scan()` stays open as long as the user takes, and the page
-    // can be replaced meanwhile (a reload, recovery, a sign-in redirect).
+    // Counts WebView instances: a call's answer is never sent to a re-created
+    // WebView. A `scan()` stays open as long as the user takes, and recovery
+    // can re-create the WebView meanwhile. Load starts do not count: Android
+    // reports one for every SPA history change too. A page replaced within the
+    // same WebView is covered by the bootstrap's per-document call ids.
     const documentRef = useRef(0);
 
     const goTo = useCallback(
@@ -268,7 +269,6 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       if (held) sendPushToken(held);
     }, [sendPushToken]);
     const onDocumentStart = useCallback(() => {
-      documentRef.current += 1;
       consoleReadyRef.current = false;
     }, []);
 
