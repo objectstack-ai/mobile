@@ -111,7 +111,8 @@ interface ObjectStackNative {
   version: number; // BRIDGE_PROTOCOL_VERSION — bumps only on breaking change
   platform: "ios" | "android";
   appVersion: string;
-  capabilities: readonly string[]; // feature-detect with has()
+  installId: string | null; // random per-install id (UUID v4) — see "Install id"
+  capabilities: readonly string[]; // methods and shell events; feature-detect with has()
   safeArea: { top: number; bottom: number; left: number; right: number };
   has(capability: string): boolean;
 
@@ -130,6 +131,25 @@ interface ObjectStackNative {
 
 Safe-area insets are also published as CSS variables:
 `--os-native-safe-top|bottom|left|right`.
+
+### Install id
+
+`installId` is a random UUID v4 the shell generates on first launch
+(`lib/install-id.ts`) and keeps in SecureStore, outside the WebView, so it
+survives the WebView's storage (cookies, localStorage, IndexedDB) being
+cleared. The Console sends it as the device registry's `deviceId`, so a
+re-registration refreshes the device's row instead of minting a second one.
+
+- Not a hardware identifier and not an advertising id: it comes from the
+  platform's CSPRNG and identifies nothing outside this install.
+- Android drops it with the app's data (uninstall, "clear storage"; a value
+  restored from a backup cannot be decrypted and is regenerated). iOS keychain
+  items can outlive an uninstall, so a reinstall may keep it. It is stored
+  `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`: never restored onto another device.
+- `null` when secure storage could not be read or written when the WebView
+  was created (the Console then falls back to a server-minted `deviceId`).
+- Read-only, and only in the main frame — see Known limits for which pages
+  that includes.
 
 ### Shell → Console events
 
@@ -150,6 +170,33 @@ not one its router knows), the shell falls back to
 `window.location.assign(<server>/_console<route>)`, a full page load. The
 route has passed `safeConsoleRoute` before the event is dispatched
 (`buildNavigateScript` in `bridge/scripts.ts`).
+
+When the OS reports a push token for the app — APNs / FCM rotated it — the
+shell dispatches, if the page announces the `pushTokenChanged` capability:
+
+```ts
+new CustomEvent("objectstack-native:pushTokenChanged", {
+  detail: { token: "…", vendor: "apns" }, // same shape as getPushToken()
+});
+```
+
+The Console re-registers `detail` under the signed-in session (with
+`deviceId = installId`). Rules:
+
+- Delivered only to a page on the configured server's origin, the same pages
+  `getPushToken()` answers; another page in the main frame (a trusted sign-in
+  host) gets nothing.
+- Delivered after the page's `ready()`, when the Console's listeners are
+  mounted. A token reported earlier — cold start, a reload, the failure page —
+  is held (the latest only) and delivered at `ready()`.
+- It can repeat an unchanged token: iOS reports every completed registration,
+  including the one `getPushToken()` triggers, and Android replays the last
+  known token when the shell starts listening. Registration is idempotent, so
+  treat every event as "register this token".
+- Not cancelable; the shell does nothing else with it.
+
+Shell events are named `objectstack-native:<capability>`
+(`SHELL_EVENTS` in `bridge/protocol.ts`).
 
 ### Wire format
 
@@ -179,6 +226,47 @@ same name), handle it in `bridge/handler.ts`, expose it in the bootstrap
 (`bridge/scripts.ts`), and document it here. That is additive — no protocol
 version bump.
 
+Adding a shell → Console event: add its name to `SHELL_EVENTS` (it becomes a
+capability of the same name and the DOM event `objectstack-native:<name>`),
+build its dispatch script in `bridge/scripts.ts` (origin-checked when it
+carries data only the Console should see), deliver it from `ConsoleWebView`,
+and document it here. Also additive.
+
+### User-agent marker
+
+The WebView appends `ObjectStackShell/<appVersion>` to its user agent
+(`applicationNameForUserAgent` in `ConsoleWebView.tsx`). This is a contract:
+the token stays `ObjectStackShell` whatever the app is called, and the test
+in `__tests__/components/ConsoleWebView.test.tsx` pins it.
+
+- It is readable synchronously from the document's first script
+  (`navigator.userAgent`) and by the server on every request, so it answers
+  "am I in the shell?" before the bridge exists — Android may inject the
+  bridge after the page's first scripts (Known limits).
+- It says nothing about capabilities: detect those with
+  `ObjectStackNative.has()`.
+- Never a security signal: any client can send it.
+
+### Service Workers: none inside the shell
+
+Rule: the Console registers no Service Worker inside the shell, and
+unregisters one it registered earlier in the same WebView. Why:
+
+- **Android WebView** supports Service Workers. A worker that answers the
+  document from its cache while offline means the WebView's `onError` never
+  fires, so the shell's offline page (`OfflineFallback`) never shows and its
+  retry-on-reconnect never runs: the shell's failure handling is masked.
+- **iOS WKWebView** exposes no `navigator.serviceWorker` to an app without
+  App-Bound Domains, so a worker would only ever exist on one platform.
+- Offline and push are the shell's: push arrives through APNs / FCM natively,
+  not through a worker's `push` handler.
+
+The Console's gate (objectstack-ai/objectstack#29326, in review) reads
+`window.ObjectStackNative` after boot. Because
+Android can inject the bridge late, the first load can still register a worker
+that the next load removes. Reading the user-agent marker as well closes that
+window, since it is there from the first byte.
+
 ## Console-side integration (framework repository)
 
 The Console needs, in `@object-ui/mobile`:
@@ -191,7 +279,11 @@ The Console needs, in `@object-ui/mobile`:
   `event.preventDefault()` (otherwise the shell reloads the page at the
   route);
 - register the push token after sign-in (`getPushToken()` → the server's device
-  registry) and unregister on sign-out.
+  registry, with `deviceId = installId` when it is a string) and unregister on
+  sign-out;
+- listen for `objectstack-native:pushTokenChanged` when
+  `has("pushTokenChanged")` and re-register `event.detail` while signed in;
+- register no Service Worker inside the shell (see above).
 
 Until then the shell works without it: the loading cover lifts on the WebView's
 own load event and the shell pads the WebView with the safe area itself.
@@ -226,5 +318,15 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - **Old Android WebViews cannot tell an iframe's bridge message from the
   page's.** Without `WebMessageListener` support, the message URL is the main
   frame's, so the origin check sees the Console's origin for any frame.
+- **Host info, `installId` included, reaches every main-frame page, and no
+  sub-frame.** The bootstrap is injected into the main frame only: iOS adds it
+  as a main-frame-only user script, and Android evaluates it in the main frame
+  from `onPageStarted` (react-native-webview 13.16 supports nothing else
+  there). No bridge method returns host info, and a cross-origin sub-frame
+  cannot read the main frame's `window`. But the bootstrap is not
+  origin-gated: every page the navigation policy loads in the main frame gets
+  it — the configured server and the hosts in `EXPO_PUBLIC_TRUSTED_HOSTS`
+  (an identity provider's sign-in page). Bridge calls from those hosts are
+  never answered, and `pushTokenChanged` is not delivered to them.
 - **Downloads and file inputs** rely on the WebView defaults until the
   Phase 4 bridge methods land.
