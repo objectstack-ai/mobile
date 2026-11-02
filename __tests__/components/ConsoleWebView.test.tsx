@@ -42,6 +42,21 @@ jest.mock("~/hooks/useNetworkStatus", () => ({
   useNetworkStatus: () => ({ isConnected: mockIsConnected }),
 }));
 
+jest.mock("~/lib/install-id", () => ({
+  getInstallId: () => "3b241101-e2bb-4255-8caf-4136c566a962",
+}));
+
+// The OS token listener, captured so a test can report a rotated token.
+const mockTokenListeners: Array<(token: unknown) => void> = [];
+const mockTokenRemove = jest.fn();
+jest.mock("expo-notifications", () => ({
+  ...jest.requireActual("../../__mocks__/expo-notifications"),
+  addPushTokenListener: jest.fn((listener: (token: unknown) => void) => {
+    mockTokenListeners.push(listener);
+    return { remove: mockTokenRemove };
+  }),
+}));
+
 const SERVER = "https://acme.example.com";
 
 function renderConsole(overrides: Partial<ConsoleWebViewProps> = {}) {
@@ -101,6 +116,75 @@ describe("ConsoleWebView", () => {
       mockWebView.props.injectedJavaScriptBeforeContentLoaded
     );
     expect(mockWebView.props.applicationNameForUserAgent).toMatch(/^ObjectStackShell\//);
+  });
+
+  it("announces the install id and the pushTokenChanged capability", () => {
+    renderConsole();
+    const window: Record<string, any> = {};
+    const document = { documentElement: null, addEventListener: () => undefined };
+    new Function("window", "document", mockWebView.props.injectedJavaScriptBeforeContentLoaded)(
+      window,
+      document
+    );
+    expect(window.ObjectStackNative.installId).toBe("3b241101-e2bb-4255-8caf-4136c566a962");
+    expect(window.ObjectStackNative.has("pushTokenChanged")).toBe(true);
+    expect(window.ObjectStackNative.has("getPushToken")).toBe(true);
+  });
+
+  describe("pushTokenChanged", () => {
+    beforeEach(() => {
+      mockTokenListeners.length = 0;
+      mockTokenRemove.mockReset();
+    });
+
+    const rotate = (token: unknown) => act(() => mockTokenListeners[mockTokenListeners.length - 1](token));
+
+    /** Run an injected script on a page of `origin`; return the events it dispatched. */
+    function runOnPage(script: string, origin = SERVER) {
+      const target = new EventTarget();
+      const seen: unknown[] = [];
+      target.addEventListener("objectstack-native:pushTokenChanged", (event) =>
+        seen.push((event as CustomEvent).detail)
+      );
+      new Function("window", script)({
+        CustomEvent,
+        dispatchEvent: target.dispatchEvent.bind(target),
+        location: { origin },
+      });
+      return seen;
+    }
+
+    it("delivers a rotated token to the loaded page as a window event", () => {
+      renderConsole();
+      finishLoad();
+      rotate({ type: "android", data: "fcm-2" });
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledTimes(1);
+      const script = mockWebView.injectJavaScript.mock.calls[0][0];
+      expect(runOnPage(script)).toEqual([{ token: "fcm-2", vendor: "fcm" }]);
+      // Never to whatever else is in the main frame (a trusted sign-in host).
+      expect(runOnPage(script, "https://login.idp.example")).toEqual([]);
+    });
+
+    it("delivers nothing to a page that has not loaded or has failed", () => {
+      renderConsole();
+      rotate({ type: "ios", data: "apns-2" });
+      failLoad();
+      rotate({ type: "ios", data: "apns-3" });
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it("ignores a report that is not a native token", () => {
+      renderConsole();
+      finishLoad();
+      rotate({ type: "ios", data: "" });
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it("stops listening when unmounted", () => {
+      renderConsole();
+      screen.unmount();
+      expect(mockTokenRemove).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("shows a loading overlay until the page finishes loading", () => {
