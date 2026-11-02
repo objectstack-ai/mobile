@@ -6,6 +6,7 @@
  */
 import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
+import { serverUrlAfterRedirect } from "~/lib/shell/console-url";
 
 const STORAGE_KEY = "objectstack_server_url";
 
@@ -53,36 +54,50 @@ export async function clearServerUrl(): Promise<void> {
 }
 
 /**
+ * Probe a server and return the base URL to keep, or `null` when it is not
+ * reachable. Tries `GET <url>/api/v1/health`, then a plain `HEAD <url>`.
+ *
+ * When the probe was redirected only to another origin (apex → www,
+ * http → https), the redirected origin is returned — see
+ * `serverUrlAfterRedirect` — so the shell's origin checks match what the
+ * WebView ends up on.
+ */
+export async function resolveServerUrl(
+  url: string,
+  opts: { allowInsecure?: boolean } = {}
+): Promise<string | null> {
+  const normalised = url.replace(/\/+$/, "");
+  const probe = async (target: string, method: "GET" | "HEAD") => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      return await fetch(target, { method, signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
+  try {
+    const healthUrl = `${normalised}/api/v1/health`;
+    const res = await probe(healthUrl, "GET");
+    return res.ok ? serverUrlAfterRedirect(normalised, healthUrl, res.url, opts) : null;
+  } catch {
+    // Even if /api/v1/health fails, try a basic connectivity check
+    try {
+      const res = await probe(normalised, "HEAD");
+      return res.status < 500
+        ? serverUrlAfterRedirect(normalised, normalised, res.url, opts)
+        : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
+/**
  * Validate that a URL looks like a valid server endpoint.
  * Attempts a lightweight HEAD request to the server.
  */
 export async function validateServerUrl(url: string): Promise<boolean> {
-  try {
-    const normalised = url.replace(/\/+$/, "");
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-
-    const res = await fetch(`${normalised}/api/v1/health`, {
-      method: "GET",
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    return res.ok;
-  } catch {
-    // Even if /api/v1/health fails, try a basic connectivity check
-    try {
-      const normalised = url.replace(/\/+$/, "");
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-
-      const res = await fetch(normalised, {
-        method: "HEAD",
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      return res.status < 500;
-    } catch {
-      return false;
-    }
-  }
+  return (await resolveServerUrl(url)) !== null;
 }

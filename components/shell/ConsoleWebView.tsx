@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import Constants from "expo-constants";
 import { LoadingScreen } from "~/components/common/LoadingScreen";
 import { OfflineFallback, type LoadFailure } from "./OfflineFallback";
-import { consoleUrl } from "~/lib/shell/console-url";
+import { consoleUrl, routeFromConsoleUrl, safeConsoleRoute } from "~/lib/shell/console-url";
 import { decideNavigation } from "~/lib/shell/navigation-policy";
 import type { RouteRule } from "~/lib/shell/route-owner";
 import {
@@ -87,16 +87,29 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     const [loaded, setLoaded] = useState(false);
     const [failure, setFailure] = useState<LoadFailure | null>(null);
 
-    // The source is fixed for the life of this server: re-deriving it on every
-    // render would reload the page. Later moves go through `navigate`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const source = useMemo(() => ({ uri: consoleUrl(serverUrl, initialRoute) }), [serverUrl]);
+    // The WebView is re-created (new `key`) after a failed load or a dead web
+    // content process: an instance whose renderer is gone cannot be reloaded.
+    // A re-created WebView starts at `sourceRoute`, which is fixed between
+    // re-creations — re-deriving the source on every render would reload the
+    // page. Moves within a live page go through `navigate`.
+    const [instance, setInstance] = useState(0);
+    const [sourceRoute, setSourceRoute] = useState<string | null>(initialRoute ?? null);
+    const source = useMemo(
+      () => ({ uri: consoleUrl(serverUrl, sourceRoute) }),
+      [serverUrl, sourceRoute]
+    );
 
-    // A route requested before the page has loaded (a notification tap on cold
-    // start) is held and applied once it has — injecting into a page that is
-    // still loading would be lost.
+    // A route requested while there is no loaded page to move — before the
+    // first load (a notification tap on cold start), or while the failure page
+    // is up — is held: injecting into a page that is still loading, or into no
+    // page at all, would lose it. It is applied once a page has loaded, or
+    // becomes the start route of the next re-created WebView.
     const loadedRef = useRef(false);
+    const failedRef = useRef(false);
     const pendingRouteRef = useRef<string | null>(null);
+    // The last Console route the page was on, so a re-created WebView resumes
+    // there instead of at the start route.
+    const lastRouteRef = useRef<string | null>(null);
 
     const goTo = useCallback(
       (route: string) => {
@@ -106,7 +119,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     );
 
     const navigate = useCallback(
-      (route: string) => {
+      (requested: string) => {
+        const route = safeConsoleRoute(requested);
+        if (route === null) return;
         const decision = decideNavigation(consoleUrl(serverUrl, route), {
           serverUrl,
           rules,
@@ -117,7 +132,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           onOpenNative(decision.screen, decision.route);
           return;
         }
-        if (!loadedRef.current) {
+        if (!loadedRef.current || failedRef.current) {
           pendingRouteRef.current = route;
           return;
         }
@@ -127,6 +142,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     );
 
     const markLoaded = useCallback(() => {
+      // A failed load also ends with `onLoadEnd`; there is no page to show or
+      // to move, so the pending route stays pending.
+      if (failedRef.current) return;
       loadedRef.current = true;
       setLoaded(true);
       const pending = pendingRouteRef.current;
@@ -136,12 +154,33 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       }
     }, [goTo]);
 
-    const reload = useCallback(() => {
+    const fail = useCallback((next: LoadFailure) => {
+      failedRef.current = true;
+      loadedRef.current = false;
+      setFailure(next);
+    }, []);
+
+    /** Re-create the WebView at the pending route, else where the page was. */
+    const remount = useCallback(() => {
+      const next = pendingRouteRef.current ?? lastRouteRef.current;
+      pendingRouteRef.current = null;
+      if (next !== null) setSourceRoute(next);
+      failedRef.current = false;
       loadedRef.current = false;
       setFailure(null);
       setLoaded(false);
-      webviewRef.current?.reload();
+      setInstance((i) => i + 1);
     }, []);
+
+    const reload = useCallback(() => {
+      if (failedRef.current || !webviewRef.current) {
+        remount();
+        return;
+      }
+      loadedRef.current = false;
+      setLoaded(false);
+      webviewRef.current.reload();
+    }, [remount]);
 
     useImperativeHandle(ref, () => ({ navigate, reload }), [navigate, reload]);
 
@@ -231,9 +270,14 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       [serverUrl, rules, availableScreens, trustedHosts, onOpenNative, onOpenExternal]
     );
 
-    const onNavigationStateChange = useCallback((nav: WebViewNavigation) => {
-      canGoBackRef.current = nav.canGoBack;
-    }, []);
+    const onNavigationStateChange = useCallback(
+      (nav: WebViewNavigation) => {
+        canGoBackRef.current = nav.canGoBack;
+        const route = nav.url ? routeFromConsoleUrl(serverUrl, nav.url) : null;
+        if (route !== null) lastRouteRef.current = route;
+      },
+      [serverUrl]
+    );
 
     if (failure) {
       return (
@@ -254,31 +298,40 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
         <WebView
+          key={instance}
           ref={webviewRef}
           testID="shell-console-webview"
           source={source}
           originWhitelist={["*"]}
           injectedJavaScriptBeforeContentLoaded={bootstrap}
+          // Android evaluates the early script at onPageStarted, which can race
+          // the page; the bootstrap is idempotent, so it runs again once the
+          // page has loaded to guarantee the bridge exists.
+          injectedJavaScript={bootstrap}
           onMessage={onMessage}
           onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
           onNavigationStateChange={onNavigationStateChange}
           onLoadEnd={(e) => {
             // `loading` is still true when a load is superseded by a redirect.
+            // react-native-webview also calls this after `onError`;
+            // `markLoaded` ignores a failed load.
             if (!e.nativeEvent.loading) markLoaded();
           }}
           onError={(e) => {
             captureMessage(`console load failed: ${e.nativeEvent.description}`, "warning");
-            setFailure({ kind: "network", description: e.nativeEvent.description });
+            fail({ kind: "network", description: e.nativeEvent.description });
           }}
           onHttpError={(e) => {
             // Only a server failure on the document itself replaces the page;
             // 4xx pages are the Console's (or the server's) to explain.
             if (e.nativeEvent.statusCode >= 500) {
-              setFailure({ kind: "server", statusCode: e.nativeEvent.statusCode });
+              fail({ kind: "server", statusCode: e.nativeEvent.statusCode });
             }
           }}
-          onContentProcessDidTerminate={() => webviewRef.current?.reload()}
-          onRenderProcessGone={() => webviewRef.current?.reload()}
+          // A dead web content process (iOS) or renderer (Android) leaves the
+          // instance unusable — `reload()` on it shows a blank view.
+          onContentProcessDidTerminate={remount}
+          onRenderProcessGone={remount}
           applicationNameForUserAgent={`ObjectStackShell/${APP_VERSION}`}
           sharedCookiesEnabled
           thirdPartyCookiesEnabled

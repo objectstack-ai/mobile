@@ -23,6 +23,22 @@ describe("routeFromIncomingLink", () => {
     expect(routeFromIncomingLink("objectstack://open?route=%E0%A4%A")).toBeNull();
   });
 
+  it("rejects routes that would escape the Console", () => {
+    for (const route of [
+      "/../../api/v1/me",
+      "/%2e%2e/%2e%2e/api/v1/me",
+      "/%2E%2E/api",
+      "/..\\..\\api",
+      "/.\t./api",
+    ]) {
+      expect(
+        routeFromIncomingLink(`objectstack://open?route=${encodeURIComponent(route)}`)
+      ).toBeNull();
+    }
+    expect(routeFromIncomingLink("objectstack://console/../../api/v1/me")).toBeNull();
+    expect(routeFromIncomingLink("objectstack://console/%2e%2e/api/v1/me")).toBeNull();
+  });
+
   it("ignores other hosts and non-links", () => {
     expect(routeFromIncomingLink("objectstack://settings")).toBeNull();
     expect(routeFromIncomingLink("/console")).toBeNull();
@@ -37,10 +53,24 @@ describe("consoleScreenHref", () => {
 });
 
 describe("redirectIncomingPath", () => {
-  it("maps app links onto the Console screen", () => {
-    expect(redirectIncomingPath("objectstack://console/apps/crm")).toBe(
-      "/console?route=%2Fapps%2Fcrm"
+  it("maps app links onto the Console screen, with a nonce", () => {
+    expect(redirectIncomingPath("objectstack://console/apps/crm", () => 42)).toBe(
+      "/console?route=%2Fapps%2Fcrm&n=42"
     );
+  });
+
+  it("makes the same link opened twice distinguishable", () => {
+    let t = 1000;
+    const now = () => (t += 1);
+    const link = "objectstack://open?route=%2Fapps%2Fcrm";
+    const first = redirectIncomingPath(link, now);
+    const second = redirectIncomingPath(link, now);
+    expect(first).not.toBe(second);
+    expect(redirectIncomingPath(link)).toMatch(/^\/console\?route=%2Fapps%2Fcrm&n=\d+$/);
+  });
+
+  it("sends an escaping route to the start screen", () => {
+    expect(redirectIncomingPath("objectstack://open?route=%2F..%2F..%2Fapi%2Fv1%2Fme")).toBe("/");
   });
 
   it("sends unknown scheme links to the start screen", () => {

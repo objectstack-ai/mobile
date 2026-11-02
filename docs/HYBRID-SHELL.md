@@ -61,16 +61,16 @@ as follow-up work.
 Every navigation the page attempts goes through `decideNavigation`
 (`lib/shell/navigation-policy.ts`):
 
-| Target | Decision |
-|---|---|
-| Console route on the configured server, owned by web | load |
-| Console route owned by a native screen | open that screen |
-| Other path on the configured server (auth callbacks, files) | load |
-| Host in `EXPO_PUBLIC_TRUSTED_HOSTS` | load |
-| Any other http(s) page (top frame) | in-app browser |
-| Sub-frame (embedded map, preview) | load |
-| `mailto:` `tel:` `sms:` app schemes (top frame) | OS |
-| `javascript:` `file:` `intent:` top-frame `data:` | block |
+| Target                                                      | Decision         |
+| ----------------------------------------------------------- | ---------------- |
+| Console route on the configured server, owned by web        | load             |
+| Console route owned by a native screen                      | open that screen |
+| Other path on the configured server (auth callbacks, files) | load             |
+| Host in `EXPO_PUBLIC_TRUSTED_HOSTS`                         | load             |
+| Any other http(s) page (top frame)                          | in-app browser   |
+| Sub-frame (embedded map, preview)                           | load             |
+| `mailto:` `tel:` `sms:` app schemes (top frame)             | OS               |
+| `javascript:` `file:` `intent:` top-frame `data:`           | block            |
 
 ## Route ownership — growing native screens
 
@@ -97,26 +97,33 @@ Rules every native screen follows:
 
 ## Native bridge
 
-The shell injects `window.ObjectStackNative` before the Console's own scripts
-run (`injectedJavaScriptBeforeContentLoaded`, main frame only). Its presence is
-how the Console knows it runs in the shell.
+The shell injects `window.ObjectStackNative` through
+`injectedJavaScriptBeforeContentLoaded` (main frame only). On iOS that is a
+document-start user script, so it runs before the Console's own scripts. On
+Android, react-native-webview (13.16) has no document-start script: it
+evaluates the script from `onPageStarted`, which usually but not always lands
+before the page's first scripts. The same idempotent bootstrap is therefore
+also passed as `injectedJavaScript`, so the bridge exists by the time the page
+has loaded. Its presence is how the Console knows it runs in the shell.
 
 ```ts
 interface ObjectStackNative {
-  version: number;                 // BRIDGE_PROTOCOL_VERSION — bumps only on breaking change
-  platform: 'ios' | 'android';
+  version: number; // BRIDGE_PROTOCOL_VERSION — bumps only on breaking change
+  platform: "ios" | "android";
   appVersion: string;
   capabilities: readonly string[]; // feature-detect with has()
   safeArea: { top: number; bottom: number; left: number; right: number };
   has(capability: string): boolean;
 
-  getPushToken(): Promise<{ token: string; vendor: 'apns' | 'fcm' } | null>;
-  haptic(kind: 'light'|'medium'|'heavy'|'selection'|'success'|'warning'|'error'): Promise<null>;
-  openExternal(url: string): Promise<null>;  // http(s), mailto, tel, sms
-  navigate(route: string): Promise<null>;    // Console route; route ownership applies
-  resetServer(): Promise<null>;              // forget the server, back to the picker
+  getPushToken(): Promise<{ token: string; vendor: "apns" | "fcm" } | null>;
+  haptic(
+    kind: "light" | "medium" | "heavy" | "selection" | "success" | "warning" | "error"
+  ): Promise<null>;
+  openExternal(url: string): Promise<null>; // http(s), mailto, tel, sms
+  navigate(route: string): Promise<null>; // Console route; route ownership applies
+  resetServer(): Promise<null>; // forget the server, back to the picker
 
-  ready(): void;                   // event: page is interactive (hides the loading cover)
+  ready(): void; // event: page is interactive (hides the loading cover)
   routeChanged(route: string): void; // event: SPA route changed
 }
 ```
@@ -128,14 +135,21 @@ Wire format: calls are posted as
 `{ type: 'call', id, method, args }` through
 `window.ReactNativeWebView.postMessage`; the shell answers by calling
 `window.__objectstackNativeResolve({ id, ok, value | error })`. Errors carry a
-`code`: `unknown_method`, `bad_args`, `forbidden_origin`, `failed`.
+`code`: `unknown_method`, `bad_args`, `failed`.
 
 Security:
 
-- The handler answers only pages on the configured server's origin; anything
-  else gets `forbidden_origin` and events from it are dropped.
+- The handler answers only pages on the configured server's origin (default
+  ports ignored). A call from anything else gets no answer at all — a reply runs
+  in the main frame, where its id could settle one of the Console's own calls —
+  and events from it are dropped.
 - Messages over 64 KB or not matching the protocol are ignored.
-- Arguments are validated per method (URL schemes, route shape, haptic kinds).
+- Arguments are validated per method (URL schemes, haptic kinds). A route —
+  from `navigate`, an app link or a notification — must pass
+  `safeConsoleRoute` (`lib/shell/console-url.ts`): a `/` path with no `.` /
+  `..` segment (raw or percent-encoded), backslash or control character, so it
+  cannot resolve outside `<server>/_console/`. `consoleUrl` applies the same
+  check before building any URL.
 - Results are spliced into the page as escaped JSON (`toScriptLiteral`).
 
 Adding a method: add it to `BRIDGE_METHODS` (it becomes a capability of the
@@ -171,11 +185,20 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 
 ## Known limits
 
-- **Android injection timing.** `injectedJavaScriptBeforeContentLoaded` uses
-  the document-start script API where the system WebView supports it; on older
-  WebViews it can land after the first page scripts. The Console should check
-  for `window.ObjectStackNative` when it needs it, not only once at module load.
-- **Retry reloads the start route.** After a load failure the WebView is
-  re-created, so "Try again" opens the initial route rather than the last page.
+- **Android injection timing.** react-native-webview evaluates the early
+  bootstrap at `onPageStarted`, not as a document-start script, so it can land
+  after the Console's first scripts; it is guaranteed only once the page has
+  loaded (`injectedJavaScript`). The Console should check for
+  `window.ObjectStackNative` when it needs it, not only once at module load.
+- **Recovery re-creates the WebView.** After a load failure ("Try again", or
+  the network coming back) or a dead web content process, the WebView is
+  re-created at the route a notification or link asked for meanwhile, else at
+  the last Console route it reported. In-page state and history are lost.
+- **Android reports every navigation as top-frame.** react-native-webview
+  always sends `isTopFrame: true` on Android, so a cross-origin iframe
+  navigation is treated as a top-frame one (opened outside, not in the frame).
+- **Old Android WebViews cannot tell an iframe's bridge message from the
+  page's.** Without `WebMessageListener` support, the message URL is the main
+  frame's, so the origin check sees the Console's origin for any frame.
 - **Downloads and file inputs** rely on the WebView defaults until the
   Phase 4 bridge methods land.

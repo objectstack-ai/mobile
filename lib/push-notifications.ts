@@ -16,7 +16,7 @@
 import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import { routeFromConsoleUrl } from "~/lib/shell/console-url";
+import { routeFromConsoleUrl, safeConsoleRoute } from "~/lib/shell/console-url";
 import type { PushTokenResult } from "~/lib/shell/bridge/protocol";
 
 export type PermissionOutcome = "granted" | "denied" | "undetermined";
@@ -117,8 +117,8 @@ export function routeFromPushData(
 ): string | null {
   if (!data) return null;
   if (typeof data.route === "string") {
-    const r = data.route.trim();
-    if (r.startsWith("/") && !r.startsWith("//")) return r;
+    const route = safeConsoleRoute(data.route);
+    if (route) return route;
   }
   if (typeof data.url === "string" && serverUrl) {
     return routeFromConsoleUrl(serverUrl, data.url);
@@ -126,11 +126,37 @@ export function routeFromPushData(
   return null;
 }
 
-/** Same as {@link routeFromPushData}, reading the payload off a tap response. */
+function asPayload(value: unknown): PushDataPayload | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as PushDataPayload)
+    : null;
+}
+
+/**
+ * Same as {@link routeFromPushData}, reading the payload off a tap response.
+ *
+ * Where expo-notifications puts the server's keys differs by platform:
+ * - Android (FCM): the `data` map is `content.data` (or, when `data.body` is a
+ *   JSON object string, that object).
+ * - iOS (APNs): `content.data` is only the `body` dictionary of the APNs
+ *   payload; keys beside `aps` are reachable only through
+ *   `trigger.payload`, the full `userInfo`.
+ *
+ * So `content.data` is read first, then `trigger.payload` and its `body`.
+ * See docs/PUSH-NOTIFICATIONS.md for the payload contract.
+ */
 export function routeFromResponse(
   response: Notifications.NotificationResponse | null | undefined,
   serverUrl: string | null
 ): string | null {
-  const data = response?.notification?.request?.content?.data as PushDataPayload | undefined;
-  return routeFromPushData(data, serverUrl);
+  const request = response?.notification?.request;
+  if (!request) return null;
+  const trigger = request.trigger as { payload?: unknown } | null | undefined;
+  const userInfo = asPayload(trigger?.payload);
+  const candidates = [asPayload(request.content?.data), userInfo, asPayload(userInfo?.body)];
+  for (const data of candidates) {
+    const route = routeFromPushData(data, serverUrl);
+    if (route) return route;
+  }
+  return null;
 }

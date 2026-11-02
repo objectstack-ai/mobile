@@ -70,7 +70,7 @@ export interface BridgeEvent {
 
 export type BridgeInbound = BridgeCall | BridgeEvent;
 
-export type BridgeErrorCode = "unknown_method" | "bad_args" | "forbidden_origin" | "failed";
+export type BridgeErrorCode = "unknown_method" | "bad_args" | "failed";
 
 export type BridgeResult =
   | { id: string; ok: true; value: unknown }

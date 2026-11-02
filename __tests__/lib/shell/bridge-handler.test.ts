@@ -26,14 +26,19 @@ describe("bridge handler", () => {
     await expect(handle("garbage", PAGE)).resolves.toBeNull();
   });
 
-  it("refuses calls from another origin", async () => {
+  it("answers nothing to calls from another origin", async () => {
+    // A reply would run in the main frame, where its id could settle one of
+    // the Console's own pending calls.
     const { handle, deps } = setup();
-    await expect(handle(call("getPushToken"), "https://evil.example.com/")).resolves.toEqual({
-      id: "c1",
-      ok: false,
-      error: { code: "forbidden_origin", message: expect.any(String) },
-    });
+    await expect(handle(call("getPushToken"), "https://evil.example.com/")).resolves.toBeNull();
+    await expect(handle(call("resetServer"), "https://evil.example.com/")).resolves.toBeNull();
     expect(deps.getPushToken).not.toHaveBeenCalled();
+    expect(deps.resetServer).not.toHaveBeenCalled();
+  });
+
+  it("trusts the server's page when the server was stored with its default port", async () => {
+    const { handle } = setup({ serverUrl: "https://acme.example.com:443" });
+    await expect(handle(call("getPushToken"), PAGE)).resolves.toMatchObject({ ok: true });
   });
 
   it("drops events from another origin", async () => {
@@ -100,7 +105,14 @@ describe("bridge handler", () => {
       ok: true,
     });
     expect(deps.navigate).toHaveBeenCalledWith("/apps/crm");
-    for (const route of ["apps", "//evil.example.com", 5]) {
+    for (const route of [
+      "apps",
+      "//evil.example.com",
+      5,
+      "/../../api/v1/me",
+      "/%2e%2e/api/v1/me",
+      "/..\\api",
+    ]) {
       await expect(handle(call("navigate", { route }), PAGE)).resolves.toMatchObject({
         ok: false,
         error: { code: "bad_args" },

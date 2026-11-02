@@ -9,6 +9,7 @@ import {
 
 const mockWebView = {
   props: null as any,
+  mounts: 0,
   injectJavaScript: jest.fn(),
   reload: jest.fn(),
   goBack: jest.fn(),
@@ -19,6 +20,9 @@ jest.mock("react-native-webview", () => {
   const { View } = require("react-native");
   const WebView = React.forwardRef(function MockWebView(props: any, ref: any) {
     mockWebView.props = props;
+    React.useEffect(() => {
+      mockWebView.mounts += 1;
+    }, []);
     React.useImperativeHandle(ref, () => ({
       injectJavaScript: mockWebView.injectJavaScript,
       reload: mockWebView.reload,
@@ -63,9 +67,24 @@ function renderConsole(overrides: Partial<ConsoleWebViewProps> = {}) {
   return { props, ref };
 }
 
+/** A failed load, in react-native-webview's real order: onError, then onLoadEnd. */
+function failLoad(description = "offline") {
+  const props = mockWebView.props;
+  const event = { nativeEvent: { description, loading: false } };
+  act(() => {
+    props.onError(event);
+    props.onLoadEnd(event);
+  });
+}
+
+function finishLoad() {
+  act(() => mockWebView.props.onLoadEnd({ nativeEvent: { loading: false } }));
+}
+
 beforeEach(() => {
   mockIsConnected = true;
   mockWebView.props = null;
+  mockWebView.mounts = 0;
   mockWebView.injectJavaScript.mockReset();
   mockWebView.reload.mockReset();
   mockWebView.goBack.mockReset();
@@ -76,6 +95,11 @@ describe("ConsoleWebView", () => {
     renderConsole();
     expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm` });
     expect(mockWebView.props.injectedJavaScriptBeforeContentLoaded).toContain("ObjectStackNative");
+    // Android injects the early script at onPageStarted, which can race the
+    // page: the same idempotent bootstrap runs again once the page has loaded.
+    expect(mockWebView.props.injectedJavaScript).toBe(
+      mockWebView.props.injectedJavaScriptBeforeContentLoaded
+    );
     expect(mockWebView.props.applicationNameForUserAgent).toMatch(/^ObjectStackShell\//);
   });
 
@@ -114,7 +138,7 @@ describe("ConsoleWebView", () => {
     );
   });
 
-  it("does not answer pages from another origin with data", async () => {
+  it("injects nothing in answer to a page from another origin", async () => {
     renderConsole();
     await act(async () => {
       mockWebView.props.onMessage({
@@ -124,9 +148,7 @@ describe("ConsoleWebView", () => {
         },
       });
     });
-    expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
-      expect.stringContaining("forbidden_origin")
-    );
+    expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
   });
 
   it("holds a route requested before the page loads, then applies it", () => {
@@ -150,9 +172,57 @@ describe("ConsoleWebView", () => {
     expect(props.onOpenNative).toHaveBeenCalledWith("approvals", "/approvals/3");
   });
 
+  it("refuses a route that would escape the Console", () => {
+    const { ref } = renderConsole();
+    finishLoad();
+    act(() => ref.current!.navigate("/../../api/v1/me"));
+    act(() => ref.current!.navigate("/%2e%2e/api/v1/me"));
+    expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+  });
+
+  it("keeps a route queued on cold start across a failed load, and opens it on retry", () => {
+    const { ref } = renderConsole();
+    act(() => ref.current!.navigate("/apps/hr"));
+    failLoad();
+    // The failing WebView must not receive the route.
+    expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId("shell-retry"));
+    expect(screen.queryByTestId("shell-offline-fallback")).toBeNull();
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/hr` });
+    // It is the start route of the new WebView, so it is not injected again.
+    finishLoad();
+    expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    expect(screen.queryByText("Loading…")).toBeNull();
+  });
+
+  it("queues a route requested while the failure page is shown", () => {
+    const { ref } = renderConsole();
+    finishLoad();
+    failLoad();
+    act(() => ref.current!.navigate("/apps/finance"));
+    expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByTestId("shell-retry"));
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/finance` });
+  });
+
+  it("keeps the pending route when the document fails with a 5xx", () => {
+    const { ref } = renderConsole();
+    act(() => ref.current!.navigate("/apps/hr"));
+    act(() => {
+      mockWebView.props.onHttpError({ nativeEvent: { statusCode: 502 } });
+      mockWebView.props.onLoadEnd({ nativeEvent: { loading: false } });
+    });
+    expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("shell-retry"));
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/hr` });
+  });
+
   it("shows the offline page on a network failure, and retries", () => {
     const { props } = renderConsole();
-    act(() => mockWebView.props.onError({ nativeEvent: { description: "offline" } }));
+    failLoad();
     expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
     expect(screen.getByText("You're offline")).toBeTruthy();
 
@@ -181,7 +251,7 @@ describe("ConsoleWebView", () => {
       onChangeServer: jest.fn(),
     };
     const view = render(<ConsoleWebView ref={ref} {...props} />);
-    act(() => mockWebView.props.onError({ nativeEvent: { description: "offline" } }));
+    failLoad();
     expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
     mockIsConnected = true;
     view.rerender(<ConsoleWebView ref={ref} {...props} />);
@@ -196,10 +266,30 @@ describe("ConsoleWebView", () => {
     expect(screen.getByText("The server isn't responding")).toBeTruthy();
   });
 
-  it("reloads when the web content process dies", () => {
+  it("re-creates the WebView where the page was when the Android renderer is gone", () => {
     renderConsole();
+    finishLoad();
+    act(() =>
+      mockWebView.props.onNavigationStateChange({
+        url: `${SERVER}/_console/apps/crm/lead/9`,
+        canGoBack: true,
+      })
+    );
+    expect(mockWebView.mounts).toBe(1);
+    act(() => mockWebView.props.onRenderProcessGone({ nativeEvent: { didCrash: true } }));
+    expect(mockWebView.mounts).toBe(2);
+    expect(mockWebView.reload).not.toHaveBeenCalled();
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm/lead/9` });
+    expect(screen.getByText("Loading…")).toBeTruthy();
+  });
+
+  it("re-creates the WebView when the iOS web content process dies", () => {
+    renderConsole();
+    finishLoad();
     act(() => mockWebView.props.onContentProcessDidTerminate());
-    expect(mockWebView.reload).toHaveBeenCalled();
+    expect(mockWebView.mounts).toBe(2);
+    expect(mockWebView.reload).not.toHaveBeenCalled();
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm` });
   });
 
   it("tracks history for the Android back button", () => {

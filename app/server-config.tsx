@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ServerCog } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { Input } from "~/components/ui/Input";
-import { validateServerUrl } from "~/lib/server-url";
+import { resolveServerUrl } from "~/lib/server-url";
 import { normalizeServerUrl } from "~/lib/shell/console-url";
 import { shellConfig } from "~/lib/shell/config";
 import { useThemeColors } from "~/lib/theme-colors";
@@ -37,12 +37,13 @@ export default function ServerConfigScreen() {
     setErrorMsg(null);
     setLoading(true);
     try {
-      const reachable = await validateServerUrl(normalized.serverUrl);
-      if (!reachable) {
+      // A redirected probe (apex → www, http → https) yields the final origin.
+      const serverUrl = await resolveServerUrl(normalized.serverUrl, { allowInsecure: __DEV__ });
+      if (!serverUrl) {
         setErrorMsg(t("serverConfig.error.unreachable"));
         return;
       }
-      await connect(normalized.serverUrl);
+      await connect(serverUrl);
       router.dismissTo("/console");
     } catch {
       setErrorMsg(t("serverConfig.error.unknown"));

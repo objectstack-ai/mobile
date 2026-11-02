@@ -26,6 +26,13 @@ describe("routeFromPushData", () => {
     expect(routeFromPushData({ route: "//evil.example.com/x" }, SERVER)).toBeNull();
   });
 
+  it("rejects a route or url that would escape the Console", () => {
+    expect(routeFromPushData({ route: "/../../api/v1/me" }, SERVER)).toBeNull();
+    expect(routeFromPushData({ route: "/%2e%2e/api/v1/me" }, SERVER)).toBeNull();
+    expect(routeFromPushData({ route: "/..\\api" }, SERVER)).toBeNull();
+    expect(routeFromPushData({ url: `${SERVER}/_console/../api/v1/me` }, SERVER)).toBeNull();
+  });
+
   it("accepts a url that points into this server's Console", () => {
     expect(routeFromPushData({ url: `${SERVER}/_console/apps/crm?tab=1` }, SERVER)).toBe(
       "/apps/crm?tab=1"
@@ -61,6 +68,50 @@ describe("routeFromResponse", () => {
 
   it("returns null for a nullish response", () => {
     expect(routeFromResponse(null, SERVER)).toBeNull();
+  });
+
+  // expo-notifications on iOS sets content.data = userInfo["body"] for a remote
+  // notification, and exposes the full userInfo as trigger.payload.
+  const iosResponse = (userInfo: Record<string, unknown>) =>
+    ({
+      notification: {
+        request: {
+          content: { data: (userInfo.body as Record<string, unknown>) ?? null },
+          trigger: { type: "push", payload: userInfo },
+        },
+      },
+    }) as unknown as Notifications.NotificationResponse;
+
+  it("reads an APNs route beside aps from trigger.payload (iOS)", () => {
+    const response = iosResponse({ aps: { alert: "New lead" }, route: "/apps/crm/lead/1" });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/1");
+  });
+
+  it("reads an APNs route nested in body (iOS content.data)", () => {
+    const response = iosResponse({ aps: { alert: "x" }, body: { route: "/apps/crm/lead/2" } });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/2");
+  });
+
+  it("reads an APNs url beside aps (iOS)", () => {
+    const response = iosResponse({ aps: {}, url: `${SERVER}/_console/apps/hr` });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/hr");
+  });
+
+  it("reads an FCM data route from content.data (Android)", () => {
+    const response = {
+      notification: {
+        request: {
+          content: { data: { route: "/apps/crm/lead/3" } },
+          trigger: { type: "push", remoteMessage: { data: { route: "/apps/crm/lead/3" } } },
+        },
+      },
+    } as unknown as Notifications.NotificationResponse;
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/3");
+  });
+
+  it("rejects an escaping route in trigger.payload too", () => {
+    const response = iosResponse({ aps: {}, route: "/%2e%2e/api/v1/me" });
+    expect(routeFromResponse(response, SERVER)).toBeNull();
   });
 });
 

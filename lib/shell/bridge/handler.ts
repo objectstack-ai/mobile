@@ -5,7 +5,7 @@
  * Kept free of React and of native modules — everything platform-specific is
  * injected through `BridgeDeps`, so the policy is unit-testable.
  */
-import { originOf } from "../console-url";
+import { originOf, safeConsoleRoute } from "../console-url";
 import {
   HAPTIC_KINDS,
   parseInbound,
@@ -63,10 +63,12 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
       return null;
     }
 
+    // An untrusted caller gets no answer at all: the reply would run in the
+    // main frame (the Console), where its id could settle one of the
+    // Console's own pending calls.
+    if (!trusted) return null;
+
     const { id, method, args } = msg;
-    if (!trusted) {
-      return fail(id, "forbidden_origin", "The bridge only answers the configured server.");
-    }
 
     try {
       switch (method) {
@@ -92,9 +94,9 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
         }
 
         case "navigate": {
-          const route = argOf(args, "route");
-          if (typeof route !== "string" || !route.startsWith("/") || route.startsWith("//")) {
-            return fail(id, "bad_args", "navigate takes a Console route starting with '/'");
+          const route = safeConsoleRoute(argOf(args, "route"));
+          if (route === null) {
+            return fail(id, "bad_args", "navigate takes a Console path starting with '/'");
           }
           deps.navigate(route);
           return { id, ok: true, value: null };

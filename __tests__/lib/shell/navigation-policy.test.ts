@@ -14,6 +14,20 @@ describe("decideNavigation", () => {
     });
   });
 
+  it("treats the default port as the same origin", () => {
+    // WebViews report URLs without the default port; a server stored with it
+    // must still own its Console instead of sending it to the system browser.
+    const withPort = { ...ctx, serverUrl: "https://acme.example.com:443" };
+    expect(decideNavigation("https://acme.example.com/_console/apps/crm", withPort)).toEqual({
+      kind: "load",
+    });
+    expect(decideNavigation("https://acme.example.com:443/_console/approvals/1", ctx)).toEqual({
+      kind: "native",
+      screen: "approvals",
+      route: "/approvals/1",
+    });
+  });
+
   it("loads non-Console paths on the server (auth callbacks, files)", () => {
     expect(decideNavigation("https://acme.example.com/api/v1/auth/callback/x", ctx)).toEqual({
       kind: "load",

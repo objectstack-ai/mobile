@@ -9,6 +9,7 @@
  * Both open the Console at that route. Anything else lands on the shell's start
  * screen rather than on an expo-router "not found" page.
  */
+import { safeConsoleRoute } from "./console-url";
 
 const SCHEME_LINK_RE = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]*)([^?#]*)(\?[^#]*)?/i;
 
@@ -27,20 +28,13 @@ function queryParam(query: string | undefined, name: string): string | null {
   return null;
 }
 
-function cleanRoute(route: string | null): string | null {
-  if (!route) return null;
-  const r = route.trim();
-  if (!r.startsWith("/") || r.startsWith("//")) return null;
-  return r;
-}
-
 /** The Console route an incoming link asks for, or `null`. */
 export function routeFromIncomingLink(link: string): string | null {
   const m = SCHEME_LINK_RE.exec(link.trim());
   if (!m) return null;
   const host = m[1].toLowerCase();
-  if (host === "open") return cleanRoute(queryParam(m[3], "route"));
-  if (host === "console") return cleanRoute(m[2] || "/home");
+  if (host === "open") return safeConsoleRoute(queryParam(m[3], "route"));
+  if (host === "console") return safeConsoleRoute(m[2] || "/home");
   return null;
 }
 
@@ -58,10 +52,13 @@ export function consoleScreenHref(route: string, nonce?: string | number): strin
  * expo-router `redirectSystemPath` policy: our app links open the Console,
  * other links on our scheme land on the start screen, and anything that is not
  * a scheme URL (internal paths, the dev-client launcher) passes through.
+ *
+ * Each redirect carries a nonce (`now()`, injectable for tests) so opening the
+ * same link twice navigates both times.
  */
-export function redirectIncomingPath(path: string): string {
+export function redirectIncomingPath(path: string, now: () => number = Date.now): string {
   if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(path)) return path;
   if (path.includes("expo-development-client")) return path;
   const route = routeFromIncomingLink(path);
-  return route ? consoleScreenHref(route) : "/";
+  return route ? consoleScreenHref(route, now()) : "/";
 }
