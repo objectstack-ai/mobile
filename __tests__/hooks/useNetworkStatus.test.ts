@@ -1,126 +1,48 @@
-/**
- * Tests for useNetworkStatus – validates network connectivity monitoring
- * and global offline state updates.
- */
 import { renderHook, act, waitFor } from "@testing-library/react-native";
-
-/* ---- Mock expo-network ---- */
-const mockGetNetworkStateAsync = jest.fn();
-jest.mock("expo-network", () => ({
-  getNetworkStateAsync: (...args: any[]) => mockGetNetworkStateAsync(...args),
-  NetworkStateType: {
-    NONE: "NONE",
-    WIFI: "WIFI",
-    CELLULAR: "CELLULAR",
-    BLUETOOTH: "BLUETOOTH",
-    ETHERNET: "ETHERNET",
-    WIMAX: "WIMAX",
-    VPN: "VPN",
-    OTHER: "OTHER",
-    UNKNOWN: "UNKNOWN",
-  },
-}));
-
-/* ---- Mock app store ---- */
-const mockSetOffline = jest.fn();
-jest.mock("~/stores/app-store", () => ({
-  useAppStore: (selector: any) =>
-    selector({ setOffline: mockSetOffline }),
-}));
-
+import * as Network from "expo-network";
 import { useNetworkStatus } from "~/hooks/useNetworkStatus";
 
-beforeEach(() => {
-  jest.useFakeTimers();
-  mockGetNetworkStateAsync.mockReset();
-  mockSetOffline.mockReset();
-});
+const mockGet = Network.getNetworkStateAsync as jest.Mock;
+const mockListen = Network.addNetworkStateListener as jest.Mock;
 
-afterEach(() => {
-  jest.useRealTimers();
+beforeEach(() => {
+  mockGet.mockReset();
+  mockListen.mockReset();
+  mockListen.mockReturnValue({ remove: jest.fn() });
 });
 
 describe("useNetworkStatus", () => {
-  it("checks network state on mount", async () => {
-    mockGetNetworkStateAsync.mockResolvedValue({
-      isConnected: true,
-      type: "WIFI",
-    });
-
+  it("reads the state on mount", async () => {
+    mockGet.mockResolvedValue({ isConnected: true, type: "WIFI" });
     const { result } = renderHook(() => useNetworkStatus());
-
-    await waitFor(() => {
-      expect(mockGetNetworkStateAsync).toHaveBeenCalled();
-    });
-
+    await waitFor(() => expect(result.current.networkType).toBe("WIFI"));
     expect(result.current.isConnected).toBe(true);
     expect(result.current.isOffline).toBe(false);
   });
 
-  it("sets offline when not connected", async () => {
-    mockGetNetworkStateAsync.mockResolvedValue({
-      isConnected: false,
-      type: "NONE",
-    });
-
+  it("follows the OS listener", async () => {
+    mockGet.mockResolvedValue({ isConnected: true, type: "WIFI" });
     const { result } = renderHook(() => useNetworkStatus());
-
-    await waitFor(() => {
-      expect(result.current.isConnected).toBe(false);
-    });
-
+    await waitFor(() => expect(mockListen).toHaveBeenCalled());
+    const listener = mockListen.mock.calls[0][0];
+    act(() => listener({ isConnected: false, type: "NONE" }));
     expect(result.current.isOffline).toBe(true);
-    expect(mockSetOffline).toHaveBeenCalledWith(true);
   });
 
-  it("handles network check errors gracefully", async () => {
-    mockGetNetworkStateAsync.mockRejectedValue(new Error("Failed"));
-
+  it("assumes connected when the state cannot be read", async () => {
+    mockGet.mockRejectedValue(new Error("no module"));
     const { result } = renderHook(() => useNetworkStatus());
-
-    await waitFor(() => {
-      expect(mockGetNetworkStateAsync).toHaveBeenCalled();
-    });
-
-    // Assumes connected on error
+    await waitFor(() => expect(mockGet).toHaveBeenCalled());
     expect(result.current.isConnected).toBe(true);
-    expect(mockSetOffline).toHaveBeenCalledWith(false);
   });
 
-  it("provides a manual refresh function", async () => {
-    mockGetNetworkStateAsync.mockResolvedValue({
-      isConnected: true,
-      type: "WIFI",
-    });
-
-    const { result } = renderHook(() => useNetworkStatus());
-
-    await waitFor(() => {
-      expect(result.current.isConnected).toBe(true);
-    });
-
-    mockGetNetworkStateAsync.mockResolvedValue({
-      isConnected: false,
-      type: "NONE",
-    });
-
-    await act(async () => {
-      await result.current.refresh();
-    });
-
-    expect(result.current.isConnected).toBe(false);
-  });
-
-  it("exposes networkType", async () => {
-    mockGetNetworkStateAsync.mockResolvedValue({
-      isConnected: true,
-      type: "CELLULAR",
-    });
-
-    const { result } = renderHook(() => useNetworkStatus());
-
-    await waitFor(() => {
-      expect(result.current.networkType).toBe("CELLULAR");
-    });
+  it("removes the listener on unmount", async () => {
+    const remove = jest.fn();
+    mockListen.mockReturnValue({ remove });
+    mockGet.mockResolvedValue({ isConnected: true, type: "WIFI" });
+    const { unmount } = renderHook(() => useNetworkStatus());
+    await waitFor(() => expect(mockListen).toHaveBeenCalled());
+    unmount();
+    expect(remove).toHaveBeenCalled();
   });
 });

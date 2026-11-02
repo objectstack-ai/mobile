@@ -1,108 +1,65 @@
 # ObjectStack Mobile
 
-Enterprise low-code platform mobile runtime built with Expo, React Native, and TypeScript.
+Native shell for the ObjectStack Console — iOS and Android, built with Expo.
 
-> **Metadata-driven runtime** — interprets ObjectUI metadata (Views, Forms, Dashboards, Actions) from an ObjectStack server and renders them as native mobile components. No hardcoded business logic.
+> **2.x is a hybrid shell.** Business UI is the web Console served by your
+> ObjectStack server; this app hosts it and adds what the web cannot do well:
+> server selection, push notifications, OS integration and native fallback
+> pages. The 1.x native metadata renderer lives on the
+> [`legacy/native-renderer`](https://github.com/objectstack-ai/mobile/tree/legacy/native-renderer)
+> branch.
 
-## 📊 Current Status
+## How it works
 
-✅ **Re-baselined to platform v7** | Mobile on **`@objectstack/*@7.3.0`** (migrated from 3.1.1)
+```
+┌──────────── native shell (Expo / React Native) ────────────┐
+│ server picker · loading / offline pages · push · app links │
+│                  ▲ bridge: window.ObjectStackNative         │
+│  ┌──────────────── WebView ─────────────────────────────┐  │
+│  │  https://<server>/_console/   ← all business UI       │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-- **Tests**: 1151/1151 passing on 7.3.0 ✅
-- **Coverage**: ~85% ✅
-- **SDK**: `@objectstack/client@7.3.0` — verified end-to-end against a local 7.3.0 server
-- **Details**: 👉 **[Platform v7 Migration Plan](./docs/PLATFORM-V7-MIGRATION.md)** (see [ROADMAP.md §0](./ROADMAP.md))
+- The Console is same-origin with the API and signs in with its session cookie,
+  so the shell holds no API credential and never calls the API itself.
+- Every Console route is web by default. Route ownership
+  (`lib/shell/route-owner.ts`) lets individual high-traffic routes move to
+  native screens later without a rewrite.
+- A platform release needs no mobile release — the Console updates with the
+  server.
 
-**What's Complete**:
-- ✅ Full authentication system (better-auth)
-- ✅ All major view renderers (List, Form, Detail, Dashboard, Kanban, Calendar, Chart, Map, Timeline, Report, Page)
-- ✅ Offline-first architecture with sync queue
-- ✅ File upload/download, analytics, i18n, production monitoring, security, CI/CD
-- ✅ 23 custom hooks covering all 13 SDK API namespaces
-- ✅ Spec v3.0.0 core + UI alignment (automation, packages, SDUI, widgets, theme tokens)
+Read **[docs/HYBRID-SHELL.md](./docs/HYBRID-SHELL.md)** for the architecture,
+navigation policy and the bridge contract.
 
-See [ROADMAP.md](./ROADMAP.md) for complete details.
-
-## Tech Stack
-
-| Category | Technology |
-|----------|-----------|
-| **Framework** | Expo SDK 54 (Managed Workflow) |
-| **Navigation** | Expo Router v6 (file-based routing) |
-| **Language** | TypeScript (strict mode) |
-| **Styling** | NativeWind v4 (Tailwind CSS for React Native) |
-| **UI Components** | shadcn/ui pattern (`components/ui/`) |
-| **Icons** | lucide-react-native |
-| **Client State** | Zustand |
-| **Server State** | @objectstack/client-react (TanStack Query) |
-| **Auth** | better-auth + @better-auth/expo |
-| **Offline Storage** | expo-sqlite |
-| **Metadata Cache** | react-native-mmkv |
-
-## Getting Started
+## Getting started
 
 ```bash
-# Install dependencies
 pnpm install
-
-# Copy environment variables
 cp .env.example .env.local
-
-# Start development server
+eas build --profile development --platform ios   # once: dev client with native modules
 pnpm start
 ```
 
-## Project Structure
-
-```
-├── app/                            # Expo Router pages
-│   ├── _layout.tsx                 # Root layout (providers, auth guard)
-│   ├── (auth)/                     # Authentication screens
-│   ├── (tabs)/                     # Main tab navigation
-│   └── (app)/                      # Dynamic app CRUD screens
-├── components/
-│   ├── ui/                         # Design system primitives
-│   ├── renderers/                  # ObjectUI rendering engine
-│   ├── actions/                    # Action system
-│   ├── common/                     # Shared components
-│   ├── query/                      # Query builder UI
-│   ├── batch/                      # Batch operation UI
-│   ├── views/                      # Saved views UI
-│   └── sync/                       # Offline sync UI
-├── hooks/                          # Custom React hooks
-├── lib/                            # Core libraries
-├── stores/                         # Zustand state stores
-└── docs/                           # Documentation
-```
+On first launch, enter your server address (for a local server from a phone,
+use your computer's LAN IP, e.g. `http://192.168.1.42:3000`).
 
 ## Scripts
 
 | Command | Description |
-|---------|-------------|
-| `pnpm start` | Start Expo development server |
-| `pnpm run lint` | TypeScript check + ESLint |
-| `pnpm test` | Run Jest tests |
-| `pnpm run format` | Format with Prettier |
+|---|---|
+| `pnpm start` | Expo dev server |
+| `pnpm test` | Jest |
+| `pnpm run lint` | TypeScript + ESLint |
+| `pnpm run format` | Prettier |
 
 ## Documentation
 
-Comprehensive project documentation is available in the [`docs/`](./docs/) directory:
-
-| Document | Description |
-|----------|-------------|
-| **[🗺️ Roadmap](./ROADMAP.md)** | **→ START HERE** - Project status, spec compliance, development phases, next steps |
-| **[🧪 E2E Testing](./docs/E2E-TESTING.md)** | Maestro test flows, execution guide, troubleshooting |
-| **[📱 Device Testing](./docs/DEVICE-TESTING.md)** | Run on a physical iOS/Android device (Expo Go vs dev build), push-notification testing |
-| **[Architecture](./docs/ARCHITECTURE.md)** | System architecture, layer design, provider hierarchy |
-| **[UI/UX Design](./docs/UI-DESIGN.md)** | Design system, view renderers, field types |
-| **[🎨 UX Design Review](./docs/UX-DESIGN-REVIEW.md)** | UX audit, industry benchmarks, improvement roadmap (Phases 14–20) |
-| **[Data Layer](./docs/DATA-LAYER.md)** | Offline-first architecture, sync queue, caching |
-| **[API Integration](./docs/API-INTEGRATION.md)** | SDK usage, authentication, hook reference |
-| **[Security](./docs/SECURITY.md)** | Auth security, data protection, network security |
-| **[Testing](./docs/TESTING.md)** | Testing strategy, unit/integration tests |
-| **[Deployment](./docs/DEPLOYMENT.md)** | Build system, EAS Build, OTA updates, CI/CD |
-| **[Contributing](./docs/CONTRIBUTING.md)** | Development workflow, coding standards, PR process |
-
-## Design System
-
-The app uses a CSS-variable-based design token system with light and dark mode support. Color tokens are defined in `global.css` and consumed via Tailwind classes. See [UI/UX Design](./docs/UI-DESIGN.md) for the full specification.
+| Document | |
+|---|---|
+| [HYBRID-SHELL.md](./docs/HYBRID-SHELL.md) | architecture, navigation policy, route ownership, bridge |
+| [PUSH-NOTIFICATIONS.md](./docs/PUSH-NOTIFICATIONS.md) | token flow, payloads, prerequisites |
+| [DEVICE-TESTING.md](./docs/DEVICE-TESTING.md) | running on devices, manual checklist |
+| [DEPLOYMENT.md](./docs/DEPLOYMENT.md) | configuration, EAS builds, CI, app review |
+| [CONTRIBUTING.md](./docs/CONTRIBUTING.md) | where changes belong, conventions |
+| [ROADMAP.md](./ROADMAP.md) | phases and what is next |

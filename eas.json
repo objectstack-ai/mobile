@@ -13,13 +13,13 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://staging.objectstack.com"
+        "EXPO_PUBLIC_DEFAULT_SERVER_URL": "https://staging.objectstack.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.objectstack.com"
+        "EXPO_PUBLIC_DEFAULT_SERVER_URL": ""
       }
     }
   },

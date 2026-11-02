@@ -2,9 +2,8 @@
  * Internationalization configuration.
  *
  * Integrates i18next + react-i18next + expo-localization for locale detection.
- * Ships with built-in static translations (en, zh, ar).
- * Server-side translations via client.i18n.* can be layered on once the SDK
- * supports it (see Phase 5B.2).
+ * Ships the shell's own strings (server picker, loading, offline page) in
+ * en, zh and ar. Everything inside the Console is translated by the Console.
  */
 
 import i18n from "i18next";
@@ -16,7 +15,7 @@ import en from "~/locales/en.json";
 import zh from "~/locales/zh.json";
 import ar from "~/locales/ar.json";
 
-/** Shared with `ui-store` — the persisted language key lives in this store. */
+/** MMKV store holding a persisted language override, when one has been set. */
 const uiStorage = createMMKV({ id: "objectstack-ui" });
 export const LANGUAGE_KEY = "language";
 

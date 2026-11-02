@@ -1,9 +1,8 @@
 import {
-  deepLinkFromData,
-  deepLinkFromResponse,
-  currentPushPlatform,
-  acquirePushToken,
+  acquireDeviceToken,
   ensurePermission,
+  routeFromPushData,
+  routeFromResponse,
   ANDROID_DEFAULT_CHANNEL_ID,
 } from "~/lib/push-notifications";
 import * as Notifications from "expo-notifications";
@@ -13,59 +12,106 @@ import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 
 const DeviceMock = Device as { isDevice: boolean };
+const SERVER = "https://acme.example.com";
 
-describe("deepLinkFromData", () => {
-  it("returns an explicit url when present", () => {
-    expect(deepLinkFromData({ url: "objectstack://objects/tasks/1" })).toBe(
-      "objectstack://objects/tasks/1",
+describe("routeFromPushData", () => {
+  it("returns an explicit route", () => {
+    expect(routeFromPushData({ route: "/apps/crm/opportunity/1" }, SERVER)).toBe(
+      "/apps/crm/opportunity/1"
     );
   });
 
-  it("builds an object+record link from structured fields", () => {
-    expect(deepLinkFromData({ objectName: "tasks", recordId: "42" })).toBe(
-      "objectstack://objects/tasks/42",
+  it("rejects a route that is not a Console path", () => {
+    expect(routeFromPushData({ route: "apps/crm" }, SERVER)).toBeNull();
+    expect(routeFromPushData({ route: "//evil.example.com/x" }, SERVER)).toBeNull();
+  });
+
+  it("rejects a route or url that would escape the Console", () => {
+    expect(routeFromPushData({ route: "/../../api/v1/me" }, SERVER)).toBeNull();
+    expect(routeFromPushData({ route: "/%2e%2e/api/v1/me" }, SERVER)).toBeNull();
+    expect(routeFromPushData({ route: "/..\\api" }, SERVER)).toBeNull();
+    expect(routeFromPushData({ url: `${SERVER}/_console/../api/v1/me` }, SERVER)).toBeNull();
+  });
+
+  it("accepts a url that points into this server's Console", () => {
+    expect(routeFromPushData({ url: `${SERVER}/_console/apps/crm?tab=1` }, SERVER)).toBe(
+      "/apps/crm?tab=1"
     );
   });
 
-  it("builds an object-only link when recordId is absent", () => {
-    expect(deepLinkFromData({ objectName: "tasks" })).toBe(
-      "objectstack://objects/tasks",
-    );
+  it("ignores a url on another site", () => {
+    expect(routeFromPushData({ url: "https://evil.example.com/_console/apps" }, SERVER)).toBeNull();
   });
 
-  it("prefers url over structured fields", () => {
-    expect(
-      deepLinkFromData({ url: "objectstack://x", objectName: "tasks", recordId: "1" }),
-    ).toBe("objectstack://x");
+  it("ignores a url when no server is configured", () => {
+    expect(routeFromPushData({ url: `${SERVER}/_console/home` }, null)).toBeNull();
   });
 
-  it("returns null for empty / missing payloads", () => {
-    expect(deepLinkFromData(null)).toBeNull();
-    expect(deepLinkFromData(undefined)).toBeNull();
-    expect(deepLinkFromData({})).toBeNull();
-    expect(deepLinkFromData({ url: "" })).toBeNull();
+  it("prefers route over url", () => {
+    expect(routeFromPushData({ route: "/a", url: `${SERVER}/_console/b` }, SERVER)).toBe("/a");
+  });
+
+  it("returns null for empty payloads", () => {
+    expect(routeFromPushData(null, SERVER)).toBeNull();
+    expect(routeFromPushData(undefined, SERVER)).toBeNull();
+    expect(routeFromPushData({}, SERVER)).toBeNull();
   });
 });
 
-describe("deepLinkFromResponse", () => {
+describe("routeFromResponse", () => {
   it("reads the data payload off a notification response", () => {
     const response = {
+      notification: { request: { content: { data: { route: "/home" } } } },
+    } as unknown as Notifications.NotificationResponse;
+    expect(routeFromResponse(response, SERVER)).toBe("/home");
+  });
+
+  it("returns null for a nullish response", () => {
+    expect(routeFromResponse(null, SERVER)).toBeNull();
+  });
+
+  // expo-notifications on iOS sets content.data = userInfo["body"] for a remote
+  // notification, and exposes the full userInfo as trigger.payload.
+  const iosResponse = (userInfo: Record<string, unknown>) =>
+    ({
       notification: {
-        request: { content: { data: { objectName: "leads", recordId: "9" } } },
+        request: {
+          content: { data: (userInfo.body as Record<string, unknown>) ?? null },
+          trigger: { type: "push", payload: userInfo },
+        },
+      },
+    }) as unknown as Notifications.NotificationResponse;
+
+  it("reads an APNs route beside aps from trigger.payload (iOS)", () => {
+    const response = iosResponse({ aps: { alert: "New lead" }, route: "/apps/crm/lead/1" });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/1");
+  });
+
+  it("reads an APNs route nested in body (iOS content.data)", () => {
+    const response = iosResponse({ aps: { alert: "x" }, body: { route: "/apps/crm/lead/2" } });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/2");
+  });
+
+  it("reads an APNs url beside aps (iOS)", () => {
+    const response = iosResponse({ aps: {}, url: `${SERVER}/_console/apps/hr` });
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/hr");
+  });
+
+  it("reads an FCM data route from content.data (Android)", () => {
+    const response = {
+      notification: {
+        request: {
+          content: { data: { route: "/apps/crm/lead/3" } },
+          trigger: { type: "push", remoteMessage: { data: { route: "/apps/crm/lead/3" } } },
+        },
       },
     } as unknown as Notifications.NotificationResponse;
-    expect(deepLinkFromResponse(response)).toBe("objectstack://objects/leads/9");
+    expect(routeFromResponse(response, SERVER)).toBe("/apps/crm/lead/3");
   });
 
-  it("returns null for nullish response", () => {
-    expect(deepLinkFromResponse(null)).toBeNull();
-  });
-});
-
-describe("currentPushPlatform", () => {
-  it("maps the RN platform to a backend platform string", () => {
-    // jest-expo defaults Platform.OS to ios.
-    expect(["ios", "android", "web"]).toContain(currentPushPlatform());
+  it("rejects an escaping route in trigger.payload too", () => {
+    const response = iosResponse({ aps: {}, route: "/%2e%2e/api/v1/me" });
+    expect(routeFromResponse(response, SERVER)).toBeNull();
   });
 });
 
@@ -98,9 +144,9 @@ describe("ensurePermission", () => {
   });
 });
 
-describe("acquirePushToken", () => {
+describe("acquireDeviceToken", () => {
   const mockGet = Notifications.getPermissionsAsync as jest.Mock;
-  const mockToken = Notifications.getExpoPushTokenAsync as jest.Mock;
+  const mockToken = Notifications.getDevicePushTokenAsync as jest.Mock;
 
   beforeEach(() => {
     mockGet.mockReset();
@@ -110,29 +156,33 @@ describe("acquirePushToken", () => {
 
   it("returns null on a non-physical device without requesting a token", async () => {
     DeviceMock.isDevice = false;
-    expect(await acquirePushToken()).toBeNull();
+    expect(await acquireDeviceToken()).toBeNull();
     expect(mockToken).not.toHaveBeenCalled();
   });
 
   it("returns null when permission is not granted", async () => {
     mockGet.mockResolvedValue({ granted: false, status: "denied", canAskAgain: false });
-    expect(await acquirePushToken()).toBeNull();
+    expect(await acquireDeviceToken()).toBeNull();
     expect(mockToken).not.toHaveBeenCalled();
   });
 
-  it("returns a registration with token + platform when granted", async () => {
+  it("returns the native token with its vendor when granted", async () => {
     mockGet.mockResolvedValue({ granted: true, status: "granted", canAskAgain: true });
-    mockToken.mockResolvedValue({ type: "expo", data: "ExponentPushToken[abc]" });
-    const result = await acquirePushToken("proj-1");
-    expect(result?.token).toBe("ExponentPushToken[abc]");
-    expect(["ios", "android", "web"]).toContain(result?.platform);
-    expect(mockToken).toHaveBeenCalledWith({ projectId: "proj-1" });
+    mockToken.mockResolvedValue({ type: "ios", data: "a1b2c3" });
+    expect(await acquireDeviceToken()).toEqual({ token: "a1b2c3", vendor: "apns" });
+    expect(Notifications.getExpoPushTokenAsync).not.toHaveBeenCalled();
+  });
+
+  it("returns null for an empty token", async () => {
+    mockGet.mockResolvedValue({ granted: true, status: "granted", canAskAgain: true });
+    mockToken.mockResolvedValue({ type: "ios", data: "" });
+    expect(await acquireDeviceToken()).toBeNull();
   });
 
   it("returns null and does not throw when token acquisition fails", async () => {
     mockGet.mockResolvedValue({ granted: true, status: "granted", canAskAgain: true });
-    mockToken.mockRejectedValue(new Error("network"));
-    expect(await acquirePushToken()).toBeNull();
+    mockToken.mockRejectedValue(new Error("no FCM"));
+    expect(await acquireDeviceToken()).toBeNull();
   });
 });
 

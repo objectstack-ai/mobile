@@ -1,66 +1,79 @@
 # Push Notifications
 
-OS-level push (APNs on iOS, FCM on Android) delivered through Expo, registered
-against the ObjectStack backend device registry.
-
-## Architecture
+## Flow
 
 ```
-OS (APNs / FCM)
-   │  push token
-   ▼
-expo-notifications / expo-device
-   │  acquirePushToken()
-   ▼
-lib/push-notifications.ts          ← React-free, unit-tested
-   │  { token, platform }
-   ▼
-usePushNotifications (hook)        ← lifecycle + tap routing
-   │  registerDevice(token, platform)
-   ▼
-useNotifications → client.notifications.registerDevice   ← backend registry
+OS (APNs / FCM) ──native device token──▶ shell (lib/push-notifications.ts)
+                                            │  bridge: getPushToken()
+                                            ▼
+                                   Console (signed in) ──register──▶ server device registry
+server ──APNs / FCM──▶ device ──tap──▶ shell (hooks/usePushRouting.ts) ──route──▶ Console screen
 ```
 
-The split keeps OS concerns (`lib/`) testable and free of React, while the
-hook owns lifecycle: permission → token → registration → tap handling.
+- The shell obtains the **native** token (`getDevicePushTokenAsync`), not an
+  Expo push token: the ObjectStack server delivers through APNs and FCM
+  directly (ADR-0012).
+- The Console asks for the token over the bridge once the user is signed in and
+  registers it under its own session. The OS permission prompt therefore
+  appears when the Console decides, and the shell needs no API credential.
+- A notification names where a tap goes with one of two keys (see the payload
+  contract below):
+  - `route`: a Console route, e.g. `"/apps/crm/opportunity/123"` (preferred);
+  - `url`: accepted only when it points into the configured server's Console.
+    Anything else is ignored, so a notification cannot steer the shell to another
+    site. A route must be a plain Console path: it starts with `/` (not `//`) and
+    has no `.` / `..` segment (raw or percent-encoded), backslash or control
+    character — the same check app links and the bridge's `navigate` use
+    (`safeConsoleRoute` in `lib/shell/console-url.ts`).
 
-## Behavior
+## Payload contract
 
-- **Registration** runs only when signed in (`enabled: !!token` in the root
-  layout), so anonymous users are never prompted.
-- **Permission** is requested only when not already decided; a permanent denial
-  is respected and never re-prompts.
-- **Token** is acquired only on physical devices (simulators have no push
-  hardware) and returns `null` otherwise — never throwing.
-- **Taps** are handled for all three entry points — foreground, background, and
-  cold start (`getLastNotificationResponseAsync`) — and routed via the
-  notification's deep link.
+`route` / `url` are custom keys, delivered differently by each transport.
+`routeFromResponse` (`lib/push-notifications.ts`) reads, in order, the
+notification's `content.data`, then the iOS `trigger.payload` (the full APNs
+`userInfo`) and its `body` dictionary, and uses the first valid one.
 
-## Deep links
+**APNs (iOS)** — put the key at the top level of the payload, beside `aps`:
 
-Server-sent notifications carry a `data` payload. A navigable link is resolved
-from either an explicit `data.url` or structured `data.objectName` /
-`data.recordId` fields, producing an app-scheme URL
-(`objectstack://objects/{objectName}/{recordId}`). The root layout opens it via
-`expo-linking`, which expo-router resolves to the matching screen.
+```json
+{
+  "aps": { "alert": { "title": "New lead", "body": "Acme Corp" }, "sound": "default" },
+  "route": "/apps/crm/lead/123"
+}
+```
 
-## Configuration
+expo-notifications exposes only `userInfo["body"]` as `content.data` on iOS
+(`NotificationRecords.swift`), so a top-level key is read from
+`trigger.payload`. Nesting it as `"body": { "route": "/apps/crm/lead/123" }` (a
+dictionary, the Expo push-service shape) is accepted too.
 
-- `app.config.ts` registers the `expo-notifications` config plugin.
-- EAS builds need a `projectId`; it is read from the Expo config at runtime
-  (`Constants.expoConfig.extra.eas.projectId` / `easConfig.projectId`).
-- Android uses a single `default` notification channel created at startup.
+**FCM (Android)** — put the key in the message's `data` map (string values):
 
-## Testing
+```json
+{
+  "message": {
+    "token": "…",
+    "notification": { "title": "New lead", "body": "Acme Corp" },
+    "data": { "route": "/apps/crm/lead/123" }
+  }
+}
+```
 
-- `__mocks__/expo-notifications.js` and `__mocks__/expo-device.js` are
-  auto-applied by Jest for the node_modules packages.
-- `__tests__/lib/push-notifications.test.ts` covers the pure helpers
-  (permission flow, token acquisition guards, deep-link resolution).
+expo-notifications copies the `data` map into `content.data`. Do not put a JSON
+object string under `data.body` unless `route` is inside it: such a `body`
+replaces the whole `data` map (the Expo push-service shape).
 
-## Not included
+## Prerequisites
 
-- In-app push settings toggle UI (preferences already exist via
-  `useNotifications().updatePreferences`).
-- Rich notification categories / actionable buttons.
-- Badge-count reconciliation with the notification center.
+- **Server**: the device registry and the push channel (`/notifications/devices`,
+  APNs + FCM transports). The framework client notes these routes were never
+  built; they are the first follow-up for push to work end to end.
+- **Console**: register / unregister the token through the bridge.
+- **iOS**: push capability and an APNs key on the Apple developer account.
+- **Android**: Firebase project; set `android.googleServicesFile` in
+  `app.config.ts` so `getDevicePushTokenAsync` can return an FCM token.
+- A **development build** (Expo Go cannot receive push for this app).
+
+China-market Android vendors (HMS, Xiaomi, OPPO, vivo) are not covered by FCM;
+they need a vendor SDK integration in the shell and matching server channels —
+tracked as follow-up work.

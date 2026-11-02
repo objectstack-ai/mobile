@@ -17,8 +17,6 @@
     "nativewind-env.d.ts"
   ],
   "exclude": [
-    "node_modules",
-    "./apps",
-    "./server/integration/dist"
+    "node_modules"
   ]
 }
