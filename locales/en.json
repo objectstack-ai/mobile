@@ -12,18 +12,40 @@
   },
   "serverConfig": {
     "title": "Connect to Server",
-    "subtitle": "Enter your ObjectStack server address to get started.",
+    "subtitle": "Enter the address of your ObjectOS server.",
     "label": "Server URL",
-    "hint": "Example: https://app.example.com",
-    "connect": "Connect",
-    "help": "Ask your administrator if you don't know the server address.",
+    "hint": "Example: https://erp.example.com",
+    "connect": "Continue",
+    "where": {
+      "title": "Where do I find the address?",
+      "step1": "On a computer, open ObjectOS in your browser and sign in.",
+      "step2": "Copy the address from the address bar. You can paste the whole link — the app keeps only the server part.",
+      "step3": "Not sure? Ask your administrator."
+    },
+    "vpnHint": "A server on a company network may need this phone to be on the company VPN first.",
     "error": {
       "empty": "Please enter a server URL.",
       "invalid": "That doesn't look like a server address.",
       "insecure": "Use an https:// address — plain http is only allowed for local servers.",
-      "unreachable": "Could not reach the server. Check the address and try again.",
+      "unreachable": "Could not reach the server. Check the address and your network — a company server may need VPN.",
+      "tls": "The server's certificate is invalid, so the connection isn't safe. Ask your administrator to fix it.",
+      "timeout": "The server took too long to answer. Check your network or VPN and try again.",
+      "notObjectOS": "This isn't an ObjectOS server. Use the address you open ObjectOS with in a browser.",
+      "serverError": "The server answered with an error (HTTP {{status}}). Try again later or ask your administrator.",
       "unknown": "Something went wrong. Please try again."
     }
+  },
+  "serverConfirm": {
+    "title": "Is this your server?",
+    "secure": "Secure connection (HTTPS)",
+    "signInLabel": "Sign in with",
+    "signIn": {
+      "sso": "Single sign-on (SSO)",
+      "emailPassword": "Email and password"
+    },
+    "versionLabel": "Platform version",
+    "confirm": "Connect and sign in",
+    "reject": "Not this server"
   },
   "shell": {
     "loading": "Loading…",

@@ -1,6 +1,6 @@
 /**
- * Tests for lib/server-url – validates server URL persistence
- * and validation.
+ * Tests for lib/server-url – server URL persistence. The probe that runs
+ * before a server is saved is tested in server-probe.test.ts.
  */
 
 /* ---- Mock expo-secure-store ---- */
@@ -20,8 +20,6 @@ import {
   getServerUrl,
   setServerUrl,
   clearServerUrl,
-  validateServerUrl,
-  resolveServerUrl,
 } from "~/lib/server-url";
 
 beforeEach(() => {
@@ -56,109 +54,6 @@ describe("server-url", () => {
       store["objectstack_server_url"] = "https://api.example.com";
       await clearServerUrl();
       expect(store["objectstack_server_url"]).toBeUndefined();
-    });
-  });
-
-  describe("validateServerUrl", () => {
-    it("returns true when /api/v1/health responds OK", async () => {
-      globalThis.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
-
-      const result = await validateServerUrl("https://api.example.com");
-      expect(result).toBe(true);
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        "https://api.example.com/api/v1/health",
-        expect.objectContaining({ method: "GET" })
-      );
-    });
-
-    it("strips trailing slashes", async () => {
-      globalThis.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
-
-      await validateServerUrl("https://api.example.com///");
-      expect(globalThis.fetch).toHaveBeenCalledWith(
-        "https://api.example.com/api/v1/health",
-        expect.any(Object)
-      );
-    });
-
-    it("falls back to HEAD request when /api/v1/health fails", async () => {
-      globalThis.fetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("health failed"))
-        .mockResolvedValueOnce({ status: 200 }) as any;
-
-      const result = await validateServerUrl("https://api.example.com");
-      expect(result).toBe(true);
-    });
-
-    it("returns false when both health and HEAD fail", async () => {
-      globalThis.fetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("health failed"))
-        .mockRejectedValueOnce(new Error("HEAD failed")) as any;
-
-      const result = await validateServerUrl("https://unreachable.com");
-      expect(result).toBe(false);
-    });
-
-    it("returns false when HEAD returns 500+", async () => {
-      globalThis.fetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("health failed"))
-        .mockResolvedValueOnce({ status: 500 }) as any;
-
-      const result = await validateServerUrl("https://error-server.com");
-      expect(result).toBe(false);
-    });
-
-    it("returns true when HEAD returns non-500 status", async () => {
-      globalThis.fetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("health failed"))
-        .mockResolvedValueOnce({ status: 404 }) as any;
-
-      const result = await validateServerUrl("https://api.example.com");
-      expect(result).toBe(true);
-    });
-  });
-
-  describe("resolveServerUrl", () => {
-    it("returns the server when the probe was not redirected", async () => {
-      globalThis.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        url: "https://acme.example.com/api/v1/health",
-      }) as any;
-      await expect(resolveServerUrl("https://acme.example.com")).resolves.toBe(
-        "https://acme.example.com"
-      );
-    });
-
-    it("adopts the origin the probe was redirected to", async () => {
-      globalThis.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        url: "https://www.acme.example.com/api/v1/health",
-      }) as any;
-      await expect(resolveServerUrl("https://acme.example.com")).resolves.toBe(
-        "https://www.acme.example.com"
-      );
-    });
-
-    it("adopts a redirect of the fallback connectivity probe", async () => {
-      globalThis.fetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("health failed"))
-        .mockResolvedValueOnce({ status: 200, url: "https://www.acme.example.com/" }) as any;
-      await expect(resolveServerUrl("https://acme.example.com")).resolves.toBe(
-        "https://www.acme.example.com"
-      );
-    });
-
-    it("returns null when the server is unreachable", async () => {
-      globalThis.fetch = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("health failed"))
-        .mockRejectedValueOnce(new Error("HEAD failed")) as any;
-      await expect(resolveServerUrl("https://unreachable.com")).resolves.toBeNull();
     });
   });
 });
