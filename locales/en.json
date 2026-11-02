@@ -3,7 +3,8 @@
     "ok": "OK",
     "cancel": "Cancel",
     "retry": "Retry",
-    "error": "Error"
+    "error": "Error",
+    "close": "Close"
   },
   "errorBoundary": {
     "title": "Something went wrong",
@@ -55,8 +56,19 @@
     "offlineMessage": "Check your connection. The page reloads on its own when you're back online.",
     "serverErrorTitle": "The server isn't responding",
     "serverErrorMessage": "The server answered with error {{code}}. Try again in a moment.",
-    "retry": "Try again",
-    "changeServer": "Use a different server"
+    "retry": "Try again"
+  },
+  "switcher": {
+    "title": "Switch organization",
+    "add": "Add an organization or company server",
+    "footnote": "Each organization keeps its own sign-in. Swipe left to remove one and sign out of it.",
+    "appSettings": "App settings",
+    "kind": {
+      "cloud": "Cloud",
+      "server": "Private"
+    },
+    "remove": "Remove",
+    "removeNamed": "Remove {{label}}"
   },
   "scanner": {
     "hint": "Place the QR code inside the frame",

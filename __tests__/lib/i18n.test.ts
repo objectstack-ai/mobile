@@ -213,7 +213,7 @@ describe("following the phone language", () => {
   it("switches the shell to the phone's current language", async () => {
     await expect(followDeviceLanguage(tags("de-AT"))).resolves.toBe("de");
     expect(i18n.language).toBe("de");
-    expect(i18n.t("shell.changeServer")).toBe("Anderen Server verwenden");
+    expect(i18n.t("shell.retry")).toBe("Erneut versuchen");
   });
 
   it("re-reads the phone's languages when the app comes back to the foreground", async () => {

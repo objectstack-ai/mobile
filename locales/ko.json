@@ -3,7 +3,8 @@
     "ok": "확인",
     "cancel": "취소",
     "retry": "다시 시도",
-    "error": "오류"
+    "error": "오류",
+    "close": "닫기"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",
@@ -55,8 +56,19 @@
     "offlineMessage": "연결을 확인하세요. 다시 온라인 상태가 되면 페이지가 자동으로 새로고침됩니다.",
     "serverErrorTitle": "서버가 응답하지 않습니다",
     "serverErrorMessage": "서버에서 오류 {{code}}을(를) 반환했습니다. 잠시 후 다시 시도하세요.",
-    "retry": "다시 시도",
-    "changeServer": "다른 서버 사용"
+    "retry": "다시 시도"
+  },
+  "switcher": {
+    "title": "조직 전환",
+    "add": "조직 또는 회사 서버 추가",
+    "footnote": "조직마다 로그인 상태가 따로 저장됩니다. 왼쪽으로 밀면 제거되고 해당 조직에서 로그아웃됩니다.",
+    "appSettings": "앱 설정",
+    "kind": {
+      "cloud": "Cloud",
+      "server": "비공개"
+    },
+    "remove": "제거",
+    "removeNamed": "{{label}} 제거"
   },
   "scanner": {
     "hint": "QR 코드를 프레임 안에 맞춰 주세요",

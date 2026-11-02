@@ -7,6 +7,7 @@
  */
 import { originOf, safeConsoleRoute } from "../console-url";
 import {
+  BRIDGE_EVENTS,
   HAPTIC_KINDS,
   SCAN_FORMATS,
   parseInbound,
@@ -34,6 +35,8 @@ export interface BridgeDeps {
    * (camera permission refused, another scan already open).
    */
   scan: (formats: readonly ScanFormat[]) => Promise<string | null>;
+  /** Open the native connection switcher (screen 8). */
+  showConnectionSwitcher: () => void | Promise<void>;
   onEvent?: (name: BridgeEventName, payload: unknown) => void;
 }
 
@@ -85,8 +88,8 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
 
     if (msg.type === "event") {
       if (!trusted) return null;
-      if (msg.name === "ready" || msg.name === "routeChanged") {
-        deps.onEvent?.(msg.name, msg.payload);
+      if ((BRIDGE_EVENTS as readonly string[]).includes(msg.name)) {
+        deps.onEvent?.(msg.name as BridgeEventName, msg.payload);
       }
       return null;
     }
@@ -139,6 +142,10 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
           if (formats === null) return fail(id, "bad_args", SCAN_ARGS_MESSAGE);
           return { id, ok: true, value: await deps.scan(formats) };
         }
+
+        case "showConnectionSwitcher":
+          await deps.showConnectionSwitcher();
+          return { id, ok: true, value: null };
 
         default:
           return fail(id, "unknown_method", `Unknown bridge method: ${method}`);

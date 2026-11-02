@@ -44,7 +44,7 @@ const offline = (
     failure={{ kind: "network" }}
     serverUrl="https://erp.example.com"
     onRetry={jest.fn()}
-    onChangeServer={jest.fn()}
+    onSwitchConnection={jest.fn()}
   />
 );
 

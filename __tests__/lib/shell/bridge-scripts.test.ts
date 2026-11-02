@@ -1,5 +1,6 @@
 import {
   buildBootstrapScript,
+  buildConnectionRemovedScript,
   buildNavigateScript,
   buildPushTokenChangedScript,
   buildResolveScript,
@@ -7,6 +8,7 @@ import {
 } from "~/lib/shell/bridge/scripts";
 import {
   BRIDGE_PROTOCOL_VERSION,
+  CONNECTION_REMOVED_EVENT,
   NAVIGATE_EVENT,
   PUSH_TOKEN_CHANGED_EVENT,
   type BridgeHostInfo,
@@ -164,6 +166,19 @@ describe("bootstrap script", () => {
     expect(page.posted).toEqual([
       { type: "call", id: expect.any(String), method: "scan" },
       { type: "call", id: expect.any(String), method: "scan", args: { formats: ["ean13", "qr"] } },
+    ]);
+  });
+
+  it("posts showConnectionSwitcher calls", () => {
+    const page = makePage();
+    page.run(
+      buildBootstrapScript({ ...info, capabilities: ["showConnectionSwitcher"] }, SERVER_URL)
+    );
+    const api = page.window.ObjectStackNative;
+    expect(api.has("showConnectionSwitcher")).toBe(true);
+    void api.showConnectionSwitcher();
+    expect(page.posted).toEqual([
+      { type: "call", id: expect.any(String), method: "showConnectionSwitcher" },
     ]);
   });
 
@@ -352,5 +367,105 @@ describe("pushTokenChanged script", () => {
     const page = makeEventPage(SERVER);
     page.run(script);
     expect(page.seen).toEqual([{ detail: { token, vendor: "apns" }, cancelable: false }]);
+  });
+});
+
+describe("connectionRemoved script", () => {
+  const SERVER = "https://acme.example.com";
+
+  /** A fake page window on `origin` with real DOM events, recording what the script posts. */
+  function makeRemovalPage(origin = SERVER) {
+    const target = new EventTarget();
+    const posted: unknown[] = [];
+    const window = {
+      CustomEvent,
+      dispatchEvent: target.dispatchEvent.bind(target),
+      addEventListener: target.addEventListener.bind(target),
+      location: { origin },
+      ReactNativeWebView: { postMessage: (m: string) => posted.push(JSON.parse(m)) },
+    };
+    const run = (script: string | null) => {
+      if (script === null) throw new Error("no script");
+      return new Function("window", script)(window);
+    };
+    return { window, posted, run };
+  }
+
+  const done = (handled: boolean, ok: boolean) => ({
+    type: "event",
+    name: "connectionRemovedDone",
+    payload: { id: "rm1", handled, ok },
+  });
+
+  /** Let promise reactions inside the page run. */
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+
+  it("reports a handled event once everything handed to waitUntil has resolved", async () => {
+    const page = makeRemovalPage();
+    let finish: () => void = () => {};
+    page.window.addEventListener(CONNECTION_REMOVED_EVENT, (event: Event) => {
+      event.preventDefault();
+      (event as CustomEvent).detail.waitUntil(new Promise<void>((r) => (finish = r)));
+    });
+    page.run(buildConnectionRemovedScript(SERVER, "rm1"));
+    await settle();
+    expect(page.posted).toEqual([]);
+    finish();
+    await settle();
+    expect(page.posted).toEqual([done(true, true)]);
+  });
+
+  it("reports a handled event whose work failed", async () => {
+    const page = makeRemovalPage();
+    page.window.addEventListener(CONNECTION_REMOVED_EVENT, (event: Event) => {
+      event.preventDefault();
+      (event as CustomEvent).detail.waitUntil(Promise.resolve());
+      (event as CustomEvent).detail.waitUntil(Promise.reject(new Error("401")));
+    });
+    page.run(buildConnectionRemovedScript(SERVER, "rm1"));
+    await settle();
+    expect(page.posted).toEqual([done(true, false)]);
+  });
+
+  it("reports a handled event with nothing to wait for at once", () => {
+    const page = makeRemovalPage();
+    page.window.addEventListener(CONNECTION_REMOVED_EVENT, (event: Event) => event.preventDefault());
+    page.run(buildConnectionRemovedScript(SERVER, "rm1"));
+    expect(page.posted).toEqual([done(true, true)]);
+  });
+
+  it("reports an event nobody handled (a Console older than it)", () => {
+    const page = makeRemovalPage();
+    const seen: boolean[] = [];
+    page.window.addEventListener(CONNECTION_REMOVED_EVENT, (event: Event) =>
+      seen.push(event.cancelable)
+    );
+    page.run(buildConnectionRemovedScript(SERVER, "rm1"));
+    expect(seen).toEqual([true]);
+    expect(page.posted).toEqual([done(false, false)]);
+  });
+
+  it("asks nothing of, and posts nothing from, a page on another origin", () => {
+    const page = makeRemovalPage("https://login.idp.example");
+    const seen: unknown[] = [];
+    page.window.addEventListener(CONNECTION_REMOVED_EVENT, (event: Event) => seen.push(event));
+    page.run(buildConnectionRemovedScript(SERVER, "rm1"));
+    expect(seen).toEqual([]);
+    expect(page.posted).toEqual([]);
+  });
+
+  it("reports not handled without CustomEvent support", () => {
+    const posted: unknown[] = [];
+    new Function("window", buildConnectionRemovedScript(SERVER, "rm1")!)({
+      location: { origin: SERVER },
+      ReactNativeWebView: { postMessage: (m: string) => posted.push(JSON.parse(m)) },
+    });
+    expect(posted).toEqual([done(false, false)]);
+  });
+
+  it("builds no script for an unusable server URL or request id", () => {
+    expect(buildConnectionRemovedScript("not a url", "rm1")).toBeNull();
+    expect(buildConnectionRemovedScript(SERVER, '");alert(1);("')).toBeNull();
+    expect(buildConnectionRemovedScript(SERVER, "")).toBeNull();
   });
 });

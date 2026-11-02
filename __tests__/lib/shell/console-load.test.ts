@@ -222,6 +222,72 @@ describe("console load state machine", () => {
     });
   });
 
+  describe("switching connections", () => {
+    const token = { token: "apns-1", vendor: "apns" } as const;
+
+    it("re-creates the WebView at the new connection's last route, from any phase", () => {
+      for (const prefix of [
+        [],
+        [{ type: "loadEnd" }],
+        [{ type: "ready" }],
+        [{ type: "fail" }],
+      ] as ConsoleLoadEvent[][]) {
+        const { state, effects } = run(...prefix, { type: "switch", route: "/apps/hr" });
+        expect(state.phase).toBe("loading");
+        expect(effects.at(-1)).toEqual({ type: "recreate", startRoute: "/apps/hr" });
+      }
+    });
+
+    it("clears the ready timer when the page it leaves had loaded", () => {
+      const { effects } = run({ type: "loadEnd" }, { type: "switch", route: null });
+      expect(effects).toEqual([
+        { type: "armReadyTimer" },
+        { type: "clearReadyTimer" },
+        { type: "recreate", startRoute: null },
+      ]);
+    });
+
+    it("drops the held route and the last route of the host it leaves", () => {
+      const { state, effects } = run(
+        { type: "routeChanged", route: "/apps/crm" },
+        { type: "navigate", route: "/apps/crm/lead/1" },
+        { type: "switch", route: null }
+      );
+      expect(effects).toEqual([{ type: "recreate", startRoute: null }]);
+      expect(state).toEqual({ ...INITIAL_CONSOLE_LOAD_STATE, lastRoute: null });
+
+      // A later recovery starts at the new host's route, never the old one's.
+      const recovered = run(
+        { type: "routeChanged", route: "/apps/crm" },
+        { type: "switch", route: "/apps/hr" },
+        { type: "fail" },
+        { type: "recreate" }
+      );
+      expect(recovered.effects.at(-1)).toEqual({ type: "recreate", startRoute: "/apps/hr" });
+    });
+
+    it("lets navigation state report the new host's route again", () => {
+      const { state } = run(
+        { type: "routeChanged", route: "/apps/crm" },
+        { type: "switch", route: null },
+        { type: "navigationState", route: "/home" }
+      );
+      expect(state.lastRoute).toBe("/home");
+    });
+
+    it("keeps the held push token, sending it to the new Console at ready", () => {
+      const { effects } = run(
+        { type: "pushToken", token },
+        { type: "switch", route: "/apps/hr" },
+        { type: "ready" }
+      );
+      expect(effects).toEqual([
+        { type: "recreate", startRoute: "/apps/hr" },
+        { type: "sendPushToken", token },
+      ]);
+    });
+  });
+
   describe("routeChangedRoute", () => {
     it("reads a safe route from the payload", () => {
       expect(routeChangedRoute({ route: "/apps/crm?x=1#y" })).toBe("/apps/crm?x=1#y");

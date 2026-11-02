@@ -3,7 +3,8 @@
     "ok": "Aceptar",
     "cancel": "Cancelar",
     "retry": "Reintentar",
-    "error": "Error"
+    "error": "Error",
+    "close": "Cerrar"
   },
   "errorBoundary": {
     "title": "Algo salió mal",
@@ -55,8 +56,19 @@
     "offlineMessage": "Compruebe su conexión. La página se recargará sola cuando vuelva a estar en línea.",
     "serverErrorTitle": "El servidor no responde",
     "serverErrorMessage": "El servidor respondió con el error {{code}}. Inténtelo de nuevo en un momento.",
-    "retry": "Intentar de nuevo",
-    "changeServer": "Usar otro servidor"
+    "retry": "Intentar de nuevo"
+  },
+  "switcher": {
+    "title": "Cambiar de organización",
+    "add": "Añadir una organización o un servidor de empresa",
+    "footnote": "Cada organización conserva su propio inicio de sesión. Deslice a la izquierda para quitar una y cerrar su sesión.",
+    "appSettings": "Ajustes de la app",
+    "kind": {
+      "cloud": "Cloud",
+      "server": "Privado"
+    },
+    "remove": "Quitar",
+    "removeNamed": "Quitar {{label}}"
   },
   "scanner": {
     "hint": "Coloque el código QR dentro del marco",

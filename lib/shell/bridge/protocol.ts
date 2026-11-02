@@ -33,7 +33,7 @@ export const NAVIGATE_EVENT = "objectstack-native:navigate";
  * `window` and announced as a capability of the same name, so the Console
  * feature-detects with `has(name)` before it listens.
  */
-export const SHELL_EVENTS = ["pushTokenChanged"] as const;
+export const SHELL_EVENTS = ["pushTokenChanged", "connectionRemoved"] as const;
 export type ShellEventName = (typeof SHELL_EVENTS)[number];
 
 /** The DOM event type the shell dispatches for a {@link ShellEventName}. */
@@ -49,6 +49,17 @@ export function shellEventType(name: ShellEventName): string {
  */
 export const PUSH_TOKEN_CHANGED_EVENT = shellEventType("pushTokenChanged");
 
+/**
+ * DOM event the shell dispatches on `window` before it removes the current
+ * connection and signs it out (cancelable, `detail: { waitUntil(promise) }`).
+ * A Console that handles it calls `preventDefault()`, unregisters this
+ * install's push token under its session, and hands that work to
+ * `detail.waitUntil`; the shell clears the host's cookies only after it
+ * settles. The shell's own script reports the outcome back as the
+ * `connectionRemovedDone` event.
+ */
+export const CONNECTION_REMOVED_EVENT = shellEventType("connectionRemoved");
+
 /** Largest message the shell will parse (bytes of JSON text). */
 export const MAX_MESSAGE_LENGTH = 64 * 1024;
 
@@ -60,6 +71,7 @@ export const BRIDGE_METHODS = [
   "navigate",
   "resetServer",
   "scan",
+  "showConnectionSwitcher",
 ] as const;
 export type BridgeMethod = (typeof BRIDGE_METHODS)[number];
 
@@ -87,9 +99,32 @@ export type ScanFormat = (typeof SCAN_FORMATS)[number];
 /** Everything the shell announces in `capabilities`: its methods and its events. */
 export const BRIDGE_CAPABILITIES: readonly string[] = [...BRIDGE_METHODS, ...SHELL_EVENTS];
 
-/** Fire-and-forget notifications from the Console. */
-export const BRIDGE_EVENTS = ["ready", "routeChanged"] as const;
+/**
+ * Fire-and-forget notifications from the page. `ready` and `routeChanged` are
+ * the Console's (bootstrap methods); `connectionRemovedDone` is posted by the
+ * shell's own `connectionRemoved` script, with what the Console did.
+ */
+export const BRIDGE_EVENTS = ["ready", "routeChanged", "connectionRemovedDone"] as const;
 export type BridgeEventName = (typeof BRIDGE_EVENTS)[number];
+
+/** Payload of `connectionRemovedDone`: which request, and what the page did with it. */
+export interface ConnectionRemovedDone {
+  /** The id the shell put into that `connectionRemoved` script. */
+  id: string;
+  /** A listener called `preventDefault()`. */
+  handled: boolean;
+  /** Everything handed to `waitUntil` resolved. */
+  ok: boolean;
+}
+
+/** A well-formed `connectionRemovedDone` payload, or `null`. */
+export function parseConnectionRemovedDone(payload: unknown): ConnectionRemovedDone | null {
+  if (typeof payload !== "object" || payload === null) return null;
+  const { id, handled, ok } = payload as Record<string, unknown>;
+  if (typeof id !== "string" || id.length === 0 || id.length > 64) return null;
+  if (typeof handled !== "boolean" || typeof ok !== "boolean") return null;
+  return { id, handled, ok };
+}
 
 export const HAPTIC_KINDS = [
   "light",

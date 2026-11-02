@@ -8,6 +8,8 @@
  *      └──────ready────────┼──────────────────────────────▶ ready
  *      └───────fail────────┴──────────▶ failed ──recreate──▶ loading
  *
+ *   any phase ──switch──▶ loading (a new WebView on the new current connection)
+ *
  * - `loading`: the document is loading. The cover is up; routes are held.
  * - `loaded`: the document has loaded (`onLoadEnd`) but the Console has not
  *   said `ready`. The Console boots after its document loads (boot round-trips,
@@ -26,6 +28,11 @@
  * one only — and delivered on entering `ready`, by the event or the timeout.
  * Unlike a held route it survives a re-created WebView, whose start URL cannot
  * carry it.
+ *
+ * Switching connections re-creates the WebView too, on the new host: the
+ * machine starts over at that connection's last route, and drops the held
+ * route and the last route of the host it leaves. The held push token stays —
+ * it is this install's, whichever server the Console that registers it is on.
  *
  * Pure and synchronous: `stepConsoleLoad` returns the next state plus the side
  * effects the component performs (inject a route or a token, arm or clear the
@@ -77,6 +84,12 @@ export type ConsoleLoadEvent =
   | { type: "reload" }
   /** A new WebView replaces the old one (retry after a failure, dead process). */
   | { type: "recreate" }
+  /**
+   * The current connection changed: a new WebView on its host, at `route` —
+   * that connection's last route, already validated — or at the Console's
+   * default route when `null`.
+   */
+  | { type: "switch"; route: string | null }
   /** A web-owned, already validated Console route was asked for. */
   | { type: "navigate"; route: string }
   /** The OS reported a (rotated) push token, already validated. */
@@ -93,7 +106,11 @@ export type ConsoleLoadEffect =
   | { type: "sendPushToken"; token: PushTokenResult }
   | { type: "armReadyTimer" }
   | { type: "clearReadyTimer" }
-  /** Mount a new WebView, at `startRoute` when one is given. */
+  /**
+   * Mount a new WebView, at `startRoute` when one is given. On the same server
+   * a `null` start keeps the previous start route; on a new server (a switch)
+   * it is the Console's default route.
+   */
   | { type: "recreate"; startRoute: string | null };
 
 export interface ConsoleLoadStep {
@@ -160,6 +177,21 @@ export function stepConsoleLoad(state: ConsoleLoadState, event: ConsoleLoadEvent
         state.phase === "loaded" ? [{ type: "clearReadyTimer" }] : [];
       effects.push({ type: "recreate", startRoute });
       return { state: { ...state, phase: "loading", pendingRoute: null }, effects };
+    }
+
+    case "switch": {
+      // Everything route-shaped belonged to the host being left.
+      const effects: ConsoleLoadEffect[] =
+        state.phase === "loaded" ? [{ type: "clearReadyTimer" }] : [];
+      effects.push({ type: "recreate", startRoute: event.route });
+      return {
+        state: {
+          ...INITIAL_CONSOLE_LOAD_STATE,
+          heldPushToken: state.heldPushToken,
+          lastRoute: event.route,
+        },
+        effects,
+      };
     }
 
     case "navigate":

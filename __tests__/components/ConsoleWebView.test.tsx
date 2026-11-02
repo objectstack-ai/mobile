@@ -1,12 +1,15 @@
 import React, { createRef } from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { BackHandler } from "react-native";
+// Types for the matchers jest.config registers through setupFilesAfterEnv.
+import type {} from "@testing-library/react-native/extend-expect";
 import {
   ConsoleWebView,
   type ConsoleWebViewHandle,
   type ConsoleWebViewProps,
 } from "~/components/shell/ConsoleWebView";
 import { READY_TIMEOUT_MS } from "~/lib/shell/console-load";
+import { CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
 
 const mockWebView = {
   props: null as any,
@@ -73,15 +76,16 @@ function renderConsole(overrides: Partial<ConsoleWebViewProps> = {}) {
       openExternal: jest.fn().mockResolvedValue(undefined),
       resetServer: jest.fn().mockResolvedValue(undefined),
       scan: jest.fn().mockResolvedValue(null),
+      showConnectionSwitcher: jest.fn(),
     },
     onOpenNative: jest.fn(),
     onOpenExternal: jest.fn(),
-    onChangeServer: jest.fn(),
+    onSwitchConnection: jest.fn(),
     ...overrides,
   };
   const ref = createRef<ConsoleWebViewHandle>();
-  render(<ConsoleWebView ref={ref} {...props} />);
-  return { props, ref };
+  const view = render(<ConsoleWebView ref={ref} {...props} />);
+  return { props, ref, view };
 }
 
 /** A failed load, in react-native-webview's real order: onError, then onLoadEnd. */
@@ -360,6 +364,7 @@ describe("ConsoleWebView", () => {
           openExternal: jest.fn().mockResolvedValue(undefined),
           resetServer: jest.fn().mockResolvedValue(undefined),
           scan,
+          showConnectionSwitcher: jest.fn(),
         },
       });
       loadStart();
@@ -541,8 +546,10 @@ describe("ConsoleWebView", () => {
     expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
     expect(screen.getByText("You're offline")).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId("shell-change-server"));
-    expect(props.onChangeServer).toHaveBeenCalled();
+    const secondary = screen.getByTestId("shell-switch-connection");
+    expect(secondary).toHaveTextContent("Switch organization");
+    fireEvent.press(secondary);
+    expect(props.onSwitchConnection).toHaveBeenCalled();
 
     fireEvent.press(screen.getByTestId("shell-retry"));
     expect(screen.queryByTestId("shell-offline-fallback")).toBeNull();
@@ -561,10 +568,11 @@ describe("ConsoleWebView", () => {
         openExternal: jest.fn(),
         resetServer: jest.fn(),
         scan: jest.fn(),
+        showConnectionSwitcher: jest.fn(),
       },
       onOpenNative: jest.fn(),
       onOpenExternal: jest.fn(),
-      onChangeServer: jest.fn(),
+      onSwitchConnection: jest.fn(),
     };
     const view = render(<ConsoleWebView ref={ref} {...props} />);
     failLoad();
@@ -649,5 +657,180 @@ describe("ConsoleWebView", () => {
       Platform.OS = original;
       addSpy.mockRestore();
     }
+  });
+});
+
+describe("ConsoleWebView — saved connections", () => {
+  const OTHER = "https://erp.example.com";
+
+  /** The rendered element for `overrides`, to re-render with a changed connection. */
+  function element(props: ConsoleWebViewProps, ref = createRef<ConsoleWebViewHandle>()) {
+    return <ConsoleWebView ref={ref} {...props} />;
+  }
+
+  /** A bridge call posted by a page at `url`. */
+  async function postCall(method: string, url: string, id = "c1") {
+    await act(async () => {
+      mockWebView.props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type: "call", id, method }), url },
+      });
+    });
+  }
+
+  describe("switching", () => {
+    it("re-creates the WebView on the chosen host at that connection's last route", async () => {
+      const { props, view } = renderConsole();
+      finishLoad();
+      await consoleReady();
+      expect(mockWebView.mounts).toBe(1);
+
+      view.rerender(element({ ...props, serverUrl: OTHER, resumeRoute: "/apps/hr/leave?tab=2" }));
+      expect(mockWebView.mounts).toBe(2);
+      expect(mockWebView.props.source).toEqual({ uri: `${OTHER}/_console/apps/hr/leave?tab=2` });
+      // Nothing was injected to move the old page, and the cover is back up.
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+      expect(screen.getByText("Loading…")).toBeTruthy();
+    });
+
+    it("opens the Console's default route on a host with no last route", () => {
+      const { props, view } = renderConsole();
+      view.rerender(element({ ...props, serverUrl: OTHER, resumeRoute: null }));
+      expect(mockWebView.props.source).toEqual({ uri: `${OTHER}/_console/home` });
+    });
+
+    it("refuses an unsafe last route and opens the default route", () => {
+      const { props, view } = renderConsole();
+      view.rerender(element({ ...props, serverUrl: OTHER, resumeRoute: "/../api/v1/me" }));
+      expect(mockWebView.props.source).toEqual({ uri: `${OTHER}/_console/home` });
+    });
+
+    it("does not re-create the WebView for a re-render on the same connection", () => {
+      const { props, view } = renderConsole();
+      view.rerender(element({ ...props, resumeRoute: "/apps/hr" }));
+      expect(mockWebView.mounts).toBe(1);
+      expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm` });
+    });
+
+    it("leaves the failure page for the chosen host", () => {
+      const { props, view } = renderConsole();
+      failLoad();
+      expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
+      view.rerender(element({ ...props, serverUrl: OTHER, resumeRoute: "/apps/hr" }));
+      expect(screen.queryByTestId("shell-offline-fallback")).toBeNull();
+      expect(mockWebView.props.source).toEqual({ uri: `${OTHER}/_console/apps/hr` });
+    });
+
+    it("does not carry a route held for the host it leaves", async () => {
+      const { props, ref, view } = renderConsole();
+      act(() => ref.current?.navigate("/apps/crm/lead/1"));
+      view.rerender(element({ ...props, serverUrl: OTHER, resumeRoute: null }, ref));
+      finishLoad();
+      await postEvent("ready", undefined, `${OTHER}/_console/home`);
+      expect(mockWebView.props.source).toEqual({ uri: `${OTHER}/_console/home` });
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it("follows the new connection's origin: the host left gets no answer, the new one does", async () => {
+      const { props, view } = renderConsole();
+      view.rerender(element({ ...props, serverUrl: OTHER }));
+
+      await postCall("showConnectionSwitcher", `${SERVER}/_console/home`);
+      expect(props.capabilities.showConnectionSwitcher).not.toHaveBeenCalled();
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+
+      await postCall("showConnectionSwitcher", `${OTHER}/_console/home`);
+      expect(props.capabilities.showConnectionSwitcher).toHaveBeenCalledTimes(1);
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('"id":"c1","ok":true,"value":null')
+      );
+    });
+
+    it("gives the new host's bootstrap the new origin", () => {
+      const { props, view } = renderConsole();
+      view.rerender(element({ ...props, serverUrl: OTHER }));
+      expect(mockWebView.props.injectedJavaScriptBeforeContentLoaded).toContain(
+        '"https://erp.example.com"'
+      );
+    });
+  });
+
+  it("reports the Console's route changes on its server", async () => {
+    const onRouteChange = jest.fn();
+    renderConsole({ onRouteChange });
+    await postEvent("routeChanged", { route: "/apps/crm/lead/7" });
+    await postEvent("routeChanged", { route: "/apps/crm/lead/7" });
+    await postEvent("routeChanged", { route: "/../api" });
+    expect(onRouteChange).toHaveBeenCalledTimes(1);
+    expect(onRouteChange).toHaveBeenCalledWith(SERVER, "/apps/crm/lead/7");
+  });
+
+  describe("askConsoleToRemove", () => {
+    /** The id the removal script injected into the page carries. */
+    function injectedRemovalId(): string {
+      const script = mockWebView.injectJavaScript.mock.calls
+        .map(([s]: [string]) => s)
+        .find((s: string) => s.includes(CONNECTION_REMOVED_EVENT));
+      if (!script) throw new Error("no removal script injected");
+      return /var id = "([^"]+)"/.exec(script)![1];
+    }
+
+    async function readyConsole() {
+      const handle = renderConsole();
+      finishLoad();
+      await consoleReady();
+      return handle;
+    }
+
+    it("answers not-loaded before the Console is ready, injecting nothing", async () => {
+      const { ref } = renderConsole();
+      await expect(ref.current!.askConsoleToRemove()).resolves.toBe("not-loaded");
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it("answers not-loaded on the failure page", async () => {
+      const { ref } = renderConsole();
+      failLoad();
+      await expect(ref.current!.askConsoleToRemove()).resolves.toBe("not-loaded");
+    });
+
+    it.each([
+      [{ handled: true, ok: true }, "unregistered"],
+      [{ handled: true, ok: false }, "failed"],
+      [{ handled: false, ok: false }, "not-handled"],
+    ])("reads the page's answer %j as %s", async (answer, expected) => {
+      const { ref } = await readyConsole();
+      let result: string | undefined;
+      void ref.current!.askConsoleToRemove().then((r) => (result = r));
+      const id = injectedRemovalId();
+      // An answer to another request, or from another origin, settles nothing.
+      await postEvent("connectionRemovedDone", { id: "someone-else", handled: true, ok: true });
+      await postEvent("connectionRemovedDone", { id, ...answer }, "https://evil.example.com/");
+      expect(result).toBeUndefined();
+      await postEvent("connectionRemovedDone", { id, ...answer });
+      expect(result).toBe(expected);
+    });
+
+    it("gives up after the timeout", async () => {
+      jest.useFakeTimers();
+      try {
+        const { ref } = await readyConsole();
+        let result: string | undefined;
+        void ref.current!.askConsoleToRemove().then((r) => (result = r));
+        await act(async () => {
+          jest.advanceTimersByTime(10_000);
+        });
+        expect(result).toBe("no-answer");
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it("answers no-answer when the WebView is re-created while waiting", async () => {
+      const { ref } = await readyConsole();
+      let result: string | undefined;
+      void ref.current!.askConsoleToRemove().then((r) => (result = r));
+      await act(async () => mockWebView.props.onRenderProcessGone());
+      expect(result).toBe("no-answer");
+    });
   });
 });
