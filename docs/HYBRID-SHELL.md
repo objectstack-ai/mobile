@@ -41,12 +41,16 @@ lib/
   rtl.ts              right-to-left layout for Arabic
   server-probe.ts     anonymous probe of a server before it is saved
   server-url.ts       persistence of the saved connections (and the one-time migration)
+lib/managed-config/
+  model.ts            MDM managed config: serverUrl, lockServer, precedence, the lock
+  native.ts           reading it through modules/managed-config, on launch and foreground
 lib/connections/
   model.ts            saved connections: the list, the current one, the storage form
   cookies.ts          clearing one host's own cookies from the WebView cookie store
   sign-out.ts         removing a connection: push token through the Console, then cookies
 stores/
   server-store.ts     the saved connections in memory, for the screens
+modules/managed-config/  local Expo module (iOS/Android reader) and its config plugin
 lib/shell/
   console-url.ts      server URL normalisation, Console URL ⇄ route
   console-load.ts     load states: loading cover, held route and push token, last route
@@ -210,8 +214,10 @@ console; there is no third noun.
   organization name, or the server's branded product name), `host`,
   `serverUrl` (the normalized base URL the Console loads from — a host alone
   loses the scheme and a base path), `brandColor` and `initial`, `lastRoute`,
-  `addedAt`. A connection is its host: saving a host again refreshes that
-  record in place (its last route is kept unless the base URL changed).
+  `addedAt`, and `managedFrom` on a connection confirmed from the managed
+  address (see "Managed deployment"). A connection is its host: saving a host
+  again refreshes that record in place (its last route is kept unless the base
+  URL changed).
 - **The list** is ordered by when each was added, and one connection is
   current. Saving makes the saved one current; removing the current one makes
   the first remaining one current, and removing the last leaves none (the start
@@ -291,6 +297,28 @@ Sign-in through an external identity provider: the IdP's host must be listed in
 browser and the session cookie never reaches the WebView. Providers that refuse
 embedded WebViews (Google) need the `ASWebAuthenticationSession` flow — tracked
 as follow-up work.
+
+### Managed deployment
+
+An organization's MDM can set the server (`serverUrl`) and lock it
+(`lockServer`) through the platform's managed app configuration; keys,
+behaviour and samples are in [DEPLOYMENT.md](./DEPLOYMENT.md#managed-deployment-mdm).
+In the shell:
+
+- `lib/managed-config/native.ts` reads the configuration through the local
+  module `modules/managed-config/` on launch, every time the app becomes
+  active, and on the module's change event; the server store keeps the reading
+  (`managed`) and makes the saved managed connection current on launch and on
+  a change.
+- While the managed address has no saved connection, the Console screen hands
+  over to the picker, which probes that address with no address step and shows
+  the confirm step. The probe is never skipped; the saved connection records
+  `managedFrom`, so a redirect the probe adopted still matches.
+- Locked, the switcher hides add and the managed row's Remove, removal of that
+  host is refused before any sign-out step, `resetServer()` is answered
+  `failed`, and the picker opens nothing else.
+- `trustedHosts` is not read from MDM: the navigation policy and the bridge's
+  trusted origins come only from the build.
 
 ## Navigation policy
 
@@ -691,6 +719,11 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   through the Console screen: `__tests__/components/ConsoleScreen.test.tsx`.
 - The picker and its confirm step — component tests under
   `__tests__/components` (`ServerConfigScreen`, `ServerConfirm`).
+- Managed deployment — parsing, precedence and the lock
+  (`__tests__/lib/managed-config/model.test.ts`), the native read and its
+  triggers with the module mocked (`native.test.ts`), the Android schema
+  against the keys read (`plugin.test.ts`), the store (`server-store.test.ts`),
+  and the picker, switcher and Console screen under a managed config.
 - Locale list, phone-language matching and bundle completeness —
   `__tests__/lib/i18n.test.ts`; right-to-left native screens under `ar` —
   `__tests__/components/RtlLayout.test.tsx`.

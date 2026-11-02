@@ -292,3 +292,39 @@ describe("storage form", () => {
     });
   });
 });
+
+describe("managedFrom", () => {
+  const managedErp: ConnectionInput = {
+    ...erp,
+    serverUrl: "https://www.erp.example.com",
+    managedFrom: "https://erp.example.com",
+  };
+
+  it("is stored and read back; connections the user added carry none", () => {
+    const state = addConnection(addConnection(EMPTY_CONNECTIONS, managedErp, 1), acme, 2);
+    const read = parseConnections(serializeConnections(state));
+    expect(read?.list[0].managedFrom).toBe("https://erp.example.com");
+    expect(read?.list[1]).not.toHaveProperty("managedFrom");
+  });
+
+  it("a later save of the host without one keeps it; a save with one replaces it", () => {
+    let state = addConnection(EMPTY_CONNECTIONS, managedErp, 1);
+    state = addConnection(state, { ...erp, serverUrl: "https://www.erp.example.com" }, 2);
+    expect(state.list[0].managedFrom).toBe("https://erp.example.com");
+    state = addConnection(state, { ...managedErp, managedFrom: "https://erp2.example.com" }, 3);
+    expect(state.list[0].managedFrom).toBe("https://erp2.example.com");
+  });
+
+  it("a stored value that is not a non-empty string is dropped", () => {
+    const text = JSON.stringify({
+      version: CONNECTIONS_STORAGE_VERSION,
+      current: "erp.example.com",
+      connections: [
+        { ...erp, managedFrom: 42 },
+        { ...acme, managedFrom: "" },
+      ],
+    });
+    const read = parseConnections(text);
+    expect(read?.list.map((c) => "managedFrom" in c)).toEqual([false, false]);
+  });
+});

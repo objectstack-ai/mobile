@@ -44,6 +44,12 @@ export interface Connection {
   lastRoute: string | null;
   /** When the connection was first added (epoch ms). */
   addedAt: number;
+  /**
+   * The managed address (MDM, `lib/managed-config/`) this connection was
+   * confirmed from, normalized — kept because the probe may adopt a redirect,
+   * so `serverUrl` can differ from it. Absent on connections the user added.
+   */
+  managedFrom?: string;
 }
 
 export interface Connections {
@@ -68,6 +74,8 @@ export interface ConnectionInput {
   serverUrl: string;
   brandColor: string;
   initial: string;
+  /** Set when the connection is saved from the managed address. */
+  managedFrom?: string;
 }
 
 const BRAND_COLOR_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -120,7 +128,8 @@ export function currentConnection(state: Connections): Connection | null {
 /**
  * Save a connection and make it current. A host already in the list keeps its
  * place and `addedAt`; its label, branding and URL are refreshed, and its last
- * route is kept unless the server URL changed. A save also drops the host from
+ * route is kept unless the server URL changed, and its `managedFrom` unless the
+ * save sets one. A save also drops the host from
  * {@link Connections.pushLeftRegistered}.
  */
 export function addConnection(state: Connections, input: ConnectionInput, now: number): Connections {
@@ -213,7 +222,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 /** One stored record, re-checked field by field; `null` drops it. */
 function parseConnection(raw: unknown): Connection | null {
   if (!isRecord(raw)) return null;
-  const { kind, label, serverUrl, brandColor, initial, lastRoute, addedAt } = raw;
+  const { kind, label, serverUrl, brandColor, initial, lastRoute, addedAt, managedFrom } = raw;
   if (typeof kind !== "string" || !(CONNECTION_KINDS as readonly string[]).includes(kind)) {
     return null;
   }
@@ -236,6 +245,7 @@ function parseConnection(raw: unknown): Connection | null {
       typeof initial === "string" && initial.trim().length > 0 ? initial : initialOf(name),
     lastRoute: safeConsoleRoute(lastRoute),
     addedAt: typeof addedAt === "number" && Number.isFinite(addedAt) ? addedAt : 0,
+    ...(typeof managedFrom === "string" && managedFrom.length > 0 ? { managedFrom } : {}),
   };
 }
 

@@ -10,6 +10,7 @@ import {
 } from "~/components/shell/ConsoleWebView";
 import { clearHostCookies } from "~/lib/connections/cookies";
 import { removeAndSignOut } from "~/lib/connections/sign-out";
+import { lockedHost as lockedHostOf, managedPending } from "~/lib/managed-config/model";
 import { acquireDeviceToken } from "~/lib/push-notifications";
 import { triggerHaptic } from "~/lib/haptics";
 import { shellConfig } from "~/lib/shell/config";
@@ -27,6 +28,11 @@ import { useServerStore } from "~/stores/server-store";
  * It also hosts the connection switcher (screen 8), opened from the Console
  * (bridge `showConnectionSwitcher()`) or from the failure page. Switching
  * makes another saved connection current, and the WebView follows it.
+ *
+ * Managed deployment: while the MDM's server address waits for its probe and
+ * confirm step (first launch, or a new address pushed while the app runs), the
+ * picker takes over. While the server is locked, the managed connection
+ * cannot be removed (switcher, `resetServer()`), and nothing can be added.
  */
 export default function ConsoleScreen() {
   const router = useRouter();
@@ -38,6 +44,10 @@ export default function ConsoleScreen() {
   const reset = useServerStore((s) => s.reset);
   const select = useServerStore((s) => s.select);
   const rememberRoute = useServerStore((s) => s.rememberRoute);
+  const managed = useServerStore((s) => s.managed);
+  const managedDeclined = useServerStore((s) => s.managedDeclined);
+  const lockedHost = lockedHostOf(connections, managed);
+  const managedWaiting = managedPending(connections, managed, managedDeclined);
   const webview = useRef<ConsoleWebViewHandle>(null);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [removingHost, setRemovingHost] = useState<string | null>(null);
@@ -98,6 +108,8 @@ export default function ConsoleScreen() {
       const state = useServerStore.getState();
       const connection = state.connections.find((c) => c.host === host);
       if (!connection || removingHost !== null) return;
+      // The organization locked this server: no removal, whichever door asked.
+      if (lockedHostOf(state.connections, state.managed) === host) return;
       setRemovingHost(host);
       try {
         await removeAndSignOut(connection, host === state.currentHost, {
@@ -117,7 +129,7 @@ export default function ConsoleScreen() {
   const current = connections.find((c) => c.host === currentHost) ?? null;
 
   if (!isReady) return <LoadingScreen />;
-  if (!serverUrl) return <Redirect href="/server-config" />;
+  if (!serverUrl || managedWaiting) return <Redirect href="/server-config" />;
 
   return (
     <>
@@ -140,6 +152,7 @@ export default function ConsoleScreen() {
         connections={connections}
         currentHost={currentHost}
         removingHost={removingHost}
+        lockedHost={lockedHost}
         onClose={() => setSwitcherOpen(false)}
         onSelect={switchTo}
         onRemove={(host) => void removeConnection(host)}

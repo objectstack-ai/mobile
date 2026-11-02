@@ -9,8 +9,26 @@ jest.mock("~/lib/server-url", () => ({
   saveConnections: (state: Connections) => mockSaveConnections(state),
 }));
 
+// The native managed-config read, mocked: what the MDM configured, and the
+// change subscription the first hydrate starts.
+let mockManaged: ManagedConfig = { serverUrl: null, lockServer: false };
+let mockOnManagedRead: ((config: ManagedConfig) => void) | null = null;
+const mockUnsubscribe = jest.fn();
+jest.mock("~/lib/managed-config/native", () => ({
+  readManagedConfig: () => mockManaged,
+  subscribeManagedConfig: (onRead: (config: ManagedConfig) => void) => {
+    mockOnManagedRead = onRead;
+    return mockUnsubscribe;
+  },
+}));
+
 import { EMPTY_CONNECTIONS, addConnection, connectionFromProbe } from "~/lib/connections/model";
-import { useServerStore } from "~/stores/server-store";
+import { NO_MANAGED_CONFIG, type ManagedConfig } from "~/lib/managed-config/model";
+import {
+  LOCKED_SERVER_MESSAGE,
+  stopManagedConfigFollowing,
+  useServerStore,
+} from "~/stores/server-store";
 
 function probed(serverUrl: string, productName: string): ProbedServer {
   return {
@@ -40,12 +58,17 @@ const lastSaved = () => mockSaveConnections.mock.calls.at(-1)?.[0];
 beforeEach(() => {
   jest.clearAllMocks();
   mockSaveConnections.mockResolvedValue(undefined);
+  mockManaged = NO_MANAGED_CONFIG;
+  stopManagedConfigFollowing();
+  mockOnManagedRead = null;
   useServerStore.setState({
     connections: [],
     currentHost: null,
     pushLeftRegistered: [],
     serverUrl: null,
     isReady: false,
+    managed: NO_MANAGED_CONFIG,
+    managedDeclined: null,
   });
 });
 
@@ -188,5 +211,114 @@ describe("server-store", () => {
     expect(useServerStore.getState()).toMatchObject({ serverUrl: null, connections: [] });
     expect(lastSaved()).toEqual(EMPTY_CONNECTIONS);
     await expect(useServerStore.getState().reset()).resolves.toBeUndefined();
+  });
+});
+
+describe("server-store — managed config", () => {
+  const MANAGED: ManagedConfig = { serverUrl: "https://erp.example.com", lockServer: false };
+  const LOCKED: ManagedConfig = { ...MANAGED, lockServer: true };
+  /** ERP and Acme saved, Acme current. */
+  const bothSavedAcmeCurrent = () => {
+    const both = addConnection(
+      addConnection(EMPTY_CONNECTIONS, connectionFromProbe(ERP), 1),
+      connectionFromProbe(ACME),
+      2
+    );
+    return { ...both, current: "acme.example.com" };
+  };
+
+  it("hydrate publishes the managed config and starts following it once", async () => {
+    mockManaged = LOCKED;
+    await hydrated(EMPTY_CONNECTIONS);
+    expect(useServerStore.getState().managed).toEqual(LOCKED);
+    expect(mockOnManagedRead).not.toBeNull();
+    const first = mockOnManagedRead;
+    await hydrated(EMPTY_CONNECTIONS);
+    expect(mockOnManagedRead).toBe(first);
+  });
+
+  it("managed wins over the stored current connection on launch", async () => {
+    mockManaged = MANAGED;
+    await hydrated(bothSavedAcmeCurrent());
+    expect(useServerStore.getState()).toMatchObject({
+      currentHost: "erp.example.com",
+      serverUrl: "https://erp.example.com",
+    });
+    expect(lastSaved()?.current).toBe("erp.example.com");
+  });
+
+  it("without managed config, the stored current connection stays and nothing is written", async () => {
+    await hydrated(bothSavedAcmeCurrent());
+    expect(useServerStore.getState().currentHost).toBe("acme.example.com");
+    expect(mockSaveConnections).not.toHaveBeenCalled();
+  });
+
+  it("connect records the managed address a server was confirmed from (the probe may redirect)", async () => {
+    mockManaged = MANAGED;
+    await hydrated(EMPTY_CONNECTIONS);
+    await useServerStore.getState().connect(probed("https://www.erp.example.com", "Example ERP"), {
+      managedFrom: "https://erp.example.com",
+    });
+    expect(lastSaved()?.list[0]).toMatchObject({
+      host: "www.erp.example.com",
+      managedFrom: "https://erp.example.com",
+    });
+    // A later save of that host without it keeps the record's origin.
+    await useServerStore.getState().connect(probed("https://www.erp.example.com", "ERP 2"));
+    expect(useServerStore.getState().connections[0].managedFrom).toBe("https://erp.example.com");
+  });
+
+  it("a changed managed config is published and its saved connection made current", async () => {
+    await hydrated(bothSavedAcmeCurrent());
+    mockOnManagedRead?.(MANAGED);
+    expect(useServerStore.getState()).toMatchObject({
+      managed: MANAGED,
+      currentHost: "erp.example.com",
+    });
+    await Promise.resolve();
+    expect(lastSaved()?.current).toBe("erp.example.com");
+  });
+
+  it("an unchanged reading (every foreground) leaves the user's own switch alone", async () => {
+    mockManaged = MANAGED;
+    await hydrated(bothSavedAcmeCurrent());
+    await useServerStore.getState().select("acme.example.com");
+    mockSaveConnections.mockClear();
+    mockOnManagedRead?.({ ...MANAGED });
+    expect(useServerStore.getState().currentHost).toBe("acme.example.com");
+    expect(mockSaveConnections).not.toHaveBeenCalled();
+  });
+
+  it("declining is for the unlocked managed address only, and ends when the MDM pushes another", async () => {
+    mockManaged = MANAGED;
+    await hydrated(EMPTY_CONNECTIONS);
+    useServerStore.getState().declineManaged();
+    expect(useServerStore.getState().managedDeclined).toBe("https://erp.example.com");
+
+    useServerStore.getState().applyManaged({ ...MANAGED, lockServer: true });
+    expect(useServerStore.getState().managedDeclined).toBe("https://erp.example.com");
+    useServerStore
+      .getState()
+      .applyManaged({ serverUrl: "https://new.example.com", lockServer: false });
+    expect(useServerStore.getState().managedDeclined).toBeNull();
+
+    useServerStore
+      .getState()
+      .applyManaged({ serverUrl: "https://new.example.com", lockServer: true });
+    useServerStore.getState().declineManaged();
+    expect(useServerStore.getState().managedDeclined).toBeNull();
+  });
+
+  it("reset refuses the managed connection while the server is locked", async () => {
+    mockManaged = LOCKED;
+    await hydrated(addConnection(EMPTY_CONNECTIONS, connectionFromProbe(ERP), 1));
+    await expect(useServerStore.getState().reset()).rejects.toThrow(LOCKED_SERVER_MESSAGE);
+    expect(useServerStore.getState().connections).toHaveLength(1);
+    expect(mockSaveConnections).not.toHaveBeenCalled();
+
+    // Unlocked, it forgets it as before.
+    useServerStore.getState().applyManaged(MANAGED);
+    await useServerStore.getState().reset();
+    expect(useServerStore.getState().connections).toHaveLength(0);
   });
 });

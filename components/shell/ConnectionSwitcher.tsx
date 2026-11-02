@@ -18,6 +18,11 @@ export interface ConnectionSwitcherProps {
   currentHost: string | null;
   /** The host being removed: its row shows progress, and nothing else can be removed meanwhile. */
   removingHost?: string | null;
+  /**
+   * The managed connection while the organization locks the server
+   * (`lockServer`): its row cannot be removed, and adding is not offered.
+   */
+  lockedHost?: string | null;
   onClose: () => void;
   /** Make a connection current (the Console switches to it). */
   onSelect: (host: string) => void;
@@ -39,13 +44,15 @@ const LIST_MAX_HEIGHT = 400;
  * reveals Remove (screen readers get the same as a "Remove" action on the
  * row). Below: add a connection, which never saves by
  * itself — it goes back to the address step and its confirm step — and app
- * settings.
+ * settings. While the server is locked by the organization, the managed row
+ * has no Remove and there is no add.
  */
 export function ConnectionSwitcher({
   open,
   connections,
   currentHost,
   removingHost = null,
+  lockedHost = null,
   onClose,
   onSelect,
   onRemove,
@@ -56,6 +63,8 @@ export function ConnectionSwitcher({
   const colors = useThemeColors();
   const direction = useLayoutDirection();
   const Chevron = direction === "rtl" ? ChevronLeft : ChevronRight;
+  const lockedLabel =
+    lockedHost === null ? null : (connections.find((c) => c.host === lockedHost)?.label ?? null);
 
   return (
     <BottomSheet open={open} onOpenChange={(next) => (next ? undefined : onClose())}>
@@ -81,24 +90,29 @@ export function ConnectionSwitcher({
               current={connection.host === currentHost}
               removing={connection.host === removingHost}
               locked={removingHost !== null}
+              removable={connection.host !== lockedHost}
               onSelect={onSelect}
               onRemove={onRemove}
             />
           ))}
         </ScrollView>
 
-        <Pressable
-          testID="switcher-add"
-          accessibilityRole="button"
-          onPress={onAdd}
-          className="mt-4 flex-row items-center gap-3 rounded-2xl border border-dashed border-border px-5 py-4"
-        >
-          <Plus size={20} color={colors.accent} />
-          <Text className="flex-1 text-base font-semibold text-primary">{t("switcher.add")}</Text>
-        </Pressable>
+        {lockedLabel === null ? (
+          <Pressable
+            testID="switcher-add"
+            accessibilityRole="button"
+            onPress={onAdd}
+            className="mt-4 flex-row items-center gap-3 rounded-2xl border border-dashed border-border px-5 py-4"
+          >
+            <Plus size={20} color={colors.accent} />
+            <Text className="flex-1 text-base font-semibold text-primary">{t("switcher.add")}</Text>
+          </Pressable>
+        ) : null}
 
         <Text testID="switcher-footnote" className="mt-4 text-sm text-muted-foreground">
-          {t("switcher.footnote")}
+          {lockedLabel === null
+            ? t("switcher.footnote")
+            : t("switcher.lockedFootnote", { label: lockedLabel })}
         </Text>
 
         <Pressable
@@ -122,6 +136,8 @@ interface ConnectionRowProps {
   removing: boolean;
   /** A removal is running: no row can be switched to or removed. */
   locked: boolean;
+  /** False for the managed connection while the server is locked: no Remove. */
+  removable: boolean;
   onSelect: (host: string) => void;
   onRemove: (host: string) => void;
 }
@@ -132,6 +148,7 @@ function ConnectionRow({
   current,
   removing,
   locked,
+  removable,
   onSelect,
   onRemove,
 }: ConnectionRowProps) {
@@ -143,34 +160,38 @@ function ConnectionRow({
 
   const remove = () => {
     swipeable.current?.close();
-    if (!locked) onRemove(host);
+    if (!locked && removable) onRemove(host);
   };
 
   return (
     <ReanimatedSwipeable
       ref={swipeable}
-      enabled={!locked}
+      enabled={!locked && removable}
       friction={2}
       rightThreshold={40}
       overshootRight={false}
-      renderRightActions={() => (
-        <Pressable
-          testID={`switcher-remove-${host}`}
-          accessibilityRole="button"
-          accessibilityLabel={t("switcher.removeNamed", { label })}
-          onPress={remove}
-          className="w-24 items-center justify-center bg-destructive"
-        >
-          <Text className="font-semibold text-destructive-foreground">{t("switcher.remove")}</Text>
-        </Pressable>
-      )}
+      renderRightActions={() =>
+        removable ? (
+          <Pressable
+            testID={`switcher-remove-${host}`}
+            accessibilityRole="button"
+            accessibilityLabel={t("switcher.removeNamed", { label })}
+            onPress={remove}
+            className="w-24 items-center justify-center bg-destructive"
+          >
+            <Text className="font-semibold text-destructive-foreground">
+              {t("switcher.remove")}
+            </Text>
+          </Pressable>
+        ) : null
+      }
     >
       <Pressable
         testID={`switcher-row-${host}`}
         accessibilityRole="button"
         accessibilityLabel={`${label}, ${kindLabel}, ${host}`}
         accessibilityState={{ selected: current, busy: removing, disabled: locked }}
-        accessibilityActions={[{ name: "remove", label: t("switcher.remove") }]}
+        accessibilityActions={removable ? [{ name: "remove", label: t("switcher.remove") }] : []}
         onAccessibilityAction={(event) => {
           if (event.nativeEvent.actionName === "remove") remove();
         }}

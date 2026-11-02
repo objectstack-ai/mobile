@@ -36,6 +36,14 @@
       "notObjectOS": "这不是 ObjectOS 服务器。请使用在浏览器中打开 ObjectOS 的地址。",
       "serverError": "服务器返回错误（HTTP {{status}}）。请稍后重试或联系管理员。",
       "unknown": "出现问题，请重试。"
+    },
+    "managed": {
+      "title": "由你的组织配置",
+      "checking": "正在检查组织配置的服务器…",
+      "contactIt": "请联系 IT 管理员。",
+      "retry": "重试",
+      "edit": "输入其他地址",
+      "locked": "此 App 的服务器由你的组织管理，无法在这里更改。"
     }
   },
   "serverConfirm": {
@@ -62,6 +70,7 @@
     "title": "切换组织",
     "add": "添加组织或公司服务器",
     "footnote": "每个组织单独保存登录状态。左滑可移除，并退出该组织的登录。",
+    "lockedFootnote": "每个组织单独保存登录状态。{{label}} 由你的组织配置，无法移除。",
     "appSettings": "App 设置",
     "kind": {
       "cloud": "Cloud",

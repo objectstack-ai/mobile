@@ -88,6 +88,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // plugin only pins `androidx.webkit` when given `androidWebkitVersion`,
     // and the module's default (1.16.0) covers `GET_COOKIE_INFO` (>= 1.6.0).
     "@preeternal/react-native-cookie-manager",
+    // MDM managed configuration (docs/DEPLOYMENT.md, "MDM"): the local module
+    // in modules/managed-config/ is autolinked; its plugin declares the Android
+    // restrictions schema (res/xml/app_restrictions.xml) for EMM consoles.
+    "./modules/managed-config/app.plugin.js",
     [
       "@sentry/react-native/expo",
       {
