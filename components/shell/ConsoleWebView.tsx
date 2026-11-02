@@ -254,8 +254,9 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
 
     // A switch to another connection: the current server changed under the
     // live WebView. The machine re-creates the WebView on the new host, at
-    // that connection's last route. A layout effect, so the old WebView never
-    // renders a frame pointed at the new server's routes.
+    // that connection's last route. The old WebView keeps its own `start`
+    // until then, so it is never pointed at the new host; a layout effect, so
+    // the replacement lands before the next frame is drawn.
     const shownServerRef = useRef(serverUrl);
     useLayoutEffect(() => {
       if (shownServerRef.current === serverUrl) return;
