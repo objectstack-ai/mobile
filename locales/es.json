@@ -1,0 +1,84 @@
+{
+  "common": {
+    "ok": "Aceptar",
+    "cancel": "Cancelar",
+    "retry": "Reintentar",
+    "error": "Error"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "message": "Ha ocurrido un error inesperado.",
+    "retry": "Intentar de nuevo"
+  },
+  "serverConfig": {
+    "title": "Conectar al servidor",
+    "subtitle": "Introduzca la dirección de su servidor ObjectOS.",
+    "label": "URL del servidor",
+    "hint": "Ejemplo: https://erp.example.com",
+    "connect": "Continuar",
+    "scan": "Escanear código QR",
+    "backTo": "Volver a {{server}}",
+    "where": {
+      "title": "¿Dónde encuentro la dirección?",
+      "step1": "En un ordenador, abra ObjectOS en el navegador e inicie sesión.",
+      "step2": "Copie la dirección de la barra de direcciones. Puede pegar el enlace completo: la aplicación solo conserva la parte del servidor.",
+      "step3": "¿No está seguro? Consulte a su administrador."
+    },
+    "vpnHint": "Un servidor de la red de la empresa puede requerir que este teléfono se conecte antes a la VPN de la empresa.",
+    "error": {
+      "empty": "Introduzca la URL del servidor.",
+      "invalid": "Eso no parece una dirección de servidor.",
+      "insecure": "Use una dirección https://: http sin cifrar solo se permite para servidores locales.",
+      "unreachable": "No se pudo conectar con el servidor. Compruebe la dirección y su red: un servidor de empresa puede requerir VPN.",
+      "tls": "El certificado del servidor no es válido, por lo que la conexión no es segura. Pida a su administrador que lo corrija.",
+      "timeout": "El servidor tardó demasiado en responder. Compruebe su red o VPN e inténtelo de nuevo.",
+      "notObjectOS": "Esto no es un servidor ObjectOS. Use la dirección con la que abre ObjectOS en un navegador.",
+      "serverError": "El servidor respondió con un error (HTTP {{status}}). Inténtelo más tarde o consulte a su administrador.",
+      "unknown": "Algo salió mal. Inténtelo de nuevo."
+    }
+  },
+  "serverConfirm": {
+    "title": "¿Es este su servidor?",
+    "secure": "Conexión segura (HTTPS)",
+    "signInLabel": "Iniciar sesión con",
+    "signIn": {
+      "sso": "Inicio de sesión único (SSO)",
+      "emailPassword": "Correo electrónico y contraseña"
+    },
+    "versionLabel": "Versión de la plataforma",
+    "confirm": "Conectar e iniciar sesión",
+    "reject": "No es este servidor"
+  },
+  "shell": {
+    "loading": "Cargando…",
+    "offlineTitle": "Sin conexión",
+    "offlineMessage": "Compruebe su conexión. La página se recargará sola cuando vuelva a estar en línea.",
+    "serverErrorTitle": "El servidor no responde",
+    "serverErrorMessage": "El servidor respondió con el error {{code}}. Inténtelo de nuevo en un momento.",
+    "retry": "Intentar de nuevo",
+    "changeServer": "Usar otro servidor"
+  },
+  "scanner": {
+    "hint": "Coloque el código QR dentro del marco",
+    "codeHint": "Coloque el código dentro del marco",
+    "connectNote": "Solo contiene la dirección del servidor, sin datos de la cuenta",
+    "manual": "Introducir la dirección manualmente",
+    "notConnectCode": "Este no es un código QR de conexión",
+    "unreadable": "No se puede leer este código",
+    "close": "Cerrar",
+    "torchOn": "Encender la linterna",
+    "torchOff": "Apagar la linterna",
+    "permission": {
+      "title": "Se necesita acceso a la cámara",
+      "body": "Permita el acceso a la cámara para escanear el código QR.",
+      "blocked": "El acceso a la cámara está desactivado para ObjectOS. Actívelo en Configuración o introduzca la dirección manualmente.",
+      "allow": "Permitir la cámara",
+      "settings": "Abrir Configuración",
+      "codeBody": "Permita el acceso a la cámara para escanear el código.",
+      "codeBlocked": "El acceso a la cámara está desactivado para ObjectOS. Actívelo en Configuración para escanear códigos."
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS usa la cámara para escanear códigos QR y códigos de barras, como el código que lo conecta a su servidor."
+  }
+}

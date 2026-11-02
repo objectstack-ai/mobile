@@ -1,0 +1,84 @@
+{
+  "common": {
+    "ok": "확인",
+    "cancel": "취소",
+    "retry": "다시 시도",
+    "error": "오류"
+  },
+  "errorBoundary": {
+    "title": "문제가 발생했습니다",
+    "message": "예기치 않은 오류가 발생했습니다.",
+    "retry": "다시 시도"
+  },
+  "serverConfig": {
+    "title": "서버에 연결",
+    "subtitle": "ObjectOS 서버 주소를 입력하세요.",
+    "label": "서버 URL",
+    "hint": "예: https://erp.example.com",
+    "connect": "계속",
+    "scan": "QR 코드 스캔",
+    "backTo": "{{server}}(으)로 돌아가기",
+    "where": {
+      "title": "주소는 어디에서 찾나요?",
+      "step1": "컴퓨터의 브라우저에서 ObjectOS를 열고 로그인하세요.",
+      "step2": "주소 표시줄의 주소를 복사하세요. 전체 링크를 붙여넣어도 앱은 서버 부분만 사용합니다.",
+      "step3": "잘 모르겠다면 관리자에게 문의하세요."
+    },
+    "vpnHint": "회사 네트워크의 서버라면 먼저 이 휴대폰을 회사 VPN에 연결해야 할 수 있습니다.",
+    "error": {
+      "empty": "서버 URL을 입력하세요.",
+      "invalid": "서버 주소가 아닌 것 같습니다.",
+      "insecure": "https:// 주소를 사용하세요. http는 로컬 서버에서만 허용됩니다.",
+      "unreachable": "서버에 연결할 수 없습니다. 주소와 네트워크를 확인하세요. 회사 서버는 VPN이 필요할 수 있습니다.",
+      "tls": "서버 인증서가 유효하지 않아 안전하게 연결할 수 없습니다. 관리자에게 수정을 요청하세요.",
+      "timeout": "서버 응답 시간이 너무 오래 걸립니다. 네트워크 또는 VPN을 확인한 후 다시 시도하세요.",
+      "notObjectOS": "ObjectOS 서버가 아닙니다. 브라우저에서 ObjectOS를 열 때 사용하는 주소를 입력하세요.",
+      "serverError": "서버에서 오류를 반환했습니다(HTTP {{status}}). 나중에 다시 시도하거나 관리자에게 문의하세요.",
+      "unknown": "문제가 발생했습니다. 다시 시도해 주세요."
+    }
+  },
+  "serverConfirm": {
+    "title": "이 서버가 맞나요?",
+    "secure": "보안 연결(HTTPS)",
+    "signInLabel": "로그인 방법",
+    "signIn": {
+      "sso": "싱글 사인온(SSO)",
+      "emailPassword": "이메일 및 비밀번호"
+    },
+    "versionLabel": "플랫폼 버전",
+    "confirm": "연결하고 로그인",
+    "reject": "이 서버가 아닙니다"
+  },
+  "shell": {
+    "loading": "로딩 중…",
+    "offlineTitle": "오프라인 상태입니다",
+    "offlineMessage": "연결을 확인하세요. 다시 온라인 상태가 되면 페이지가 자동으로 새로고침됩니다.",
+    "serverErrorTitle": "서버가 응답하지 않습니다",
+    "serverErrorMessage": "서버에서 오류 {{code}}을(를) 반환했습니다. 잠시 후 다시 시도하세요.",
+    "retry": "다시 시도",
+    "changeServer": "다른 서버 사용"
+  },
+  "scanner": {
+    "hint": "QR 코드를 프레임 안에 맞춰 주세요",
+    "codeHint": "코드를 프레임 안에 맞춰 주세요",
+    "connectNote": "서버 주소만 포함되며 계정 정보는 포함되지 않습니다",
+    "manual": "주소 직접 입력",
+    "notConnectCode": "연결용 QR 코드가 아닙니다",
+    "unreadable": "이 코드를 읽을 수 없습니다",
+    "close": "닫기",
+    "torchOn": "손전등 켜기",
+    "torchOff": "손전등 끄기",
+    "permission": {
+      "title": "카메라 접근 권한이 필요합니다",
+      "body": "QR 코드를 스캔하려면 카메라 접근을 허용하세요.",
+      "blocked": "ObjectOS의 카메라 접근이 꺼져 있습니다. 설정에서 켜거나 주소를 직접 입력하세요.",
+      "allow": "카메라 허용",
+      "settings": "설정 열기",
+      "codeBody": "코드를 스캔하려면 카메라 접근을 허용하세요.",
+      "codeBlocked": "ObjectOS의 카메라 접근이 꺼져 있습니다. 코드를 스캔하려면 설정에서 켜세요."
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS는 QR 코드와 바코드(서버에 연결하기 위한 QR 코드 등)를 스캔하는 데 카메라를 사용합니다."
+  }
+}

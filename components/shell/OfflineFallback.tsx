@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { CloudOff, ServerCrash } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
+import { useLayoutDirection } from "~/lib/rtl";
 import { useThemeColors } from "~/lib/theme-colors";
 
 export type LoadFailure =
@@ -28,11 +29,13 @@ export function OfflineFallback({
 }: OfflineFallbackProps) {
   const { t } = useTranslation();
   const colors = useThemeColors();
+  const direction = useLayoutDirection();
   const Icon = failure.kind === "network" ? CloudOff : ServerCrash;
 
   return (
     <View
       className="flex-1 items-center justify-center gap-6 bg-background px-8"
+      style={{ direction }}
       testID="shell-offline-fallback"
     >
       <View className="h-16 w-16 items-center justify-center rounded-2xl bg-muted">

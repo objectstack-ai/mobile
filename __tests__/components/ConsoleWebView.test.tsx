@@ -72,6 +72,7 @@ function renderConsole(overrides: Partial<ConsoleWebViewProps> = {}) {
       haptic: jest.fn(),
       openExternal: jest.fn().mockResolvedValue(undefined),
       resetServer: jest.fn().mockResolvedValue(undefined),
+      scan: jest.fn().mockResolvedValue(null),
     },
     onOpenNative: jest.fn(),
     onOpenExternal: jest.fn(),
@@ -95,6 +96,19 @@ function failLoad(description = "offline") {
 
 function finishLoad() {
   act(() => mockWebView.props.onLoadEnd({ nativeEvent: { loading: false } }));
+}
+
+/**
+ * A native load start, delivered as react-native-webview's `WebViewShared`
+ * does: `onLoadStart` when the host wires one, then `onNavigationStateChange`.
+ * Android fires one for every SPA history change too.
+ */
+function loadStart(url = `${SERVER}/_console/apps/crm`) {
+  const nativeEvent = { url, loading: true, title: "", canGoBack: false, canGoForward: false };
+  act(() => {
+    mockWebView.props.onLoadStart?.({ nativeEvent });
+    mockWebView.props.onNavigationStateChange(nativeEvent);
+  });
 }
 
 /** A bridge event posted by the page, from the configured server's origin. */
@@ -332,6 +346,65 @@ describe("ConsoleWebView", () => {
     );
   });
 
+  describe("an answer whose document is gone", () => {
+    /** A `scan()` from the loaded page, left open until the test settles it. */
+    function openScan() {
+      let settle: (text: string | null) => void = () => {};
+      const scan = jest.fn(
+        () => new Promise<string | null>((resolve) => (settle = resolve))
+      );
+      renderConsole({
+        capabilities: {
+          getPushToken: jest.fn().mockResolvedValue(null),
+          haptic: jest.fn(),
+          openExternal: jest.fn().mockResolvedValue(undefined),
+          resetServer: jest.fn().mockResolvedValue(undefined),
+          scan,
+        },
+      });
+      loadStart();
+      finishLoad();
+      act(() => {
+        mockWebView.props.onMessage({
+          nativeEvent: {
+            data: JSON.stringify({ type: "call", id: "d1.1", method: "scan" }),
+            url: `${SERVER}/_console/apps/crm`,
+          },
+        });
+      });
+      expect(scan).toHaveBeenCalledTimes(1);
+      return (text: string | null) => act(async () => settle(text));
+    }
+
+    it("is injected into the page that asked while that page is still there", async () => {
+      const settle = openScan();
+      await settle("4006381333931");
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('"id":"d1.1","ok":true,"value":"4006381333931"')
+      );
+    });
+
+    it("still settles the call after a load start in the same WebView (an in-app navigation)", async () => {
+      // Android reports a load start for every SPA history change. A page that
+      // really was replaced cannot match the answer: its call ids carry a
+      // token of their own document (bridge-scripts.test.ts).
+      const settle = openScan();
+      loadStart(`${SERVER}/_console/apps/crm/lead/9`);
+      await settle("4006381333931");
+      expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
+        expect.stringContaining('"id":"d1.1","ok":true,"value":"4006381333931"')
+      );
+    });
+
+    it("is dropped when the WebView was re-created meanwhile", async () => {
+      const settle = openScan();
+      act(() => mockWebView.props.onRenderProcessGone());
+      expect(mockWebView.mounts).toBe(2);
+      await settle("4006381333931");
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+  });
+
   it("injects nothing in answer to a page from another origin", async () => {
     renderConsole();
     await act(async () => {
@@ -487,6 +560,7 @@ describe("ConsoleWebView", () => {
         haptic: jest.fn(),
         openExternal: jest.fn(),
         resetServer: jest.fn(),
+        scan: jest.fn(),
       },
       onOpenNative: jest.fn(),
       onOpenExternal: jest.fn(),

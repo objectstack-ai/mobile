@@ -122,6 +122,13 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     const [phase, setPhase] = useState<ConsoleLoadPhase>(INITIAL_CONSOLE_LOAD_STATE.phase);
     const readyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const dispatchRef = useRef<(event: ConsoleLoadEvent) => void>(() => {});
+    // Counts WebView instances: a call's answer is never sent to a re-created
+    // WebView. A `scan()` stays open as long as the user takes, and recovery
+    // can re-create the WebView meanwhile. Load starts do not count: Android
+    // reports one for every SPA history change too. A page replaced within the
+    // same WebView is covered by the bootstrap's per-document call ids. Bumped
+    // only by the load state machine's `recreate` effect.
+    const documentRef = useRef(0);
 
     const goTo = useCallback(
       (route: string) => {
@@ -172,6 +179,8 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
             case "recreate":
               if (effect.startRoute !== null) setSourceRoute(effect.startRoute);
               setFailure(null);
+              // A new WebView: answers to the old one's calls are dropped.
+              documentRef.current += 1;
               setInstance((i) => i + 1);
               break;
           }
@@ -300,8 +309,10 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
 
     const onMessage = useCallback(
       (event: WebViewMessageEvent) => {
+        const caller = documentRef.current;
         void handleMessage(event.nativeEvent.data, event.nativeEvent.url).then((result) => {
-          if (result) webviewRef.current?.injectJavaScript(buildResolveScript(result));
+          if (!result || documentRef.current !== caller) return;
+          webviewRef.current?.injectJavaScript(buildResolveScript(result));
         });
       },
       [handleMessage]

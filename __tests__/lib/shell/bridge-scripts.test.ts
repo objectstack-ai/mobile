@@ -42,6 +42,9 @@ function makePage(origin = "https://acme.example.com") {
   return { window, posted, cssVars, listeners, run };
 }
 
+/** The id of a call the page posted. */
+const idOf = (message: unknown) => (message as { id: string }).id;
+
 describe("toScriptLiteral", () => {
   it("escapes characters that could break out of a script", () => {
     expect(toScriptLiteral("</script>\u2028\u2029")).toBe('"\\u003c/script>\\u2028\\u2029"');
@@ -112,10 +115,68 @@ describe("bootstrap script", () => {
     page.run(buildBootstrapScript(info, SERVER_URL));
     const pending = page.window.ObjectStackNative.haptic("success");
     expect(page.posted).toEqual([
-      { type: "call", id: "c1", method: "haptic", args: { kind: "success" } },
+      { type: "call", id: expect.any(String), method: "haptic", args: { kind: "success" } },
     ]);
-    page.run(buildResolveScript({ id: "c1", ok: true, value: null }));
+    page.run(buildResolveScript({ id: idOf(page.posted[0]), ok: true, value: null }));
     await expect(pending).resolves.toBeNull();
+  });
+
+  it("gives every call of a document its own id, under a token of that document", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    void page.window.ObjectStackNative.getPushToken();
+    void page.window.ObjectStackNative.getPushToken();
+    const [first, second] = page.posted.map(idOf);
+    expect(first).toMatch(/^[a-z0-9]+\.1$/);
+    expect(second).toBe(first.replace(/1$/, "2"));
+    expect(first.length).toBeLessThanOrEqual(64);
+  });
+
+  it("settles no call of a later document with an answer meant for an earlier one", async () => {
+    // A scan stays open while the page reloads, recovers or goes to a sign-in
+    // host; each new document numbers its calls from 1 again.
+    const before = makePage();
+    before.run(buildBootstrapScript(info, SERVER_URL));
+    void before.window.ObjectStackNative.scan();
+    const staleAnswer = buildResolveScript({ id: idOf(before.posted[0]), ok: true, value: "CODE" });
+
+    for (const origin of ["https://acme.example.com", "https://login.idp.example"]) {
+      const after = makePage(origin);
+      after.run(buildBootstrapScript(info, SERVER_URL));
+      let settled = false;
+      const pending = after.window.ObjectStackNative.getPushToken().then(() => (settled = true));
+      after.run(staleAnswer);
+      await Promise.resolve();
+      expect(settled).toBe(false);
+      after.run(buildResolveScript({ id: idOf(after.posted[0]), ok: true, value: null }));
+      await pending;
+      expect(settled).toBe(true);
+    }
+  });
+
+  it("posts scan calls with the caller's options, or none", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript({ ...info, capabilities: ["scan"] }, SERVER_URL));
+    const api = page.window.ObjectStackNative;
+    expect(api.has("scan")).toBe(true);
+    void api.scan();
+    void api.scan({ formats: ["ean13", "qr"] });
+    expect(page.posted).toEqual([
+      { type: "call", id: expect.any(String), method: "scan" },
+      { type: "call", id: expect.any(String), method: "scan", args: { formats: ["ean13", "qr"] } },
+    ]);
+  });
+
+  it("resolves a scan with the decoded text, or null on cancel", async () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const read = page.window.ObjectStackNative.scan();
+    const cancelled = page.window.ObjectStackNative.scan();
+    const [readId, cancelId] = page.posted.map(idOf);
+    page.run(buildResolveScript({ id: readId, ok: true, value: "4006381333931" }));
+    page.run(buildResolveScript({ id: cancelId, ok: true, value: null }));
+    await expect(read).resolves.toBe("4006381333931");
+    await expect(cancelled).resolves.toBeNull();
   });
 
   it("rejects failed calls with the error code", async () => {
@@ -123,7 +184,11 @@ describe("bootstrap script", () => {
     page.run(buildBootstrapScript(info, SERVER_URL));
     const pending = page.window.ObjectStackNative.navigate("bad");
     page.run(
-      buildResolveScript({ id: "c1", ok: false, error: { code: "bad_args", message: "nope" } })
+      buildResolveScript({
+        id: idOf(page.posted[0]),
+        ok: false,
+        error: { code: "bad_args", message: "nope" },
+      })
     );
     await expect(pending).rejects.toMatchObject({ message: "nope", code: "bad_args" });
   });

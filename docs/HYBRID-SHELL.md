@@ -26,13 +26,18 @@ app/
   _layout.tsx         providers, Sentry, push-tap routing
   index.tsx           waits for the stored server, then redirects
   server-config.tsx   native server picker: address step, then confirm step
+  connect-scan.tsx    QR scanner for the server address (screen 6)
+  bridge-scan.tsx     scanner for the bridge's `scan()` (Console fields)
   console.tsx         the Console screen (one long-lived WebView)
   +native-intent.tsx  app links → Console routes
 components/shell/
   ConsoleWebView.tsx  WebView + navigation policy + bridge + back button + load states
   ServerConfirm.tsx   "is this your server?" step of the picker
+  QrScanner.tsx       full-screen camera QR scanner (reusable; `accept` decides)
   OfflineFallback.tsx native page for network / 5xx failures
 lib/
+  i18n.ts             shell strings in the Console's ten locales; follows the phone language
+  rtl.ts              right-to-left layout for Arabic
   server-probe.ts     anonymous probe of a server before it is saved
   server-url.ts       persistence of the chosen server URL
 lib/shell/
@@ -41,7 +46,7 @@ lib/shell/
   route-owner.ts      per-route ownership: web (default) or native
   native-screens.ts   native screens a route rule may target (empty today)
   navigation-policy.ts what each WebView navigation is allowed to do
-  incoming-link.ts    objectos:// links
+  incoming-link.ts    objectos:// links: Console routes, `connect`, scanned codes
   config.ts           build-time config from app.config.ts `extra`
   external.ts         open URLs in the in-app browser / OS
   bridge/             protocol, injected scripts, native handler
@@ -55,6 +60,41 @@ cookie. The WebView keeps that cookie (`sharedCookiesEnabled` on iOS,
 and makes no authenticated API calls of its own** — its only requests are the
 anonymous server probe below. Sign-in, sign-up, 2FA and password reset are the
 Console's pages.
+
+## Language
+
+The shell translates only its own native screens (server picker, confirm step,
+loading and offline pages); everything inside the WebView is the Console's.
+
+- **The locale set mirrors the Console UI's.** The shell ships the same ten
+  locales under the same short codes as the Console's built-in catalogues
+  (objectstack `ui/packages/i18n/src/locales/`): `en`, `zh`, `ja`, `ko`, `de`,
+  `fr`, `es`, `pt`, `ru`, `ar`. A test pins `SUPPORTED_LANGUAGES` to that list,
+  and another fails when any bundle in `locales/` misses a key `en.json` has —
+  a new native string ships in all ten.
+- **The phone language decides, with the Console's matching rule.** The shell
+  walks the phone's preferred languages in order and takes the first one that
+  resolves to a bundled locale, else `en`. A tag resolves exactly, else through
+  its base language: the Console's `matchLanguageTag`
+  (`ui/packages/i18n/src/locales/registry.ts`), ported as is. So `zh-Hans-CN` →
+  `zh`, `pt-BR` → `pt`, `es-MX` → `es`, and Traditional Chinese (`zh-TW`,
+  `zh-HK`, `zh-Hant`) → `zh`, because the Console has no Traditional Chinese
+  catalogue either.
+- **No in-app language picker.** The phone setting is the only source for the
+  native screens. A phone-language change is picked up the next time the app
+  comes to the foreground.
+- **Arabic lays out right-to-left.** Each native screen root carries Yoga's
+  `direction` style for the current language, so the switch applies on first
+  render and on a language change without a restart. `I18nManager.forceRTL` is
+  kept in step as well; what reads it (for example the navigation stack's
+  transition direction) follows on the next launch.
+- **Once signed in, the user's Console locale wins inside the Console.** The
+  Console resolves its own language: the user's `sys_user.locale`, else the
+  request's `Accept-Language` (the WebView's own; the shell does not set it), else
+  the deployment default. So a user whose Console locale differs from the
+  phone sees the native screens in the phone's language and the Console in
+  their own. Built-in object and field labels exist in fewer locales than the
+  Console chrome; that gap is the platform's, not the shell's.
 
 ## Server selection
 
@@ -96,8 +136,49 @@ React Native's `fetch` reports every transport failure as the same
 `XMLHttpRequest`, which keeps the native error text (iOS `NSURLErrorDomain`,
 Android `javax.net.ssl` / `java.security.cert`) for the probe to classify.
 
-The QR scanner is not built yet; its button and the `objectos://connect` link
-will feed the scanned address into the same probe and confirm steps.
+### Connect by QR code or link
+
+The Console's mobile-app page shows a QR code, and an invite email carries the
+same link. It holds the server address and nothing else — never a credential:
+
+```
+objectos://connect?server=https%3A%2F%2Ferp.example.com
+```
+
+Both end on the picker's address step with the address filled in, which
+probes it at once (`/server-config?server=…&n=…`; `n` makes a repeat of the
+same address probe again). **A connect link never connects silently**: the
+user always sees the confirm step, or the error beside the address. That holds
+when a server is already saved too — confirming replaces it, "Not this server"
+keeps it. A link can cold-start the app onto the picker with nothing behind it;
+when a server is saved and the picker cannot go back, the address step offers
+"Back to" the saved host (Android back does the same), which opens that
+server's Console and saves nothing.
+
+- **The link.** `connectRequestFromLink` (`lib/shell/incoming-link.ts`) reads
+  the `server` param and normalizes it with `normalizeServerUrl`. A link with
+  no `server`, a repeated `server`, any other param, or a path after `connect`
+  is refused and lands on the start screen, like any unknown link. An address
+  that does not normalize (plain http to a public host, not a URL, empty) still
+  opens the picker, with the value in the field and its error shown.
+- **The scanner.** The scan button in the address field opens
+  `app/connect-scan.tsx`, which renders `QrScanner` with
+  `serverAddressFromCode`: it accepts `objectos://connect` codes, and a plain
+  `https://` server URL as a convenience. Anything else shows "This isn't a
+  connect QR code" and keeps scanning. The first accepted code goes back to the
+  picker (`router.dismissTo`) and the scanner stops reading.
+- **Camera permission.** The scanner asks on open. Refused for good, it offers
+  the system Settings and "Enter address manually". The iOS prompt text is
+  `permissions.camera` in each locale bundle, written by `app.config.ts` into
+  the `expo-camera` plugin and per-language `InfoPlist.strings` for all ten
+  shell languages (`zh-Hans`, plus `zh-Hant` reusing the `zh` text, as the
+  shell's own strings do); the plugin is
+  configured for the camera only (no microphone, no `RECORD_AUDIO`).
+
+`QrScanner` knows nothing about servers: the caller passes `accept`, the
+refusal text, the optional note and manual action, and optionally the code
+formats and the permission panel's copy. The bridge's `scan()` for Console
+fields reuses it (see "Scanning codes"). The iOS prompt text names both uses.
 
 Sign-in through an external identity provider: the IdP's host must be listed in
 `EXPO_PUBLIC_TRUSTED_HOSTS`, or the navigation policy opens it in the system
@@ -172,6 +253,7 @@ interface ObjectStackNative {
   openExternal(url: string): Promise<null>; // http(s), mailto, tel, sms
   navigate(route: string): Promise<null>; // Console route; route ownership applies
   resetServer(): Promise<null>; // forget the server, back to the picker
+  scan(opts?: { formats?: string[] }): Promise<string | null>; // see "Scanning codes"
 
   ready(): void; // event: the Console has mounted (lifts the cover, releases a held route)
   routeChanged(route: string): void; // event: SPA route changed (the shell's last route)
@@ -203,6 +285,39 @@ re-registration refreshes the device's row instead of minting a second one.
   document (a trusted sign-in host's pages too), so it exposes `installId`
   only when `window.location.origin` is the configured server's origin; any
   other page reads `null`. Sub-frames never see host info (Known limits).
+
+### Scanning codes
+
+`scan()` opens a native full-screen scanner (`app/bridge-scan.tsx`, the same
+`QrScanner` as screen 6) with close and torch controls. It resolves the decoded
+text of the first code read, or `null` when the user closes the scanner
+(the close control, Android back or the iOS swipe).
+
+- `formats` narrows what the camera reads. The names are `expo-camera`'s:
+  `qr`, `aztec`, `datamatrix`, `pdf417`, `ean13`, `ean8`, `upc_a`, `upc_e`,
+  `code39`, `code93`, `code128`, `codabar`, `itf14` (`SCAN_FORMATS`). Without
+  `formats` it reads all of them. An empty list, an unknown name or any other
+  option is `bad_args`, and no scanner opens.
+- Camera permission refused: the scanner shows its permission panel (with
+  Settings when the refusal is final), and leaving it rejects the call with
+  `failed` ("Camera permission denied"). Closed before the prompt was
+  answered, it resolves `null`.
+- One scan at a time: a `scan()` while another is open rejects with `failed`
+  ("A scan is already open") and leaves the open one alone.
+- The answer goes only to the document that called. Call ids carry a
+  per-document token, so a page that replaced it while the scanner was up (a
+  reload, a redirect) cannot match the answer, and a WebView re-created after
+  a failure is not sent it at all. The Console's pending promise went away
+  with the old page.
+- Like every method, only a page on the configured server's origin is
+  answered. The scanner never opens for anything else.
+
+```js
+if (ObjectStackNative.has("scan")) {
+  const text = await ObjectStackNative.scan({ formats: ["ean13", "code128"] });
+  if (text !== null) field.value = text;
+}
+```
 
 ### Shell → Console events
 
@@ -261,7 +376,9 @@ Calls are posted as
 `{ type: 'call', id, method, args }` through
 `window.ReactNativeWebView.postMessage`; the shell answers by calling
 `window.__objectstackNativeResolve({ id, ok, value | error })`. Errors carry a
-`code`: `unknown_method`, `bad_args`, `failed`.
+`code`: `unknown_method`, `bad_args`, `failed`. A call id is a per-document
+token and a counter (`<token>.<n>`), so an answer settles only a call of the
+document that made it.
 
 Security:
 
@@ -348,9 +465,11 @@ route, a held push token and the last route:
   is dispatched once, whichever comes first; a held push token is sent at the
   same moment. The timeout does not run before load end or on a failed load.
 - **What re-arms the hold.** The shell's own `reload()` and a re-created
-  WebView. `onLoadStart` does not: on Android react-native-webview (13.16)
-  fires it from `doUpdateVisitedHistory`, so it also fires for SPA history
-  changes, after which no second `ready` comes. A full-document load the page
+  WebView. The machine's re-create is also the one place that counts a new
+  WebView for bridge answers: an answer to a call the old WebView made is
+  dropped (see "Scanning codes"). `onLoadStart` does neither: on Android
+  react-native-webview (13.16) fires it from `doUpdateVisitedHistory`, so it
+  also fires for SPA history changes, after which no second `ready` comes. A full-document load the page
   starts by itself after `ready` (an older Console's `location.assign`
   fallback, an identity-provider round trip) is not seen as a new document:
   the cover stays down, and a route or token sent during that load is lost
@@ -385,7 +504,9 @@ The Console needs, in `@object-ui/mobile`:
   sign-out;
 - listen for `objectstack-native:pushTokenChanged` when
   `has("pushTokenChanged")` and re-register `event.detail` while signed in;
-- register no Service Worker inside the shell (see above).
+- register no Service Worker inside the shell (see above);
+- offer a scan affordance on text and lookup fields when `has("scan")`, and
+  fill the field with what `scan()` resolves (nothing on `null`).
 
 A Console without it still works in the shell: the cover lifts and a held
 route is dispatched at the ready timeout, a held route then reloads the page
@@ -402,6 +523,13 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   `__tests__/lib/shell/console-load.test.ts`.
 - The picker and its confirm step — component tests under
   `__tests__/components` (`ServerConfigScreen`, `ServerConfirm`).
+- Locale list, phone-language matching and bundle completeness —
+  `__tests__/lib/i18n.test.ts`; right-to-left native screens under `ar` —
+  `__tests__/components/RtlLayout.test.tsx`.
+- The scanner and screen 6 — `__tests__/components/QrScanner.test.tsx`, with a
+  mocked `expo-camera` (permission states, refused and accepted codes, torch).
+- The bridge's `scan()`: the handler (`bridge-handler.test.ts`), the session
+  (`scan-session.test.ts`) and the scanner screen (`QrScanner.test.tsx`).
 - The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`

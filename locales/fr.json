@@ -1,0 +1,84 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "retry": "Réessayer",
+    "error": "Erreur"
+  },
+  "errorBoundary": {
+    "title": "Quelque chose s'est mal passé",
+    "message": "Une erreur inattendue s'est produite.",
+    "retry": "Réessayer"
+  },
+  "serverConfig": {
+    "title": "Se connecter à un serveur",
+    "subtitle": "Saisissez l'adresse de votre serveur ObjectOS.",
+    "label": "URL du serveur",
+    "hint": "Exemple : https://erp.example.com",
+    "connect": "Continuer",
+    "scan": "Scanner le code QR",
+    "backTo": "Retour à {{server}}",
+    "where": {
+      "title": "Où trouver l'adresse ?",
+      "step1": "Sur un ordinateur, ouvrez ObjectOS dans votre navigateur et connectez-vous.",
+      "step2": "Copiez l'adresse dans la barre d'adresse. Vous pouvez coller le lien complet : l'application n'en garde que la partie serveur.",
+      "step3": "Vous hésitez ? Demandez à votre administrateur."
+    },
+    "vpnHint": "Pour un serveur du réseau de l'entreprise, ce téléphone devra peut-être d'abord se connecter au VPN de l'entreprise.",
+    "error": {
+      "empty": "Veuillez saisir l'URL du serveur.",
+      "invalid": "Cela ne ressemble pas à une adresse de serveur.",
+      "insecure": "Utilisez une adresse https:// : le http simple n'est autorisé que pour les serveurs locaux.",
+      "unreachable": "Impossible de joindre le serveur. Vérifiez l'adresse et votre réseau : un serveur d'entreprise peut nécessiter un VPN.",
+      "tls": "Le certificat du serveur n'est pas valide : la connexion n'est donc pas sûre. Demandez à votre administrateur de le corriger.",
+      "timeout": "Le serveur a mis trop de temps à répondre. Vérifiez votre réseau ou votre VPN, puis réessayez.",
+      "notObjectOS": "Ce n'est pas un serveur ObjectOS. Utilisez l'adresse avec laquelle vous ouvrez ObjectOS dans un navigateur.",
+      "serverError": "Le serveur a répondu par une erreur (HTTP {{status}}). Réessayez plus tard ou contactez votre administrateur.",
+      "unknown": "Une erreur est survenue. Veuillez réessayer."
+    }
+  },
+  "serverConfirm": {
+    "title": "Est-ce bien votre serveur ?",
+    "secure": "Connexion sécurisée (HTTPS)",
+    "signInLabel": "Se connecter avec",
+    "signIn": {
+      "sso": "Authentification unique (SSO)",
+      "emailPassword": "E-mail et mot de passe"
+    },
+    "versionLabel": "Version de la plateforme",
+    "confirm": "Utiliser ce serveur et se connecter",
+    "reject": "Ce n'est pas ce serveur"
+  },
+  "shell": {
+    "loading": "Chargement…",
+    "offlineTitle": "Vous êtes hors ligne",
+    "offlineMessage": "Vérifiez votre connexion. La page se recharge d'elle-même dès que vous êtes de nouveau en ligne.",
+    "serverErrorTitle": "Le serveur ne répond pas",
+    "serverErrorMessage": "Le serveur a répondu avec l'erreur {{code}}. Réessayez dans un instant.",
+    "retry": "Réessayer",
+    "changeServer": "Utiliser un autre serveur"
+  },
+  "scanner": {
+    "hint": "Placez le code QR dans le cadre",
+    "codeHint": "Placez le code dans le cadre",
+    "connectNote": "Contient uniquement l'adresse du serveur, aucune information de compte",
+    "manual": "Saisir l'adresse manuellement",
+    "notConnectCode": "Ce n'est pas un code QR de connexion",
+    "unreadable": "Impossible de lire ce code",
+    "close": "Fermer",
+    "torchOn": "Allumer la lampe torche",
+    "torchOff": "Éteindre la lampe torche",
+    "permission": {
+      "title": "Accès à l'appareil photo requis",
+      "body": "Autorisez l'accès à l'appareil photo pour scanner le code QR.",
+      "blocked": "L'accès à l'appareil photo est désactivé pour ObjectOS. Activez-le dans les Paramètres ou saisissez l'adresse manuellement.",
+      "allow": "Autoriser l'appareil photo",
+      "settings": "Ouvrir les Paramètres",
+      "codeBody": "Autorisez l'accès à l'appareil photo pour scanner le code.",
+      "codeBlocked": "L'accès à l'appareil photo est désactivé pour ObjectOS. Activez-le dans les Paramètres pour scanner des codes."
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS utilise l'appareil photo pour scanner des codes QR et des codes-barres, comme le code qui le connecte à votre serveur."
+  }
+}
