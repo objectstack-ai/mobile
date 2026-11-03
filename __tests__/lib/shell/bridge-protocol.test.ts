@@ -1,4 +1,5 @@
 import {
+  APP_LOCK_BRIDGE_METHODS,
   BRIDGE_CAPABILITIES,
   BRIDGE_METHODS,
   CONNECTION_REMOVED_EVENT,
@@ -35,6 +36,13 @@ describe("capabilities", () => {
   it("announces the read-only app-lock methods", () => {
     expect(BRIDGE_CAPABILITIES).toContain("getAppLock");
     expect(BRIDGE_CAPABILITIES).toContain("openAppLockSettings");
+  });
+
+  it("has no app-lock method beyond reading it and opening the native screen", () => {
+    // Ruled: the lock changes only on the native screen, behind biometrics.
+    expect(APP_LOCK_BRIDGE_METHODS).toEqual(["getAppLock", "openAppLockSettings"]);
+    const lockNamed = BRIDGE_CAPABILITIES.filter((name) => /lock/i.test(name));
+    expect(lockNamed).toEqual([...APP_LOCK_BRIDGE_METHODS]);
   });
 
   it("announces the connection switcher and the removal event", () => {

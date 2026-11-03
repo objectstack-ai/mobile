@@ -187,6 +187,13 @@ describe("bootstrap script", () => {
     ]);
   });
 
+  it("exposes no app-lock function beyond reading it and opening the native screen", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const lockNamed = Object.keys(page.window.ObjectStackNative).filter((key) => /lock/i.test(key));
+    expect(lockNamed.sort()).toEqual(["getAppLock", "openAppLockSettings"]);
+  });
+
   it("posts getAppLock and openAppLockSettings calls, with no arguments", () => {
     const page = makePage();
     page.run(
