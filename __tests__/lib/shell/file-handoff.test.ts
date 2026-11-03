@@ -33,7 +33,7 @@ jest.mock("expo-image-manipulator", () => ({
         }),
         renderAsync: jest.fn(async () => {
           const last = context.resizes[context.resizes.length - 1] as { width: number } | undefined;
-          const image = {
+          const image: any = {
             width: last ? last.width : 4032,
             released: false,
             saveAsync: jest.fn(async () => mockManipulator.saved),
