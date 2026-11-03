@@ -109,6 +109,19 @@ prebuild. It reads only; the app never writes the managed configuration. It is
 native code, so it ships in a new store or development build, not over the air;
 a build without it reads no managed config.
 
+## System sign-in
+
+Google and other providers that refuse embedded WebViews sign in through the
+system auth session and a one-time token
+([HYBRID-SHELL.md](./HYBRID-SHELL.md#system-sign-in)). The server has to allow it:
+
+- a platform release with the Console half of the hand-off;
+- `AuthConfig.trustedAppSchemes` listing `ai.objectos.mobile`.
+
+Without them the app says the sign-in method is not supported, and other
+sign-in methods work as before. The scheme is native configuration, so a
+binary built before this feature needs a new build, not an update.
+
 ## Builds
 
 ```bash

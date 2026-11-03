@@ -41,6 +41,8 @@ const PERMISSION_LOCALES: Record<
 // nor the ID can change without moving to a new EAS project.
 const EAS_PROJECT_ID = "40edd17e-752e-4062-a404-5eb8892ce47f";
 
+const APP_ID = "ai.objectos.mobile";
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "ObjectOS",
@@ -53,7 +55,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   updates: { url: `https://u.expo.dev/${EAS_PROJECT_ID}` },
   orientation: "portrait",
   icon: "./assets/icon.png",
-  scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "objectos",
+  // App links, and the sign-in hand-off's callback (HANDOFF_APP_SCHEME in
+  // lib/shell/system-sign-in.ts), which must be a reverse-domain scheme.
+  scheme: [process.env.EXPO_PUBLIC_APP_SCHEME ?? "objectos", APP_ID],
   userInterfaceStyle: "automatic",
   // SDK 55 dropped legacy architecture — New Architecture is always on, so the
   // `newArchEnabled` flag was removed from ExpoConfig.
@@ -76,7 +80,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "ai.objectos.mobile",
+    bundleIdentifier: APP_ID,
   },
   android: {
     adaptiveIcon: {
@@ -84,7 +88,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: "#ffffff",
     },
     // SDK 55 removed `edgeToEdgeEnabled` — edge-to-edge is always on now.
-    package: "ai.objectos.mobile",
+    package: APP_ID,
     // expo-screen-capture (the app lock's FLAG_SECURE) declares these for its
     // screenshot listener, which the shell does not use: the app detects no
     // screenshots, and pickImage() goes through the system photo picker, which

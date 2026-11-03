@@ -71,6 +71,11 @@ jest.mock("expo-notifications", () => ({
   }),
 }));
 
+let mockSystemSignIn: jest.Mock = jest.fn();
+jest.mock("~/lib/shell/system-sign-in-session", () => ({
+  openSystemSignIn: (serverUrl: string) => mockSystemSignIn(serverUrl),
+}));
+
 const SERVER = "https://acme.example.com";
 
 function renderConsole(overrides: Partial<ConsoleWebViewProps> = {}) {
@@ -1361,14 +1366,124 @@ describe("ConsoleWebView — sign-in excursion", () => {
       expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
     });
 
-    it("says the sign-in method is not supported yet for a provider that refuses WebViews", async () => {
-      const { props } = await onSignInPage();
-      expect(decide("https://accounts.google.com/o/oauth2/v2/auth?client_id=x")).toBe(false);
-      expect(props.onOpenExternal).not.toHaveBeenCalled();
-      expect(screen.getByTestId("shell-excursion-notice-unsupported")).toHaveTextContent(
-        "This sign-in method isn't supported in the app yet. Choose another way to sign in."
-      );
-      expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+    describe("a provider that refuses WebViews", () => {
+      const GOOGLE = "https://accounts.google.com/o/oauth2/v2/auth?client_id=x";
+      const SIGNED_IN = { kind: "signed-in", token: "T1", codeVerifier: "V1" };
+
+      /** The auth session stays open until the test settles it. */
+      function holdSession() {
+        let settle: (outcome: unknown) => void = () => {};
+        mockSystemSignIn = jest.fn(
+          () =>
+            new Promise((resolve) => {
+              settle = resolve;
+            })
+        );
+        return { settle: async (outcome: unknown) => act(async () => settle(outcome)) };
+      }
+
+      /** The WebView the refusal re-created, back on the sign-in page and ready. */
+      async function signInPageAgain() {
+        loadStart(`${SERVER}/_console/login`);
+        loadEndAt(`${SERVER}/_console/login`);
+        await consoleReady();
+      }
+
+      const redeemed = () =>
+        mockWebView.injectJavaScript.mock.calls.filter(([script]) =>
+          String(script).includes("one-time-token/verify")
+        );
+
+      it("opens the auth session on this server, and shows no notice while it is open", async () => {
+        holdSession();
+        const { props } = await onSignInPage();
+        expect(decide(GOOGLE)).toBe(false);
+        expect(mockSystemSignIn).toHaveBeenCalledWith(SERVER);
+        expect(props.onOpenExternal).not.toHaveBeenCalled();
+        expect(screen.queryByTestId("shell-excursion-notice-unsupported")).toBeNull();
+        expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+      });
+
+      it("starts it for a provider reached during an excursion too", async () => {
+        holdSession();
+        await inExcursion();
+        expect(decide(GOOGLE)).toBe(false);
+        expect(mockSystemSignIn).toHaveBeenCalledTimes(1);
+        expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+      });
+
+      it("opens one session at a time", async () => {
+        holdSession();
+        await onSignInPage();
+        decide(GOOGLE);
+        await signInPageAgain();
+        decide(GOOGLE);
+        expect(mockSystemSignIn).toHaveBeenCalledTimes(1);
+      });
+
+      it("redeems in the WebView once the Console is ready, then boots behind the cover", async () => {
+        const session = holdSession();
+        await onSignInPage();
+        decide(GOOGLE);
+        // The token came back before the re-created page was ready: it waits.
+        await session.settle(SIGNED_IN);
+        expect(redeemed()).toHaveLength(0);
+        await signInPageAgain();
+        expect(redeemed()).toHaveLength(1);
+        expect(redeemed()[0][0]).toContain(JSON.stringify(JSON.stringify({ token: "T1.V1" })));
+        expect(screen.getByText("Loading…")).toBeTruthy();
+      });
+
+      it("redeems at once when the Console is already ready, and only once", async () => {
+        const session = holdSession();
+        await onSignInPage();
+        decide(GOOGLE);
+        await signInPageAgain();
+        await session.settle(SIGNED_IN);
+        expect(redeemed()).toHaveLength(1);
+        await signInPageAgain();
+        expect(redeemed()).toHaveLength(1);
+      });
+
+      it("drops the token when the user switched connection meanwhile", async () => {
+        const session = holdSession();
+        const { props, view } = await onSignInPage();
+        decide(GOOGLE);
+        view.rerender(
+          <ConsoleWebView {...props} serverUrl="https://erp.example.com" resumeRoute={null} />
+        );
+        await session.settle(SIGNED_IN);
+        loadStart("https://erp.example.com/_console/home");
+        act(() =>
+          mockWebView.props.onLoadEnd({
+            nativeEvent: { url: "https://erp.example.com/_console/home", loading: false },
+          })
+        );
+        await consoleReady();
+        expect(redeemed()).toHaveLength(0);
+      });
+
+      it.each(["not-offered", "failed"])("says it is not supported on %s", async (kind) => {
+        const session = holdSession();
+        await onSignInPage();
+        decide(GOOGLE);
+        await session.settle({ kind });
+        expect(screen.getByTestId("shell-excursion-notice-unsupported")).toHaveTextContent(
+          "This sign-in method isn't supported in the app yet. Choose another way to sign in."
+        );
+        expect(redeemed()).toHaveLength(0);
+      });
+
+      it("says nothing when the user closed the session, and can open another", async () => {
+        const session = holdSession();
+        await onSignInPage();
+        decide(GOOGLE);
+        await session.settle({ kind: "cancelled" });
+        expect(screen.queryByTestId("shell-excursion-notice-unsupported")).toBeNull();
+        await signInPageAgain();
+        decide(GOOGLE);
+        expect(mockSystemSignIn).toHaveBeenCalledTimes(2);
+      });
     });
 
     it("ends when the user switches to another connection", async () => {
