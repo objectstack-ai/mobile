@@ -120,19 +120,28 @@ export function buildResolveScript(result: BridgeResult): string {
 
 /**
  * Snippet that moves the Console to `route` on `serverUrl`, or `null` when the
- * route fails {@link safeConsoleRoute}.
+ * route fails {@link safeConsoleRoute} or there is no server origin to deliver
+ * to.
  *
- * It first dispatches a cancelable `objectstack-native:navigate` event
+ * The route goes only to a page on the configured server's origin — the same
+ * pages `getPushToken` answers and `pushTokenChanged` reaches. There it first
+ * dispatches a cancelable `objectstack-native:navigate` event
  * (`detail: { route }`) on `window`, so a Console that listens can navigate
  * with its own router — no reload of the bundle — and signal that with
  * `preventDefault()`. Unhandled (no listener, an older Console, or no
  * `CustomEvent` support), it falls back to loading the `consoleUrl` of the
  * route.
+ *
+ * Whatever else is in the main frame (a trusted identity provider's sign-in
+ * page) gets nothing: no event, and no load toward the route. The script
+ * reads only `window.location.origin` there.
  */
 export function buildNavigateScript(serverUrl: string, route: string): string | null {
   const safe = safeConsoleRoute(route);
-  if (safe === null) return null;
+  const origin = originOf(serverUrl);
+  if (safe === null || origin === null) return null;
   return `(function () {
+  if (!window.location || window.location.origin !== ${toScriptLiteral(origin)}) return;
   var route = ${toScriptLiteral(safe)};
   var url = ${toScriptLiteral(consoleUrl(serverUrl, safe))};
   var handled = false;

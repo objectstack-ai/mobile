@@ -576,6 +576,11 @@ not one its router knows), the shell falls back to
 route has passed `safeConsoleRoute` before the event is dispatched
 (`buildNavigateScript` in `bridge/scripts.ts`).
 
+Both the event and the fallback load are for a page on the configured
+server's origin only (default ports ignored), the same pages `getPushToken()`
+answers. Another page in the main frame (a trusted sign-in host) gets neither:
+the route is not delivered there, and the page is left where it is.
+
 When the OS reports a push token for the app — APNs / FCM rotated it — the
 shell dispatches, if the page announces the `pushTokenChanged` capability:
 

@@ -24,7 +24,8 @@ export const BRIDGE_RESOLVE_GLOBAL = "__objectstackNativeResolve";
  * DOM event the shell dispatches on `window` to move the Console to a route
  * (`detail: { route }`, cancelable). A Console that handles it with its own
  * router calls `preventDefault()`; otherwise the shell falls back to a full
- * page load of the route.
+ * page load of the route. Only a page on the configured server's origin is
+ * sent either.
  */
 export const NAVIGATE_EVENT = "objectstack-native:navigate";
 

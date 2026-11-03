@@ -237,15 +237,15 @@ describe("bootstrap script", () => {
 describe("navigate script", () => {
   const SERVER = "https://acme.example.com";
 
-  /** A fake page window with real DOM events and a spied `location.assign`. */
-  function makeNavPage() {
+  /** A fake page window on `origin` with real DOM events and a spied `location.assign`. */
+  function makeNavPage(origin = SERVER) {
     const target = new EventTarget();
     const assign = jest.fn();
     const window = {
       CustomEvent,
       dispatchEvent: target.dispatchEvent.bind(target),
       addEventListener: target.addEventListener.bind(target),
-      location: { assign },
+      location: { origin, assign },
     };
     const run = (script: string | null) => {
       if (script === null) throw new Error("no script");
@@ -279,14 +279,67 @@ describe("navigate script", () => {
 
   it("falls back to loading the Console URL without CustomEvent support", () => {
     const assign = jest.fn();
-    new Function("window", buildNavigateScript(SERVER, "/home")!)({ location: { assign } });
+    new Function("window", buildNavigateScript(SERVER, "/home")!)({
+      location: { origin: SERVER, assign },
+    });
     expect(assign).toHaveBeenCalledWith(`${SERVER}/_console/home`);
+  });
+
+  it("compares the page origin with the default port dropped", () => {
+    const page = makeNavPage(SERVER);
+    const seen: unknown[] = [];
+    page.window.addEventListener(NAVIGATE_EVENT, (event: Event) => {
+      seen.push((event as CustomEvent).detail);
+      event.preventDefault();
+    });
+    page.run(buildNavigateScript(`${SERVER}:443/os`, "/apps/hr"));
+    expect(seen).toEqual([{ route: "/apps/hr" }]);
+    expect(page.assign).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "https://login.idp.example",
+    "http://acme.example.com",
+    "https://acme.example.com:8443",
+    "null",
+  ])("sends neither the event nor a load to a page on another origin (%s)", (origin) => {
+    const page = makeNavPage(origin);
+    const seen: unknown[] = [];
+    page.window.addEventListener(NAVIGATE_EVENT, (event: Event) =>
+      seen.push((event as CustomEvent).detail)
+    );
+    page.run(buildNavigateScript(SERVER, "/apps/crm/lead/1?tab=2"));
+    expect(seen).toEqual([]);
+    expect(page.assign).not.toHaveBeenCalled();
+  });
+
+  it("reads nothing but the origin of a page on another origin", () => {
+    // Off the server's origin the script stops at the origin check.
+    const reads: string[] = [];
+    const record = <T extends object>(prefix: string, target: T): T =>
+      new Proxy(target, {
+        get(obj, key, receiver) {
+          reads.push(`${prefix}${String(key)}`);
+          return Reflect.get(obj, key, receiver);
+        },
+      });
+    const window = record("", {
+      CustomEvent,
+      dispatchEvent: jest.fn(),
+      location: record("location.", { origin: "https://login.idp.example", assign: jest.fn() }),
+    });
+    new Function("window", buildNavigateScript(SERVER, "/apps/crm/lead/1?tab=2")!)(window);
+    expect(new Set(reads)).toEqual(new Set(["location", "location.origin"]));
   });
 
   it("refuses a route that would escape the Console", () => {
     expect(buildNavigateScript(SERVER, "/../../api/v1/me")).toBeNull();
     expect(buildNavigateScript(SERVER, "/%2e%2e/api/v1/me")).toBeNull();
     expect(buildNavigateScript(SERVER, "//evil.example/x")).toBeNull();
+  });
+
+  it("builds no script for an unusable server URL", () => {
+    expect(buildNavigateScript("not a url", "/apps/hr")).toBeNull();
   });
 
   it("splices the route as escaped JSON", () => {
