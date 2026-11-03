@@ -896,7 +896,10 @@ describe("ConsoleWebView — the navigation policy at load start", () => {
   }
 
   /** The Console, loaded and ready, on `route`. */
-  async function onConsolePage(route = "/apps/crm/lead/9", overrides: Partial<ConsoleWebViewProps> = {}) {
+  async function onConsolePage(
+    route = "/apps/crm/lead/9",
+    overrides: Partial<ConsoleWebViewProps> = {}
+  ) {
     const rendered = renderConsole(overrides);
     loadStart(`${SERVER}/_console/apps/crm`);
     loadEndAt(`${SERVER}/_console/apps/crm`);
@@ -1017,11 +1020,15 @@ describe("ConsoleWebView — the navigation policy at load start", () => {
 
   it("never judges a report from the WebView a switch replaced against the new server", async () => {
     const { props, view } = await onConsolePage();
-    view.rerender(<ConsoleWebView {...props} serverUrl="https://erp.example.com" resumeRoute={null} />);
+    view.rerender(
+      <ConsoleWebView {...props} serverUrl="https://erp.example.com" resumeRoute={null} />
+    );
     expect(mockWebView.mounts).toBe(2);
     // The WebView left behind was rendered once more, for the new server, before it was replaced.
     const replaced = mockWebView.instances[0];
-    act(() => replaced.onLoadEnd({ nativeEvent: { url: `${SERVER}/_console/home`, loading: false } }));
+    act(() =>
+      replaced.onLoadEnd({ nativeEvent: { url: `${SERVER}/_console/home`, loading: false } })
+    );
     expect(mockWebView.stopLoading).not.toHaveBeenCalled();
     expect(props.onOpenExternal).not.toHaveBeenCalled();
     expect(mockWebView.mounts).toBe(2);

@@ -28,11 +28,7 @@ import {
   routeFromConsoleUrl,
   safeConsoleRoute,
 } from "~/lib/shell/console-url";
-import {
-  decideNavigation,
-  decideTopFrameLoad,
-  SIGN_IN_ROUTE,
-} from "~/lib/shell/navigation-policy";
+import { decideNavigation, decideTopFrameLoad, SIGN_IN_ROUTE } from "~/lib/shell/navigation-policy";
 import {
   EXCURSION_TIMEOUT_MS,
   IDLE_EXCURSION,
@@ -627,6 +623,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         // An excursion that ended here has re-created the WebView already.
         // The failure page has no top frame.
         if (documentRef.current !== caller || loadRef.current.phase === "failed") return;
+        // A page of the active sign-in excursion: the excursion follows it.
         if (step.state.active !== null && step.state.location === url) return;
         const decision = decideTopFrameLoad(url, {
           serverUrl,

@@ -133,7 +133,10 @@ describe("decideTopFrameLoad", () => {
   });
 
   it("stops a page the policy blocks, opening nothing", () => {
-    expect(decideTopFrameLoad("data:text/html,<b>x</b>", ctx)).toEqual({ kind: "stop", open: null });
+    expect(decideTopFrameLoad("data:text/html,<b>x</b>", ctx)).toEqual({
+      kind: "stop",
+      open: null,
+    });
     expect(decideTopFrameLoad("file:///etc/passwd", ctx)).toEqual({ kind: "stop", open: null });
     expect(decideTopFrameLoad("not a url", ctx)).toEqual({ kind: "stop", open: null });
   });

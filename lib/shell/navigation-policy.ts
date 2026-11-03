@@ -123,9 +123,9 @@ export function decideNavigation(url: string, ctx: NavigationContext): Navigatio
  * every history change of a page reports a load start too.
  *
  * - `stay`: the policy loads `url` in the WebView, or `url` is on the server's
- *   origin. A Console route a native screen owns stays as well: the page got
- *   there by its own router, and only a navigation request hands it to the
- *   native screen.
+ *   origin. A Console route a native screen owns stays as well: it is the
+ *   server's own page, and handing a route to a native screen is the answer to
+ *   a navigation request, not to a load.
  * - `stop`: anything else. The shell stops the load and goes back to the
  *   server; `open` is where the policy sends `url` (the in-app browser or the
  *   OS, as for a request), or `null` when it blocks it.
