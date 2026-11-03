@@ -74,15 +74,14 @@ export const MAX_MESSAGE_LENGTH = 64 * 1024;
  * Both legs of the message channel carry the file as base64 text inside one
  * string: the page's `postMessage` (Android `@JavascriptInterface` or
  * `WebMessageListener`, iOS `WKScriptMessage`), and the shell's
- * `injectJavaScript`, which the engine parses as one script. Neither
- * react-native-webview 13.16 nor the engines set a cap; the cost is time and
+ * `injectJavaScript`, which the engine parses as one script.
+ * react-native-webview 13.16 sets no cap on either; the cost is time and
  * copies, linear in the size. Measured in Chromium 153 (Android WebView's
- * engine) on a desktop core: 8 MiB took about 1 s from the page's
+ * engine) in a 4-core Linux container: 8 MiB took about 1 s from the page's
  * `JSON.stringify` to arrival and 1.5 s to evaluate as an injected script;
- * 16 MiB took 1.3 s and 3.7 s; 128 MiB killed the renderer. A phone is
- * several times slower, and the RN event and Hermes add copies, so 8 MiB keeps
- * the worst case to seconds. A downscaled photo is far below it. See
- * docs/HYBRID-SHELL.md, "Files".
+ * 16 MiB took 1.3 s and 3.7 s; 128 MiB killed the renderer. A phone's CPU,
+ * the RN event and Hermes (not measured) add to that, so 8 MiB keeps the
+ * worst case to seconds. See docs/HYBRID-SHELL.md, "Files".
  */
 export const MAX_FILE_BYTES = 8 * 1024 * 1024;
 
