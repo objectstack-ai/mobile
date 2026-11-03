@@ -75,7 +75,7 @@ card. "Dev" means it needs a development build for the tooling named.
 | #162 Ready signals | kill the app, tap a push notification: the target record opens with no second cover or full page reload |
 | #163 Device registration | after a push token rotates, a signed-in Console receives `objectstack-native:pushTokenChanged`; `window.ObjectStackNative.installId` survives clearing WebView storage |
 | #156 Connect | scan a real connect QR code; open an `objectos://connect` link from mail or notes; deny the camera permission |
-| #159 Languages | set the phone to Japanese, Arabic and Traditional Chinese (`zh-TW`) in turn: native pages follow, `zh-TW` shows Simplified Chinese, Arabic reads right to left |
+| #159 / #182 Languages | set the phone to Japanese, Arabic, 繁體中文 (Taiwan) and Português (Brasil) in turn: native pages follow, Taiwan shows Traditional Chinese (確定, not 确定), Português (Brasil) shows Portuguese, Arabic reads right to left; under 繁體中文 the camera permission prompt (open the QR scanner) is in Traditional Chinese |
 | #146 Scan | in a Console page that calls `scan()`, a scanned code fills the field; closing the scanner returns `null`; a denied camera permission fails with `failed` |
 | #152 Saved connections | add two connections and switch between them; remove one and confirm it is signed out; upgrade from a version that saved one server |
 | #157 MDM | on Android with Test DPC or an EMM, push `serverUrl` and `lockServer=true`: the app goes straight to the confirm page, the switcher has no add-server row, the managed connection cannot be swiped away, and a failed probe says to contact the IT administrator |
