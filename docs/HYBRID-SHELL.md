@@ -330,7 +330,8 @@ In the shell:
 ## Navigation policy
 
 Every navigation the page attempts goes through `decideNavigation`
-(`lib/shell/navigation-policy.ts`):
+(`lib/shell/navigation-policy.ts`). The policy is enforced when a navigation
+is requested and again when a top-frame load starts.
 
 | Target                                                      | Decision         |
 | ----------------------------------------------------------- | ---------------- |
