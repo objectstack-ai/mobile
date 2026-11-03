@@ -111,6 +111,7 @@
     }
   },
   "permissions": {
-    "camera": "ObjectOS utilise l'appareil photo pour scanner des codes QR et des codes-barres, comme le code qui le connecte à votre serveur."
+    "camera": "ObjectOS utilise l'appareil photo pour scanner des codes QR et des codes-barres, comme le code qui le connecte à votre serveur, et pour prendre les photos que vous joignez dans l'app.",
+    "photos": "ObjectOS ouvre votre photothèque pour que vous choisissiez les photos à joindre dans l'app."
   }
 }

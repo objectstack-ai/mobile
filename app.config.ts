@@ -10,15 +10,16 @@ import pt from "./locales/pt.json";
 import ru from "./locales/ru.json";
 import zh from "./locales/zh.json";
 
-// System permission prompts, localized from the app's own bundles (key
-// `permissions.camera`) so one file holds each language's copy. iOS reads them
+// System permission prompts, localized from the app's own bundles (keys
+// `permissions.camera` and `permissions.photos`) so one file holds each
+// language's copy. iOS reads them
 // from `<lproj>/InfoPlist.strings`; Android's camera prompt is the system's own
 // text. Keys are iOS localization names, written verbatim as `<key>.lproj`:
 // one per shell language (lib/i18n.ts). `zh` is Simplified Chinese, so it is
 // `zh-Hans`; Traditional Chinese (`zh-Hant`) gets the same `zh` copy, because
 // the shell resolves `zh-TW`/`zh-HK` to `zh` as the Console does. `pt` and `es`
 // stay unqualified so every regional variant falls back to them.
-const PERMISSION_LOCALES: Record<string, { permissions: { camera: string } }> = {
+const PERMISSION_LOCALES: Record<string, { permissions: { camera: string; photos: string } }> = {
   en,
   "zh-Hans": zh,
   "zh-Hant": zh,
@@ -46,7 +47,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   locales: Object.fromEntries(
     Object.entries(PERMISSION_LOCALES).map(([lproj, bundle]) => [
       lproj,
-      { ios: { NSCameraUsageDescription: bundle.permissions.camera } },
+      {
+        ios: {
+          NSCameraUsageDescription: bundle.permissions.camera,
+          NSPhotoLibraryUsageDescription: bundle.permissions.photos,
+        },
+      },
     ])
   ),
   splash: {
@@ -74,13 +80,26 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     "expo-router",
     "expo-web-browser",
     [
-      // The server QR scanner (screen 6). Camera only: no recording, so no
-      // microphone prompt and no RECORD_AUDIO permission.
+      // The QR scanners (screen 6, the bridge's scan()). Camera only: no
+      // recording, so no microphone prompt and no RECORD_AUDIO permission.
       "expo-camera",
       {
         cameraPermission: en.permissions.camera,
         microphonePermission: false,
         recordAudioAndroid: false,
+      },
+    ],
+    [
+      // The bridge's pickImage(). The camera text is the same as expo-camera's
+      // above: both plugins write NSCameraUsageDescription. Photos only, so no
+      // microphone prompt and RECORD_AUDIO is blocked. The library itself
+      // needs no permission (system photo picker); iOS still requires the
+      // photo-library text for the module's API.
+      "expo-image-picker",
+      {
+        cameraPermission: en.permissions.camera,
+        photosPermission: en.permissions.photos,
+        microphonePermission: false,
       },
     ],
     // Cookie manager (removing a connection clears that host's cookies,

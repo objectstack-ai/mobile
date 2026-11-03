@@ -78,6 +78,17 @@ jest.mock("~/lib/connections/cookies", () => ({
   clearHostCookies: (...args: unknown[]) => mockClearHostCookies(...args),
 }));
 
+const mockFileHandoff = {
+  pickImage: jest.fn(),
+  shareContent: jest.fn(),
+  openFileBytes: jest.fn(),
+};
+jest.mock("~/lib/shell/file-handoff", () => ({
+  pickImage: (...args: unknown[]) => mockFileHandoff.pickImage(...args),
+  shareContent: (...args: unknown[]) => mockFileHandoff.shareContent(...args),
+  openFileBytes: (...args: unknown[]) => mockFileHandoff.openFileBytes(...args),
+}));
+
 import ConsoleScreen from "~/app/console";
 import { EMPTY_CONNECTIONS, addConnection, rememberRoute } from "~/lib/connections/model";
 import { NO_MANAGED_CONFIG } from "~/lib/managed-config/model";
@@ -326,5 +337,42 @@ describe("ConsoleScreen under a managed deployment (MDM)", () => {
         .applyManaged({ serverUrl: "https://new.example.com", lockServer: true });
     });
     expect(screen.getByTestId("redirect")).toHaveTextContent("/server-config");
+  });
+
+  describe("files", () => {
+    const PDF = { base64: "JVBERi0xLjQK", name: "Quote 42.pdf", mime: "application/pdf" };
+
+    beforeEach(() => {
+      mockFileHandoff.pickImage
+        .mockReset()
+        .mockResolvedValue({ base64: "/9j/4AAQ", name: "IMG_0001.jpg", mime: "image/jpeg" });
+      mockFileHandoff.shareContent.mockReset().mockResolvedValue(undefined);
+      mockFileHandoff.openFileBytes.mockReset().mockResolvedValue(undefined);
+    });
+
+    it("the Console's pickImage, share and openFile reach the file handoff", async () => {
+      render(<ConsoleScreen />);
+      const page = `${ERP}/_console/apps/crm/lead/1`;
+      await post({ type: "call", id: "c1", method: "pickImage", args: { camera: true } }, page);
+      await post({ type: "call", id: "c2", method: "share", args: { text: "Lead 1" } }, page);
+      await post({ type: "call", id: "c3", method: "openFile", args: PDF }, page);
+      expect(mockFileHandoff.pickImage).toHaveBeenCalledWith({
+        camera: true,
+        maxWidth: 2048,
+        quality: 0.8,
+      });
+      expect(mockFileHandoff.shareContent).toHaveBeenCalledWith({ text: "Lead 1" });
+      expect(mockFileHandoff.openFileBytes).toHaveBeenCalledWith(PDF);
+      const answers = mockWebView.injectJavaScript.mock.calls.map(([script]) => script).join("\n");
+      expect(answers).toContain('"IMG_0001.jpg"');
+    });
+
+    it("a connection switched away from gets no file handoff", async () => {
+      render(<ConsoleScreen />);
+      await post({ type: "call", id: "c1", method: "openFile", args: PDF }, `${ACME}/_console/home`);
+      await post({ type: "call", id: "c2", method: "pickImage" }, `${ACME}/_console/home`);
+      expect(mockFileHandoff.openFileBytes).not.toHaveBeenCalled();
+      expect(mockFileHandoff.pickImage).not.toHaveBeenCalled();
+    });
   });
 });

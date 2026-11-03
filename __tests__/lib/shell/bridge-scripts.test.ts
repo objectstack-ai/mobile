@@ -9,7 +9,11 @@ import {
 import {
   BRIDGE_PROTOCOL_VERSION,
   BRIDGE_RESOLVE_GLOBAL,
+  CALL_TOO_LARGE_MESSAGE,
   CONNECTION_REMOVED_EVENT,
+  FILE_TOO_LARGE_MESSAGE,
+  MAX_FILE_BASE64_LENGTH,
+  MAX_MESSAGE_LENGTH,
   NAVIGATE_EVENT,
   PUSH_TOKEN_CHANGED_EVENT,
   type BridgeHostInfo,
@@ -185,6 +189,69 @@ describe("bootstrap script", () => {
     expect(page.posted).toEqual([
       { type: "call", id: expect.any(String), method: "showConnectionSwitcher" },
     ]);
+  });
+
+  it("posts pickImage, share and openFile calls with the caller's arguments", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const api = page.window.ObjectStackNative;
+    const file = { base64: "JVBERi0xLjQK", name: "Quote 42.pdf", mime: "application/pdf" };
+    void api.pickImage();
+    void api.pickImage({ camera: true, maxWidth: 1024 });
+    void api.share({ url: "https://acme.example.com/x", text: "Look" });
+    void api.openFile(file);
+    expect(page.posted).toEqual([
+      { type: "call", id: expect.any(String), method: "pickImage" },
+      { type: "call", id: expect.any(String), method: "pickImage", args: { camera: true, maxWidth: 1024 } },
+      {
+        type: "call",
+        id: expect.any(String),
+        method: "share",
+        args: { url: "https://acme.example.com/x", text: "Look" },
+      },
+      { type: "call", id: expect.any(String), method: "openFile", args: file },
+    ]);
+  });
+
+  it("resolves pickImage with the image the shell sends", async () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const pending = page.window.ObjectStackNative.pickImage();
+    const image = { base64: "/9j/4AAQ", name: "IMG_0001.jpg", mime: "image/jpeg" };
+    page.run(buildResolveScript({ id: idOf(page.posted[0]), ok: true, value: image }, SERVER_URL));
+    await expect(pending).resolves.toEqual(image);
+  });
+
+  it("posts a file at the size limit in one message", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const base64 = "A".repeat(MAX_FILE_BASE64_LENGTH);
+    void page.window.ObjectStackNative.openFile({ base64, name: "a.bin", mime: "application/octet-stream" });
+    expect(page.posted).toHaveLength(1);
+  });
+
+  it("refuses a file over the size limit in the page, with the shell's error shape, and posts nothing", async () => {
+    // The shell would not parse such a message, so it could never answer.
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const base64 = "A".repeat(MAX_FILE_BASE64_LENGTH + 4);
+    const refused = page.window.ObjectStackNative.openFile({ base64, name: "a.bin", mime: "application/octet-stream" });
+    await expect(refused).rejects.toMatchObject({ code: "bad_args", message: FILE_TOO_LARGE_MESSAGE });
+    expect(page.posted).toEqual([]);
+  });
+
+  it("refuses, in the page, any other call too long for the shell to parse", async () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const api = page.window.ObjectStackNative;
+    await expect(api.share({ text: "x".repeat(MAX_MESSAGE_LENGTH) })).rejects.toMatchObject({
+      code: "bad_args",
+      message: CALL_TOO_LARGE_MESSAGE,
+    });
+    await expect(
+      api.openFile({ base64: "QUJD", name: "x".repeat(MAX_FILE_BASE64_LENGTH + MAX_MESSAGE_LENGTH), mime: "text/plain" })
+    ).rejects.toMatchObject({ code: "bad_args", message: CALL_TOO_LARGE_MESSAGE });
+    expect(page.posted).toEqual([]);
   });
 
   it("resolves a scan with the decoded text, or null on cancel", async () => {

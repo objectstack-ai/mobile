@@ -111,6 +111,7 @@
     }
   },
   "permissions": {
-    "camera": "ObjectOS verwendet die Kamera, um QR-Codes und Barcodes zu scannen, etwa den Code, der die App mit Ihrem Server verbindet."
+    "camera": "ObjectOS verwendet die Kamera, um QR-Codes und Barcodes zu scannen, etwa den Code, der die App mit Ihrem Server verbindet, und um Fotos aufzunehmen, die Sie in der App anhängen.",
+    "photos": "ObjectOS öffnet Ihre Fotomediathek, damit Sie Fotos auswählen können, die Sie in der App anhängen."
   }
 }
