@@ -19,6 +19,7 @@ const mockWebView = {
   reload: jest.fn(),
   goBack: jest.fn(),
   clearHistory: jest.fn(),
+  stopLoading: jest.fn(),
 };
 
 jest.mock("react-native-webview", () => {
@@ -34,6 +35,7 @@ jest.mock("react-native-webview", () => {
       reload: mockWebView.reload,
       goBack: mockWebView.goBack,
       clearHistory: mockWebView.clearHistory,
+      stopLoading: mockWebView.stopLoading,
     }));
     return <View testID={props.testID} />;
   });
@@ -156,6 +158,7 @@ beforeEach(() => {
   mockWebView.reload.mockReset();
   mockWebView.goBack.mockReset();
   mockWebView.clearHistory.mockReset();
+  mockWebView.stopLoading.mockReset();
 });
 
 describe("ConsoleWebView", () => {
@@ -880,6 +883,152 @@ describe("ConsoleWebView — saved connections", () => {
   });
 });
 
+describe("ConsoleWebView — the navigation policy at load start", () => {
+  const ELSEWHERE = "https://pages.elsewhere.example/form";
+
+  function loadEndAt(url: string, loading = false) {
+    act(() => mockWebView.props.onLoadEnd({ nativeEvent: { url, loading } }));
+  }
+
+  /** The Console, loaded and ready, on `route`. */
+  async function onConsolePage(route = "/apps/crm/lead/9", overrides: Partial<ConsoleWebViewProps> = {}) {
+    const rendered = renderConsole(overrides);
+    loadStart(`${SERVER}/_console/apps/crm`);
+    loadEndAt(`${SERVER}/_console/apps/crm`);
+    await consoleReady();
+    await postEvent("routeChanged", { route });
+    mockWebView.injectJavaScript.mockReset();
+    return rendered;
+  }
+
+  afterEach(() => jest.useRealTimers());
+
+  it("stops a top-frame load the policy does not keep in the WebView, opens it where the policy sends it, and goes back to the server where the Console was", async () => {
+    const { props } = await onConsolePage();
+    loadStart(ELSEWHERE);
+    expect(mockWebView.stopLoading).toHaveBeenCalledTimes(1);
+    expect(props.onOpenExternal).toHaveBeenCalledTimes(1);
+    expect(props.onOpenExternal).toHaveBeenCalledWith(ELSEWHERE);
+    // A new WebView on the server, at the route the Console was on, behind the cover.
+    expect(mockWebView.mounts).toBe(2);
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm/lead/9` });
+    expect(screen.getByText("Loading…")).toBeTruthy();
+  });
+
+  it("judges a load reported only at its end the same way, and never counts that load end as the Console's", async () => {
+    jest.useFakeTimers();
+    const { props } = await onConsolePage();
+    loadEndAt(ELSEWHERE);
+    expect(mockWebView.stopLoading).toHaveBeenCalledTimes(1);
+    expect(props.onOpenExternal).toHaveBeenCalledWith(ELSEWHERE);
+    expect(mockWebView.mounts).toBe(2);
+    // The new WebView's Console has not loaded: no ready timeout lifts the cover.
+    act(() => jest.advanceTimersByTime(READY_TIMEOUT_MS * 2));
+    expect(screen.getByText("Loading…")).toBeTruthy();
+  });
+
+  it("stops a load the policy blocks, opening nothing", async () => {
+    const { props } = await onConsolePage();
+    loadStart("data:text/html,page");
+    expect(mockWebView.stopLoading).toHaveBeenCalledTimes(1);
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+    expect(mockWebView.mounts).toBe(2);
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/apps/crm/lead/9` });
+  });
+
+  it("keeps the server's own pages: a document, an in-app history change, a route a native screen owns", async () => {
+    const { props } = await onConsolePage();
+    // Android reports an in-app history change as a load start: the URL decides.
+    loadStart(`${SERVER}/_console/apps/crm/lead/10`);
+    loadStart(`${SERVER}/_console/approvals/7`);
+    loadStart(`${SERVER}/api/v1/auth/callback/corp?code=abc`);
+    loadEndAt(`${SERVER}:443/_console/home`);
+    loadStart("about:blank");
+    expect(mockWebView.stopLoading).not.toHaveBeenCalled();
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+    expect(props.onOpenNative).not.toHaveBeenCalled();
+    expect(mockWebView.mounts).toBe(1);
+    expect(screen.queryByText("Loading…")).toBeNull();
+  });
+
+  it("keeps a trusted host", async () => {
+    const { props } = await onConsolePage("/apps/crm", { trustedHosts: ["login.partner.example"] });
+    loadStart("https://login.partner.example/authorize");
+    loadEndAt("https://login.partner.example/authorize");
+    expect(mockWebView.stopLoading).not.toHaveBeenCalled();
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+    expect(mockWebView.mounts).toBe(1);
+  });
+
+  it("shows the failure page when the server's page goes there again before a Console is ready", async () => {
+    const { props } = await onConsolePage();
+    loadStart(ELSEWHERE);
+    expect(mockWebView.mounts).toBe(2);
+    // The new WebView's page goes there again before its Console is ready.
+    loadStart(`${SERVER}/_console/apps/crm/lead/9`);
+    loadStart(ELSEWHERE);
+    expect(mockWebView.stopLoading).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
+    expect(screen.getByText("Can't show this page in the app")).toBeTruthy();
+    // Opened once, re-created once.
+    expect(props.onOpenExternal).toHaveBeenCalledTimes(1);
+    expect(mockWebView.mounts).toBe(2);
+    // Retry is the user's: one new WebView, which stops at the same page again.
+    fireEvent.press(screen.getByTestId("shell-retry"));
+    expect(mockWebView.mounts).toBe(3);
+    loadStart(ELSEWHERE);
+    expect(screen.getByTestId("shell-offline-fallback")).toBeTruthy();
+    expect(props.onOpenExternal).toHaveBeenCalledTimes(1);
+  });
+
+  it("goes back to the server again once a Console has been ready in between", async () => {
+    const { props } = await onConsolePage();
+    loadStart(ELSEWHERE);
+    loadEndAt(`${SERVER}/_console/apps/crm/lead/9`);
+    await consoleReady();
+    loadStart(ELSEWHERE);
+    expect(screen.queryByTestId("shell-offline-fallback")).toBeNull();
+    expect(props.onOpenExternal).toHaveBeenCalledTimes(2);
+    expect(mockWebView.mounts).toBe(3);
+  });
+
+  it("drops the reports of the WebView it replaces", async () => {
+    jest.useFakeTimers();
+    const { props } = await onConsolePage();
+    const replaced = mockWebView.props;
+    loadStart(ELSEWHERE);
+    expect(mockWebView.mounts).toBe(2);
+    act(() => {
+      replaced.onLoadEnd({ nativeEvent: { url: ELSEWHERE, loading: false } });
+      replaced.onNavigationStateChange({ url: ELSEWHERE, loading: false, canGoBack: true });
+    });
+    expect(props.onOpenExternal).toHaveBeenCalledTimes(1);
+    expect(mockWebView.stopLoading).toHaveBeenCalledTimes(1);
+    expect(mockWebView.mounts).toBe(2);
+    expect(screen.queryByTestId("shell-offline-fallback")).toBeNull();
+    act(() => jest.advanceTimersByTime(READY_TIMEOUT_MS * 2));
+    expect(screen.getByText("Loading…")).toBeTruthy();
+  });
+
+  it("never judges a report from the WebView a switch replaced against the new server", async () => {
+    const { props, view } = await onConsolePage();
+    const replaced = mockWebView.props;
+    view.rerender(<ConsoleWebView {...props} serverUrl="https://erp.example.com" resumeRoute={null} />);
+    expect(mockWebView.mounts).toBe(2);
+    act(() => replaced.onLoadEnd({ nativeEvent: { url: `${SERVER}/_console/home`, loading: false } }));
+    expect(mockWebView.stopLoading).not.toHaveBeenCalled();
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+    expect(mockWebView.mounts).toBe(2);
+    // The new server's own pages stay; the one left is another site now.
+    loadStart("https://erp.example.com/_console/home");
+    expect(mockWebView.mounts).toBe(2);
+    loadStart(`${SERVER}/_console/home`);
+    expect(props.onOpenExternal).toHaveBeenCalledWith(`${SERVER}/_console/home`);
+    expect(mockWebView.mounts).toBe(3);
+    expect(mockWebView.props.source).toEqual({ uri: "https://erp.example.com/_console/home" });
+  });
+});
+
 describe("ConsoleWebView — sign-in excursion", () => {
   const LOGIN = `${SERVER}/_console/login?redirect=%2Fapps%2Fcrm`;
   const IDP = "https://login.idp-corp.example/oauth2/authorize?client_id=acme";
@@ -973,6 +1122,49 @@ describe("ConsoleWebView — sign-in excursion", () => {
     expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent(
       "federation.partner.example"
     );
+  });
+
+  it("keeps the excursion's pages at load start and load end, and returns by its own rule", async () => {
+    const { props } = await inExcursion();
+    loadStart("https://mfa.idp-corp.example/verify");
+    loadEndAt("https://mfa.idp-corp.example/verify");
+    loadStart("https://federation.partner.example/saml");
+    expect(screen.getByTestId("shell-excursion-host")).toHaveTextContent(
+      "federation.partner.example"
+    );
+    expect(mockWebView.stopLoading).not.toHaveBeenCalled();
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+    // Back on the server: the excursion returns, nothing is stopped.
+    loadStart(CALLBACK);
+    loadEndAt(`${SERVER}/_console/home`);
+    expect(screen.queryByTestId("shell-excursion-bar")).toBeNull();
+    expect(mockWebView.stopLoading).not.toHaveBeenCalled();
+    expect(mockWebView.mounts).toBe(1);
+    // Outside the excursion, the provider's page is another site again.
+    loadStart("https://login.idp-corp.example/session");
+    expect(mockWebView.stopLoading).toHaveBeenCalledTimes(1);
+    expect(props.onOpenExternal).toHaveBeenCalledWith("https://login.idp-corp.example/session");
+    expect(mockWebView.mounts).toBe(2);
+  });
+
+  it("leaves a plain http page during the excursion to the excursion's own end", async () => {
+    const { props } = await inExcursion();
+    loadStart("http://login.idp-corp.example/next");
+    expect(screen.getByTestId("shell-excursion-notice-insecure")).toBeTruthy();
+    expect(mockWebView.props.source).toEqual({ uri: `${SERVER}/_console/login` });
+    expect(mockWebView.mounts).toBe(2);
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+  });
+
+  it("opens nothing for the provider's page after 取消", async () => {
+    const { props } = await inExcursion();
+    const replaced = mockWebView.props;
+    fireEvent.press(screen.getByTestId("shell-excursion-cancel"));
+    expect(mockWebView.mounts).toBe(2);
+    act(() => replaced.onLoadEnd({ nativeEvent: { url: IDP, loading: false } }));
+    expect(props.onOpenExternal).not.toHaveBeenCalled();
+    expect(mockWebView.stopLoading).not.toHaveBeenCalled();
+    expect(mockWebView.mounts).toBe(2);
   });
 
   describe("the bridge", () => {
