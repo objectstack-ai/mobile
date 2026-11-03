@@ -8,6 +8,7 @@ import {
 } from "~/lib/shell/bridge/scripts";
 import {
   BRIDGE_PROTOCOL_VERSION,
+  BRIDGE_RESOLVE_GLOBAL,
   CONNECTION_REMOVED_EVENT,
   NAVIGATE_EVENT,
   PUSH_TOKEN_CHANGED_EVENT,
@@ -40,7 +41,10 @@ function makePage(origin = "https://acme.example.com") {
     documentElement: { style: { setProperty: (k: string, v: string) => (cssVars[k] = v) } },
     addEventListener: (name: string, fn: () => void) => (listeners[name] = fn),
   };
-  const run = (script: string) => new Function("window", "document", script)(window, document);
+  const run = (script: string | null) => {
+    if (script === null) throw new Error("no script");
+    return new Function("window", "document", script)(window, document);
+  };
   return { window, posted, cssVars, listeners, run };
 }
 
@@ -119,7 +123,7 @@ describe("bootstrap script", () => {
     expect(page.posted).toEqual([
       { type: "call", id: expect.any(String), method: "haptic", args: { kind: "success" } },
     ]);
-    page.run(buildResolveScript({ id: idOf(page.posted[0]), ok: true, value: null }));
+    page.run(buildResolveScript({ id: idOf(page.posted[0]), ok: true, value: null }, SERVER_URL));
     await expect(pending).resolves.toBeNull();
   });
 
@@ -135,25 +139,26 @@ describe("bootstrap script", () => {
   });
 
   it("settles no call of a later document with an answer meant for an earlier one", async () => {
-    // A scan stays open while the page reloads, recovers or goes to a sign-in
-    // host; each new document numbers its calls from 1 again.
+    // A scan stays open while the page reloads, recovers, or leaves and comes
+    // back; each new document numbers its calls from 1 again.
     const before = makePage();
     before.run(buildBootstrapScript(info, SERVER_URL));
     void before.window.ObjectStackNative.scan();
-    const staleAnswer = buildResolveScript({ id: idOf(before.posted[0]), ok: true, value: "CODE" });
+    const staleAnswer = buildResolveScript(
+      { id: idOf(before.posted[0]), ok: true, value: "CODE" },
+      SERVER_URL
+    );
 
-    for (const origin of ["https://acme.example.com", "https://login.idp.example"]) {
-      const after = makePage(origin);
-      after.run(buildBootstrapScript(info, SERVER_URL));
-      let settled = false;
-      const pending = after.window.ObjectStackNative.getPushToken().then(() => (settled = true));
-      after.run(staleAnswer);
-      await Promise.resolve();
-      expect(settled).toBe(false);
-      after.run(buildResolveScript({ id: idOf(after.posted[0]), ok: true, value: null }));
-      await pending;
-      expect(settled).toBe(true);
-    }
+    const after = makePage();
+    after.run(buildBootstrapScript(info, SERVER_URL));
+    let settled = false;
+    const pending = after.window.ObjectStackNative.getPushToken().then(() => (settled = true));
+    after.run(staleAnswer);
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    after.run(buildResolveScript({ id: idOf(after.posted[0]), ok: true, value: null }, SERVER_URL));
+    await pending;
+    expect(settled).toBe(true);
   });
 
   it("posts scan calls with the caller's options, or none", () => {
@@ -188,8 +193,8 @@ describe("bootstrap script", () => {
     const read = page.window.ObjectStackNative.scan();
     const cancelled = page.window.ObjectStackNative.scan();
     const [readId, cancelId] = page.posted.map(idOf);
-    page.run(buildResolveScript({ id: readId, ok: true, value: "4006381333931" }));
-    page.run(buildResolveScript({ id: cancelId, ok: true, value: null }));
+    page.run(buildResolveScript({ id: readId, ok: true, value: "4006381333931" }, SERVER_URL));
+    page.run(buildResolveScript({ id: cancelId, ok: true, value: null }, SERVER_URL));
     await expect(read).resolves.toBe("4006381333931");
     await expect(cancelled).resolves.toBeNull();
   });
@@ -199,11 +204,14 @@ describe("bootstrap script", () => {
     page.run(buildBootstrapScript(info, SERVER_URL));
     const pending = page.window.ObjectStackNative.navigate("bad");
     page.run(
-      buildResolveScript({
-        id: idOf(page.posted[0]),
-        ok: false,
-        error: { code: "bad_args", message: "nope" },
-      })
+      buildResolveScript(
+        {
+          id: idOf(page.posted[0]),
+          ok: false,
+          error: { code: "bad_args", message: "nope" },
+        },
+        SERVER_URL
+      )
     );
     await expect(pending).rejects.toMatchObject({ message: "nope", code: "bad_args" });
   });
@@ -211,7 +219,9 @@ describe("bootstrap script", () => {
   it("ignores results for unknown calls", () => {
     const page = makePage();
     page.run(buildBootstrapScript(info, SERVER_URL));
-    expect(() => page.run(buildResolveScript({ id: "c99", ok: true, value: 1 }))).not.toThrow();
+    expect(() =>
+      page.run(buildResolveScript({ id: "c99", ok: true, value: 1 }, SERVER_URL))
+    ).not.toThrow();
   });
 
   it("posts events", () => {
@@ -231,6 +241,87 @@ describe("bootstrap script", () => {
     const first = page.window.ObjectStackNative;
     page.run(buildBootstrapScript({ ...info, appVersion: "9.9.9" }, SERVER_URL));
     expect(page.window.ObjectStackNative).toBe(first);
+  });
+});
+
+describe("resolve script", () => {
+  const SERVER = "https://acme.example.com";
+  const RESULT = { id: "d1.1", ok: true as const, value: "4006381333931" };
+
+  /** A fake page window on `origin` whose resolve global is a spy. */
+  function makeResolvePage(origin = SERVER) {
+    const resolve = jest.fn();
+    const window = { location: { origin }, [BRIDGE_RESOLVE_GLOBAL]: resolve };
+    const run = (script: string | null) => {
+      if (script === null) throw new Error("no script");
+      return new Function("window", script)(window);
+    };
+    return { resolve, run };
+  }
+
+  it("settles the call on a page of the configured server's origin", () => {
+    const page = makeResolvePage();
+    page.run(buildResolveScript(RESULT, `${SERVER}/os`));
+    expect(page.resolve).toHaveBeenCalledTimes(1);
+    expect(page.resolve).toHaveBeenCalledWith(RESULT);
+  });
+
+  it("compares the page origin with the default port dropped", () => {
+    const page = makeResolvePage(SERVER);
+    page.run(buildResolveScript(RESULT, `${SERVER}:443/os`));
+    expect(page.resolve).toHaveBeenCalledWith(RESULT);
+  });
+
+  it.each([
+    "https://login.idp.example",
+    "http://acme.example.com",
+    "https://acme.example.com:8443",
+    "https://other.acme.example.com",
+    "null",
+  ])("calls no resolve global on a page on another origin (%s)", (origin) => {
+    const page = makeResolvePage(origin);
+    page.run(buildResolveScript(RESULT, SERVER));
+    expect(page.resolve).not.toHaveBeenCalled();
+  });
+
+  it("reads nothing but the origin of a page on another origin", () => {
+    const reads: string[] = [];
+    const record = <T extends object>(prefix: string, target: T): T =>
+      new Proxy(target, {
+        get(obj, key, receiver) {
+          reads.push(`${prefix}${String(key)}`);
+          return Reflect.get(obj, key, receiver);
+        },
+      });
+    const resolve = jest.fn();
+    const window = record("", {
+      location: record("location.", { origin: "https://login.idp.example" }),
+      [BRIDGE_RESOLVE_GLOBAL]: resolve,
+    });
+    new Function("window", buildResolveScript(RESULT, SERVER)!)(window);
+    expect(new Set(reads)).toEqual(new Set(["location", "location.origin"]));
+    expect(resolve).not.toHaveBeenCalled();
+  });
+
+  it("does nothing on a page of the server's origin that has no resolve global", () => {
+    expect(() =>
+      new Function("window", buildResolveScript(RESULT, SERVER)!)({ location: { origin: SERVER } })
+    ).not.toThrow();
+  });
+
+  it("builds no script for an unusable server URL", () => {
+    expect(buildResolveScript(RESULT, "not a url")).toBeNull();
+    expect(buildResolveScript(RESULT, "")).toBeNull();
+  });
+
+  it("splices the result as escaped JSON", () => {
+    const value = '");alert(1);("</script>\u2028end';
+    const script = buildResolveScript({ id: "d1.1", ok: true, value }, SERVER)!;
+    expect(script).not.toContain("</script>");
+    expect(script).not.toContain("\u2028");
+    const page = makeResolvePage();
+    page.run(script);
+    expect(page.resolve).toHaveBeenCalledWith({ id: "d1.1", ok: true, value });
   });
 });
 

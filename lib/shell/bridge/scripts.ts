@@ -113,9 +113,25 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
 true;`;
 }
 
-/** Snippet that settles one pending call in the page. */
-export function buildResolveScript(result: BridgeResult): string {
-  return `window.${BRIDGE_RESOLVE_GLOBAL} && window.${BRIDGE_RESOLVE_GLOBAL}(${toScriptLiteral(result)}); true;`;
+/**
+ * Snippet that settles one pending call in the page, or `null` when there is
+ * no server origin to deliver to.
+ *
+ * The answer goes only to a page on the configured server's origin (default
+ * ports ignored) — the same pages the handler answers, and the shell's rule
+ * for every page script that carries data. Whatever else is in the main frame
+ * gets nothing: the script reads only `window.location.origin` there and calls
+ * no global.
+ */
+export function buildResolveScript(result: BridgeResult, serverUrl: string): string | null {
+  const origin = originOf(serverUrl);
+  if (origin === null) return null;
+  return `(function () {
+  if (!window.location || window.location.origin !== ${toScriptLiteral(origin)}) return;
+  if (typeof window.${BRIDGE_RESOLVE_GLOBAL} !== "function") return;
+  window.${BRIDGE_RESOLVE_GLOBAL}(${toScriptLiteral(result)});
+})();
+true;`;
 }
 
 /**

@@ -662,7 +662,11 @@ Security:
   `..` segment (raw or percent-encoded), backslash or control character, so it
   cannot resolve outside `<server>/_console/`. `consoleUrl` applies the same
   check before building any URL.
-- Results are spliced into the page as escaped JSON (`toScriptLiteral`).
+- Results are spliced into the page as escaped JSON (`toScriptLiteral`), and
+  only into a page on the configured server's origin (default ports ignored),
+  the shell's origin rule for every page script that carries data
+  (`buildResolveScript` in `bridge/scripts.ts`). Any other page in the main
+  frame gets nothing, and no global of it is called.
 
 Adding a method: add it to `BRIDGE_METHODS` (it becomes a capability of the
 same name), handle it in `bridge/handler.ts`, expose it in the bootstrap

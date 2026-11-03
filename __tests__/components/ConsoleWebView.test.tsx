@@ -10,7 +10,7 @@ import {
 } from "~/components/shell/ConsoleWebView";
 import { READY_TIMEOUT_MS } from "~/lib/shell/console-load";
 import { EXCURSION_MAX_NAVIGATIONS, EXCURSION_TIMEOUT_MS } from "~/lib/shell/sign-in-excursion";
-import { CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
+import { BRIDGE_RESOLVE_GLOBAL, CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
 
 const mockWebView = {
   props: null as any,
@@ -131,6 +131,22 @@ const consoleReady = () => postEvent("ready");
 
 const navigatedTo = (route: string) =>
   expect.stringContaining(`${SERVER}/_console${route}`);
+
+/** Run an injected answer in a page on `origin`: what its resolve global was called with. */
+function answersSettledOn(script: string, origin: string): unknown[] {
+  const settled: unknown[] = [];
+  new Function("window", script)({
+    location: { origin },
+    [BRIDGE_RESOLVE_GLOBAL]: (result: unknown) => settled.push(result),
+  });
+  return settled;
+}
+
+/** The script of the last injection. */
+const lastInjected = (): string => {
+  const calls = mockWebView.injectJavaScript.mock.calls;
+  return calls[calls.length - 1][0];
+};
 
 beforeEach(() => {
   mockIsConnected = true;
@@ -354,6 +370,22 @@ describe("ConsoleWebView", () => {
     );
   });
 
+  it("delivers an answer only to a page on the configured server's origin", async () => {
+    renderConsole({ serverUrl: `${SERVER}/os` });
+    await act(async () => {
+      mockWebView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "call", id: "c1", method: "getPushToken" }),
+          url: `${SERVER}/os/_console/home`,
+        },
+      });
+    });
+    expect(mockWebView.injectJavaScript).toHaveBeenCalledTimes(1);
+    const script = lastInjected();
+    expect(answersSettledOn(script, SERVER)).toEqual([{ id: "c1", ok: true, value: null }]);
+    expect(answersSettledOn(script, "https://login.idp.example")).toEqual([]);
+  });
+
   describe("an answer whose document is gone", () => {
     /** A `scan()` from the loaded page, left open until the test settles it. */
     function openScan() {
@@ -403,6 +435,10 @@ describe("ConsoleWebView", () => {
       expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
         expect.stringContaining('"id":"d1.1","ok":true,"value":"4006381333931"')
       );
+      // The page is still on the server's origin, so the answer reaches it.
+      expect(answersSettledOn(lastInjected(), SERVER)).toEqual([
+        { id: "d1.1", ok: true, value: "4006381333931" },
+      ]);
     });
 
     it("is dropped when the WebView was re-created meanwhile", async () => {
@@ -747,6 +783,11 @@ describe("ConsoleWebView — saved connections", () => {
       expect(mockWebView.injectJavaScript).toHaveBeenCalledWith(
         expect.stringContaining('"id":"c1","ok":true,"value":null')
       );
+      // The answer is for a page on the new connection's origin only.
+      expect(answersSettledOn(lastInjected(), OTHER)).toEqual([
+        { id: "c1", ok: true, value: null },
+      ]);
+      expect(answersSettledOn(lastInjected(), SERVER)).toEqual([]);
     });
 
     it("gives the new host's bootstrap the new origin", () => {

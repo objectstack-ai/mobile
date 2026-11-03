@@ -548,10 +548,12 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           // it is gone, and the reply would run in an excursion page or in a
           // new document.
           if (excursionEpochRef.current !== epoch || excursionRef.current.active) return;
-          webviewRef.current?.injectJavaScript(buildResolveScript(result));
+          // Only a page on the origin the handler trusted is answered.
+          const script = buildResolveScript(result, serverUrl);
+          if (script) webviewRef.current?.injectJavaScript(script);
         });
       },
-      [handleMessage]
+      [handleMessage, serverUrl]
     );
 
     const onShouldStartLoadWithRequest = useCallback(
