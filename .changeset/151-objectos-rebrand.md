@@ -8,7 +8,7 @@ Metadata-protocol: none
 Rebrand the app to ObjectOS. The app is named `ObjectOS`, its URL scheme
 defaults to `objectos` (`objectos://open?route=…`, `objectos://console/…`),
 the iOS bundle identifier and Android package are `ai.objectos.mobile`, and the
-Expo slug is `objectos-mobile`. The server picker says "ObjectOS server" in
+Expo slug is `objectos`. The server picker says "ObjectOS server" in
 en / zh / ar.
 
 Development builds made before this change are a different app (old bundle id,

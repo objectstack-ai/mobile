@@ -36,11 +36,21 @@ const PERMISSION_LOCALES: Record<
   ar,
 };
 
+// The EAS project this app builds and publishes under: `@objectstack/objectos`.
+// `owner`, `slug` and this ID must name the same project, and neither the slug
+// nor the ID can change without moving to a new EAS project.
+const EAS_PROJECT_ID = "40edd17e-752e-4062-a404-5eb8892ce47f";
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "ObjectOS",
-  slug: "objectos-mobile",
+  owner: "objectstack",
+  slug: "objectos",
   version: "2.0.0",
+  // An over-the-air update only reaches a binary with the same native modules:
+  // the fingerprint changes whenever the native side does.
+  runtimeVersion: { policy: "fingerprint" },
+  updates: { url: `https://u.expo.dev/${EAS_PROJECT_ID}` },
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? "objectos",
@@ -145,5 +155,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // configured server — typically the SSO identity provider.
     trustedHosts: process.env.EXPO_PUBLIC_TRUSTED_HOSTS ?? "",
     sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? "",
+    eas: { projectId: EAS_PROJECT_ID },
   },
 });

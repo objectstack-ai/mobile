@@ -9,7 +9,9 @@
 | `EXPO_PUBLIC_SENTRY_DSN` | crash reporting |
 | `EXPO_PUBLIC_APP_SCHEME` | URL scheme for app links (default `objectos`) |
 
-Profiles and their values live in `eas.json`.
+Profiles and their values live in `eas.json`. `preview` skips Sentry's source map
+upload (`SENTRY_DISABLE_AUTO_UPLOAD`); a `production` build uploads, so it needs a
+`SENTRY_AUTH_TOKEN` in the project's EAS environment variables.
 
 ## Managed deployment (MDM)
 
@@ -108,11 +110,15 @@ a build without it reads no managed config.
 ## Builds
 
 ```bash
-eas build --profile development --platform ios|android   # dev client
+eas build --profile development --platform ios|android   # dev client, iOS simulator
+eas build --profile development-device --platform ios|android   # dev client, phone
 eas build --profile preview --platform all               # internal distribution
 eas build --profile production --platform all            # store builds
 eas submit --platform ios|android --profile production
 ```
+
+The app builds under the EAS project `@objectstack/objectos`. `owner`, `slug` and
+`extra.eas.projectId` in `app.config.ts` name it together.
 
 CI (`.github/workflows/`):
 
@@ -127,6 +133,16 @@ The Console updates with the server, so most product changes need no mobile
 release. A new store build is needed only for native changes (new native
 module, bridge method, permission, icon). Shell-only JavaScript fixes can ship
 over the air with EAS Update.
+
+`runtimeVersion` uses the fingerprint policy, so an update only reaches binaries
+with the same native side. A binary reads the branch its channel points at:
+`preview` builds use channel `preview`, while `eas-update.yml` publishes with
+`--auto`, to a branch named after the git branch (`main`). Until the channel is
+pointed there, an update from CI reaches no installed build:
+
+```bash
+eas channel:edit preview --branch main
+```
 
 ## App review
 
