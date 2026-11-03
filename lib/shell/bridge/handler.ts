@@ -13,8 +13,10 @@ import { originOf, safeConsoleRoute } from "../console-url";
 import {
   BRIDGE_EVENTS,
   HAPTIC_KINDS,
+  LOCKED_REFUSED_METHODS,
   SCAN_FORMATS,
   parseInbound,
+  type AppLockInfo,
   type BridgeErrorCode,
   type BridgeEventName,
   type BridgeResult,
@@ -41,6 +43,15 @@ export interface BridgeDeps {
   scan: (formats: readonly ScanFormat[]) => Promise<string | null>;
   /** Open the native connection switcher (screen 8). */
   showConnectionSwitcher: () => void | Promise<void>;
+  /** The app-lock setting, read-only. */
+  getAppLock: () => AppLockInfo;
+  /** Open the native app-lock settings screen, where a change asks for biometrics. */
+  openAppLockSettings: () => void | Promise<void>;
+  /**
+   * `true` while the app lock holds the screen (the overlay is up). Methods
+   * that bring up native UI ({@link LOCKED_REFUSED_METHODS}) are then refused.
+   */
+  isLocked?: () => boolean;
   onEvent?: (name: BridgeEventName, payload: unknown) => void;
   /**
    * `true` while a sign-in excursion is on screen. The main frame is then an
@@ -114,6 +125,10 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
 
     const { id, method, args } = msg;
 
+    if ((LOCKED_REFUSED_METHODS as readonly string[]).includes(method) && deps.isLocked?.()) {
+      return fail(id, "failed", "The app is locked");
+    }
+
     try {
       switch (method) {
         case "getPushToken":
@@ -158,6 +173,15 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
 
         case "showConnectionSwitcher":
           await deps.showConnectionSwitcher();
+          return { id, ok: true, value: null };
+
+        case "getAppLock": {
+          const { enabled, timeoutSeconds } = deps.getAppLock();
+          return { id, ok: true, value: { enabled, timeoutSeconds } };
+        }
+
+        case "openAppLockSettings":
+          await deps.openAppLockSettings();
           return { id, ok: true, value: null };
 
         default:

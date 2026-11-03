@@ -79,6 +79,8 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
     resetServer: function () { return call("resetServer"); },
     scan: function (opts) { return call("scan", opts); },
     showConnectionSwitcher: function () { return call("showConnectionSwitcher"); },
+    getAppLock: function () { return call("getAppLock"); },
+    openAppLockSettings: function () { return call("openAppLockSettings"); },
     ready: function () { post({ type: "event", name: "ready" }); },
     routeChanged: function (route) { post({ type: "event", name: "routeChanged", payload: { route: route } }); }
   };

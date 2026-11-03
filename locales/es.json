@@ -110,7 +110,45 @@
       "codeBlocked": "El acceso a la cámara está desactivado para ObjectOS. Actívelo en Configuración para escanear códigos."
     }
   },
+  "appLock": {
+    "entry": "Bloqueo de la app",
+    "on": "Activado",
+    "off": "Desactivado",
+    "prompt": {
+      "unlock": "Desbloquear ObjectOS",
+      "change": "Cambiar el bloqueo de la app"
+    },
+    "overlay": {
+      "title": "ObjectOS está bloqueado",
+      "unlock": "Desbloquear",
+      "failed": "No se pudo confirmar que eres tú. Inténtalo de nuevo.",
+      "noDeviceLock": "Configura un bloqueo de pantalla en los ajustes del teléfono para desbloquear ObjectOS."
+    },
+    "settings": {
+      "title": "Bloqueo de la app",
+      "description": "Protege ObjectOS con Face ID, Touch ID, huella digital o el código del teléfono cuando vuelves a la app.",
+      "toggle": "Bloquear la app",
+      "timeoutTitle": "Bloquear después de",
+      "timeout": {
+        "0": "Inmediatamente",
+        "60": "Después de 1 minuto",
+        "300": "Después de 5 minutos",
+        "900": "Después de 15 minutos",
+        "3600": "Después de 1 hora"
+      },
+      "authNote": "Para cambiar el bloqueo de la app se pide Face ID, Touch ID, huella digital o el código del teléfono.",
+      "unavailable": "Configura un bloqueo de pantalla (código, Face ID o huella digital) en los ajustes del teléfono para usar el bloqueo de la app.",
+      "notChanged": "Sin cambios: no se pudo confirmar que eres tú.",
+      "saveFailed": "No se pudo guardar el ajuste. Inténtalo de nuevo.",
+      "back": "Atrás",
+      "privacy": {
+        "ios": "Mientras el bloqueo de la app está activado, el selector de apps muestra ObjectOS difuminado.",
+        "android": "Mientras el bloqueo de la app está activado, la pantalla de apps recientes muestra ObjectOS en blanco, y se bloquean las capturas y grabaciones de pantalla."
+      }
+    }
+  },
   "permissions": {
-    "camera": "ObjectOS usa la cámara para escanear códigos QR y códigos de barras, como el código que lo conecta a su servidor."
+    "camera": "ObjectOS usa la cámara para escanear códigos QR y códigos de barras, como el código que lo conecta a su servidor.",
+    "faceId": "ObjectOS usa Face ID para desbloquear la app cuando el bloqueo de la app está activado."
   }
 }

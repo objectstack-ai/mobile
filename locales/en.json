@@ -110,7 +110,45 @@
       "codeBlocked": "Camera access is off for ObjectOS. Turn it on in Settings to scan codes."
     }
   },
+  "appLock": {
+    "entry": "App lock",
+    "on": "On",
+    "off": "Off",
+    "prompt": {
+      "unlock": "Unlock ObjectOS",
+      "change": "Change the app lock"
+    },
+    "overlay": {
+      "title": "ObjectOS is locked",
+      "unlock": "Unlock",
+      "failed": "Couldn't confirm it's you. Try again.",
+      "noDeviceLock": "Set up a screen lock in your phone's settings to unlock ObjectOS."
+    },
+    "settings": {
+      "title": "App lock",
+      "description": "Hide ObjectOS behind Face ID, Touch ID or fingerprint, or your phone's passcode, when you come back to it.",
+      "toggle": "Lock the app",
+      "timeoutTitle": "Lock after",
+      "timeout": {
+        "0": "Immediately",
+        "60": "After 1 minute",
+        "300": "After 5 minutes",
+        "900": "After 15 minutes",
+        "3600": "After 1 hour"
+      },
+      "authNote": "Changing the app lock asks for Face ID, Touch ID or fingerprint, or your phone's passcode.",
+      "unavailable": "Set up a screen lock (passcode, Face ID or fingerprint) in your phone's settings to use the app lock.",
+      "notChanged": "Not changed: it couldn't be confirmed that it's you.",
+      "saveFailed": "The setting couldn't be saved. Try again.",
+      "back": "Back",
+      "privacy": {
+        "ios": "While the app lock is on, the app switcher shows ObjectOS blurred.",
+        "android": "While the app lock is on, the recent apps screen shows ObjectOS blank, and screenshots and screen recording are blocked."
+      }
+    }
+  },
   "permissions": {
-    "camera": "ObjectOS uses the camera to scan QR codes and barcodes, such as the code that connects it to your server."
+    "camera": "ObjectOS uses the camera to scan QR codes and barcodes, such as the code that connects it to your server.",
+    "faceId": "ObjectOS uses Face ID to unlock the app when the app lock is on."
   }
 }
