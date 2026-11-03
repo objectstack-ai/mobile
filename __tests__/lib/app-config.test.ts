@@ -5,7 +5,9 @@
  */
 import appConfig from "~/app.config";
 import en from "~/locales/en.json";
-import zh from "~/locales/zh.json";
+import ptBR from "~/locales/pt-BR.json";
+import zhHans from "~/locales/zh-Hans.json";
+import zhHant from "~/locales/zh-Hant.json";
 
 type Plugin = string | [string, Record<string, unknown>];
 
@@ -26,11 +28,20 @@ describe("app.config permissions", () => {
         expect(ios.NSFaceIDUsageDescription).not.toBe(en.permissions.faceId);
       }
     }
-    expect(locales["zh-Hant"].ios).toEqual({
-      NSCameraUsageDescription: zh.permissions.camera,
-      NSPhotoLibraryUsageDescription: zh.permissions.photos,
-      NSFaceIDUsageDescription: zh.permissions.faceId,
-    });
+    // Each Chinese script carries its own bundle's text, never the other's.
+    for (const [lproj, bundle] of [
+      ["zh-Hans", zhHans],
+      ["zh-Hant", zhHant],
+    ] as const) {
+      expect(locales[lproj].ios).toEqual({
+        NSCameraUsageDescription: bundle.permissions.camera,
+        NSPhotoLibraryUsageDescription: bundle.permissions.photos,
+        NSFaceIDUsageDescription: bundle.permissions.faceId,
+      });
+    }
+    expect(locales["zh-Hant"].ios.NSCameraUsageDescription).not.toBe(zhHans.permissions.camera);
+    // Portuguese is written as the unqualified `pt`, so every variant falls back to the pt-BR text.
+    expect(locales.pt.ios.NSCameraUsageDescription).toBe(ptBR.permissions.camera);
   });
 
   it("gives the app lock its Face ID text, and blocks only the screen-capture module's unused permissions", () => {

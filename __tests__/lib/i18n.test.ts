@@ -7,18 +7,30 @@ import i18n, {
   followDeviceLanguage,
   followDeviceLanguageOnForeground,
   isRTL,
-  matchLanguageTag,
   resolveLanguage,
+  resolveLanguageTag,
   SUPPORTED_LANGUAGES,
   RTL_LANGUAGES,
 } from "~/lib/i18n";
 
 /**
- * The Console UI's ten built-in catalogue codes, in its order (objectstack
- * `ui/packages/i18n/src/locales/registry.ts`, `BUILT_IN_LANGUAGE_CODES`).
- * The shell must match this list one-to-one.
+ * The platform's one list of 11 language tags, in the table's order
+ * (objectstack-ai/objectstack#29428, ruling F of #29349). The shell must match
+ * this list one-to-one.
  */
-const CONSOLE_LANGUAGE_CODES = ["en", "zh", "ja", "ko", "de", "fr", "es", "pt", "ru", "ar"];
+const PLATFORM_LANGUAGE_TAGS = [
+  "en",
+  "zh-Hans",
+  "zh-Hant",
+  "es",
+  "ar",
+  "fr",
+  "pt-BR",
+  "ru",
+  "de",
+  "ja",
+  "ko",
+];
 
 // jest.setup.ts mocks this module without a `default`, which is what
 // `react-native`'s `AppState` getter reads; give it one for this file.
@@ -57,16 +69,20 @@ describe("i18n configuration", () => {
   });
 
   it("translates through the active bundle", async () => {
-    await i18n.changeLanguage("zh");
+    await i18n.changeLanguage("zh-Hans");
     expect(i18n.t("common.ok")).toBe("确定");
+    await i18n.changeLanguage("zh-Hant");
+    expect(i18n.t("common.ok")).toBe("確定");
+    await i18n.changeLanguage("pt-BR");
+    expect(i18n.t("common.cancel")).toBe("Cancelar");
     await i18n.changeLanguage("ja");
     expect(i18n.t("serverConfirm.signIn.emailPassword")).toBe("メールアドレスとパスワード");
   });
 });
 
 describe("SUPPORTED_LANGUAGES", () => {
-  it("is exactly the Console UI's ten locale codes, in the Console's order", () => {
-    expect(SUPPORTED_LANGUAGES.map((l) => l.code)).toEqual(CONSOLE_LANGUAGE_CODES);
+  it("is exactly the platform's 11 language tags, in the table's order", () => {
+    expect(SUPPORTED_LANGUAGES.map((l) => l.code)).toEqual(PLATFORM_LANGUAGE_TAGS);
   });
 
   it("names every language in its own language", () => {
@@ -78,7 +94,7 @@ describe("SUPPORTED_LANGUAGES", () => {
       .filter((f) => f.endsWith(".json"))
       .map((f) => f.replace(/\.json$/, ""))
       .sort();
-    expect(bundles).toEqual([...CONSOLE_LANGUAGE_CODES].sort());
+    expect(bundles).toEqual([...PLATFORM_LANGUAGE_TAGS].sort());
   });
 });
 
@@ -97,7 +113,7 @@ describe("locale bundles", () => {
 
   const en = flatten(read("en"));
 
-  it.each(CONSOLE_LANGUAGE_CODES.filter((c) => c !== "en"))(
+  it.each(PLATFORM_LANGUAGE_TAGS.filter((c) => c !== "en"))(
     "%s carries every native string key en has, and no other",
     (code) => {
       const bundle = flatten(read(code));
@@ -107,7 +123,7 @@ describe("locale bundles", () => {
     }
   );
 
-  it.each(CONSOLE_LANGUAGE_CODES)("%s has no empty string and keeps every placeholder", (code) => {
+  it.each(PLATFORM_LANGUAGE_TAGS)("%s has no empty string and keeps every placeholder", (code) => {
     const bundle = flatten(read(code));
     for (const [key, value] of Object.entries(bundle)) {
       expect({ key, empty: value.trim() === "" }).toEqual({ key, empty: false });
@@ -119,58 +135,88 @@ describe("locale bundles", () => {
   });
 });
 
-describe("matchLanguageTag — the Console's exact-then-base rule", () => {
-  // The Console's own pins (region-locale-fallback-11326.test.tsx), ported.
-  it("prefers an exact match over the base language, and falls back to the base", () => {
-    const has = (code: string) => code === "pt" || code === "pt-BR";
-    expect(matchLanguageTag("pt-BR", has)).toBe("pt-BR");
-    expect(matchLanguageTag("pt-PT", has)).toBe("pt");
-    expect(matchLanguageTag("pt", has)).toBe("pt");
-    expect(matchLanguageTag("xx-YY", has)).toBeNull();
+describe("resolveLanguageTag — the platform's alias rule, by script", () => {
+  // objectstack-ai/objectstack#29428, phase 1: each read alias it declares.
+  it.each([
+    ["zh", "zh-Hans"],
+    ["zh-CN", "zh-Hans"],
+    ["zh-SG", "zh-Hans"],
+    ["zh-TW", "zh-Hant"],
+    ["zh-HK", "zh-Hant"],
+    ["zh-MO", "zh-Hant"],
+    ["ja-JP", "ja"],
+    ["es-ES", "es"],
+    ["pt", "pt-BR"],
+    ["en-US", "en"],
+  ])("resolves the platform alias %s to %s", (tag, code) => {
+    expect(resolveLanguageTag(tag)).toBe(code);
+  });
+
+  it("lets an explicit script subtag decide over the region", () => {
+    expect(resolveLanguageTag("zh-Hant-TW")).toBe("zh-Hant");
+    expect(resolveLanguageTag("zh-Hant-CN")).toBe("zh-Hant");
+    expect(resolveLanguageTag("zh-Hans-HK")).toBe("zh-Hans");
+    expect(resolveLanguageTag("zh-Hans-MO")).toBe("zh-Hans");
+  });
+
+  it("compares subtags case-insensitively, as BCP 47 defines them", () => {
+    expect(resolveLanguageTag("ZH-hant")).toBe("zh-Hant");
+    expect(resolveLanguageTag("zh-tw")).toBe("zh-Hant");
+    expect(resolveLanguageTag("PT-pt")).toBe("pt-BR");
+    expect(resolveLanguageTag("EN")).toBe("en");
+  });
+
+  it("never reads an extension value as the region", () => {
+    expect(resolveLanguageTag("zh-u-rg-twzzzz")).toBe("zh-Hans");
+    expect(resolveLanguageTag("zh-CN-u-nu-hanidec")).toBe("zh-Hans");
+    expect(resolveLanguageTag("zh-x-tw")).toBe("zh-Hans");
+  });
+
+  it("answers null for a language with no bundle", () => {
+    expect(resolveLanguageTag("it-IT")).toBeNull();
+    expect(resolveLanguageTag("yue-HK")).toBeNull();
+    expect(resolveLanguageTag("")).toBeNull();
   });
 });
 
 describe("detectDeviceLanguage", () => {
-  it.each(CONSOLE_LANGUAGE_CODES)("resolves the bare code %s to itself", (code) => {
+  it.each(PLATFORM_LANGUAGE_TAGS)("resolves the table tag %s to itself", (code) => {
     expect(detectDeviceLanguage(tags(code))).toBe(code);
   });
 
   it.each([
     ["en-US", "en"],
-    ["zh-CN", "zh"],
     ["ja-JP", "ja"],
     ["ko-KR", "ko"],
     ["de-DE", "de"],
     ["fr-FR", "fr"],
     ["es-ES", "es"],
-    ["pt-PT", "pt"],
+    ["es-MX", "es"],
     ["ru-RU", "ru"],
     ["ar-SA", "ar"],
-  ])("resolves the region tag %s to %s", (tag, code) => {
+  ])("resolves the region tag %s to its primary subtag %s", (tag, code) => {
     expect(detectDeviceLanguage(tags(tag))).toBe(code);
   });
 
-  it.each([
-    ["zh-Hans-CN", "zh"],
-    ["pt-BR", "pt"],
-    ["es-MX", "es"],
-  ])("resolves %s to %s", (tag, code) => {
-    expect(detectDeviceLanguage(tags(tag))).toBe(code);
+  it.each(["zh-Hans-CN", "zh-CN", "zh-SG", "zh"])("resolves Simplified Chinese %s to zh-Hans", (tag) => {
+    expect(detectDeviceLanguage(tags(tag))).toBe("zh-Hans");
   });
 
-  // The Console has no Traditional Chinese catalogue, and its rule resolves a
-  // `zh-*` tag to its base `zh` (registry.ts `matchLanguageTag`). The shell
-  // follows that rule rather than inventing a different one.
-  it.each(["zh-TW", "zh-HK", "zh-Hant", "zh-Hant-TW", "zh-Hant-HK"])(
-    "resolves Traditional Chinese %s to zh, as the Console does",
+  it.each(["zh-TW", "zh-HK", "zh-MO", "zh-Hant", "zh-Hant-TW", "zh-Hant-HK"])(
+    "resolves Traditional Chinese %s to zh-Hant",
     (tag) => {
-      expect(detectDeviceLanguage(tags(tag))).toBe("zh");
+      expect(detectDeviceLanguage(tags(tag))).toBe("zh-Hant");
     }
   );
 
+  it.each(["pt-PT", "pt-BR", "pt-AO", "pt"])("resolves Portuguese %s to pt-BR", (tag) => {
+    expect(detectDeviceLanguage(tags(tag))).toBe("pt-BR");
+  });
+
   it("falls through an unsupported first language to the next supported one", () => {
     expect(detectDeviceLanguage(tags("he-IL", "ja-JP", "en-US"))).toBe("ja");
-    expect(detectDeviceLanguage(tags("tlh", "it-IT", "pt-BR"))).toBe("pt");
+    expect(detectDeviceLanguage(tags("tlh", "it-IT", "pt-PT"))).toBe("pt-BR");
+    expect(detectDeviceLanguage(tags("yue-HK", "zh-HK", "en-US"))).toBe("zh-Hant");
   });
 
   it("falls back to en when no preferred language is supported", () => {
@@ -184,6 +230,14 @@ describe("detectDeviceLanguage", () => {
 
   it("uses languageCode when a locale has no languageTag", () => {
     expect(detectDeviceLanguage([{ languageTag: "", languageCode: "ko" }])).toBe("ko");
+  });
+
+  it("keeps the script and region of a locale that has no languageTag", () => {
+    expect(
+      detectDeviceLanguage([{ languageCode: "zh", languageScriptCode: "Hant", regionCode: "TW" }])
+    ).toBe("zh-Hant");
+    expect(detectDeviceLanguage([{ languageCode: "zh", regionCode: "HK" }])).toBe("zh-Hant");
+    expect(detectDeviceLanguage([{ languageCode: "zh", regionCode: "CN" }])).toBe("zh-Hans");
   });
 
   it("reads the phone's languages when none are passed", () => {
@@ -255,7 +309,7 @@ describe("isRTL", () => {
   });
 
   it("returns false for every other shell language", () => {
-    for (const code of CONSOLE_LANGUAGE_CODES.filter((c) => c !== "ar")) {
+    for (const code of PLATFORM_LANGUAGE_TAGS.filter((c) => c !== "ar")) {
       expect(isRTL(code)).toBe(false);
     }
   });

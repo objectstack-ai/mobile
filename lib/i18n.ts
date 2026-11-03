@@ -2,11 +2,10 @@
  * Internationalization configuration.
  *
  * Integrates i18next + react-i18next + expo-localization. Ships the shell's own
- * strings (server picker, confirm screen, loading, offline page) in the same
- * ten locales, under the same short codes, as the Console UI
- * (objectstack `ui/packages/i18n/src/locales/registry.ts`,
- * `BUILT_IN_LANGUAGE_CODES`), so a phone language lands on the same locale on
- * both sides. Everything inside the Console is translated by the Console.
+ * strings (server picker, confirm screen, loading, offline page) in the
+ * platform's one list of 11 languages, keyed by the platform's tags
+ * (objectstack-ai/objectstack#29428, ruling F of #29349). Everything inside the
+ * Console is translated by the Console.
  *
  * The phone setting is the only source: there is no in-app language picker for
  * the native screens, and the shell follows a phone-language change the next
@@ -19,35 +18,36 @@ import { getLocales, type Locale } from "expo-localization";
 import { AppState, type AppStateStatus } from "react-native";
 
 import en from "~/locales/en.json";
-import zh from "~/locales/zh.json";
+import zhHans from "~/locales/zh-Hans.json";
+import zhHant from "~/locales/zh-Hant.json";
+import es from "~/locales/es.json";
+import ar from "~/locales/ar.json";
+import fr from "~/locales/fr.json";
+import ptBR from "~/locales/pt-BR.json";
+import ru from "~/locales/ru.json";
+import de from "~/locales/de.json";
 import ja from "~/locales/ja.json";
 import ko from "~/locales/ko.json";
-import de from "~/locales/de.json";
-import fr from "~/locales/fr.json";
-import es from "~/locales/es.json";
-import pt from "~/locales/pt.json";
-import ru from "~/locales/ru.json";
-import ar from "~/locales/ar.json";
 
 /** Languages that use right-to-left layout — the Console's list (`locales/rtl.ts`). */
 export const RTL_LANGUAGES = new Set(["ar", "he", "fa", "ur"]);
 
 /**
- * All bundled languages with their native display names: the Console's ten
- * codes in the Console's order, named as the Console's language menu names them
- * (objectstack `ui/packages/app-shell/src/layout/LocaleSwitcher.tsx`).
+ * All bundled languages with their native display names: the platform's 11
+ * tags, in the platform table's order (objectstack-ai/objectstack#29428).
  */
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English" },
-  { code: "zh", label: "中文" },
+  { code: "zh-Hans", label: "简体中文" },
+  { code: "zh-Hant", label: "繁體中文" },
+  { code: "es", label: "Español" },
+  { code: "ar", label: "العربية" },
+  { code: "fr", label: "Français" },
+  { code: "pt-BR", label: "Português (Brasil)" },
+  { code: "ru", label: "Русский" },
+  { code: "de", label: "Deutsch" },
   { code: "ja", label: "日本語" },
   { code: "ko", label: "한국어" },
-  { code: "de", label: "Deutsch" },
-  { code: "fr", label: "Français" },
-  { code: "es", label: "Español" },
-  { code: "pt", label: "Português" },
-  { code: "ru", label: "Русский" },
-  { code: "ar", label: "العربية" },
 ] as const;
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
@@ -55,44 +55,78 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]["code"];
 /** The language used when no preferred phone language is supported. */
 export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
 
-const SUPPORTED_CODES: ReadonlySet<string> = new Set(SUPPORTED_LANGUAGES.map((l) => l.code));
+/** Supported languages whose tag is a bare primary subtag (`en`, `ja`, …), lower-cased. */
+const PRIMARY_ONLY: ReadonlySet<string> = new Set(
+  SUPPORTED_LANGUAGES.map((l) => l.code).filter((code) => !code.includes("-"))
+);
 
-function isSupportedLanguage(code: string): code is SupportedLanguage {
-  return SUPPORTED_CODES.has(code);
-}
+/** Regions whose Chinese is written in Traditional script. */
+const HANT_REGIONS: ReadonlySet<string> = new Set(["tw", "hk", "mo"]);
 
 /**
- * Exact-then-base language-tag matching: `tag` itself when `has(tag)`, else its
- * base language (`zh-CN` → `zh`) when `has(base)`, else `null`.
+ * Resolve one BCP 47 language tag to a bundled language, by script, or `null`
+ * when the tag names no bundled language. The platform's alias rule
+ * (objectstack-ai/objectstack#29428):
  *
- * A port of the Console's `matchLanguageTag` (objectstack
- * `ui/packages/i18n/src/locales/registry.ts`), kept byte-for-byte in behaviour
- * so a tag resolves to the same locale on both sides. Consequences that follow
- * from the Console's rule, not from a choice made here:
+ * - Chinese (`zh`): an explicit script subtag decides — `Hant` → `zh-Hant`,
+ *   `Hans` → `zh-Hans`. Without one, the regions `TW`, `HK` and `MO` →
+ *   `zh-Hant`, and every other `zh` tag (bare `zh`, `zh-CN`, `zh-SG`, …) →
+ *   `zh-Hans`.
+ * - Portuguese: every `pt` tag (bare `pt`, `pt-PT`, `pt-BR`, …) → `pt-BR`.
+ * - Any other tag → its primary subtag when that is bundled (`en-US` → `en`,
+ *   `es-MX` → `es`), else `null`.
  *
- * - Traditional Chinese (`zh-Hant`, `zh-TW`, `zh-HK`, `zh-Hant-TW`) has no
- *   catalogue of its own, so it resolves to `zh`, as in the Console.
- * - The base is the text before the first `-`; case is not folded.
+ * Subtags compare case-insensitively, as BCP 47 defines them. Only the
+ * language, script and region subtags are read: scanning stops at the first
+ * singleton (`-u-`, `-x-`, …), so an extension value never reads as a region.
  */
-export function matchLanguageTag(tag: string, has: (code: string) => boolean): string | null {
-  if (has(tag)) return tag;
-  const base = tag.split("-")[0];
-  if (base && base !== tag && has(base)) return base;
-  return null;
+export function resolveLanguageTag(tag: string): SupportedLanguage | null {
+  const subtags = tag.toLowerCase().split("-");
+  const primary = subtags[0];
+  if (!primary) return null;
+
+  if (primary === "zh") {
+    let script: string | undefined;
+    let region: string | undefined;
+    for (const subtag of subtags.slice(1)) {
+      if (subtag.length === 1) break;
+      if (!script && !region && /^[a-z]{4}$/.test(subtag)) script = subtag;
+      else if (!region && /^([a-z]{2}|\d{3})$/.test(subtag)) region = subtag;
+    }
+    if (script === "hant") return "zh-Hant";
+    if (script === "hans") return "zh-Hans";
+    return region && HANT_REGIONS.has(region) ? "zh-Hant" : "zh-Hans";
+  }
+  if (primary === "pt") return "pt-BR";
+  return PRIMARY_ONLY.has(primary) ? (primary as SupportedLanguage) : null;
 }
 
 /**
  * Pick the shell language from an ordered list of preferred language tags: the
- * first tag that {@link matchLanguageTag} resolves to a bundled language, else
+ * first tag that {@link resolveLanguageTag} resolves to a bundled language, else
  * {@link DEFAULT_LANGUAGE}.
  */
 export function resolveLanguage(tags: readonly (string | null | undefined)[]): SupportedLanguage {
   for (const tag of tags) {
     if (!tag) continue;
-    const match = matchLanguageTag(tag, isSupportedLanguage);
-    if (match) return match as SupportedLanguage;
+    const match = resolveLanguageTag(tag);
+    if (match) return match;
   }
   return DEFAULT_LANGUAGE;
+}
+
+/**
+ * One phone locale as a language tag: its `languageTag`, else a tag built from
+ * its language, script and region codes, so a locale reported without a tag
+ * keeps its script (`zh` + `Hant` + `TW` → `zh-Hant-TW`).
+ */
+function localeTag(locale: Partial<Locale> | null | undefined): string | undefined {
+  if (!locale) return undefined;
+  if (locale.languageTag) return locale.languageTag;
+  if (!locale.languageCode) return undefined;
+  return [locale.languageCode, locale.languageScriptCode, locale.regionCode]
+    .filter(Boolean)
+    .join("-");
 }
 
 /**
@@ -103,7 +137,7 @@ export function resolveLanguage(tags: readonly (string | null | undefined)[]): S
 export function detectDeviceLanguage(locales?: readonly Partial<Locale>[]): SupportedLanguage {
   try {
     const list = locales ?? getLocales();
-    return resolveLanguage((list ?? []).map((l) => l?.languageTag || l?.languageCode));
+    return resolveLanguage((list ?? []).map(localeTag));
   } catch {
     return DEFAULT_LANGUAGE;
   }
@@ -117,15 +151,16 @@ export function isRTL(lang?: string): boolean {
 
 const resources = {
   en: { translation: en },
-  zh: { translation: zh },
+  "zh-Hans": { translation: zhHans },
+  "zh-Hant": { translation: zhHant },
+  es: { translation: es },
+  ar: { translation: ar },
+  fr: { translation: fr },
+  "pt-BR": { translation: ptBR },
+  ru: { translation: ru },
+  de: { translation: de },
   ja: { translation: ja },
   ko: { translation: ko },
-  de: { translation: de },
-  fr: { translation: fr },
-  es: { translation: es },
-  pt: { translation: pt },
-  ru: { translation: ru },
-  ar: { translation: ar },
 } as const satisfies Record<SupportedLanguage, { translation: unknown }>;
 
 i18n.use(initReactI18next).init({

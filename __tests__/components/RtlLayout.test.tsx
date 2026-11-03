@@ -68,9 +68,9 @@ afterEach(async () => {
 });
 
 describe("layoutDirection", () => {
-  it("is rtl for Arabic and ltr for the other nine shell languages", () => {
+  it("is rtl for Arabic and ltr for the other ten shell languages", () => {
     expect(layoutDirection("ar")).toBe("rtl");
-    for (const code of ["en", "zh", "ja", "ko", "de", "fr", "es", "pt", "ru"]) {
+    for (const code of ["en", "zh-Hans", "zh-Hant", "es", "fr", "pt-BR", "ru", "de", "ja", "ko"]) {
       expect(layoutDirection(code)).toBe("ltr");
     }
   });
