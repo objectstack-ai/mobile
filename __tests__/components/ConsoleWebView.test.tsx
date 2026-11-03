@@ -963,6 +963,16 @@ describe("ConsoleWebView — sign-in excursion", () => {
       expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
     });
 
+    it("asks no excursion page to unregister the push token", async () => {
+      const { ref } = await inExcursion();
+      let result: string | undefined;
+      await act(async () => {
+        result = await ref.current!.askConsoleToRemove();
+      });
+      expect(result).toBe("not-loaded");
+      expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+    });
+
     it("answers the Console again once it is back", async () => {
       await inExcursion();
       expect(decide(CALLBACK)).toBe(true);

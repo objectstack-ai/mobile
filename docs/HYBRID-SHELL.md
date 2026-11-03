@@ -389,7 +389,9 @@ excursion.
   arrive during the excursion are held, as at a cold start. An excursion page's
   load end is not fed to the machine, so the ready timeout cannot release them
   into that page. Back on the server the Console boots behind the cover and
-  posts `ready`, and then they are delivered.
+  posts `ready`, and then they are delivered. Removing the current connection
+  meanwhile asks no page to unregister the push token: the Console is not
+  loaded.
 - **It belongs to the current connection.** Switching connections, a load
   failure or a re-created WebView ends it, without a notice.
 
