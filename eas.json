@@ -10,10 +10,17 @@
         "simulator": true
       }
     },
+    "development-device": {
+      "extends": "development",
+      "ios": {
+        "simulator": false
+      }
+    },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_DEFAULT_SERVER_URL": "https://staging.objectstack.com"
+        "EXPO_PUBLIC_DEFAULT_SERVER_URL": ""
       }
     },
     "production": {

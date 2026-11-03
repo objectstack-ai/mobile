@@ -239,7 +239,7 @@ describe("redirectIncomingPath", () => {
   it("passes internal paths and the dev-client launcher through", () => {
     expect(redirectIncomingPath("/server-config")).toBe("/server-config");
     const dev =
-      "exp+objectos-mobile://expo-development-client/?url=http%3A%2F%2F10.0.0.2%3A8081";
+      "exp+objectos://expo-development-client/?url=http%3A%2F%2F10.0.0.2%3A8081";
     expect(redirectIncomingPath(dev)).toBe(dev);
   });
 });
