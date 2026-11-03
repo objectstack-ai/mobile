@@ -330,8 +330,10 @@ In the shell:
   over to the picker, which probes that address with no address step and shows
   the confirm step. The probe is never skipped; the saved connection records
   `managedFrom`, so a redirect the probe adopted still matches.
-- Locked, the switcher hides add and the managed row's Remove, removal of that
-  host is refused before any sign-out step, `resetServer()` is answered
+- Locked, the switcher lists only the managed connection (the other saved
+  connections stay in the store, unlisted, and come back when the lock is
+  lifted) and hides add and the managed row's Remove; removal of that host is
+  refused before any sign-out step, `resetServer()` is answered
   `failed`, and the picker opens nothing else.
 - `trustedHosts` is not read from MDM: the navigation policy and the bridge's
   trusted origins come only from the build.
@@ -1131,6 +1133,11 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   Android that includes the Custom Tab of the in-app browser, a file chooser
   and the camera of a file input. On iOS those are presented in the app and
   do not count.
+- **A route asked for while the main frame is on another origin is dropped.**
+  A notification tap, app link or `navigate()` that arrives while a page other
+  than the configured server's (a trusted sign-in host) is in the main frame is
+  not delivered there, and is not held for later: the page is left where it is
+  (see "Navigation into the Console").
 - **Swipe direction under Arabic before a restart.** The switcher's swipe
   actions are laid out from `I18nManager.isRTL`, which follows a language
   change on the next launch (see "Language").

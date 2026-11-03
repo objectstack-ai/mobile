@@ -20,7 +20,9 @@ export interface ConnectionSwitcherProps {
   removingHost?: string | null;
   /**
    * The managed connection while the organization locks the server
-   * (`lockServer`): its row cannot be removed, and adding is not offered.
+   * (`lockServer`): it is the only row listed, it cannot be removed, and
+   * adding is not offered. The other saved connections are hidden, not
+   * removed: they are listed again once the lock is lifted.
    */
   lockedHost?: string | null;
   onClose: () => void;
@@ -48,8 +50,8 @@ const LIST_MAX_HEIGHT = 400;
  * reveals Remove (screen readers get the same as a "Remove" action on the
  * row). Below: add a connection, which never saves by
  * itself — it goes back to the address step and its confirm step — and app
- * settings. While the server is locked by the organization, the managed row
- * has no Remove and there is no add.
+ * settings. While the server is locked by the organization, only the managed
+ * row is listed, it has no Remove, and there is no add.
  *
  * "App lock" opens the native app-lock settings screen: the one place the
  * lock is changed, behind biometrics. (Unrelated to the organization's server
@@ -73,8 +75,11 @@ export function ConnectionSwitcher({
   const colors = useThemeColors();
   const direction = useLayoutDirection();
   const Chevron = direction === "rtl" ? ChevronLeft : ChevronRight;
-  const lockedLabel =
-    lockedHost === null ? null : (connections.find((c) => c.host === lockedHost)?.label ?? null);
+  const lockedConnection =
+    lockedHost === null ? null : (connections.find((c) => c.host === lockedHost) ?? null);
+  const lockedLabel = lockedConnection?.label ?? null;
+  // Locked: the managed connection only. The others stay saved, unlisted.
+  const listed = lockedConnection === null ? connections : [lockedConnection];
 
   return (
     <BottomSheet open={open} onOpenChange={(next) => (next ? undefined : onClose())}>
@@ -92,7 +97,7 @@ export function ConnectionSwitcher({
           className="rounded-2xl border border-border"
           bounces={false}
         >
-          {connections.map((connection, index) => (
+          {listed.map((connection, index) => (
             <ConnectionRow
               key={connection.host}
               connection={connection}

@@ -30,7 +30,8 @@ app configuration channel:
 | Key          | Type    | Meaning |
 | ------------ | ------- | ------- |
 | `serverUrl`  | string  | The ObjectOS server the app opens, e.g. `https://erp.example.com` — the same address users would type. |
-| `lockServer` | boolean | `true`: users cannot add another server or remove the managed one, and cannot edit the address. Ignored without `serverUrl`. |
+| `lockServer` | boolean | `true`: the app uses only the managed server. Users cannot switch to another saved server, add one or remove the managed one, and cannot edit the address. Ignored without `serverUrl`. |
+| `trustedHosts` | — | Not supported. The app does not read it from MDM (see below). |
 
 `lockServer` may also be sent as the string `"true"` or `"false"`. Any other
 value that is present locks, so a lock the admin meant to set is never dropped.
@@ -51,11 +52,12 @@ build's `EXPO_PUBLIC_TRUSTED_HOSTS`.
   contact your IT administrator." and "Try again". Unlocked, the user may also
   choose "Enter a different address" (asked again on the next launch); locked,
   there is no way to edit.
-- **Locked** (`lockServer`), the "Switch organization" sheet has no "Add an
-  organization or company server", the managed connection has no Remove, the
-  Console's `resetServer()` is refused, and a connect link cannot bring another
-  server in. Other connections saved before the lock can still be switched to
-  and removed.
+- **Locked** (`lockServer`), the "Switch organization" sheet lists only the
+  managed connection: it has no Remove, and there is no "Add an organization or
+  company server". The Console's `resetServer()` is refused, and a connect link
+  or the scanner cannot bring another server in. Other connections saved before
+  the lock are hidden, not deleted: they cannot be switched to or removed while
+  locked, and are listed again once the lock is lifted.
 - **Changes while the app runs.** The app reads the configuration on launch
   and every time it comes to the foreground, and also on the platform's change
   signal where there is one (Android's `ACTION_APPLICATION_RESTRICTIONS_CHANGED`,
