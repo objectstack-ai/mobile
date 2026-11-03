@@ -9,7 +9,9 @@
 | `EXPO_PUBLIC_SENTRY_DSN` | crash reporting |
 | `EXPO_PUBLIC_APP_SCHEME` | URL scheme for app links (default `objectos`) |
 
-Profiles and their values live in `eas.json`.
+Profiles and their values live in `eas.json`. `preview` skips Sentry's source map
+upload (`SENTRY_DISABLE_AUTO_UPLOAD`); a `production` build uploads, so it needs a
+`SENTRY_AUTH_TOKEN` in the project's EAS environment variables.
 
 ## Managed deployment (MDM)
 
