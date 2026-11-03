@@ -1,14 +1,16 @@
 import React from "react";
 import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { CloudOff, ServerCrash } from "lucide-react-native";
+import { CloudOff, ServerCrash, ShieldAlert } from "lucide-react-native";
 import { Button } from "~/components/ui/Button";
 import { useLayoutDirection } from "~/lib/rtl";
 import { useThemeColors } from "~/lib/theme-colors";
 
 export type LoadFailure =
   | { kind: "network"; description?: string }
-  | { kind: "server"; statusCode?: number };
+  | { kind: "server"; statusCode?: number }
+  /** The server's page keeps going to a page the navigation policy does not load in the WebView. */
+  | { kind: "policy" };
 
 export interface OfflineFallbackProps {
   failure: LoadFailure;
@@ -20,7 +22,8 @@ export interface OfflineFallbackProps {
 
 /**
  * Native page shown instead of a blank WebView when the Console cannot load —
- * no network, DNS/TLS failure, or a 5xx from the server.
+ * no network, DNS/TLS failure, a 5xx from the server, or a server page that
+ * keeps going to a page the navigation policy does not load in the WebView.
  */
 export function OfflineFallback({
   failure,
@@ -31,7 +34,8 @@ export function OfflineFallback({
   const { t } = useTranslation();
   const colors = useThemeColors();
   const direction = useLayoutDirection();
-  const Icon = failure.kind === "network" ? CloudOff : ServerCrash;
+  const Icon =
+    failure.kind === "network" ? CloudOff : failure.kind === "policy" ? ShieldAlert : ServerCrash;
 
   return (
     <View
@@ -44,14 +48,20 @@ export function OfflineFallback({
       </View>
       <View className="items-center gap-2">
         <Text className="text-center text-xl font-semibold text-foreground">
-          {failure.kind === "network" ? t("shell.offlineTitle") : t("shell.serverErrorTitle")}
+          {failure.kind === "network"
+            ? t("shell.offlineTitle")
+            : failure.kind === "policy"
+              ? t("shell.policyTitle")
+              : t("shell.serverErrorTitle")}
         </Text>
         <Text className="text-center text-sm text-muted-foreground">
           {failure.kind === "network"
             ? t("shell.offlineMessage")
-            : t("shell.serverErrorMessage", {
-                code: failure.statusCode ?? "—",
-              })}
+            : failure.kind === "policy"
+              ? t("shell.policyMessage")
+              : t("shell.serverErrorMessage", {
+                  code: failure.statusCode ?? "—",
+                })}
         </Text>
         <Text className="text-center text-xs text-muted-foreground">{serverUrl}</Text>
       </View>

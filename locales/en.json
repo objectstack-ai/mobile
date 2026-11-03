@@ -64,6 +64,8 @@
     "offlineMessage": "Check your connection. The page reloads on its own when you're back online.",
     "serverErrorTitle": "The server isn't responding",
     "serverErrorMessage": "The server answered with error {{code}}. Try again in a moment.",
+    "policyTitle": "Can't show this page in the app",
+    "policyMessage": "The server's page keeps going to an address the app doesn't open. Try again, or switch organization.",
     "retry": "Try again"
   },
   "excursion": {

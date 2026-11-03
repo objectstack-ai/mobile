@@ -64,6 +64,8 @@
     "offlineMessage": "请检查网络连接。恢复联网后页面会自动重新加载。",
     "serverErrorTitle": "服务器无响应",
     "serverErrorMessage": "服务器返回错误 {{code}}，请稍后重试。",
+    "policyTitle": "无法在应用内显示此页面",
+    "policyMessage": "服务器的页面一直跳转到应用不打开的地址。请重试，或切换组织。",
     "retry": "重试"
   },
   "excursion": {

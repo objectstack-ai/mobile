@@ -64,6 +64,8 @@
     "offlineMessage": "Compruebe su conexión. La página se recargará sola cuando vuelva a estar en línea.",
     "serverErrorTitle": "El servidor no responde",
     "serverErrorMessage": "El servidor respondió con el error {{code}}. Inténtelo de nuevo en un momento.",
+    "policyTitle": "No se puede mostrar esta página en la app",
+    "policyMessage": "La página del servidor sigue yendo a una dirección que la app no abre. Inténtelo de nuevo o cambie de organización.",
     "retry": "Intentar de nuevo"
   },
   "excursion": {
