@@ -62,6 +62,7 @@ lib/shell/
   incoming-link.ts    objectos:// links: Console routes, `connect`, scanned codes
   config.ts           build-time config from app.config.ts `extra`
   external.ts         open URLs in the in-app browser / OS
+  file-handoff.ts     the bridge's files: image picker, share sheet, bytes to the OS
   bridge/             protocol, injected scripts, native handler
 ```
 
@@ -194,10 +195,13 @@ server's Console and saves nothing.
 - **Camera permission.** The scanner asks on open. Refused for good, it offers
   the system Settings and "Enter address manually". The iOS prompt text is
   `permissions.camera` in each locale bundle, written by `app.config.ts` into
-  the `expo-camera` plugin and per-language `InfoPlist.strings` for all ten
-  shell languages (`zh-Hans`, plus `zh-Hant` reusing the `zh` text, as the
-  shell's own strings do); the plugin is
-  configured for the camera only (no microphone, no `RECORD_AUDIO`).
+  the `expo-camera` and `expo-image-picker` plugins (both write
+  `NSCameraUsageDescription`, so they get the same text) and per-language
+  `InfoPlist.strings` for all ten shell languages (`zh-Hans`, plus `zh-Hant`
+  reusing the `zh` text, as the shell's own strings do); both plugins are
+  configured without a microphone (no prompt, `RECORD_AUDIO` blocked). The
+  photo-library text (`NSPhotoLibraryUsageDescription`, for the bridge's
+  `pickImage()`) is `permissions.photos`, written the same way.
 
 `QrScanner` knows nothing about servers: the caller passes `accept`, the
 refusal text, the optional note and manual action, and optionally the code
@@ -477,6 +481,13 @@ interface ObjectStackNative {
   resetServer(): Promise<null>; // forget the current connection, back to the picker
   scan(opts?: { formats?: string[] }): Promise<string | null>; // see "Scanning codes"
   showConnectionSwitcher(): Promise<null>; // open the native switcher sheet (screen 8)
+  pickImage(opts?: {
+    camera?: boolean;
+    maxWidth?: number;
+    quality?: number;
+  }): Promise<{ base64: string; name: string; mime: string } | null>; // see "Files"
+  share(content: { url?: string; text?: string }): Promise<null>; // the OS share sheet
+  openFile(file: { base64: string; name: string; mime: string }): Promise<null>; // bytes, never a URL
 
   ready(): void; // event: the Console has mounted (lifts the cover, releases a held route)
   routeChanged(route: string): void; // event: SPA route changed (the shell's last route)
@@ -539,6 +550,92 @@ text of the first code read, or `null` when the user closes the scanner
 if (ObjectStackNative.has("scan")) {
   const text = await ObjectStackNative.scan({ formats: ["ean13", "code128"] });
   if (text !== null) field.value = text;
+}
+```
+
+### Files
+
+Three methods carry files between the Console and the OS
+(`lib/shell/file-handoff.ts`). **The shell still makes no request of its own**
+(see "Session and auth"): a file the Console shows is fetched by the Console,
+with its own session, and handed over as bytes. The native side never reads a
+cookie, never calls the platform API and never downloads a URL for these
+methods (ruling on mobile#147, option A).
+
+- **`pickImage(opts?)`** takes a photo (`camera: true`) or lets the user choose
+  one from the library, downscales it to `maxWidth` pixels wide (default
+  2048, never upscaled, aspect ratio kept) and saves it as JPEG at `quality`
+  (0 to 1, default 0.8). It resolves `{ base64, name, mime }` — the name is
+  the original's with a `.jpg` extension, the type `image/jpeg` — which the
+  Console turns into a `File` and uploads; or `null` when the user cancels.
+  - The library needs no permission: the system picker (iOS PHPicker, the
+    Android photo picker) hands over only what the user chose. The camera
+    asks for its permission first; refused, the call fails with `failed`
+    ("Camera permission denied"), and no camera opens.
+  - One picker at a time: a call while one is open fails with `failed`
+    ("A picker is already open").
+  - `maxWidth` is an integer from 1 to 8192. An unknown option, or a value of
+    the wrong type or out of range, is `bad_args`, and no picker opens.
+- **`share({ url?, text? })`** opens the OS share sheet (React Native's
+  `Share`). At least one of the two; `url` is http(s), `text` at most 10,000
+  characters, nothing else. iOS shares the link as a URL beside the text;
+  Android's share intent carries one text, so the link follows it on its own
+  line. It resolves `null` once the sheet is done; Android cannot say whether
+  the user shared.
+- **`openFile({ base64, name, mime })`** writes the bytes to the app's cache
+  (`<cache>/bridge-files/<name>`) and hands the file to the OS. On Android it
+  opens in the app that views the type (`ACTION_VIEW` on the file's content
+  URI, read access granted to that app), and falls back to the share sheet
+  when no app views it. On iOS the share sheet shows a preview of the file and
+  the apps that open it, "Save to Files" included. One file at a time: writing
+  the next one removes the last, and a call while one is open fails with
+  `failed` ("A file is already open").
+  - `name` is a file name with no path: no `/` or `\`, no control
+    character, not `.` or `..`, at most 255 characters. `mime` is
+    `type/subtype` with no parameters (lower-cased). `base64` is the standard
+    alphabet, padded, with no line breaks and no `data:` prefix, and not
+    empty. Anything else — a `url` included — is `bad_args`.
+
+**Size limit: 8 MiB of file bytes** (`MAX_FILE_BYTES`), for an image
+`pickImage` resolves and a file `openFile` takes.
+
+- Both legs of the message channel carry the file as base64 inside one string:
+  the page's `postMessage` (Android `@JavascriptInterface` or
+  `WebMessageListener`, iOS `WKScriptMessage`), and the shell's answer through
+  `injectJavaScript`, which the engine parses as one script.
+  react-native-webview 13.16 sets no cap on either; the cost is time and memory,
+  linear in the size.
+- Measured in Chromium 153 (the engine of Android System WebView) in a
+  4-core Linux container, through CDP: page to shell (stringify, post, arrival) took
+  about 0.4 s at 4 MiB, 1 s at 8 MiB, 1.3 s at 16 MiB and 6.5 s at 64 MiB;
+  shell to page (one injected script) about 1 s at 4 MiB, 1.5 s at 8 MiB,
+  3.7 s at 16 MiB and 21 s at 64 MiB; at 128 MiB the renderer died. The React
+  Native event, Hermes' JSON parse and a phone's slower CPU were not measured
+  and add to each figure, so 8 MiB keeps the worst case to seconds. A photo
+  downscaled to 2048 pixels wide is expected far below it (not measured on a
+  device).
+- Over the limit, `openFile` is refused with `bad_args` ("Files cross the
+  bridge up to 8 MB"), in the page before anything is posted, and again by the
+  handler; `pickImage` fails with `failed`, asking for a smaller `maxWidth` or
+  `quality`. A Console with a larger file keeps the WebView's own handling of
+  it (see Known limits).
+- Only `openFile` may send a message longer than 64 KB, and only from a page
+  on the configured server's origin: the handler checks the origin before it
+  parses anything, and drops a long message from any other page unread. Any
+  other call too long for the shell is refused in the page with `bad_args`
+  ("The call is too large for the bridge"), since the shell would never
+  answer it.
+
+Like every method, only a page on the current connection's origin is
+answered, and nothing is answered during a sign-in excursion. A picker that
+was open when the WebView was re-created answers no one (see "Scanning
+codes").
+
+```js
+if (ObjectStackNative.has("openFile")) {
+  const blob = await (await fetch(attachment.url, { credentials: "include" })).blob();
+  const base64 = await blobToBase64(blob); // no data: prefix
+  await ObjectStackNative.openFile({ base64, name: attachment.name, mime: blob.type });
 }
 ```
 
@@ -794,7 +891,14 @@ The Console needs, in `@object-ui/mobile`:
   call `showConnectionSwitcher()`;
 - when `has("connectionRemoved")`, listen for
   `objectstack-native:connectionRemoved`, call `preventDefault()`, and hand
-  the push-token unregistration to `event.detail.waitUntil`.
+  the push-token unregistration to `event.detail.waitUntil`;
+- when `has("pickImage")`, offer "Take photo" / "Choose photo" on image and
+  attachment fields and upload what `pickImage()` resolves as a `File`
+  (nothing on `null`);
+- when `has("openFile")`, open an attachment by fetching it with the Console's
+  own session and passing the bytes to `openFile()` (at most 8 MiB; larger
+  files keep the browser behaviour); when `has("share")`, offer sharing a
+  record link with `share()`.
 
 A Console without it still works in the shell: the cover lifts and a held
 route is dispatched at the ready timeout, a held route then reloads the page
@@ -835,6 +939,12 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   mocked `expo-camera` (permission states, refused and accepted codes, torch).
 - The bridge's `scan()`: the handler (`bridge-handler.test.ts`), the session
   (`scan-session.test.ts`) and the scanner screen (`QrScanner.test.tsx`).
+- Files: arguments, the origin rule and the size limit in the handler
+  (`bridge-handler.test.ts`) and the protocol (`bridge-protocol.test.ts`), the
+  page-side refusal in `bridge-scripts.test.ts`, the picker, the share sheet
+  and the handoff with the native modules stubbed — never a request
+  (`file-handoff.test.ts`), the wiring (`ConsoleScreen.test.tsx`), and the
+  permission texts (`__tests__/lib/app-config.test.ts`).
 - The bootstrap and navigate scripts are executed against a fake `window` in
   `__tests__/lib/shell/bridge-scripts.test.ts`.
 - `ConsoleWebView` is tested with a mocked `react-native-webview`
@@ -875,8 +985,17 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - **iOS keeps the excursion pages in history.** WKWebView's back list cannot
   be cleared. After a return, swiping back to a provider page is a navigation
   outside an excursion, so the policy opens it in the in-app browser.
-- **Downloads and file inputs** rely on the WebView defaults until the
-  Phase 4 bridge methods land.
+- **Downloads and file inputs without the bridge.** A Console that does not
+  use `pickImage()` / `openFile()`, and any file over 8 MiB, gets the WebView
+  defaults: `<input type="file">` opens the system chooser on both platforms
+  (on Android react-native-webview's file chooser, camera included when the
+  app has the camera permission), and a download is whatever the engine does
+  with it. The shell sets nothing that turns the file input off, so it stays
+  the fallback.
+- **Android can drop a photo taken while the app was killed.** When the OS
+  ends the app while the camera is up, the picker's answer arrives in a new
+  process that has no pending call; the Console's call was lost with the old
+  WebView, and the photo is not delivered.
 - **Removal clears cookies, not other web storage.** A removed host's
   localStorage and IndexedDB stay in the WebView (react-native-webview has no
   per-origin call, and iOS removes website data per registrable domain, which

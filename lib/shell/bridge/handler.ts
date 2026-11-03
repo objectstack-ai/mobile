@@ -12,15 +12,24 @@
 import { originOf, safeConsoleRoute } from "../console-url";
 import {
   BRIDGE_EVENTS,
+  FILE_TOO_LARGE_MESSAGE,
   HAPTIC_KINDS,
+  MAX_FILE_BYTES,
+  MAX_SHARE_TEXT_LENGTH,
+  PICK_IMAGE_DEFAULTS,
+  PICK_IMAGE_MAX_WIDTH,
   SCAN_FORMATS,
+  base64ByteLength,
   parseInbound,
   type BridgeErrorCode,
   type BridgeEventName,
+  type BridgeFile,
   type BridgeResult,
   type HapticKind,
+  type PickImageOptions,
   type PushTokenResult,
   type ScanFormat,
+  type ShareContent,
 } from "./protocol";
 
 export interface BridgeDeps {
@@ -41,6 +50,20 @@ export interface BridgeDeps {
   scan: (formats: readonly ScanFormat[]) => Promise<string | null>;
   /** Open the native connection switcher (screen 8). */
   showConnectionSwitcher: () => void | Promise<void>;
+  /**
+   * Take a photo or choose one from the library, downscaled to `maxWidth`.
+   * Resolves the image, or `null` when the user cancels; rejects when it
+   * cannot run (camera permission refused, a picker already open).
+   */
+  pickImage: (options: PickImageOptions) => Promise<BridgeFile | null>;
+  /** Open the OS share sheet with a link and/or a text. */
+  share: (content: ShareContent) => Promise<void>;
+  /**
+   * Preview or open the file with the OS. It gets the bytes, already checked:
+   * the Console fetched the file with its own session. The shell holds no
+   * credential, so this never fetches anything (docs/HYBRID-SHELL.md, "Files").
+   */
+  openFile: (file: BridgeFile) => Promise<void>;
   onEvent?: (name: BridgeEventName, payload: unknown) => void;
   /**
    * `true` while a sign-in excursion is on screen. The main frame is then an
@@ -74,6 +97,111 @@ function scanFormatsOf(args: unknown): readonly ScanFormat[] | null {
   return SCAN_FORMATS.filter((f) => formats.includes(f));
 }
 
+const MIB = 1024 * 1024;
+
+export const PICK_IMAGE_ARGS_MESSAGE = `pickImage takes { camera?: boolean, maxWidth?: integer 1-${PICK_IMAGE_MAX_WIDTH}, quality?: number 0-1 }`;
+export const SHARE_ARGS_MESSAGE = `share takes { url?: http(s) URL, text?: string of at most ${MAX_SHARE_TEXT_LENGTH} characters }, with at least one`;
+export const OPEN_FILE_ARGS_MESSAGE =
+  "openFile takes { base64, name, mime }: base64 bytes, a file name without a path, a MIME type";
+export const IMAGE_TOO_LARGE_MESSAGE = `The image is over ${MAX_FILE_BYTES / MIB} MB after downscaling; ask for a smaller maxWidth or quality`;
+
+/** Own keys of a plain object, or `null` when `args` is not one. */
+function keysOf(args: unknown): string[] | null {
+  if (typeof args !== "object" || args === null || Array.isArray(args)) return null;
+  return Object.keys(args);
+}
+
+/**
+ * The options of a `pickImage` call with defaults applied, or `null` when the
+ * arguments are not `{ camera?, maxWidth?, quality? }` with values in range.
+ * Unknown keys are refused rather than ignored.
+ */
+function pickImageOptionsOf(args: unknown): PickImageOptions | null {
+  if (args === undefined || args === null) return { ...PICK_IMAGE_DEFAULTS };
+  const keys = keysOf(args);
+  if (keys === null) return null;
+  if (keys.some((key) => key !== "camera" && key !== "maxWidth" && key !== "quality")) return null;
+  const { camera, maxWidth, quality } = args as Record<string, unknown>;
+  if (camera !== undefined && typeof camera !== "boolean") return null;
+  if (
+    maxWidth !== undefined &&
+    (typeof maxWidth !== "number" ||
+      !Number.isInteger(maxWidth) ||
+      maxWidth < 1 ||
+      maxWidth > PICK_IMAGE_MAX_WIDTH)
+  ) {
+    return null;
+  }
+  if (
+    quality !== undefined &&
+    (typeof quality !== "number" || !Number.isFinite(quality) || quality < 0 || quality > 1)
+  ) {
+    return null;
+  }
+  return {
+    camera: camera ?? PICK_IMAGE_DEFAULTS.camera,
+    maxWidth: maxWidth ?? PICK_IMAGE_DEFAULTS.maxWidth,
+    quality: quality ?? PICK_IMAGE_DEFAULTS.quality,
+  };
+}
+
+/** The content of a `share` call, or `null` when it is not `{ url?, text? }` with one of them. */
+function shareContentOf(args: unknown): ShareContent | null {
+  const keys = keysOf(args);
+  if (keys === null || keys.some((key) => key !== "url" && key !== "text")) return null;
+  const { url, text } = args as Record<string, unknown>;
+  if (url === undefined && text === undefined) return null;
+  if (url !== undefined && (typeof url !== "string" || !isWebUrl(url))) return null;
+  if (
+    text !== undefined &&
+    (typeof text !== "string" || text.length === 0 || text.length > MAX_SHARE_TEXT_LENGTH)
+  ) {
+    return null;
+  }
+  const content: ShareContent = {};
+  if (url !== undefined) content.url = url as string;
+  if (text !== undefined) content.text = text as string;
+  return content;
+}
+
+function isWebUrl(value: string): boolean {
+  if (value.length > 4096 || !/^https?:\/\//i.test(value)) return false;
+  try {
+    return new URL(value).host.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+// A separator of either platform, a C0 control, DEL or a C1 control.
+// eslint-disable-next-line no-control-regex
+const FILE_NAME_REFUSED_RE = /[/\\\u0000-\u001f\u007f-\u009f]/;
+
+/** A file name with no path in it: what the shell may write in its own folder. */
+export function isSafeFileName(name: string): boolean {
+  if (name.length === 0 || name.length > 255 || name === "." || name === "..") return false;
+  return !FILE_NAME_REFUSED_RE.test(name);
+}
+
+const MIME = /^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}\/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$/i;
+
+/** How an `openFile` call's arguments fail, or the file when they do not. */
+function openFileOf(args: unknown): BridgeFile | "bad_args" | "too_large" {
+  const keys = keysOf(args);
+  if (keys === null || keys.some((key) => key !== "base64" && key !== "name" && key !== "mime")) {
+    return "bad_args";
+  }
+  const { base64, name, mime } = args as Record<string, unknown>;
+  if (typeof base64 !== "string" || typeof name !== "string" || typeof mime !== "string") {
+    return "bad_args";
+  }
+  if (!isSafeFileName(name) || !MIME.test(mime)) return "bad_args";
+  const size = base64ByteLength(base64);
+  if (size === null || size === 0) return "bad_args";
+  if (size > MAX_FILE_BYTES) return "too_large";
+  return { base64, name, mime: mime.toLowerCase() };
+}
+
 function fail(id: string, code: BridgeErrorCode, message: string): BridgeResult {
   return { id, ok: false, error: { code, message } };
 }
@@ -93,11 +221,11 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
   const serverOrigin = originOf(deps.serverUrl);
 
   return async (raw, sourceUrl) => {
-    const msg = parseInbound(raw);
-    if (!msg) return null;
     if (deps.inExcursion?.()) return null;
-
     const trusted = serverOrigin !== null && originOf(sourceUrl) === serverOrigin;
+    // File bytes are parsed only from a trusted page.
+    const msg = parseInbound(raw, { allowFile: trusted });
+    if (!msg) return null;
 
     if (msg.type === "event") {
       if (!trusted) return null;
@@ -159,6 +287,37 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
         case "showConnectionSwitcher":
           await deps.showConnectionSwitcher();
           return { id, ok: true, value: null };
+
+        case "pickImage": {
+          const options = pickImageOptionsOf(args);
+          if (options === null) return fail(id, "bad_args", PICK_IMAGE_ARGS_MESSAGE);
+          const image = await deps.pickImage(options);
+          if (image === null) return { id, ok: true, value: null };
+          const size = base64ByteLength(image.base64);
+          if (size === null || size > MAX_FILE_BYTES) {
+            return fail(id, "failed", IMAGE_TOO_LARGE_MESSAGE);
+          }
+          return {
+            id,
+            ok: true,
+            value: { base64: image.base64, name: image.name, mime: image.mime },
+          };
+        }
+
+        case "share": {
+          const content = shareContentOf(args);
+          if (content === null) return fail(id, "bad_args", SHARE_ARGS_MESSAGE);
+          await deps.share(content);
+          return { id, ok: true, value: null };
+        }
+
+        case "openFile": {
+          const file = openFileOf(args);
+          if (file === "bad_args") return fail(id, "bad_args", OPEN_FILE_ARGS_MESSAGE);
+          if (file === "too_large") return fail(id, "bad_args", FILE_TOO_LARGE_MESSAGE);
+          await deps.openFile(file);
+          return { id, ok: true, value: null };
+        }
 
         default:
           return fail(id, "unknown_method", `Unknown bridge method: ${method}`);

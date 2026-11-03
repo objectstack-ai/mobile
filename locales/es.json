@@ -113,6 +113,7 @@
     }
   },
   "permissions": {
-    "camera": "ObjectOS usa la cámara para escanear códigos QR y códigos de barras, como el código que lo conecta a su servidor."
+    "camera": "ObjectOS usa la cámara para escanear códigos QR y códigos de barras, como el código que lo conecta a su servidor, y para tomar las fotos que adjunta en la app.",
+    "photos": "ObjectOS abre su fototeca para que elija las fotos que adjunta en la app."
   }
 }

@@ -1,5 +1,20 @@
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
-import { SCAN_FORMATS } from "~/lib/shell/bridge/protocol";
+import {
+  FILE_TOO_LARGE_MESSAGE,
+  MAX_FILE_BASE64_LENGTH,
+  MAX_FILE_BYTES,
+  MAX_MESSAGE_LENGTH,
+  MAX_SHARE_TEXT_LENGTH,
+  PICK_IMAGE_DEFAULTS,
+  SCAN_FORMATS,
+} from "~/lib/shell/bridge/protocol";
+import {
+  IMAGE_TOO_LARGE_MESSAGE,
+  OPEN_FILE_ARGS_MESSAGE,
+  PICK_IMAGE_ARGS_MESSAGE,
+  SHARE_ARGS_MESSAGE,
+  isSafeFileName,
+} from "~/lib/shell/bridge/handler";
 import {
   SCAN_BUSY_MESSAGE,
   SCAN_DENIED_MESSAGE,
@@ -22,6 +37,9 @@ function setup(overrides: Partial<BridgeDeps> = {}) {
     resetServer: jest.fn().mockResolvedValue(undefined),
     scan: jest.fn().mockResolvedValue("4006381333931"),
     showConnectionSwitcher: jest.fn(),
+    pickImage: jest.fn().mockResolvedValue(null),
+    share: jest.fn().mockResolvedValue(undefined),
+    openFile: jest.fn().mockResolvedValue(undefined),
     onEvent: jest.fn(),
     ...overrides,
   };
@@ -321,6 +339,279 @@ describe("bridge handler", () => {
       id: "c1",
       ok: false,
       error: { code: "failed", message: "APNs down" },
+    });
+  });
+
+  describe("pickImage", () => {
+    const IMAGE = { base64: "/9j/4AAQ", name: "IMG_0001.jpg", mime: "image/jpeg" };
+
+    it("picks from the library with the defaults when the call names nothing", async () => {
+      const pickImage = jest.fn().mockResolvedValue(IMAGE);
+      const { handle } = setup({ pickImage });
+      await expect(handle(call("pickImage"), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: true,
+        value: IMAGE,
+      });
+      expect(pickImage).toHaveBeenCalledWith(PICK_IMAGE_DEFAULTS);
+      expect(PICK_IMAGE_DEFAULTS).toEqual({ camera: false, maxWidth: 2048, quality: 0.8 });
+    });
+
+    it("passes camera, maxWidth and quality through", async () => {
+      const pickImage = jest.fn().mockResolvedValue(IMAGE);
+      const { handle } = setup({ pickImage });
+      await handle(call("pickImage", { camera: true, maxWidth: 1280, quality: 0.6 }), PAGE);
+      expect(pickImage).toHaveBeenCalledWith({ camera: true, maxWidth: 1280, quality: 0.6 });
+    });
+
+    it("resolves null when the user cancels", async () => {
+      const { handle } = setup({ pickImage: jest.fn().mockResolvedValue(null) });
+      await expect(handle(call("pickImage"), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: true,
+        value: null,
+      });
+    });
+
+    it.each([
+      ["a non-object", "camera"],
+      ["an array", []],
+      ["an unknown key", { camera: true, crop: true }],
+      ["a non-boolean camera", { camera: "yes" }],
+      ["a fractional maxWidth", { maxWidth: 10.5 }],
+      ["a zero maxWidth", { maxWidth: 0 }],
+      ["a maxWidth over the cap", { maxWidth: 8193 }],
+      ["a string maxWidth", { maxWidth: "1024" }],
+      ["a quality over 1", { quality: 1.5 }],
+      ["a negative quality", { quality: -0.1 }],
+      ["a NaN quality", { quality: Number.NaN }],
+    ])("refuses %s as bad_args, and opens no picker", async (_label, args) => {
+      const { handle, deps } = setup();
+      await expect(handle(call("pickImage", args), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: false,
+        error: { code: "bad_args", message: PICK_IMAGE_ARGS_MESSAGE },
+      });
+      expect(deps.pickImage).not.toHaveBeenCalled();
+    });
+
+    it("refuses an image over the size limit after downscaling, with the error envelope", async () => {
+      const big = "A".repeat(MAX_FILE_BASE64_LENGTH + 4);
+      const { handle } = setup({
+        pickImage: jest.fn().mockResolvedValue({ ...IMAGE, base64: big }),
+      });
+      await expect(handle(call("pickImage"), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: false,
+        error: { code: "failed", message: IMAGE_TOO_LARGE_MESSAGE },
+      });
+    });
+
+    it("answers an image exactly at the size limit", async () => {
+      const atLimit = "A".repeat(MAX_FILE_BASE64_LENGTH - 4) + "AA==";
+      const { handle } = setup({
+        pickImage: jest.fn().mockResolvedValue({ ...IMAGE, base64: atLimit }),
+      });
+      await expect(handle(call("pickImage"), PAGE)).resolves.toMatchObject({ ok: true });
+    });
+
+    it("reports a picker that cannot run as failed", async () => {
+      const { handle } = setup({
+        pickImage: jest.fn().mockRejectedValue(new Error("Camera permission denied")),
+      });
+      await expect(handle(call("pickImage", { camera: true }), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: false,
+        error: { code: "failed", message: "Camera permission denied" },
+      });
+    });
+  });
+
+  describe("share", () => {
+    it("shares a link and a text", async () => {
+      const { handle, deps } = setup();
+      const content = { url: "https://acme.example.com/_console/apps/crm/lead/1", text: "Lead 1" };
+      await expect(handle(call("share", content), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: true,
+        value: null,
+      });
+      expect(deps.share).toHaveBeenCalledWith(content);
+    });
+
+    it("shares a text alone, or a link alone", async () => {
+      const { handle, deps } = setup();
+      await handle(call("share", { text: "hello" }), PAGE);
+      await handle(call("share", { url: "http://intranet.example/x" }), PAGE);
+      expect(deps.share).toHaveBeenNthCalledWith(1, { text: "hello" });
+      expect(deps.share).toHaveBeenNthCalledWith(2, { url: "http://intranet.example/x" });
+    });
+
+    it.each([
+      ["no arguments", undefined],
+      ["an empty object", {}],
+      ["an unknown key", { text: "hi", title: "x" }],
+      ["a non-web URL", { url: "javascript:alert(1)" }],
+      ["a file URL", { url: "file:///etc/hosts" }],
+      ["a URL with no host", { url: "https://" }],
+      ["an empty text", { text: "" }],
+      ["an overlong text", { text: "x".repeat(MAX_SHARE_TEXT_LENGTH + 1) }],
+      ["a non-string text", { text: 42 }],
+    ])("refuses %s as bad_args, and opens no sheet", async (_label, args) => {
+      const { handle, deps } = setup();
+      await expect(handle(call("share", args), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: false,
+        error: { code: "bad_args", message: SHARE_ARGS_MESSAGE },
+      });
+      expect(deps.share).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("openFile", () => {
+    const PDF = { base64: "JVBERi0xLjQK", name: "Quote 42.pdf", mime: "application/pdf" };
+
+    it("hands the bytes, name and MIME type to the OS", async () => {
+      const { handle, deps } = setup();
+      await expect(handle(call("openFile", PDF), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: true,
+        value: null,
+      });
+      expect(deps.openFile).toHaveBeenCalledWith(PDF);
+    });
+
+    it("takes no URL: the shell fetches nothing, the Console sends the bytes", async () => {
+      // Ruling 6593858903 (option A): the native side never reads cookies,
+      // calls the platform API or downloads a URL for this method.
+      const { handle, deps } = setup();
+      for (const args of [
+        { url: `${SERVER}/api/v1/files/1`, name: "a.pdf", mime: "application/pdf" },
+        { ...PDF, url: `${SERVER}/api/v1/files/1` },
+        `${SERVER}/api/v1/files/1`,
+      ]) {
+        await expect(handle(call("openFile", args), PAGE)).resolves.toEqual({
+          id: "c1",
+          ok: false,
+          error: { code: "bad_args", message: OPEN_FILE_ARGS_MESSAGE },
+        });
+      }
+      expect(deps.openFile).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["no arguments", undefined],
+      ["a missing name", { base64: PDF.base64, mime: PDF.mime }],
+      ["a path in the name", { ...PDF, name: "../../Library/x.pdf" }],
+      ["a Windows path in the name", { ...PDF, name: "a\\b.pdf" }],
+      ["a control character in the name", { ...PDF, name: "a\u0000.pdf" }],
+      ["a dot name", { ...PDF, name: ".." }],
+      ["an overlong name", { ...PDF, name: `${"x".repeat(252)}.pdf` }],
+      ["a MIME type without a subtype", { ...PDF, mime: "application" }],
+      ["a MIME type with parameters", { ...PDF, mime: "text/plain; charset=utf-8" }],
+      ["base64 with a data: prefix", { ...PDF, base64: `data:application/pdf;base64,${PDF.base64}` }],
+      ["base64 with line breaks", { ...PDF, base64: "JVBE\nRi0x" }],
+      ["base64 of the wrong length", { ...PDF, base64: "JVBERi0" }],
+      ["empty bytes", { ...PDF, base64: "" }],
+      ["non-string bytes", { ...PDF, base64: [37, 80] }],
+    ])("refuses %s as bad_args, and opens nothing", async (_label, args) => {
+      const { handle, deps } = setup();
+      await expect(handle(call("openFile", args), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: false,
+        error: { code: "bad_args", message: OPEN_FILE_ARGS_MESSAGE },
+      });
+      expect(deps.openFile).not.toHaveBeenCalled();
+    });
+
+    it("normalises the MIME type to lower case", async () => {
+      const { handle, deps } = setup();
+      await handle(call("openFile", { ...PDF, mime: "Application/PDF" }), PAGE);
+      expect(deps.openFile).toHaveBeenCalledWith(PDF);
+    });
+
+    it("takes a file at the size limit, in one message over the ordinary cap", async () => {
+      const base64 = "A".repeat(MAX_FILE_BASE64_LENGTH - 4) + "AA==";
+      const { handle, deps } = setup();
+      const raw = call("openFile", { ...PDF, base64 });
+      expect(raw.length).toBeGreaterThan(MAX_MESSAGE_LENGTH);
+      await expect(handle(raw, PAGE)).resolves.toMatchObject({ ok: true });
+      expect(deps.openFile).toHaveBeenCalledTimes(1);
+      expect((deps.openFile as jest.Mock).mock.calls[0][0].base64.length).toBe(
+        MAX_FILE_BASE64_LENGTH
+      );
+      expect(MAX_FILE_BYTES).toBe(8 * 1024 * 1024);
+    });
+
+    it("refuses a file over the size limit with the error envelope", async () => {
+      const base64 = "A".repeat(MAX_FILE_BASE64_LENGTH + 4);
+      const { handle, deps } = setup();
+      await expect(handle(call("openFile", { ...PDF, base64 }), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: false,
+        error: { code: "bad_args", message: FILE_TOO_LARGE_MESSAGE },
+      });
+      expect(deps.openFile).not.toHaveBeenCalled();
+    });
+
+    it("drops, unparsed and unanswered, a large message from a page on another origin", async () => {
+      const base64 = "A".repeat(MAX_MESSAGE_LENGTH);
+      const { handle, deps } = setup();
+      const parse = jest.spyOn(JSON, "parse");
+      try {
+        await expect(
+          handle(call("openFile", { ...PDF, base64 }), "https://evil.example.com/")
+        ).resolves.toBeNull();
+        expect(parse).not.toHaveBeenCalled();
+      } finally {
+        parse.mockRestore();
+      }
+      expect(deps.openFile).not.toHaveBeenCalled();
+    });
+
+    it("answers nothing, and opens nothing, for a small call from another origin", async () => {
+      const { handle, deps } = setup();
+      await expect(handle(call("openFile", PDF), "https://evil.example.com/")).resolves.toBeNull();
+      expect(deps.openFile).not.toHaveBeenCalled();
+    });
+  });
+
+  it("answers none of the three methods, and runs none, for a page on another origin", async () => {
+    const { handle, deps } = setup();
+    const other = "https://evil.example.com/";
+    await expect(handle(call("pickImage"), other)).resolves.toBeNull();
+    await expect(handle(call("share", { text: "x" }), other)).resolves.toBeNull();
+    expect(deps.pickImage).not.toHaveBeenCalled();
+    expect(deps.share).not.toHaveBeenCalled();
+  });
+
+  it("answers none of the three methods during a sign-in excursion", async () => {
+    const { handle, deps } = setup({ inExcursion: () => true });
+    await expect(handle(call("pickImage"), PAGE)).resolves.toBeNull();
+    await expect(handle(call("share", { text: "x" }), PAGE)).resolves.toBeNull();
+    await expect(
+      handle(call("openFile", { base64: "QUJD", name: "a.txt", mime: "text/plain" }), PAGE)
+    ).resolves.toBeNull();
+    expect(deps.pickImage).not.toHaveBeenCalled();
+    expect(deps.share).not.toHaveBeenCalled();
+    expect(deps.openFile).not.toHaveBeenCalled();
+  });
+
+  describe("isSafeFileName", () => {
+    it.each([
+      ["Quote 42.pdf", true],
+      ["报价单.xlsx", true],
+      ["..jpg", true],
+      ["", false],
+      [".", false],
+      ["..", false],
+      ["a/b", false],
+      ["a\\b", false],
+      ["a\u007fb", false],
+      ["a\u0085b", false],
+      ["x".repeat(256), false],
+    ])("%j → %s", (name, safe) => {
+      expect(isSafeFileName(name)).toBe(safe);
     });
   });
 });

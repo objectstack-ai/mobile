@@ -86,6 +86,9 @@ function renderConsole(overrides: Partial<ConsoleWebViewProps> = {}) {
       resetServer: jest.fn().mockResolvedValue(undefined),
       scan: jest.fn().mockResolvedValue(null),
       showConnectionSwitcher: jest.fn(),
+      pickImage: jest.fn().mockResolvedValue(null),
+      share: jest.fn().mockResolvedValue(undefined),
+      openFile: jest.fn().mockResolvedValue(undefined),
     },
     onOpenNative: jest.fn(),
     onOpenExternal: jest.fn(),
@@ -409,6 +412,9 @@ describe("ConsoleWebView", () => {
           resetServer: jest.fn().mockResolvedValue(undefined),
           scan,
           showConnectionSwitcher: jest.fn(),
+          pickImage: jest.fn().mockResolvedValue(null),
+          share: jest.fn().mockResolvedValue(undefined),
+          openFile: jest.fn().mockResolvedValue(undefined),
         },
       });
       loadStart();
@@ -617,6 +623,9 @@ describe("ConsoleWebView", () => {
         resetServer: jest.fn(),
         scan: jest.fn(),
         showConnectionSwitcher: jest.fn(),
+        pickImage: jest.fn().mockResolvedValue(null),
+        share: jest.fn().mockResolvedValue(undefined),
+        openFile: jest.fn().mockResolvedValue(undefined),
       },
       onOpenNative: jest.fn(),
       onOpenExternal: jest.fn(),
@@ -1200,6 +1209,9 @@ describe("ConsoleWebView — sign-in excursion", () => {
           resetServer: jest.fn().mockResolvedValue(undefined),
           scan: jest.fn().mockResolvedValue(null),
           showConnectionSwitcher: jest.fn(),
+          pickImage: jest.fn().mockResolvedValue(null),
+          share: jest.fn().mockResolvedValue(undefined),
+          openFile: jest.fn().mockResolvedValue(undefined),
         },
       });
       await postCall("getPushToken", LOGIN, "d1.1");
