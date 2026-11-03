@@ -14,7 +14,31 @@ const mockWebView = {
   props: null as any,
   mounts: 0,
   injectJavaScript: jest.fn(),
+  reload: jest.fn(),
 };
+
+// jest.setup.ts mocks this module without a `default`, which is what
+// `react-native`'s `AppState` getter reads (the app lock's overlay reads it).
+jest.mock("react-native/Libraries/AppState/AppState", () => {
+  const appState = {
+    currentState: "active",
+    addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  };
+  return { __esModule: true, default: appState, ...appState };
+});
+
+// The lock's only writer, as a stand-in that really writes: if any bridge
+// path reached it, the setting would change and these tests would see it.
+const mockChangeAppLockSettings = jest.fn(async (settings: unknown) => {
+  const { useSecurityStore } = require("~/stores/security-store");
+  useSecurityStore.getState().dispatch({ type: "settingsCommitted", settings });
+  return "changed";
+});
+const mockUnlockApp = jest.fn(async () => false);
+jest.mock("~/lib/app-lock", () => ({
+  changeAppLockSettings: (settings: unknown) => mockChangeAppLockSettings(settings),
+  unlockApp: () => mockUnlockApp(),
+}));
 
 jest.mock("react-native-webview", () => {
   const React = require("react");
@@ -26,7 +50,7 @@ jest.mock("react-native-webview", () => {
     }, []);
     React.useImperativeHandle(ref, () => ({
       injectJavaScript: mockWebView.injectJavaScript,
-      reload: jest.fn(),
+      reload: mockWebView.reload,
       goBack: jest.fn(),
     }));
     return <View testID={props.testID} />;
@@ -78,7 +102,12 @@ jest.mock("~/lib/connections/cookies", () => ({
   clearHostCookies: (...args: unknown[]) => mockClearHostCookies(...args),
 }));
 
+import { readFileSync } from "fs";
+import { join } from "path";
 import ConsoleScreen from "~/app/console";
+import { AppLockOverlay } from "~/components/shell/AppLockOverlay";
+import { BRIDGE_METHODS } from "~/lib/shell/bridge/protocol";
+import { INITIAL_APP_LOCK_STATE, useSecurityStore } from "~/stores/security-store";
 import { EMPTY_CONNECTIONS, addConnection, rememberRoute } from "~/lib/connections/model";
 import { NO_MANAGED_CONFIG } from "~/lib/managed-config/model";
 import { CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
@@ -143,6 +172,10 @@ beforeEach(() => {
   mockWebView.props = null;
   mockWebView.mounts = 0;
   mockWebView.injectJavaScript.mockReset();
+  mockWebView.reload.mockReset();
+  mockChangeAppLockSettings.mockClear();
+  mockUnlockApp.mockClear();
+  useSecurityStore.setState(INITIAL_APP_LOCK_STATE);
   mockPush.mockReset();
   mockReplace.mockReset();
   mockClearHostCookies.mockReset().mockResolvedValue({ kind: "cleared", cleared: 1, kept: 0 });
@@ -326,5 +359,132 @@ describe("ConsoleScreen under a managed deployment (MDM)", () => {
         .applyManaged({ serverUrl: "https://new.example.com", lockServer: true });
     });
     expect(screen.getByTestId("redirect")).toHaveTextContent("/server-config");
+  });
+});
+
+describe("ConsoleScreen and the app lock", () => {
+  const ON_5_MIN = { enabled: true, timeoutSeconds: 300 } as const;
+
+  /** The value the shell answered call `id` with, from the resolve script it injected. */
+  function answerTo(id: string): unknown {
+    for (const [script] of mockWebView.injectJavaScript.mock.calls) {
+      const match = /__objectstackNativeResolve\((\{.*\})\);/.exec(script);
+      if (match) {
+        const result = JSON.parse(match[1]);
+        if (result.id === id) return result;
+      }
+    }
+    return undefined;
+  }
+
+  /** Lock the app the way a return past the timeout does. */
+  function lockNow() {
+    act(() => {
+      const { dispatch } = useSecurityStore.getState();
+      dispatch({ type: "background", at: 0 });
+      dispatch({ type: "active", at: 300_000 });
+    });
+  }
+
+  beforeEach(() => useSecurityStore.setState({ settings: ON_5_MIN }));
+
+  it("getAppLock reads the setting; openAppLockSettings opens the native screen", async () => {
+    render(<ConsoleScreen />);
+    await post({ type: "call", id: "g1", method: "getAppLock" }, `${ERP}/_console/home`);
+    expect(answerTo("g1")).toEqual({ id: "g1", ok: true, value: ON_5_MIN });
+    await post({ type: "call", id: "o1", method: "openAppLockSettings" }, `${ERP}/_console/home`);
+    expect(mockPush).toHaveBeenCalledWith("/app-lock-settings");
+    expect(answerTo("o1")).toEqual({ id: "o1", ok: true, value: null });
+  });
+
+  it("the switcher's App lock row opens the native screen and shows the state", async () => {
+    render(<ConsoleScreen />);
+    await openSwitcherFromConsole();
+    expect(screen.getByTestId("switcher-app-lock-state")).toHaveTextContent("On");
+    fireEvent.press(screen.getByTestId("switcher-app-lock"));
+    expect(mockPush).toHaveBeenCalledWith("/app-lock-settings");
+    expect(screen.queryByTestId("connection-switcher")).toBeNull();
+  });
+
+  it("no bridge method changes the lock, whatever it is sent", async () => {
+    // Every method the handler dispatches on, read from its source, so a case
+    // added under an innocent name is covered too; plus write-shaped names.
+    const handlerSource = readFileSync(
+      join(__dirname, "../../lib/shell/bridge/handler.ts"),
+      "utf8"
+    );
+    const handled = [...handlerSource.matchAll(/case "([A-Za-z]+)"/g)].map((m) => m[1]);
+    const methods = [
+      ...new Set([...BRIDGE_METHODS, ...handled, "setAppLock", "disableAppLock", "updateAppLock"]),
+    ].filter((m) => m !== "resetServer");
+    const hostile = { enabled: false, timeoutSeconds: 0, lock: false, appLock: false };
+    render(<ConsoleScreen />);
+    await consoleReady();
+    let n = 0;
+    for (const method of [...methods, "resetServer"]) {
+      for (const args of [hostile, false, undefined]) {
+        n += 1;
+        await post({ type: "call", id: `w${n}`, method, args }, `${ERP}/_console/home`);
+      }
+    }
+    expect(methods).toEqual(expect.arrayContaining(["getAppLock", "openAppLockSettings"]));
+    expect(mockChangeAppLockSettings).not.toHaveBeenCalled();
+    expect(useSecurityStore.getState().settings).toEqual(ON_5_MIN);
+  });
+
+  it("the WebView stays mounted under the lock, and nothing reloads or re-arms the load state", async () => {
+    render(
+      <>
+        <ConsoleScreen />
+        <AppLockOverlay />
+      </>
+    );
+    await consoleReady();
+    const source = mockWebView.props.source;
+    expect(mockWebView.mounts).toBe(1);
+
+    lockNow();
+    expect(screen.getByTestId("app-lock-overlay")).toBeTruthy();
+    expect(screen.getByTestId("app-lock-title")).toHaveTextContent("ObjectOS is locked");
+    expect(mockUnlockApp).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      const { dispatch } = useSecurityStore.getState();
+      dispatch({ type: "unlockStarted" });
+      dispatch({ type: "unlockFinished", ok: true });
+    });
+    expect(screen.queryByTestId("app-lock-overlay")).toBeNull();
+    expect(mockWebView.mounts).toBe(1);
+    expect(mockWebView.props.source).toBe(source);
+    expect(mockWebView.reload).not.toHaveBeenCalled();
+    expect(mockWebView.injectJavaScript).not.toHaveBeenCalled();
+
+    // Still `ready`: a route goes straight into the page, not held for a new load.
+    await post(
+      { type: "call", id: "n1", method: "navigate", args: { route: "/apps/crm" } },
+      `${ERP}/_console/home`
+    );
+    const scripts = mockWebView.injectJavaScript.mock.calls.map(([script]) => script).join("\n");
+    expect(scripts).toContain("objectstack-native:navigate");
+    expect(scripts).toContain("/apps/crm");
+  });
+
+  it("while locked, the page cannot open UI above the overlay; the switcher closes when the lock engages", async () => {
+    render(<ConsoleScreen />);
+    await consoleReady();
+    await openSwitcherFromConsole();
+    expect(screen.getByTestId("connection-switcher")).toBeTruthy();
+    lockNow();
+    expect(screen.queryByTestId("connection-switcher")).toBeNull();
+
+    await post({ type: "call", id: "s2", method: "showConnectionSwitcher" }, `${ERP}/_console/home`);
+    expect(answerTo("s2")).toEqual({
+      id: "s2",
+      ok: false,
+      error: { code: "failed", message: "The app is locked" },
+    });
+    expect(screen.queryByTestId("connection-switcher")).toBeNull();
+    await post({ type: "call", id: "o2", method: "openAppLockSettings" }, `${ERP}/_console/home`);
+    expect(mockPush).not.toHaveBeenCalledWith("/app-lock-settings");
   });
 });

@@ -22,6 +22,8 @@ function setup(overrides: Partial<BridgeDeps> = {}) {
     resetServer: jest.fn().mockResolvedValue(undefined),
     scan: jest.fn().mockResolvedValue("4006381333931"),
     showConnectionSwitcher: jest.fn(),
+    getAppLock: jest.fn(() => ({ enabled: true, timeoutSeconds: 300 })),
+    openAppLockSettings: jest.fn(),
     onEvent: jest.fn(),
     ...overrides,
   };
@@ -203,6 +205,88 @@ describe("bridge handler", () => {
       await expect(
         handle(call("showConnectionSwitcher"), "https://erp.example.com/_console/home")
       ).resolves.toMatchObject({ ok: true });
+    });
+  });
+
+  describe("app lock", () => {
+    it("reads the setting with getAppLock", async () => {
+      const { handle, deps } = setup();
+      await expect(handle(call("getAppLock"), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: true,
+        value: { enabled: true, timeoutSeconds: 300 },
+      });
+      expect(deps.getAppLock).toHaveBeenCalledTimes(1);
+    });
+
+    it("answers getAppLock with exactly the setting, whatever else the source carries", async () => {
+      const { handle } = setup({
+        getAppLock: () => ({ enabled: false, timeoutSeconds: 0, extra: "x" }) as never,
+      });
+      await expect(handle(call("getAppLock"), PAGE)).resolves.toMatchObject({
+        value: { enabled: false, timeoutSeconds: 0 },
+      });
+      const result = await handle(call("getAppLock"), PAGE);
+      expect(result && result.ok && Object.keys(result.value as object)).toEqual([
+        "enabled",
+        "timeoutSeconds",
+      ]);
+    });
+
+    it("opens the native settings screen with openAppLockSettings and resolves null", async () => {
+      const { handle, deps } = setup();
+      await expect(handle(call("openAppLockSettings"), PAGE)).resolves.toEqual({
+        id: "c1",
+        ok: true,
+        value: null,
+      });
+      expect(deps.openAppLockSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it("passes both through the origin gate: another page gets no answer and opens nothing", async () => {
+      const { handle, deps } = setup();
+      for (const method of ["getAppLock", "openAppLockSettings"]) {
+        await expect(handle(call(method), "https://evil.example.com/")).resolves.toBeNull();
+      }
+      expect(deps.getAppLock).not.toHaveBeenCalled();
+      expect(deps.openAppLockSettings).not.toHaveBeenCalled();
+    });
+
+    it("answers nothing during a sign-in excursion", async () => {
+      const { handle, deps } = setup({ inExcursion: () => true });
+      await expect(handle(call("getAppLock"), PAGE)).resolves.toBeNull();
+      await expect(handle(call("openAppLockSettings"), PAGE)).resolves.toBeNull();
+      expect(deps.openAppLockSettings).not.toHaveBeenCalled();
+    });
+
+    it("refuses methods that bring up native UI while the app is locked", async () => {
+      const { handle, deps } = setup({ isLocked: () => true });
+      for (const [method, args] of [
+        ["openExternal", { url: "https://example.com" }],
+        ["scan", undefined],
+        ["showConnectionSwitcher", undefined],
+        ["openAppLockSettings", undefined],
+      ] as const) {
+        await expect(handle(call(method, args), PAGE)).resolves.toEqual({
+          id: "c1",
+          ok: false,
+          error: { code: "failed", message: "The app is locked" },
+        });
+      }
+      expect(deps.openExternal).not.toHaveBeenCalled();
+      expect(deps.scan).not.toHaveBeenCalled();
+      expect(deps.showConnectionSwitcher).not.toHaveBeenCalled();
+      expect(deps.openAppLockSettings).not.toHaveBeenCalled();
+    });
+
+    it("keeps answering the rest while locked, so a Console booting under the lock still works", async () => {
+      const { handle, deps } = setup({ isLocked: () => true });
+      await expect(handle(call("getPushToken"), PAGE)).resolves.toMatchObject({ ok: true });
+      await expect(handle(call("getAppLock"), PAGE)).resolves.toMatchObject({ ok: true });
+      await expect(handle(call("navigate", { route: "/home" }), PAGE)).resolves.toMatchObject({
+        ok: true,
+      });
+      expect(deps.navigate).toHaveBeenCalledWith("/home");
     });
   });
 

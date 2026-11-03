@@ -187,6 +187,25 @@ describe("bootstrap script", () => {
     ]);
   });
 
+  it("posts getAppLock and openAppLockSettings calls, with no arguments", () => {
+    const page = makePage();
+    page.run(
+      buildBootstrapScript(
+        { ...info, capabilities: ["getAppLock", "openAppLockSettings"] },
+        SERVER_URL
+      )
+    );
+    const api = page.window.ObjectStackNative;
+    expect(api.has("getAppLock")).toBe(true);
+    expect(api.has("openAppLockSettings")).toBe(true);
+    void api.getAppLock({ enabled: false });
+    void api.openAppLockSettings({ enabled: false });
+    expect(page.posted).toEqual([
+      { type: "call", id: expect.any(String), method: "getAppLock" },
+      { type: "call", id: expect.any(String), method: "openAppLockSettings" },
+    ]);
+  });
+
   it("resolves a scan with the decoded text, or null on cancel", async () => {
     const page = makePage();
     page.run(buildBootstrapScript(info, SERVER_URL));

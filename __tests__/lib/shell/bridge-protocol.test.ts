@@ -32,6 +32,11 @@ describe("capabilities", () => {
     expect(CONNECTION_REMOVED_EVENT).toBe("objectstack-native:connectionRemoved");
   });
 
+  it("announces the read-only app-lock methods", () => {
+    expect(BRIDGE_CAPABILITIES).toContain("getAppLock");
+    expect(BRIDGE_CAPABILITIES).toContain("openAppLockSettings");
+  });
+
   it("announces the connection switcher and the removal event", () => {
     expect(BRIDGE_CAPABILITIES).toContain("showConnectionSwitcher");
     expect(BRIDGE_CAPABILITIES).toContain("connectionRemoved");
