@@ -17,7 +17,10 @@ export const BRIDGE_PROTOCOL_VERSION = 1;
 /** The global the Console reads. */
 export const BRIDGE_GLOBAL = "ObjectStackNative";
 
-/** The global the shell calls to settle a pending call. */
+/**
+ * The global the shell calls to settle a pending call — only in a page on the
+ * configured server's origin.
+ */
 export const BRIDGE_RESOLVE_GLOBAL = "__objectstackNativeResolve";
 
 /**
