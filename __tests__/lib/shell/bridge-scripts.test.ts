@@ -305,7 +305,9 @@ describe("navigate script", () => {
   ])("sends neither the event nor a load to a page on another origin (%s)", (origin) => {
     const page = makeNavPage(origin);
     const seen: unknown[] = [];
-    page.window.addEventListener(NAVIGATE_EVENT, (event: Event) => seen.push(event));
+    page.window.addEventListener(NAVIGATE_EVENT, (event: Event) =>
+      seen.push((event as CustomEvent).detail)
+    );
     page.run(buildNavigateScript(SERVER, "/apps/crm/lead/1?tab=2"));
     expect(seen).toEqual([]);
     expect(page.assign).not.toHaveBeenCalled();
