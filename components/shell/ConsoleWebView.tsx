@@ -56,6 +56,7 @@ import {
 } from "~/lib/shell/bridge/scripts";
 import type { ConsoleRemovalAnswer } from "~/lib/connections/sign-out";
 import { createBridgeHandler, type BridgeDeps } from "~/lib/shell/bridge/handler";
+import { isAppLocked, useSecurityStore } from "~/stores/security-store";
 import {
   INITIAL_CONSOLE_LOAD_STATE,
   READY_TIMEOUT_MS,
@@ -465,9 +466,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     }, [isConnected]);
 
     // Android hardware back: walk the Console's history before leaving the app.
+    // Never behind the app lock's overlay: the press goes on to its handler.
     useEffect(() => {
       if (Platform.OS !== "android") return;
       const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        if (isAppLocked(useSecurityStore.getState())) return false;
         if (canGoBackRef.current && !failure) {
           webviewRef.current?.goBack();
           return true;

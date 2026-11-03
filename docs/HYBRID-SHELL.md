@@ -29,6 +29,7 @@ app/
   connect-scan.tsx    QR scanner for the server address (screen 6)
   bridge-scan.tsx     scanner for the bridge's `scan()` (Console fields)
   console.tsx         the Console screen (one long-lived WebView) and the switcher
+  app-lock-settings.tsx native app-lock settings: on/off and the timeout, behind biometrics
   +native-intent.tsx  app links → Console routes
 components/shell/
   ConsoleWebView.tsx  WebView + navigation policy + bridge + back button + load states
@@ -37,11 +38,14 @@ components/shell/
   ServerConfirm.tsx   "is this your server?" step of the picker
   QrScanner.tsx       full-screen camera QR scanner (reusable; `accept` decides)
   OfflineFallback.tsx native page for network / 5xx failures
+  AppLockOverlay.tsx  the app lock's cover over everything, with Unlock
 lib/
   i18n.ts             shell strings in the Console's ten locales; follows the phone language
   rtl.ts              right-to-left layout for Arabic
   server-probe.ts     anonymous probe of a server before it is saved
   server-url.ts       persistence of the saved connections (and the one-time migration)
+  app-lock.ts         app lock: the stored setting, AppState monitor, unlock, the one writer
+  biometric-auth.ts   expo-local-authentication: prompt, device lock level
 lib/managed-config/
   model.ts            MDM managed config: serverUrl, lockServer, precedence, the lock
   native.ts           reading it through modules/managed-config, on launch and foreground
@@ -51,6 +55,7 @@ lib/connections/
   sign-out.ts         removing a connection: push token through the Console, then cookies
 stores/
   server-store.ts     the saved connections in memory, for the screens
+  security-store.ts   the app lock's setting and state machine
 modules/managed-config/  local Expo module (iOS/Android reader) and its config plugin
 lib/shell/
   console-url.ts      server URL normalisation, Console URL ⇄ route
@@ -327,6 +332,74 @@ In the shell:
 - `trustedHosts` is not read from MDM: the navigation policy and the bridge's
   trusted origins come only from the build.
 
+## App lock
+
+The user can hide the app behind Face ID, Touch ID or fingerprint, with the
+device passcode as fallback, when it comes back from the background. The
+setting is the user's, on this device: **off** by default, or **on** with a
+timeout of immediately, 1, 5 (the default), 15 or 60 minutes.
+
+- **Changed only on a native screen, behind biometrics.** The settings screen
+  (`app/app-lock-settings.tsx`) is the one place the setting changes: turning
+  it on, off, or choosing another timeout each asks for the same
+  authentication as an unlock (`changeAppLockSettings` in `lib/app-lock.ts`,
+  the only writer), and nothing changes unless that succeeds and the setting
+  is stored. Turning it on needs a screen lock on the device
+  (`getEnrolledLevelAsync` above `NONE`). The screen is reached from the
+  switcher's "App lock" row (the one native menu over the Console, next to
+  "App settings") and from the bridge's `openAppLockSettings()`. The bridge
+  reads the setting and cannot change it (see "Reading the app lock").
+- **Stored** as one versioned record in SecureStore (`objectstack_app_lock`,
+  `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`) and read synchronously before the
+  first frame (`hydrateAppLock`). No record: off. A record that does not check
+  out, or a keychain read that throws, fails closed: on, at the default
+  timeout. A failed write changes nothing.
+- **When it locks.** The AppState monitor stamps the time the app goes to
+  `background` and, on the return to `active`, compares it with the timeout.
+  `inactive` alone never locks: the Face ID prompt itself, Control Center and
+  call banners make the app inactive. A cold start with the lock on starts
+  locked: a killed app gives no time to compare. A background seen while a
+  prompt runs is held — Android's passcode fallback is an activity of its own
+  — and counts only if the app is still in the background when the prompt
+  ends.
+- **The overlay** (`components/shell/AppLockOverlay.tsx`) is an opaque native
+  view drawn above the navigation stack in the root layout, as a sibling. It
+  is not a route and nothing reloads: the WebView stays mounted under it, the
+  page keeps its state, and the load state machine (see "Load states") sees no
+  event. Its states (`stores/security-store.ts`, `stepAppLock`):
+
+  | State       | Entered on                                       | Shows |
+  | ----------- | ------------------------------------------------ | ----- |
+  | `covered`   | going to the background with the lock on         | the cover alone, while the timeout is judged |
+  | `locked`    | a return past the timeout; a cold start          | title, Unlock; the prompt starts by itself once the app is active |
+  | `unlocking` | the prompt is on screen                          | Unlock waits |
+  | `unlocked`  | a return within the timeout; a successful prompt | nothing |
+
+  A cancelled prompt leaves Unlock; a failed one says why (a device without a
+  screen lock is told to set one up). Each return from the background while
+  locked prompts again. While the overlay is up, Android back does nothing
+  (the WebView's handler steps aside and the overlay's swallows the press),
+  the stack under it is hidden from screen readers, the switcher sheet
+  closes, and on iOS the in-app browser is dismissed: both are presented above
+  every view.
+- **The bridge while locked.** Methods that bring up native UI
+  (`openExternal`, `scan`, `showConnectionSwitcher`, `openAppLockSettings`)
+  are answered `failed` ("The app is locked"). The others are answered as
+  usual, so a Console that boots under the lock on a cold start still gets
+  its push token.
+- **The app-switcher snapshot** is protected while the lock is on, through
+  `expo-screen-capture`: on iOS it is blurred natively on resign-active,
+  before the system takes it (`enableAppSwitcherProtectionAsync`); on Android
+  the window is `FLAG_SECURE` (`preventScreenCaptureAsync`), which blanks the
+  recents thumbnail and also blocks screenshots and screen recording while the
+  lock is on. The module's manifest asks for photo and screen-capture
+  permissions for a screenshot listener the shell does not use; `app.config.ts`
+  blocks them.
+- **Face ID** needs its usage string: `permissions.faceId` in each locale
+  bundle, written into `InfoPlist.strings` per language like the camera's.
+- **Unrelated to the organization's server lock** (`lockServer`, see
+  "Managed deployment"): MDM neither sets nor reads the app lock.
+
 ## Navigation policy
 
 Every navigation the page attempts goes through `decideNavigation`
@@ -476,6 +549,8 @@ interface ObjectStackNative {
   resetServer(): Promise<null>; // forget the current connection, back to the picker
   scan(opts?: { formats?: string[] }): Promise<string | null>; // see "Scanning codes"
   showConnectionSwitcher(): Promise<null>; // open the native switcher sheet (screen 8)
+  getAppLock(): Promise<{ enabled: boolean; timeoutSeconds: number }>; // read-only, see "Reading the app lock"
+  openAppLockSettings(): Promise<null>; // open the native app-lock settings screen
 
   ready(): void; // event: the Console has mounted (lifts the cover, releases a held route)
   routeChanged(route: string): void; // event: SPA route changed (the shell's last route)
@@ -554,6 +629,36 @@ button calls it when `has("showConnectionSwitcher")`.
 `resetServer()` forgets the current connection — it leaves the saved list, the
 next one becomes current — and opens the picker. It does not sign out: like the
 single-server shell before it, it clears no cookies.
+
+### Reading the app lock
+
+The bridge's whole app-lock surface is read-only (`APP_LOCK_BRIDGE_METHODS`):
+
+- `getAppLock()` resolves the setting, `{ enabled, timeoutSeconds }`
+  (`timeoutSeconds` is `0` for "immediately"), copied out of the store.
+- `openAppLockSettings()` opens the native settings screen and resolves
+  `null`; it takes no arguments. What the user does there is the shell's.
+
+No bridge method changes the lock. A page that could would let any page on
+the server's origin — or, on an old Android WebView, any iframe in it (Known
+limits) — turn off a lock the user set, silently. Both methods go through the
+origin gate like every other: another page gets no answer and opens nothing,
+and during a sign-in excursion nothing is answered. While the app is locked,
+`openAppLockSettings()` is refused like the other methods that bring up native
+UI. A test sends every method the handler dispatches on, with write-shaped
+arguments, through the Console screen's real wiring and checks the setting
+did not move.
+
+```js
+if (ObjectStackNative.has("openAppLockSettings")) {
+  const { enabled } = await ObjectStackNative.getAppLock();
+  row.label = enabled ? "On" : "Off";
+  row.onclick = () => ObjectStackNative.openAppLockSettings();
+}
+```
+
+The Console reads the setting again when it needs it: no event tells it the
+setting changed.
 
 ### Shell → Console events
 
@@ -791,6 +896,8 @@ The Console needs, in `@object-ui/mobile`:
   fill the field with what `scan()` resolves (nothing on `null`);
 - when `has("showConnectionSwitcher")`, make the header's organization button
   call `showConnectionSwitcher()`;
+- when `has("openAppLockSettings")`, offer an "App lock" entry on the profile
+  page that shows `getAppLock()`'s state and calls `openAppLockSettings()`;
 - when `has("connectionRemoved")`, listen for
   `objectstack-native:connectionRemoved`, call `preventDefault()`, and hand
   the push-token unregistration to `event.detail.waitUntil`.
@@ -830,6 +937,15 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - Locale list, phone-language matching and bundle completeness —
   `__tests__/lib/i18n.test.ts`; right-to-left native screens under `ar` —
   `__tests__/components/RtlLayout.test.tsx`.
+- The app lock: the state machine and the timeout
+  (`__tests__/lib/security-store.test.ts`), the stored setting, the monitor,
+  unlock, the writer and the snapshot protection (`app-lock.test.ts`), the
+  bridge methods and the lock's refusals (`bridge-handler.test.ts`), the
+  overlay (`AppLockOverlay.test.tsx`), the settings screen
+  (`AppLockSettingsScreen.test.tsx`), and, through the Console screen's real
+  wiring, that no bridge method changes the lock and that the WebView stays
+  mounted and `ready` under the overlay (`ConsoleScreen.test.tsx`, "the app
+  lock").
 - The scanner and screen 6 — `__tests__/components/QrScanner.test.tsx`, with a
   mocked `expo-camera` (permission states, refused and accepted codes, torch).
 - The bridge's `scan()`: the handler (`bridge-handler.test.ts`), the session
@@ -888,6 +1004,11 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - **Push taps carry no connection.** A notification is routed by its `route`
   to the current connection's Console; a tap on one from another saved server
   opens that route on the current one.
+- **The app lock counts every trip out of the app.** With a short timeout, a
+  return from anything that sends the app to the background locks it: on
+  Android that includes the Custom Tab of the in-app browser, a file chooser
+  and the camera of a file input. On iOS those are presented in the app and
+  do not count.
 - **Swipe direction under Arabic before a restart.** The switcher's swipe
   actions are laid out from `I18nManager.isRTL`, which follows a language
   change on the next launch (see "Language").

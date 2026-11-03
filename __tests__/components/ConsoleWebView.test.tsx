@@ -11,6 +11,7 @@ import {
 import { READY_TIMEOUT_MS } from "~/lib/shell/console-load";
 import { EXCURSION_MAX_NAVIGATIONS, EXCURSION_TIMEOUT_MS } from "~/lib/shell/sign-in-excursion";
 import { BRIDGE_RESOLVE_GLOBAL, CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
+import { INITIAL_APP_LOCK_STATE, useSecurityStore } from "~/stores/security-store";
 
 const mockWebView = {
   props: null as any,
@@ -702,6 +703,28 @@ describe("ConsoleWebView", () => {
     } finally {
       Platform.OS = original;
       addSpy.mockRestore();
+    }
+  });
+
+  it("never walks the history behind the app lock's overlay", () => {
+    const addSpy = jest.spyOn(BackHandler, "addEventListener");
+    const Platform = require("react-native").Platform;
+    const original = Platform.OS;
+    Platform.OS = "android";
+    try {
+      renderConsole();
+      act(() => mockWebView.props.onNavigationStateChange({ canGoBack: true }));
+      const handler = addSpy.mock.calls[addSpy.mock.calls.length - 1][1] as () => boolean;
+      useSecurityStore.setState({ phase: "locked" });
+      expect(handler()).toBe(false);
+      expect(mockWebView.goBack).not.toHaveBeenCalled();
+      useSecurityStore.setState({ phase: "unlocked" });
+      expect(handler()).toBe(true);
+      expect(mockWebView.goBack).toHaveBeenCalledTimes(1);
+    } finally {
+      Platform.OS = original;
+      addSpy.mockRestore();
+      useSecurityStore.setState(INITIAL_APP_LOCK_STATE);
     }
   });
 });

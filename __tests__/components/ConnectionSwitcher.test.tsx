@@ -228,6 +228,32 @@ describe("ConnectionSwitcher", () => {
     expect(screen.getByTestId("switcher-add")).toBeTruthy();
   });
 
+  it("offers App lock with its state, which opens the native settings screen", () => {
+    const onOpenAppLock = jest.fn();
+    renderSwitcher({ onOpenAppLock, appLockEnabled: false });
+    expect(screen.getByTestId("switcher-app-lock")).toHaveTextContent(/App lock/);
+    expect(screen.getByTestId("switcher-app-lock-state")).toHaveTextContent("Off");
+    expect(screen.getByLabelText("App lock, Off")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("switcher-app-lock"));
+    expect(onOpenAppLock).toHaveBeenCalledTimes(1);
+  });
+
+  it("reads On while the app lock is on", () => {
+    renderSwitcher({ onOpenAppLock: jest.fn(), appLockEnabled: true });
+    expect(screen.getByTestId("switcher-app-lock-state")).toHaveTextContent("On");
+  });
+
+  it("has no App lock row without a way to open it", () => {
+    renderSwitcher();
+    expect(screen.queryByTestId("switcher-app-lock")).toBeNull();
+  });
+
+  it("keeps App lock while the organization locks the server (the two locks are unrelated)", () => {
+    renderSwitcher({ onOpenAppLock: jest.fn(), lockedHost: "erp.example.com" });
+    expect(screen.queryByTestId("switcher-add")).toBeNull();
+    expect(screen.getByTestId("switcher-app-lock")).toBeTruthy();
+  });
+
   it("renders nothing while closed", () => {
     renderSwitcher({ open: false });
     expect(screen.queryByTestId("connection-switcher")).toBeNull();
