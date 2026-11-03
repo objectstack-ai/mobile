@@ -33,6 +33,7 @@ app/
 components/shell/
   ConsoleWebView.tsx  WebView + navigation policy + bridge + back button + load states
   ConnectionSwitcher.tsx "Switch organization" sheet (screen 8)
+  SignInExcursionBar.tsx bar over an identity provider's page (screen 3), and its end notice
   ServerConfirm.tsx   "is this your server?" step of the picker
   QrScanner.tsx       full-screen camera QR scanner (reusable; `accept` decides)
   OfflineFallback.tsx native page for network / 5xx failures
@@ -57,6 +58,7 @@ lib/shell/
   route-owner.ts      per-route ownership: web (default) or native
   native-screens.ts   native screens a route rule may target (empty today)
   navigation-policy.ts what each WebView navigation is allowed to do
+  sign-in-excursion.ts identity-provider pages during sign-in (on top of the policy)
   incoming-link.ts    objectos:// links: Console routes, `connect`, scanned codes
   config.ts           build-time config from app.config.ts `extra`
   external.ts         open URLs in the in-app browser / OS
@@ -292,11 +294,16 @@ the names itself:
   base path, Console mount and API mount, since Android only reports cookies
   whose path covers the URL. Without `GET_COOKIE_INFO` nothing is cleared.
 
-Sign-in through an external identity provider: the IdP's host must be listed in
-`EXPO_PUBLIC_TRUSTED_HOSTS`, or the navigation policy opens it in the system
-browser and the session cookie never reaches the WebView. Providers that refuse
-embedded WebViews (Google) need the `ASWebAuthenticationSession` flow — tracked
-as follow-up work.
+Sign-in through an external identity provider (OIDC or SAML) runs in the
+WebView as a **sign-in excursion** (see "Sign-in excursion" below), so the
+session cookie the server sets on the way back lands in the WebView's cookie
+store. The shell sees no credential: the provider and the server exchange them
+in the page, as in a browser. A white-label build that knows its provider can
+still list the host in `EXPO_PUBLIC_TRUSTED_HOSTS`, which loads it like the
+server's own pages, without the bar. Providers that refuse embedded WebViews
+(Google) need the system authentication session (`ASWebAuthenticationSession`,
+Custom Tabs). That is mobile#148, not built yet; the shell says such a sign-in
+method is not supported in the app yet.
 
 ### Managed deployment
 
@@ -331,10 +338,90 @@ Every navigation the page attempts goes through `decideNavigation`
 | Console route owned by a native screen                      | open that screen |
 | Other path on the configured server (auth callbacks, files) | load             |
 | Host in `EXPO_PUBLIC_TRUSTED_HOSTS`                         | load             |
+| https page during a sign-in excursion (below)               | load, under the bar |
 | Any other http(s) page (top frame)                          | in-app browser   |
 | Sub-frame (embedded map, preview)                           | load             |
 | `mailto:` `tel:` `sms:` app schemes (top frame)             | OS               |
 | `javascript:` `file:` `intent:` top-frame `data:`           | block            |
+
+### Sign-in excursion
+
+An enterprise identity provider's host is not known to the shell in advance.
+`lib/shell/sign-in-excursion.ts` lets its pages load in the top frame while
+the user signs in, and only then. The table above is unchanged outside an
+excursion.
+
+- **Start: only from the sign-in surface.** An off-server https top-frame
+  navigation that the policy would send to the in-app browser loads instead,
+  and starts an excursion, when the top frame is on the current server's
+  sign-in surface (`isSignInSurface`). That is the Console's `/login` route (any
+  query), or a path under `/api/v1/auth/` (a sign-in route that redirects to the
+  provider), on the server's origin and under its base path.
+- **Where the top frame is.** The shell keeps its own record of the top-frame
+  URL. Only two things write it: a top-frame request the policy let load, and
+  the URL the native WebView reports with a load start (on Android also with
+  every history change) or a load end (on iOS also with history changes). A
+  page can change that URL only within its own origin, because the history API
+  is same-origin. So only a document on the server's origin can put the record
+  on the sign-in surface, and such a document is the server's own content: it
+  already holds the session. Bridge messages are never used. `routeChanged`
+  cannot report `/api/v1/auth/*`, a Console older than shell mode does not post
+  it, and on an Android WebView without `WebMessageListener` a sub-frame's
+  message carries the main frame's URL.
+- **The bar.** While an excursion is on screen a native bar sits above the
+  WebView (`SignInExcursionBar`, screen 3). It shows a lock, the exact host of
+  the page on screen (the port too, unless it is the default), "正在外部页面登录 ·
+  <server label>" and 取消. The host is drawn left to right in every language
+  and truncated at its start, so the registered domain stays visible. The lock
+  is honest: the page is https, and the WebView refuses a certificate error on
+  both platforms (react-native-webview cancels Android's `onReceivedSslError`
+  and leaves iOS to the system trust check). The loading cover stays down,
+  since the provider's page is not the Console.
+- **Only `https:`.** Plain http never starts an excursion. That request keeps
+  the policy's answer, the in-app browser. An http page during an excursion
+  ends it, whether the WebView asked first or only reported it.
+- **Return.** A top-frame request back to the server's origin ends the
+  excursion (the provider's redirect to `/api/v1/auth/callback/…`). So does a
+  load end on the server's origin after a provider page has finished loading:
+  Android does not ask before a form POST, such as a SAML response. A report of
+  the server page from before that is the page left behind, and is ignored. On
+  Android the WebView's history is then cleared, because the back button walks
+  it without asking the policy.
+- **Cancel.** 取消 ends the excursion and re-creates the WebView at `/login`,
+  so the provider's page and its history are gone.
+- **Caps.** At most `EXCURSION_MAX_NAVIGATIONS` (30) off-server top-frame
+  navigations, the first included, and at most `EXCURSION_TIMEOUT_MS` (10 min).
+  A browser cuts one request's redirect chain at 20. A sign-in is several such
+  chains joined by the user's steps (password, MFA, consent, a federation hop),
+  and a script or meta-refresh loop is not cut by the browser. Ten minutes is
+  the server's own limit: the platform's auth library stores the OAuth state
+  for 10 minutes when sign-in starts, so a later return is refused anyway.
+  Reaching either cap ends the excursion, re-creates the WebView at `/login`,
+  and shows why above it (`SignInExcursionNotice`).
+- **Providers that refuse embedded WebViews.** Google answers an embedded
+  WebView with "Error 403: disallowed_useragent". The shell detects that
+  refusal before the page loads: a request to `accounts.google.com`, or any
+  excursion URL that carries the `disallowed_useragent` code. It then blocks
+  the navigation, goes back to `/login`, and says that this sign-in method is
+  not supported in the app yet. A provider that refuses by its own user-agent
+  check without that code cannot be told apart. Its error page shows under the
+  bar, and 取消 goes back.
+- **The bridge is closed.** An excursion origin is never on the bridge's trust
+  list, which is the current server's origin only. While an excursion is on
+  screen no call is answered and no event is accepted, even one that names the
+  server's origin. A reply runs in the main frame, which is the provider's page,
+  and on iOS a sub-frame reports its own URL. An answer to a call the Console
+  made before it left is dropped too.
+- **The Console's load state.** The start is the load state machine's `reload`:
+  a new document is coming. A route (a notification tap) and a push token that
+  arrive during the excursion are held, as at a cold start. An excursion page's
+  load end is not fed to the machine, so the ready timeout cannot release them
+  into that page. Back on the server the Console boots behind the cover and
+  posts `ready`, and then they are delivered. Removing the current connection
+  meanwhile asks no page to unregister the push token: the Console is not
+  loaded.
+- **It belongs to the current connection.** Switching connections, a load
+  failure or a re-created WebView ends it, without a notice.
 
 ## Route ownership — growing native screens
 
@@ -558,7 +645,8 @@ document that made it.
 Security:
 
 - The handler answers only pages on the configured server's origin — the
-  current connection's (default ports ignored). A call from anything else,
+  current connection's (default ports ignored). During a sign-in excursion it
+  answers nothing at all (see "Sign-in excursion"). A call from anything else,
   including a page of a connection switched away from, gets no answer at all —
   a reply runs in the main frame, where its id could settle one of the
   Console's own calls — and events from it are dropped.
@@ -655,9 +743,10 @@ answers.
   react-native-webview (13.16) fires it from `doUpdateVisitedHistory`, so it
   also fires for SPA history changes, after which no second `ready` comes. A full-document load the page
   starts by itself after `ready` (an older Console's `location.assign`
-  fallback, an identity-provider round trip) is not seen as a new document:
-  the cover stays down, and a route or token sent during that load is lost
-  with the old document.
+  fallback, a round trip through a trusted host) is not seen as a new
+  document: the cover stays down, and a route or token sent during that load
+  is lost with the old document. A round trip through a sign-in excursion is
+  seen: its start re-arms the hold (see "Sign-in excursion").
 - **Last route.** Once the page has posted `routeChanged`, its `route` is the
   last route; WebView navigation state (which misses SPA `pushState` on some
   engines) is used only until then. A re-created WebView starts at the held
@@ -717,6 +806,11 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   (`sign-out.test.ts`). The sheet: `__tests__/components/ConnectionSwitcher.test.tsx`
   (the swipe itself is native and stubbed); switching and removal wired
   through the Console screen: `__tests__/components/ConsoleScreen.test.tsx`.
+- The sign-in excursion: the state machine
+  (`__tests__/lib/shell/sign-in-excursion.test.ts`), the sign-in surface
+  (`navigation-policy.test.ts`), the closed bridge (`bridge-handler.test.ts`),
+  the bar and the notice (`__tests__/components/SignInExcursionBar.test.tsx`),
+  and the wiring (`ConsoleWebView.test.tsx`, "sign-in excursion").
 - The picker and its confirm step — component tests under
   `__tests__/components` (`ServerConfigScreen`, `ServerConfirm`).
 - Managed deployment — parsing, precedence and the lock
@@ -763,6 +857,14 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
   `window`. A trusted host's page in the main frame gets the non-identifying
   fields (`platform`, `appVersion`, `capabilities`, `safeArea`), and `null` for
   `installId`.
+- **Android cannot tell a sub-frame's navigation from the top frame's** in an
+  excursion either. A sub-frame on the sign-in page that navigates off the
+  server can start an excursion and load in its own frame, as every sub-frame
+  already does on iOS. Moving the top frame from a cross-origin frame takes a
+  user gesture in Chromium, and the bar then shows that page's host.
+- **iOS keeps the excursion pages in history.** WKWebView's back list cannot
+  be cleared. After a return, swiping back to a provider page is a navigation
+  outside an excursion, so the policy opens it in the in-app browser.
 - **Downloads and file inputs** rely on the WebView defaults until the
   Phase 4 bridge methods land.
 - **Removal clears cookies, not other web storage.** A removed host's

@@ -20,8 +20,25 @@ import { useTranslation } from "react-i18next";
 import Constants from "expo-constants";
 import { LoadingScreen } from "~/components/common/LoadingScreen";
 import { OfflineFallback, type LoadFailure } from "./OfflineFallback";
-import { consoleUrl, routeFromConsoleUrl, safeConsoleRoute } from "~/lib/shell/console-url";
-import { decideNavigation } from "~/lib/shell/navigation-policy";
+import { SignInExcursionBar, SignInExcursionNotice } from "./SignInExcursionBar";
+import {
+  consoleUrl,
+  originOf,
+  parseUrl,
+  routeFromConsoleUrl,
+  safeConsoleRoute,
+} from "~/lib/shell/console-url";
+import { decideNavigation, SIGN_IN_ROUTE } from "~/lib/shell/navigation-policy";
+import {
+  EXCURSION_TIMEOUT_MS,
+  IDLE_EXCURSION,
+  stepExcursion,
+  type ActiveExcursion,
+  type ExcursionEvent,
+  type ExcursionFailure,
+  type ExcursionState,
+  type ExcursionStep,
+} from "~/lib/shell/sign-in-excursion";
 import type { RouteRule } from "~/lib/shell/route-owner";
 import {
   BRIDGE_CAPABILITIES,
@@ -78,13 +95,15 @@ export interface ConsoleWebViewProps {
   initialRoute?: string | null;
   /** The current connection's last route — where a switch to it starts. */
   resumeRoute?: string | null;
+  /** The current connection's label, shown on the sign-in excursion bar (else its host). */
+  serverLabel?: string | null;
   /** The Console's route changed (`routeChanged`, else navigation state) on `serverUrl`. */
   onRouteChange?: (serverUrl: string, route: string) => void;
   rules: readonly RouteRule[];
   availableScreens: ReadonlySet<string>;
   trustedHosts?: readonly string[];
   /** Platform capabilities the bridge exposes (push, haptics, …). */
-  capabilities: Omit<BridgeDeps, "serverUrl" | "navigate" | "onEvent">;
+  capabilities: Omit<BridgeDeps, "serverUrl" | "navigate" | "onEvent" | "inExcursion">;
   /** A Console route that a route rule hands to a native screen. */
   onOpenNative: (screen: string, route: string) => void;
   /** Open a URL outside the WebView (system browser / OS handler). */
@@ -105,6 +124,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       serverUrl,
       initialRoute,
       resumeRoute,
+      serverLabel,
       onRouteChange,
       rules,
       availableScreens,
@@ -173,6 +193,47 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     // only by the load state machine's `recreate` effect.
     const documentRef = useRef(0);
 
+    // Sign-in excursion (`lib/shell/sign-in-excursion.ts`): an off-server
+    // https page loads in the top frame because the server's sign-in surface
+    // went there. The machine lives in a ref, like the load state, so a
+    // navigation request sees the state the previous event left; `excursion`
+    // mirrors the active one for the bar.
+    //
+    // While one is on screen the Console is not in the main frame. In the
+    // load state machine its start is the `reload` event: a new document is
+    // coming, so routes and push tokens are held until the server's Console
+    // says `ready` again. An excursion page's load end is not fed to it, so the
+    // ready timeout cannot release them into that page. The bridge is closed.
+    // An excursion that ends without returning goes back to the server's
+    // sign-in page in a new WebView (the machine's `switch` event, on the same
+    // host), so the provider's page and its history are gone.
+    const excursionRef = useRef<ExcursionState>(IDLE_EXCURSION);
+    const [excursion, setExcursion] = useState<ActiveExcursion | null>(null);
+    const [excursionNotice, setExcursionNotice] = useState<ExcursionFailure | null>(null);
+    // Bumped when an excursion starts or ends: an answer to a call made before
+    // is never injected into the page that replaced its caller.
+    const excursionEpochRef = useRef(0);
+    const excursionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Set by a start, cleared by the first load end back on the server's origin.
+    const awaitingServerDocumentRef = useRef(false);
+    const applyExcursionRef = useRef<(event: ExcursionEvent) => ExcursionStep>(() => ({
+      state: IDLE_EXCURSION,
+    }));
+
+    const clearExcursionTimer = useCallback(() => {
+      if (excursionTimerRef.current !== null) clearTimeout(excursionTimerRef.current);
+      excursionTimerRef.current = null;
+    }, []);
+
+    /** A new WebView, or the failure page: whatever excursion there was is gone. */
+    const resetExcursion = useCallback(() => {
+      clearExcursionTimer();
+      if (excursionRef.current.active) excursionEpochRef.current += 1;
+      excursionRef.current = IDLE_EXCURSION;
+      awaitingServerDocumentRef.current = false;
+      setExcursion(null);
+    }, [clearExcursionTimer]);
+
     const goTo = useCallback(
       (route: string) => {
         // The Console's router handles it when it listens; else a page load.
@@ -237,19 +298,76 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
               }));
               setFailure(null);
               // A new WebView: answers to the old one's calls are dropped, and
-              // a Console asked to unregister its push token is gone.
+              // a Console asked to unregister its push token is gone. So is an
+              // excursion page.
               documentRef.current += 1;
               settleRemoval("no-answer");
+              resetExcursion();
               setInstance((i) => i + 1);
               break;
             }
           }
         }
       },
-      [goTo, sendPushToken, clearReadyTimer, settleRemoval]
+      [goTo, sendPushToken, clearReadyTimer, settleRemoval, resetExcursion]
     );
     dispatchRef.current = dispatch;
     useEffect(() => clearReadyTimer, [clearReadyTimer]);
+    useEffect(() => clearExcursionTimer, [clearExcursionTimer]);
+
+    const applyExcursion = useCallback(
+      (event: ExcursionEvent): ExcursionStep => {
+        const previous = excursionRef.current;
+        const step = stepExcursion(previous, event, serverUrlRef.current);
+        excursionRef.current = step.state;
+        if (step.state.active !== previous.active) setExcursion(step.state.active);
+        if (step.started) {
+          excursionEpochRef.current += 1;
+          awaitingServerDocumentRef.current = true;
+          setExcursionNotice(null);
+          dispatch({ type: "reload" });
+          clearExcursionTimer();
+          excursionTimerRef.current = setTimeout(() => {
+            excursionTimerRef.current = null;
+            applyExcursionRef.current({ type: "tick", now: Date.now() });
+          }, EXCURSION_TIMEOUT_MS);
+          addBreadcrumb({
+            category: "shell",
+            message: "sign-in excursion started",
+            data: { host: step.state.active?.host },
+          });
+        }
+        if (step.ended) {
+          clearExcursionTimer();
+          excursionEpochRef.current += 1;
+          addBreadcrumb({
+            category: "shell",
+            message: "sign-in excursion ended",
+            data: { reason: step.ended },
+          });
+          if (step.ended !== "returned") {
+            if (step.ended !== "cancelled") setExcursionNotice(step.ended);
+            dispatch({ type: "switch", route: SIGN_IN_ROUTE });
+          }
+        }
+        if (step.refused) {
+          addBreadcrumb({
+            category: "shell",
+            message: "sign-in excursion refused",
+            data: { reason: step.refused },
+          });
+          setExcursionNotice(step.refused);
+          dispatch({ type: "switch", route: SIGN_IN_ROUTE });
+        }
+        return step;
+      },
+      [dispatch, clearExcursionTimer]
+    );
+    applyExcursionRef.current = applyExcursion;
+
+    const cancelExcursion = useCallback(() => {
+      applyExcursion({ type: "cancel" });
+    }, [applyExcursion]);
     useEffect(() => () => settleRemoval("no-answer"), [settleRemoval]);
 
     // A switch to another connection: the current server changed under the
@@ -261,6 +379,8 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     useLayoutEffect(() => {
       if (shownServerRef.current === serverUrl) return;
       shownServerRef.current = serverUrl;
+      // An excursion belongs to the connection left; the re-create ends it.
+      setExcursionNotice(null);
       dispatch({ type: "switch", route: safeConsoleRoute(resumeRouteRef.current) });
     }, [serverUrl, dispatch]);
 
@@ -285,10 +405,11 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
 
     const fail = useCallback(
       (next: LoadFailure) => {
+        resetExcursion();
         dispatch({ type: "fail" });
         setFailure(next);
       },
-      [dispatch]
+      [dispatch, resetExcursion]
     );
 
     /** Re-create the WebView at the pending route, else where the page was. */
@@ -398,6 +519,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
           ...capabilities,
           serverUrl,
           navigate,
+          inExcursion: () => excursionRef.current.active !== null,
           onEvent: (name, payload) => {
             if (name === "ready") dispatch({ type: "ready" });
             if (name === "routeChanged") {
@@ -419,8 +541,13 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     const onMessage = useCallback(
       (event: WebViewMessageEvent) => {
         const caller = documentRef.current;
+        const epoch = excursionEpochRef.current;
         void handleMessage(event.nativeEvent.data, event.nativeEvent.url).then((result) => {
           if (!result || documentRef.current !== caller) return;
+          // An excursion started or ended since the call: the page that made
+          // it is gone, and the reply would run in an excursion page or in a
+          // new document.
+          if (excursionEpochRef.current !== epoch || excursionRef.current.active) return;
           webviewRef.current?.injectJavaScript(buildResolveScript(result));
         });
       },
@@ -429,13 +556,20 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
 
     const onShouldStartLoadWithRequest = useCallback(
       (request: ShouldStartLoadRequest) => {
-        const decision = decideNavigation(request.url, {
+        const isTopFrame = request.isTopFrame ?? true;
+        const base = decideNavigation(request.url, {
           serverUrl,
           rules,
           availableScreens,
           trustedHosts,
-          isTopFrame: request.isTopFrame ?? true,
+          isTopFrame,
         });
+        // A sub-frame never starts, counts in or ends an excursion. Android
+        // does not report `isTopFrame`, so there every request is top-frame.
+        const decision = isTopFrame
+          ? (applyExcursion({ type: "request", url: request.url, base, now: Date.now() })
+              .decision ?? base)
+          : base;
         switch (decision.kind) {
           case "load":
             return true;
@@ -449,7 +583,53 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
             return false;
         }
       },
-      [serverUrl, rules, availableScreens, trustedHosts, onOpenNative, onOpenExternal]
+      [
+        serverUrl,
+        rules,
+        availableScreens,
+        trustedHosts,
+        onOpenNative,
+        onOpenExternal,
+        applyExcursion,
+      ]
+    );
+
+    // The native WebView reports the top frame's URL: at a load start (on
+    // Android also for every history change) and at a load end (on iOS also
+    // for history changes). That URL is the excursion's record of where the
+    // top frame is. A page message never is.
+    const onLoadStart = useCallback(
+      (e: { nativeEvent: { url?: string } }) => {
+        const url = e.nativeEvent.url ?? "";
+        if (url) applyExcursion({ type: "location", url, loaded: false, now: Date.now() });
+      },
+      [applyExcursion]
+    );
+
+    const onLoadEnd = useCallback(
+      (e: { nativeEvent: { url?: string; loading: boolean } }) => {
+        const { loading } = e.nativeEvent;
+        const url = e.nativeEvent.url ?? "";
+        if (url) applyExcursion({ type: "location", url, loaded: !loading, now: Date.now() });
+        // `loading` is still true when a load is superseded by a redirect.
+        // react-native-webview also calls this after `onError`; the load
+        // state ignores it on a failed load.
+        if (loading) return;
+        if (awaitingServerDocumentRef.current) {
+          // After an excursion, only a document back on the server's origin
+          // is the Console's.
+          if (excursionRef.current.active || originOf(url) !== originOf(serverUrlRef.current)) {
+            return;
+          }
+          awaitingServerDocumentRef.current = false;
+          // Android's back button walks history without asking the
+          // navigation policy, so the excursion pages leave it. iOS asks the
+          // policy for every back-forward navigation.
+          if (Platform.OS === "android") webviewRef.current?.clearHistory?.();
+        }
+        dispatch({ type: "loadEnd" });
+      },
+      [applyExcursion, dispatch]
     );
 
     const onNavigationStateChange = useCallback(
@@ -475,64 +655,85 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
       );
     }
 
+    const label = serverLabel || parseUrl(serverUrl)?.host || serverUrl;
+
     return (
       <View
         className="flex-1 bg-background"
         style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
-        <WebView
-          key={instance}
-          ref={webviewRef}
-          testID="shell-console-webview"
-          source={source}
-          originWhitelist={["*"]}
-          injectedJavaScriptBeforeContentLoaded={bootstrap}
-          // Android evaluates the early script at onPageStarted, which can race
-          // the page; the bootstrap is idempotent, so it runs again once the
-          // page has loaded to guarantee the bridge exists.
-          injectedJavaScript={bootstrap}
-          onMessage={onMessage}
-          onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-          onNavigationStateChange={onNavigationStateChange}
-          onLoadEnd={(e) => {
-            // `loading` is still true when a load is superseded by a redirect.
-            // react-native-webview also calls this after `onError`; the
-            // load state ignores it on a failed load.
-            if (!e.nativeEvent.loading) dispatch({ type: "loadEnd" });
-          }}
-          onError={(e) => {
-            captureMessage(`console load failed: ${e.nativeEvent.description}`, "warning");
-            fail({ kind: "network", description: e.nativeEvent.description });
-          }}
-          onHttpError={(e) => {
-            // Only a server failure on the document itself replaces the page;
-            // 4xx pages are the Console's (or the server's) to explain.
-            if (e.nativeEvent.statusCode >= 500) {
-              fail({ kind: "server", statusCode: e.nativeEvent.statusCode });
-            }
-          }}
-          // A dead web content process (iOS) or renderer (Android) leaves the
-          // instance unusable — `reload()` on it shows a blank view.
-          onContentProcessDidTerminate={remount}
-          onRenderProcessGone={remount}
-          applicationNameForUserAgent={`ObjectStackShell/${APP_VERSION}`}
-          sharedCookiesEnabled
-          thirdPartyCookiesEnabled
-          domStorageEnabled
-          allowsBackForwardNavigationGestures
-          setSupportMultipleWindows={false}
-          pullToRefreshEnabled={false}
-          bounces={false}
-          overScrollMode="never"
-          allowsInlineMediaPlayback
-          webviewDebuggingEnabled={__DEV__}
-          style={{ flex: 1 }}
-        />
-        {phase !== "ready" ? (
-          <View className="absolute inset-0" pointerEvents="none">
-            <LoadingScreen message={t("shell.loading")} />
-          </View>
+        {excursion ? (
+          <SignInExcursionBar
+            host={excursion.host}
+            serverLabel={label}
+            onCancel={cancelExcursion}
+          />
         ) : null}
+        {excursionNotice ? (
+          <SignInExcursionNotice
+            reason={excursionNotice}
+            onDismiss={() => setExcursionNotice(null)}
+          />
+        ) : null}
+        <View className="flex-1">
+          <WebView
+            key={instance}
+            ref={webviewRef}
+            testID="shell-console-webview"
+            source={source}
+            originWhitelist={["*"]}
+            injectedJavaScriptBeforeContentLoaded={bootstrap}
+            // Android evaluates the early script at onPageStarted, which can race
+            // the page; the bootstrap is idempotent, so it runs again once the
+            // page has loaded to guarantee the bridge exists.
+            injectedJavaScript={bootstrap}
+            onMessage={onMessage}
+            onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+            onNavigationStateChange={onNavigationStateChange}
+            onLoadStart={onLoadStart}
+            onLoadEnd={onLoadEnd}
+            onError={(e) => {
+              captureMessage(`console load failed: ${e.nativeEvent.description}`, "warning");
+              fail({ kind: "network", description: e.nativeEvent.description });
+            }}
+            onHttpError={(e) => {
+              // Only a server failure on the document itself replaces the page;
+              // 4xx pages are the Console's (or the server's) to explain. An
+              // excursion page's error is the identity provider's to explain.
+              if (
+                excursionRef.current.active &&
+                originOf(e.nativeEvent.url ?? "") !== originOf(serverUrlRef.current)
+              ) {
+                return;
+              }
+              if (e.nativeEvent.statusCode >= 500) {
+                fail({ kind: "server", statusCode: e.nativeEvent.statusCode });
+              }
+            }}
+            // A dead web content process (iOS) or renderer (Android) leaves the
+            // instance unusable — `reload()` on it shows a blank view.
+            onContentProcessDidTerminate={remount}
+            onRenderProcessGone={remount}
+            applicationNameForUserAgent={`ObjectStackShell/${APP_VERSION}`}
+            sharedCookiesEnabled
+            thirdPartyCookiesEnabled
+            domStorageEnabled
+            allowsBackForwardNavigationGestures
+            setSupportMultipleWindows={false}
+            pullToRefreshEnabled={false}
+            bounces={false}
+            overScrollMode="never"
+            allowsInlineMediaPlayback
+            webviewDebuggingEnabled={__DEV__}
+            style={{ flex: 1 }}
+          />
+          {/* An excursion page is not the Console: it shows uncovered. */}
+          {phase !== "ready" && !excursion ? (
+            <View className="absolute inset-0" pointerEvents="none">
+              <LoadingScreen message={t("shell.loading")} />
+            </View>
+          ) : null}
+        </View>
       </View>
     );
   }

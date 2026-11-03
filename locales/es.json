@@ -66,6 +66,17 @@
     "serverErrorMessage": "El servidor respondió con el error {{code}}. Inténtelo de nuevo en un momento.",
     "retry": "Intentar de nuevo"
   },
+  "excursion": {
+    "signingIn": "Iniciando sesión en una página externa · {{server}}",
+    "secure": "Conexión segura",
+    "cancel": "Cancelar",
+    "endedTitle": "No se completó el inicio de sesión",
+    "redirects": "La página de inicio de sesión redirigió demasiadas veces. Inténtelo de nuevo o consulte a su administrador.",
+    "timeout": "El inicio de sesión tardó más de {{minutes}} minutos. Empiece de nuevo.",
+    "insecure": "La página de inicio de sesión intentó continuar por una conexión no segura (http), así que se detuvo.",
+    "unsupported": "Este método de inicio de sesión aún no es compatible con la app. Elija otra forma de iniciar sesión.",
+    "dismiss": "Cerrar"
+  },
   "switcher": {
     "title": "Cambiar de organización",
     "add": "Añadir una organización o un servidor de empresa",

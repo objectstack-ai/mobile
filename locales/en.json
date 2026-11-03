@@ -66,6 +66,17 @@
     "serverErrorMessage": "The server answered with error {{code}}. Try again in a moment.",
     "retry": "Try again"
   },
+  "excursion": {
+    "signingIn": "Signing in on an external page · {{server}}",
+    "secure": "Secure connection",
+    "cancel": "Cancel",
+    "endedTitle": "Sign-in didn't finish",
+    "redirects": "The sign-in page redirected too many times. Try again, or ask your administrator.",
+    "timeout": "Sign-in took longer than {{minutes}} minutes. Start again.",
+    "insecure": "The sign-in page tried to continue over an insecure (http) connection, so it was stopped.",
+    "unsupported": "This sign-in method isn't supported in the app yet. Choose another way to sign in.",
+    "dismiss": "Dismiss"
+  },
   "switcher": {
     "title": "Switch organization",
     "add": "Add an organization or company server",

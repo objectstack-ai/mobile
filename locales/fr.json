@@ -66,6 +66,17 @@
     "serverErrorMessage": "Le serveur a répondu avec l'erreur {{code}}. Réessayez dans un instant.",
     "retry": "Réessayer"
   },
+  "excursion": {
+    "signingIn": "Connexion sur une page externe · {{server}}",
+    "secure": "Connexion sécurisée",
+    "cancel": "Annuler",
+    "endedTitle": "La connexion n'a pas abouti",
+    "redirects": "La page de connexion a effectué trop de redirections. Réessayez ou contactez votre administrateur.",
+    "timeout": "La connexion a pris plus de {{minutes}} minutes. Recommencez.",
+    "insecure": "La page de connexion a tenté de continuer via une connexion non sécurisée (http) ; elle a été arrêtée.",
+    "unsupported": "Cette méthode de connexion n'est pas encore prise en charge dans l'application. Choisissez-en une autre.",
+    "dismiss": "Fermer"
+  },
   "switcher": {
     "title": "Changer d'organisation",
     "add": "Ajouter une organisation ou un serveur d'entreprise",

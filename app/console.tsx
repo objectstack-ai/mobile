@@ -138,6 +138,7 @@ export default function ConsoleScreen() {
         serverUrl={serverUrl}
         initialRoute={initialRoute}
         resumeRoute={current?.lastRoute ?? null}
+        serverLabel={current?.label ?? null}
         onRouteChange={rememberRoute}
         rules={DEFAULT_ROUTE_RULES}
         availableScreens={AVAILABLE_NATIVE_SCREENS}

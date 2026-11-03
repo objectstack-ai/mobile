@@ -66,6 +66,17 @@
     "serverErrorMessage": "O servidor respondeu com o erro {{code}}. Tente novamente em instantes.",
     "retry": "Tentar novamente"
   },
+  "excursion": {
+    "signingIn": "Entrando em uma página externa · {{server}}",
+    "secure": "Conexão segura",
+    "cancel": "Cancelar",
+    "endedTitle": "O login não foi concluído",
+    "redirects": "A página de login redirecionou vezes demais. Tente novamente ou fale com o administrador.",
+    "timeout": "O login demorou mais de {{minutes}} minutos. Comece de novo.",
+    "insecure": "A página de login tentou continuar por uma conexão não segura (http) e foi interrompida.",
+    "unsupported": "Este método de login ainda não é compatível com o app. Escolha outra forma de entrar.",
+    "dismiss": "Fechar"
+  },
   "switcher": {
     "title": "Trocar de organização",
     "add": "Adicionar uma organização ou um servidor da empresa",

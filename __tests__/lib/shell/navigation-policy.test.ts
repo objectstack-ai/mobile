@@ -1,4 +1,8 @@
-import { decideNavigation, type NavigationContext } from "~/lib/shell/navigation-policy";
+import {
+  decideNavigation,
+  isSignInSurface,
+  type NavigationContext,
+} from "~/lib/shell/navigation-policy";
 
 const ctx: NavigationContext = {
   serverUrl: "https://acme.example.com",
@@ -89,5 +93,54 @@ describe("decideNavigation", () => {
     expect(decideNavigation("data:image/png;base64,AA", { ...ctx, isTopFrame: false })).toEqual({
       kind: "load",
     });
+  });
+});
+
+describe("isSignInSurface", () => {
+  const server = "https://acme.example.com";
+
+  it("is the Console's /login route, with any query", () => {
+    expect(isSignInSurface(server, `${server}/_console/login`)).toBe(true);
+    expect(isSignInSurface(server, `${server}/_console/login/`)).toBe(true);
+    expect(isSignInSurface(server, `${server}/_console/login?redirect=%2Fhome#x`)).toBe(true);
+    expect(isSignInSurface(server, "https://acme.example.com:443/_console/login")).toBe(true);
+  });
+
+  it("is a path under the auth API", () => {
+    expect(isSignInSurface(server, `${server}/api/v1/auth/sign-in/social?provider=corp`)).toBe(
+      true
+    );
+    expect(isSignInSurface(server, `${server}/api/v1/auth/oauth2/authorize`)).toBe(true);
+  });
+
+  it("is nothing else on the server", () => {
+    for (const path of [
+      "/_console/home",
+      "/_console/login-help",
+      "/_console/login/extra",
+      "/_console/apps/login",
+      "/login",
+      "/api/v1/auth",
+      "/api/v1/authz/x",
+      "/api/v1/data/account",
+      "/api/v1/auth/%2e%2e/data",
+    ]) {
+      expect(isSignInSurface(server, `${server}${path}`)).toBe(false);
+    }
+  });
+
+  it("is on the server's own origin only", () => {
+    expect(isSignInSurface(server, "https://evil.example/_console/login")).toBe(false);
+    expect(isSignInSurface(server, "http://acme.example.com/_console/login")).toBe(false);
+    expect(isSignInSurface(server, "https://acme.example.com:8443/_console/login")).toBe(false);
+    expect(isSignInSurface(server, "not a url")).toBe(false);
+  });
+
+  it("is under the server's base path", () => {
+    const based = "https://acme.example.com/erp";
+    expect(isSignInSurface(based, `${based}/_console/login`)).toBe(true);
+    expect(isSignInSurface(based, `${based}/api/v1/auth/sign-in/sso`)).toBe(true);
+    expect(isSignInSurface(based, "https://acme.example.com/_console/login")).toBe(false);
+    expect(isSignInSurface(based, "https://acme.example.com/api/v1/auth/sign-in/sso")).toBe(false);
   });
 });
