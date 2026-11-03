@@ -193,24 +193,25 @@ describe("ConnectionSwitcher", () => {
     expect(props.onOpenSettings).toHaveBeenCalled();
   });
 
-  it("while the organization locks the server: no add, and no Remove on the managed connection", async () => {
+  it("while the organization locks the server: only the managed connection, no add, and no Remove on it", async () => {
     const props = renderSwitcher({ lockedHost: "erp.example.com" });
     expect(screen.queryByTestId("switcher-add")).toBeNull();
     expect(screen.queryByTestId("switcher-remove-erp.example.com")).toBeNull();
-    const [erpSwipe, acmeSwipe] = screen.getAllByTestId("swipeable");
-    expect(erpSwipe).toHaveProp("accessibilityState", { disabled: true });
-    expect(acmeSwipe).toHaveProp("accessibilityState", { disabled: false });
+    // The other saved connections are not listed, so they can be neither switched to nor removed.
+    expect(screen.queryByTestId("switcher-row-acme.objectos.ai")).toBeNull();
+    expect(screen.queryByTestId("switcher-remove-acme.objectos.ai")).toBeNull();
+    const swipes = screen.getAllByTestId("swipeable");
+    expect(swipes).toHaveLength(1);
+    expect(swipes[0]).toHaveProp("accessibilityState", { disabled: true });
 
     const erp = screen.getByTestId("switcher-row-erp.example.com");
     expect(erp).toHaveProp("accessibilityActions", []);
     fireEvent(erp, "accessibilityAction", { nativeEvent: { actionName: "remove" } });
     expect(props.onRemove).not.toHaveBeenCalled();
 
-    // The managed row still switches; the other connections stay removable.
+    // The managed row still switches.
     fireEvent.press(erp);
     expect(props.onSelect).toHaveBeenCalledWith("erp.example.com");
-    fireEvent.press(screen.getByTestId("switcher-remove-acme.objectos.ai"));
-    expect(props.onRemove).toHaveBeenCalledWith("acme.objectos.ai");
 
     expect(screen.getByTestId("switcher-footnote")).toHaveTextContent(
       "Each organization keeps its own sign-in. Example ERP is set up by your organization and can't be removed."
@@ -220,6 +221,34 @@ describe("ConnectionSwitcher", () => {
       await i18n.changeLanguage("zh");
     });
     expect(screen.queryByText("添加组织或公司服务器")).toBeNull();
+  });
+
+  it("lists every saved connection again once the lock is lifted", () => {
+    const state = saved();
+    const props: ConnectionSwitcherProps = {
+      open: true,
+      connections: state.list,
+      currentHost: state.current,
+      lockedHost: null,
+      onClose: jest.fn(),
+      onSelect: jest.fn(),
+      onRemove: jest.fn(),
+      onAdd: jest.fn(),
+      onOpenSettings: jest.fn(),
+    };
+    const hosts = () =>
+      screen.getAllByTestId(/^switcher-row-/).map((row) => row.props.testID as string);
+    const view = render(<ConnectionSwitcher {...props} />);
+    expect(hosts()).toEqual(["switcher-row-erp.example.com", "switcher-row-acme.objectos.ai"]);
+
+    view.rerender(<ConnectionSwitcher {...props} lockedHost="erp.example.com" />);
+    expect(hosts()).toEqual(["switcher-row-erp.example.com"]);
+
+    view.rerender(<ConnectionSwitcher {...props} lockedHost={null} />);
+    expect(hosts()).toEqual(["switcher-row-erp.example.com", "switcher-row-acme.objectos.ai"]);
+    expect(screen.getByTestId("switcher-add")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("switcher-remove-acme.objectos.ai"));
+    expect(props.onRemove).toHaveBeenCalledWith("acme.objectos.ai");
   });
 
   it("shows only the add action when nothing is saved", () => {

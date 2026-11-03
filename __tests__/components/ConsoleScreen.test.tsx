@@ -342,14 +342,34 @@ describe("ConsoleScreen under a managed deployment (MDM)", () => {
     expect(useServerStore.getState().currentHost).toBe("erp.example.com");
   });
 
-  it("locked: the other saved connections can still be removed", async () => {
-    useServerStore.setState({ managed: LOCKED });
+  it("locked: the switcher lists only the managed connection; the others stay saved and return when the lock is lifted", async () => {
+    // On Acme when the lock arrives: the managed connection is made current.
+    useServerStore.setState({ currentHost: "acme.objectos.ai", serverUrl: ACME });
     render(<ConsoleScreen />);
-    await openSwitcherFromConsole();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("switcher-remove-acme.objectos.ai"));
+    act(() => {
+      useServerStore.getState().applyManaged(LOCKED);
     });
-    expect(useServerStore.getState().connections.map((c) => c.host)).toEqual(["erp.example.com"]);
+    expect(useServerStore.getState().currentHost).toBe("erp.example.com");
+
+    await openSwitcherFromConsole(ERP);
+    expect(screen.getByTestId("switcher-row-erp.example.com")).toBeTruthy();
+    expect(screen.queryByTestId("switcher-row-acme.objectos.ai")).toBeNull();
+    expect(screen.queryByTestId("switcher-remove-acme.objectos.ai")).toBeNull();
+    // Hidden, not removed: nothing signed out, nothing dropped from the store.
+    expect(useServerStore.getState().connections.map((c) => c.host)).toEqual([
+      "erp.example.com",
+      "acme.objectos.ai",
+    ]);
+    expect(mockClearHostCookies).not.toHaveBeenCalled();
+
+    // The configuration is removed: the lock is lifted and Acme is listed again.
+    act(() => {
+      useServerStore.getState().applyManaged(NO_MANAGED_CONFIG);
+    });
+    expect(screen.getByTestId("switcher-row-acme.objectos.ai")).toBeTruthy();
+    expect(screen.getByTestId("switcher-add")).toBeTruthy();
+    expect(useServerStore.getState().connections).toHaveLength(2);
+    expect(useServerStore.getState().currentHost).toBe("erp.example.com");
   });
 
   it("a managed address that waits for its confirm step hands over to the picker, before any WebView", () => {

@@ -36,8 +36,9 @@ const APP_LOCK_SETTINGS = "/app-lock-settings";
  *
  * Managed deployment: while the MDM's server address waits for its probe and
  * confirm step (first launch, or a new address pushed while the app runs), the
- * picker takes over. While the server is locked, the managed connection
- * cannot be removed (switcher, `resetServer()`), and nothing can be added.
+ * picker takes over. While the server is locked, the switcher lists the
+ * managed connection alone (the others stay saved), it cannot be removed
+ * (switcher, `resetServer()`), and nothing can be added.
  *
  * The switcher's "App lock" row and the bridge's `openAppLockSettings()` open
  * the native app-lock settings screen; the bridge reads the setting with
