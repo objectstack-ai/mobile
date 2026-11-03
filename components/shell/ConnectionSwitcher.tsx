@@ -5,7 +5,7 @@ import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler
 import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
-import { Check, ChevronLeft, ChevronRight, Plus } from "lucide-react-native";
+import { Check, ChevronLeft, ChevronRight, Lock, Plus } from "lucide-react-native";
 import { BottomSheet } from "~/components/ui/BottomSheet";
 import type { Connection } from "~/lib/connections/model";
 import { useLayoutDirection } from "~/lib/rtl";
@@ -32,6 +32,10 @@ export interface ConnectionSwitcherProps {
   onAdd: () => void;
   /** App settings. */
   onOpenSettings: () => void;
+  /** The app lock is on: the "App lock" row reads On, else Off. */
+  appLockEnabled?: boolean;
+  /** Open the native app-lock settings screen; without it the row is not shown. */
+  onOpenAppLock?: () => void;
 }
 
 /** Height of the scrolling list: about five rows. */
@@ -46,6 +50,10 @@ const LIST_MAX_HEIGHT = 400;
  * itself — it goes back to the address step and its confirm step — and app
  * settings. While the server is locked by the organization, the managed row
  * has no Remove and there is no add.
+ *
+ * "App lock" opens the native app-lock settings screen: the one place the
+ * lock is changed, behind biometrics. (Unrelated to the organization's server
+ * lock above.)
  */
 export function ConnectionSwitcher({
   open,
@@ -58,6 +66,8 @@ export function ConnectionSwitcher({
   onRemove,
   onAdd,
   onOpenSettings,
+  appLockEnabled = false,
+  onOpenAppLock,
 }: ConnectionSwitcherProps) {
   const { t } = useTranslation();
   const colors = useThemeColors();
@@ -114,6 +124,23 @@ export function ConnectionSwitcher({
             ? t("switcher.footnote")
             : t("switcher.lockedFootnote", { label: lockedLabel })}
         </Text>
+
+        {onOpenAppLock ? (
+          <Pressable
+            testID="switcher-app-lock"
+            accessibilityRole="button"
+            accessibilityLabel={`${t("appLock.entry")}, ${t(appLockEnabled ? "appLock.on" : "appLock.off")}`}
+            onPress={onOpenAppLock}
+            className="mt-4 flex-row items-center gap-3 border-t border-border pt-4"
+          >
+            <Lock size={20} color={colors.muted} />
+            <Text className="flex-1 text-base text-foreground">{t("appLock.entry")}</Text>
+            <Text testID="switcher-app-lock-state" className="text-base text-muted-foreground">
+              {t(appLockEnabled ? "appLock.on" : "appLock.off")}
+            </Text>
+            <Chevron size={20} color={colors.muted} />
+          </Pressable>
+        ) : null}
 
         <Pressable
           testID="switcher-settings"

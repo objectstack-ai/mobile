@@ -20,6 +20,10 @@ import { openFileBytes, pickImage, shareContent } from "~/lib/shell/file-handoff
 import { DEFAULT_ROUTE_RULES } from "~/lib/shell/route-owner";
 import { AVAILABLE_NATIVE_SCREENS, NATIVE_SCREENS } from "~/lib/shell/native-screens";
 import { useServerStore } from "~/stores/server-store";
+import { appLockSnapshot, isAppLocked, useSecurityStore } from "~/stores/security-store";
+
+/** The native app-lock settings screen (the bridge's `openAppLockSettings()` and the switcher). */
+const APP_LOCK_SETTINGS = "/app-lock-settings";
 
 /**
  * The Console screen. Receives Console routes as the `route` search param
@@ -34,6 +38,10 @@ import { useServerStore } from "~/stores/server-store";
  * confirm step (first launch, or a new address pushed while the app runs), the
  * picker takes over. While the server is locked, the managed connection
  * cannot be removed (switcher, `resetServer()`), and nothing can be added.
+ *
+ * The switcher's "App lock" row and the bridge's `openAppLockSettings()` open
+ * the native app-lock settings screen; the bridge reads the setting with
+ * `getAppLock()` and has no way to change it.
  */
 export default function ConsoleScreen() {
   const router = useRouter();
@@ -52,6 +60,14 @@ export default function ConsoleScreen() {
   const webview = useRef<ConsoleWebViewHandle>(null);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [removingHost, setRemovingHost] = useState<string | null>(null);
+  const appLockEnabled = useSecurityStore((s) => s.settings.enabled);
+  const appLocked = useSecurityStore(isAppLocked);
+
+  // The switcher is a modal sheet, presented above every view: the app lock's
+  // overlay could not cover it, so it closes when the lock engages.
+  useEffect(() => {
+    if (appLocked) setSwitcherOpen(false);
+  }, [appLocked]);
 
   // The first route seeds the WebView source; later ones navigate it.
   const initialRoute = useRef(route ?? null).current;
@@ -79,6 +95,10 @@ export default function ConsoleScreen() {
       pickImage,
       share: shareContent,
       openFile: openFileBytes,
+      // Read-only: the setting changes only on the native screen, after biometrics.
+      getAppLock: () => appLockSnapshot(useSecurityStore.getState()),
+      openAppLockSettings: () => router.push(APP_LOCK_SETTINGS),
+      isLocked: () => isAppLocked(useSecurityStore.getState()),
     }),
     [reset, router, openSwitcher]
   );
@@ -100,6 +120,11 @@ export default function ConsoleScreen() {
     },
     [select]
   );
+
+  const openAppLockSettings = useCallback(() => {
+    setSwitcherOpen(false);
+    router.push(APP_LOCK_SETTINGS);
+  }, [router]);
 
   // Back to the address step: a connection is saved only from its confirm step.
   const addConnection = useCallback(() => {
@@ -163,6 +188,8 @@ export default function ConsoleScreen() {
         onRemove={(host) => void removeConnection(host)}
         onAdd={addConnection}
         onOpenSettings={() => void Linking.openSettings()}
+        appLockEnabled={appLockEnabled}
+        onOpenAppLock={openAppLockSettings}
       />
     </>
   );

@@ -112,8 +112,46 @@
       "codeBlocked": "L'accès à l'appareil photo est désactivé pour ObjectOS. Activez-le dans les Paramètres pour scanner des codes."
     }
   },
+  "appLock": {
+    "entry": "Verrouillage de l'app",
+    "on": "Activé",
+    "off": "Désactivé",
+    "prompt": {
+      "unlock": "Déverrouiller ObjectOS",
+      "change": "Modifier le verrouillage de l'app"
+    },
+    "overlay": {
+      "title": "ObjectOS est verrouillé",
+      "unlock": "Déverrouiller",
+      "failed": "Impossible de confirmer votre identité. Réessayez.",
+      "noDeviceLock": "Configurez un verrouillage d'écran dans les réglages de votre téléphone pour déverrouiller ObjectOS."
+    },
+    "settings": {
+      "title": "Verrouillage de l'app",
+      "description": "Protège ObjectOS par Face ID, Touch ID, empreinte digitale ou le code de votre téléphone quand vous y revenez.",
+      "toggle": "Verrouiller l'app",
+      "timeoutTitle": "Verrouiller après",
+      "timeout": {
+        "0": "Immédiatement",
+        "60": "Après 1 minute",
+        "300": "Après 5 minutes",
+        "900": "Après 15 minutes",
+        "3600": "Après 1 heure"
+      },
+      "authNote": "Modifier le verrouillage de l'app demande Face ID, Touch ID, empreinte digitale ou le code de votre téléphone.",
+      "unavailable": "Configurez un verrouillage d'écran (code, Face ID ou empreinte digitale) dans les réglages de votre téléphone pour utiliser le verrouillage de l'app.",
+      "notChanged": "Non modifié : votre identité n'a pas pu être confirmée.",
+      "saveFailed": "Le réglage n'a pas pu être enregistré. Réessayez.",
+      "back": "Retour",
+      "privacy": {
+        "ios": "Tant que le verrouillage de l'app est activé, le sélecteur d'apps affiche ObjectOS flouté.",
+        "android": "Tant que le verrouillage de l'app est activé, l'écran des apps récentes affiche ObjectOS vide, et les captures et enregistrements d'écran sont bloqués."
+      }
+    }
+  },
   "permissions": {
     "camera": "ObjectOS utilise l'appareil photo pour scanner des codes QR et des codes-barres, comme le code qui le connecte à votre serveur, et pour prendre les photos que vous joignez dans l'app.",
-    "photos": "ObjectOS ouvre votre photothèque pour que vous choisissiez les photos à joindre dans l'app."
+    "photos": "ObjectOS ouvre votre photothèque pour que vous choisissiez les photos à joindre dans l'app.",
+    "faceId": "ObjectOS utilise Face ID pour déverrouiller l'app quand le verrouillage de l'app est activé."
   }
 }

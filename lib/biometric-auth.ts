@@ -49,6 +49,20 @@ export async function getBiometricStatus(): Promise<BiometricStatus> {
   return { isHardwareAvailable, isEnrolled, biometricTypes };
 }
 
+/**
+ * What the device can unlock with: `none` (no passcode or biometrics set up —
+ * nothing to authenticate with), `passcode`, or `biometric`. The app lock can
+ * be turned on only above `none`.
+ */
+export type DeviceLockLevel = "none" | "passcode" | "biometric";
+
+export async function getDeviceLockLevel(): Promise<DeviceLockLevel> {
+  const level = await LocalAuthentication.getEnrolledLevelAsync();
+  if (level === LocalAuthentication.SecurityLevel.NONE) return "none";
+  if (level === LocalAuthentication.SecurityLevel.SECRET) return "passcode";
+  return "biometric";
+}
+
 export interface AuthenticateOptions {
   /** User-facing reason for authentication */
   promptMessage?: string;
@@ -56,6 +70,23 @@ export interface AuthenticateOptions {
   cancelLabel?: string;
   /** Allow device passcode as fallback */
   fallbackToPasscode?: boolean;
+}
+
+/** Errors that mean the device has nothing to authenticate with. */
+const NO_DEVICE_LOCK_ERRORS: ReadonlySet<string> = new Set([
+  "not_enrolled",
+  "passcode_not_set",
+  "not_available",
+]);
+
+/** Errors that mean the prompt was dismissed rather than failed. */
+const CANCEL_ERRORS: ReadonlySet<string> = new Set(["user_cancel", "system_cancel", "app_cancel"]);
+
+/** How a failed {@link authenticate} ended: dismissed, nothing to use, or failed. */
+export function authFailureKind(error: string | undefined): "cancelled" | "no-device-lock" | "failed" {
+  if (error !== undefined && CANCEL_ERRORS.has(error)) return "cancelled";
+  if (error !== undefined && NO_DEVICE_LOCK_ERRORS.has(error)) return "no-device-lock";
+  return "failed";
 }
 
 export interface AuthenticateResult {

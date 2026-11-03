@@ -113,8 +113,42 @@ export const BRIDGE_METHODS = [
   "pickImage",
   "share",
   "openFile",
+  "getAppLock",
+  "openAppLockSettings",
 ] as const;
 export type BridgeMethod = (typeof BRIDGE_METHODS)[number];
+
+/**
+ * The bridge's whole app-lock surface, and it is read-only: `getAppLock()`
+ * reads the setting, `openAppLockSettings()` opens the native settings screen,
+ * where a change asks for Face ID / Touch ID / fingerprint. No bridge method
+ * changes the lock — a page that could would let any page, or an iframe on an
+ * old Android WebView (Known limits), turn off a lock the user set.
+ */
+export const APP_LOCK_BRIDGE_METHODS = ["getAppLock", "openAppLockSettings"] as const;
+
+/**
+ * Methods that bring up native UI. While the app lock holds the screen they
+ * are refused (`failed`): the overlay covers the WebView, and an in-app
+ * browser, a sheet, a picker, a share sheet, a file preview or a scanner
+ * opened by the page would show above it or run unseen under it.
+ */
+export const LOCKED_REFUSED_METHODS: readonly BridgeMethod[] = [
+  "openExternal",
+  "scan",
+  "showConnectionSwitcher",
+  "pickImage",
+  "share",
+  "openFile",
+  "openAppLockSettings",
+];
+
+/** What `getAppLock()` resolves: the setting, never a way to change it. */
+export interface AppLockInfo {
+  enabled: boolean;
+  /** Seconds in the background before the app locks; `0` locks as soon as it leaves. */
+  timeoutSeconds: number;
+}
 
 /**
  * Code formats `scan()` reads, named as `expo-camera`'s `BarcodeType`. A call

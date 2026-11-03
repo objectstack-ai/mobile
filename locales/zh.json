@@ -112,8 +112,46 @@
       "codeBlocked": "ObjectOS 的相机权限已关闭。请在设置中开启后再扫描。"
     }
   },
+  "appLock": {
+    "entry": "应用锁",
+    "on": "已开启",
+    "off": "已关闭",
+    "prompt": {
+      "unlock": "解锁 ObjectOS",
+      "change": "更改应用锁"
+    },
+    "overlay": {
+      "title": "ObjectOS 已锁定",
+      "unlock": "解锁",
+      "failed": "无法确认是你本人，请重试。",
+      "noDeviceLock": "请先在手机设置中设置锁屏，才能解锁 ObjectOS。"
+    },
+    "settings": {
+      "title": "应用锁",
+      "description": "回到 ObjectOS 时，需要通过面容 ID、触控 ID、指纹或手机密码才能查看。",
+      "toggle": "锁定应用",
+      "timeoutTitle": "锁定时间",
+      "timeout": {
+        "0": "立即",
+        "60": "1 分钟后",
+        "300": "5 分钟后",
+        "900": "15 分钟后",
+        "3600": "1 小时后"
+      },
+      "authNote": "更改应用锁需要验证面容 ID、触控 ID、指纹或手机密码。",
+      "unavailable": "请先在手机设置中设置锁屏（密码、面容 ID 或指纹），才能使用应用锁。",
+      "notChanged": "未更改：无法确认是你本人。",
+      "saveFailed": "设置未能保存，请重试。",
+      "back": "返回",
+      "privacy": {
+        "ios": "应用锁开启时，多任务界面中的 ObjectOS 会显示为模糊。",
+        "android": "应用锁开启时，最近任务中的 ObjectOS 显示为空白，并且禁止截屏和录屏。"
+      }
+    }
+  },
   "permissions": {
     "camera": "ObjectOS 使用相机扫描二维码和条码（例如用于连接服务器的二维码），以及拍摄要在应用中附加的照片。",
-    "photos": "ObjectOS 打开你的照片图库，以便你选择要在应用中附加的照片。"
+    "photos": "ObjectOS 打开你的照片图库，以便你选择要在应用中附加的照片。",
+    "faceId": "应用锁开启时，ObjectOS 使用面容 ID 解锁应用。"
   }
 }

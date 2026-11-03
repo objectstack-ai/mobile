@@ -191,6 +191,32 @@ describe("bootstrap script", () => {
     ]);
   });
 
+  it("exposes no app-lock function beyond reading it and opening the native screen", () => {
+    const page = makePage();
+    page.run(buildBootstrapScript(info, SERVER_URL));
+    const lockNamed = Object.keys(page.window.ObjectStackNative).filter((key) => /lock/i.test(key));
+    expect(lockNamed.sort()).toEqual(["getAppLock", "openAppLockSettings"]);
+  });
+
+  it("posts getAppLock and openAppLockSettings calls, with no arguments", () => {
+    const page = makePage();
+    page.run(
+      buildBootstrapScript(
+        { ...info, capabilities: ["getAppLock", "openAppLockSettings"] },
+        SERVER_URL
+      )
+    );
+    const api = page.window.ObjectStackNative;
+    expect(api.has("getAppLock")).toBe(true);
+    expect(api.has("openAppLockSettings")).toBe(true);
+    void api.getAppLock({ enabled: false });
+    void api.openAppLockSettings({ enabled: false });
+    expect(page.posted).toEqual([
+      { type: "call", id: expect.any(String), method: "getAppLock" },
+      { type: "call", id: expect.any(String), method: "openAppLockSettings" },
+    ]);
+  });
+
   it("posts pickImage, share and openFile calls with the caller's arguments", () => {
     const page = makePage();
     page.run(buildBootstrapScript(info, SERVER_URL));

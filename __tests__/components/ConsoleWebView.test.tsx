@@ -11,6 +11,7 @@ import {
 import { READY_TIMEOUT_MS } from "~/lib/shell/console-load";
 import { EXCURSION_MAX_NAVIGATIONS, EXCURSION_TIMEOUT_MS } from "~/lib/shell/sign-in-excursion";
 import { BRIDGE_RESOLVE_GLOBAL, CONNECTION_REMOVED_EVENT } from "~/lib/shell/bridge/protocol";
+import { INITIAL_APP_LOCK_STATE, useSecurityStore } from "~/stores/security-store";
 
 const mockWebView = {
   props: null as any,
@@ -89,6 +90,8 @@ function renderConsole(overrides: Partial<ConsoleWebViewProps> = {}) {
       pickImage: jest.fn().mockResolvedValue(null),
       share: jest.fn().mockResolvedValue(undefined),
       openFile: jest.fn().mockResolvedValue(undefined),
+      getAppLock: jest.fn(() => ({ enabled: false, timeoutSeconds: 300 })),
+      openAppLockSettings: jest.fn(),
     },
     onOpenNative: jest.fn(),
     onOpenExternal: jest.fn(),
@@ -415,6 +418,8 @@ describe("ConsoleWebView", () => {
           pickImage: jest.fn().mockResolvedValue(null),
           share: jest.fn().mockResolvedValue(undefined),
           openFile: jest.fn().mockResolvedValue(undefined),
+          getAppLock: jest.fn(() => ({ enabled: false, timeoutSeconds: 300 })),
+          openAppLockSettings: jest.fn(),
         },
       });
       loadStart();
@@ -626,6 +631,8 @@ describe("ConsoleWebView", () => {
         pickImage: jest.fn().mockResolvedValue(null),
         share: jest.fn().mockResolvedValue(undefined),
         openFile: jest.fn().mockResolvedValue(undefined),
+        getAppLock: jest.fn(() => ({ enabled: false, timeoutSeconds: 300 })),
+        openAppLockSettings: jest.fn(),
       },
       onOpenNative: jest.fn(),
       onOpenExternal: jest.fn(),
@@ -713,6 +720,28 @@ describe("ConsoleWebView", () => {
     } finally {
       Platform.OS = original;
       addSpy.mockRestore();
+    }
+  });
+
+  it("never walks the history behind the app lock's overlay", () => {
+    const addSpy = jest.spyOn(BackHandler, "addEventListener");
+    const Platform = require("react-native").Platform;
+    const original = Platform.OS;
+    Platform.OS = "android";
+    try {
+      renderConsole();
+      act(() => mockWebView.props.onNavigationStateChange({ canGoBack: true }));
+      const handler = addSpy.mock.calls[addSpy.mock.calls.length - 1][1] as () => boolean;
+      useSecurityStore.setState({ phase: "locked" });
+      expect(handler()).toBe(false);
+      expect(mockWebView.goBack).not.toHaveBeenCalled();
+      useSecurityStore.setState({ phase: "unlocked" });
+      expect(handler()).toBe(true);
+      expect(mockWebView.goBack).toHaveBeenCalledTimes(1);
+    } finally {
+      Platform.OS = original;
+      addSpy.mockRestore();
+      useSecurityStore.setState(INITIAL_APP_LOCK_STATE);
     }
   });
 });
@@ -1212,6 +1241,8 @@ describe("ConsoleWebView — sign-in excursion", () => {
           pickImage: jest.fn().mockResolvedValue(null),
           share: jest.fn().mockResolvedValue(undefined),
           openFile: jest.fn().mockResolvedValue(undefined),
+          getAppLock: jest.fn(() => ({ enabled: false, timeoutSeconds: 300 })),
+          openAppLockSettings: jest.fn(),
         },
       });
       await postCall("getPushToken", LOGIN, "d1.1");

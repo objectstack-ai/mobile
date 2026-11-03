@@ -112,8 +112,46 @@
       "codeBlocked": "Der Kamerazugriff für ObjectOS ist deaktiviert. Aktivieren Sie ihn in den Einstellungen, um Codes zu scannen."
     }
   },
+  "appLock": {
+    "entry": "App-Sperre",
+    "on": "An",
+    "off": "Aus",
+    "prompt": {
+      "unlock": "ObjectOS entsperren",
+      "change": "App-Sperre ändern"
+    },
+    "overlay": {
+      "title": "ObjectOS ist gesperrt",
+      "unlock": "Entsperren",
+      "failed": "Deine Identität konnte nicht bestätigt werden. Versuche es erneut.",
+      "noDeviceLock": "Richte in den Einstellungen deines Telefons eine Bildschirmsperre ein, um ObjectOS zu entsperren."
+    },
+    "settings": {
+      "title": "App-Sperre",
+      "description": "Schützt ObjectOS mit Face ID, Touch ID, Fingerabdruck oder dem Code deines Telefons, wenn du zurückkehrst.",
+      "toggle": "App sperren",
+      "timeoutTitle": "Sperren nach",
+      "timeout": {
+        "0": "Sofort",
+        "60": "Nach 1 Minute",
+        "300": "Nach 5 Minuten",
+        "900": "Nach 15 Minuten",
+        "3600": "Nach 1 Stunde"
+      },
+      "authNote": "Zum Ändern der App-Sperre werden Face ID, Touch ID, Fingerabdruck oder der Code deines Telefons abgefragt.",
+      "unavailable": "Richte in den Einstellungen deines Telefons eine Bildschirmsperre (Code, Face ID oder Fingerabdruck) ein, um die App-Sperre zu nutzen.",
+      "notChanged": "Nicht geändert: Deine Identität konnte nicht bestätigt werden.",
+      "saveFailed": "Die Einstellung konnte nicht gespeichert werden. Versuche es erneut.",
+      "back": "Zurück",
+      "privacy": {
+        "ios": "Solange die App-Sperre an ist, zeigt der App-Umschalter ObjectOS unscharf.",
+        "android": "Solange die App-Sperre an ist, zeigt die Übersicht der letzten Apps ObjectOS leer, und Screenshots sowie Bildschirmaufnahmen sind gesperrt."
+      }
+    }
+  },
   "permissions": {
     "camera": "ObjectOS verwendet die Kamera, um QR-Codes und Barcodes zu scannen, etwa den Code, der die App mit Ihrem Server verbindet, und um Fotos aufzunehmen, die Sie in der App anhängen.",
-    "photos": "ObjectOS öffnet Ihre Fotomediathek, damit Sie Fotos auswählen können, die Sie in der App anhängen."
+    "photos": "ObjectOS öffnet Ihre Fotomediathek, damit Sie Fotos auswählen können, die Sie in der App anhängen.",
+    "faceId": "ObjectOS verwendet Face ID, um die App zu entsperren, wenn die App-Sperre an ist."
   }
 }

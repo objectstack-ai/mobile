@@ -14,6 +14,7 @@ import {
   BRIDGE_EVENTS,
   FILE_TOO_LARGE_MESSAGE,
   HAPTIC_KINDS,
+  LOCKED_REFUSED_METHODS,
   MAX_FILE_BYTES,
   MAX_SHARE_TEXT_LENGTH,
   PICK_IMAGE_DEFAULTS,
@@ -21,6 +22,7 @@ import {
   SCAN_FORMATS,
   base64ByteLength,
   parseInbound,
+  type AppLockInfo,
   type BridgeErrorCode,
   type BridgeEventName,
   type BridgeFile,
@@ -64,6 +66,15 @@ export interface BridgeDeps {
    * credential, so this never fetches anything (docs/HYBRID-SHELL.md, "Files").
    */
   openFile: (file: BridgeFile) => Promise<void>;
+  /** The app-lock setting, read-only. */
+  getAppLock: () => AppLockInfo;
+  /** Open the native app-lock settings screen, where a change asks for biometrics. */
+  openAppLockSettings: () => void | Promise<void>;
+  /**
+   * `true` while the app lock holds the screen (the overlay is up). Methods
+   * that bring up native UI ({@link LOCKED_REFUSED_METHODS}) are then refused.
+   */
+  isLocked?: () => boolean;
   onEvent?: (name: BridgeEventName, payload: unknown) => void;
   /**
    * `true` while a sign-in excursion is on screen. The main frame is then an
@@ -242,6 +253,10 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
 
     const { id, method, args } = msg;
 
+    if ((LOCKED_REFUSED_METHODS as readonly string[]).includes(method) && deps.isLocked?.()) {
+      return fail(id, "failed", "The app is locked");
+    }
+
     try {
       switch (method) {
         case "getPushToken":
@@ -318,6 +333,15 @@ export function createBridgeHandler(deps: BridgeDeps): BridgeMessageHandler {
           await deps.openFile(file);
           return { id, ok: true, value: null };
         }
+
+        case "getAppLock": {
+          const { enabled, timeoutSeconds } = deps.getAppLock();
+          return { id, ok: true, value: { enabled, timeoutSeconds } };
+        }
+
+        case "openAppLockSettings":
+          await deps.openAppLockSettings();
+          return { id, ok: true, value: null };
 
         default:
           return fail(id, "unknown_method", `Unknown bridge method: ${method}`);

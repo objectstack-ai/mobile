@@ -112,8 +112,46 @@
       "codeBlocked": "O acesso à câmera está desativado para o ObjectOS. Ative-o em Configurações para escanear códigos."
     }
   },
+  "appLock": {
+    "entry": "Bloqueio do app",
+    "on": "Ativado",
+    "off": "Desativado",
+    "prompt": {
+      "unlock": "Desbloquear o ObjectOS",
+      "change": "Alterar o bloqueio do app"
+    },
+    "overlay": {
+      "title": "O ObjectOS está bloqueado",
+      "unlock": "Desbloquear",
+      "failed": "Não foi possível confirmar que é você. Tente novamente.",
+      "noDeviceLock": "Configure um bloqueio de tela nos ajustes do telefone para desbloquear o ObjectOS."
+    },
+    "settings": {
+      "title": "Bloqueio do app",
+      "description": "Protege o ObjectOS com Face ID, Touch ID, impressão digital ou o código do telefone quando você volta ao app.",
+      "toggle": "Bloquear o app",
+      "timeoutTitle": "Bloquear depois de",
+      "timeout": {
+        "0": "Imediatamente",
+        "60": "Depois de 1 minuto",
+        "300": "Depois de 5 minutos",
+        "900": "Depois de 15 minutos",
+        "3600": "Depois de 1 hora"
+      },
+      "authNote": "Para alterar o bloqueio do app, é pedido Face ID, Touch ID, impressão digital ou o código do telefone.",
+      "unavailable": "Configure um bloqueio de tela (código, Face ID ou impressão digital) nos ajustes do telefone para usar o bloqueio do app.",
+      "notChanged": "Não alterado: não foi possível confirmar que é você.",
+      "saveFailed": "Não foi possível salvar o ajuste. Tente novamente.",
+      "back": "Voltar",
+      "privacy": {
+        "ios": "Enquanto o bloqueio do app estiver ativado, o seletor de apps mostra o ObjectOS desfocado.",
+        "android": "Enquanto o bloqueio do app estiver ativado, a tela de apps recentes mostra o ObjectOS em branco, e capturas e gravações de tela ficam bloqueadas."
+      }
+    }
+  },
   "permissions": {
     "camera": "O ObjectOS usa a câmera para escanear códigos QR e códigos de barras, como o código que o conecta ao seu servidor, e para tirar as fotos que você anexa no app.",
-    "photos": "O ObjectOS abre a sua biblioteca de fotos para que você escolha as fotos que anexa no app."
+    "photos": "O ObjectOS abre a sua biblioteca de fotos para que você escolha as fotos que anexa no app.",
+    "faceId": "O ObjectOS usa o Face ID para desbloquear o app quando o bloqueio do app está ativado."
   }
 }

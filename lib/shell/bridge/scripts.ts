@@ -107,6 +107,8 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
       }
       return call("openFile", file, ${MAX_FILE_MESSAGE_LENGTH});
     },
+    getAppLock: function () { return call("getAppLock"); },
+    openAppLockSettings: function () { return call("openAppLockSettings"); },
     ready: function () { post({ type: "event", name: "ready" }); },
     routeChanged: function (route) { post({ type: "event", name: "routeChanged", payload: { route: route } }); }
   };

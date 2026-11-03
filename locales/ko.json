@@ -112,8 +112,46 @@
       "codeBlocked": "ObjectOS의 카메라 접근이 꺼져 있습니다. 코드를 스캔하려면 설정에서 켜세요."
     }
   },
+  "appLock": {
+    "entry": "앱 잠금",
+    "on": "켜짐",
+    "off": "꺼짐",
+    "prompt": {
+      "unlock": "ObjectOS 잠금 해제",
+      "change": "앱 잠금 변경"
+    },
+    "overlay": {
+      "title": "ObjectOS가 잠겨 있습니다",
+      "unlock": "잠금 해제",
+      "failed": "본인임을 확인하지 못했습니다. 다시 시도하세요.",
+      "noDeviceLock": "ObjectOS 잠금을 해제하려면 휴대폰 설정에서 화면 잠금을 설정하세요."
+    },
+    "settings": {
+      "title": "앱 잠금",
+      "description": "ObjectOS로 돌아올 때 Face ID, Touch ID, 지문 또는 휴대폰 암호로 보호합니다.",
+      "toggle": "앱 잠그기",
+      "timeoutTitle": "잠금 시간",
+      "timeout": {
+        "0": "즉시",
+        "60": "1분 후",
+        "300": "5분 후",
+        "900": "15분 후",
+        "3600": "1시간 후"
+      },
+      "authNote": "앱 잠금을 변경하려면 Face ID, Touch ID, 지문 또는 휴대폰 암호가 필요합니다.",
+      "unavailable": "앱 잠금을 사용하려면 휴대폰 설정에서 화면 잠금(암호, Face ID 또는 지문)을 설정하세요.",
+      "notChanged": "변경되지 않았습니다: 본인임을 확인하지 못했습니다.",
+      "saveFailed": "설정을 저장하지 못했습니다. 다시 시도하세요.",
+      "back": "뒤로",
+      "privacy": {
+        "ios": "앱 잠금이 켜져 있는 동안 앱 전환기에서 ObjectOS가 흐리게 표시됩니다.",
+        "android": "앱 잠금이 켜져 있는 동안 최근 앱 화면에서 ObjectOS가 빈 화면으로 표시되며, 스크린샷과 화면 녹화가 차단됩니다."
+      }
+    }
+  },
   "permissions": {
     "camera": "ObjectOS는 QR 코드와 바코드(서버에 연결하기 위한 QR 코드 등)를 스캔하고 앱에서 첨부할 사진을 촬영하는 데 카메라를 사용합니다.",
-    "photos": "ObjectOS는 앱에서 첨부할 사진을 선택할 수 있도록 사진 보관함을 엽니다."
+    "photos": "ObjectOS는 앱에서 첨부할 사진을 선택할 수 있도록 사진 보관함을 엽니다.",
+    "faceId": "앱 잠금이 켜져 있으면 ObjectOS는 Face ID로 앱 잠금을 해제합니다."
   }
 }
