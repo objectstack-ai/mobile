@@ -64,6 +64,8 @@
     "offlineMessage": "Verifique sua conexão. A página recarrega sozinha quando você voltar a ficar online.",
     "serverErrorTitle": "O servidor não está respondendo",
     "serverErrorMessage": "O servidor respondeu com o erro {{code}}. Tente novamente em instantes.",
+    "policyTitle": "Não é possível mostrar esta página no app",
+    "policyMessage": "A página do servidor continua indo para um endereço que o app não abre. Tente novamente ou troque de organização.",
     "retry": "Tentar novamente"
   },
   "excursion": {
@@ -148,7 +150,8 @@
     }
   },
   "permissions": {
-    "camera": "O ObjectOS usa a câmera para escanear códigos QR e códigos de barras, como o código que o conecta ao seu servidor.",
+    "camera": "O ObjectOS usa a câmera para escanear códigos QR e códigos de barras, como o código que o conecta ao seu servidor, e para tirar as fotos que você anexa no app.",
+    "photos": "O ObjectOS abre a sua biblioteca de fotos para que você escolha as fotos que anexa no app.",
     "faceId": "O ObjectOS usa o Face ID para desbloquear o app quando o bloqueio do app está ativado."
   }
 }

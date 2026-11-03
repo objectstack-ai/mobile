@@ -3,7 +3,11 @@ import {
   BRIDGE_CAPABILITIES,
   BRIDGE_METHODS,
   CONNECTION_REMOVED_EVENT,
+  MAX_FILE_BASE64_LENGTH,
+  MAX_FILE_BYTES,
+  MAX_FILE_MESSAGE_LENGTH,
   MAX_MESSAGE_LENGTH,
+  base64ByteLength,
   SCAN_FORMATS,
   PUSH_TOKEN_CHANGED_EVENT,
   SHELL_EVENTS,
@@ -43,6 +47,10 @@ describe("capabilities", () => {
     expect(APP_LOCK_BRIDGE_METHODS).toEqual(["getAppLock", "openAppLockSettings"]);
     const lockNamed = BRIDGE_CAPABILITIES.filter((name) => /lock/i.test(name));
     expect(lockNamed).toEqual([...APP_LOCK_BRIDGE_METHODS]);
+  });
+
+  it("announces pickImage, share and openFile", () => {
+    expect(BRIDGE_CAPABILITIES).toEqual(expect.arrayContaining(["pickImage", "share", "openFile"]));
   });
 
   it("announces the connection switcher and the removal event", () => {
@@ -116,4 +124,62 @@ describe("parseInbound", () => {
     });
     expect(parseInbound(raw)).toBeNull();
   });
+
+  describe("file bytes", () => {
+    const fileCall = (base64Length: number, method = "openFile") =>
+      JSON.stringify({
+        type: "call",
+        id: "c1",
+        method,
+        args: { base64: "A".repeat(base64Length), name: "a.pdf", mime: "application/pdf" },
+      });
+
+    it("parses an openFile call over the ordinary cap only when the page may send files", () => {
+      const raw = fileCall(MAX_MESSAGE_LENGTH);
+      expect(parseInbound(raw)).toBeNull();
+      expect(parseInbound(raw, { allowFile: true })).toMatchObject({ method: "openFile" });
+    });
+
+    it("parses a file at the limit, and nothing over the file message cap", () => {
+      expect(parseInbound(fileCall(MAX_FILE_BASE64_LENGTH), { allowFile: true })).not.toBeNull();
+      expect(
+        parseInbound(fileCall(MAX_FILE_MESSAGE_LENGTH), { allowFile: true })
+      ).toBeNull();
+    });
+
+    it("keeps the ordinary cap for every other method and for events", () => {
+      expect(parseInbound(fileCall(MAX_MESSAGE_LENGTH, "share"), { allowFile: true })).toBeNull();
+      const event = JSON.stringify({
+        type: "event",
+        name: "routeChanged",
+        payload: "x".repeat(MAX_MESSAGE_LENGTH),
+      });
+      expect(parseInbound(event, { allowFile: true })).toBeNull();
+    });
+  });
+});
+
+describe("file limits", () => {
+  it("caps a file at 8 MiB, and its base64 at the length that encodes it", () => {
+    expect(MAX_FILE_BYTES).toBe(8 * 1024 * 1024);
+    expect(MAX_FILE_BASE64_LENGTH).toBe(Buffer.from(new Uint8Array(MAX_FILE_BYTES)).toString("base64").length);
+    expect(MAX_FILE_MESSAGE_LENGTH).toBe(MAX_FILE_BASE64_LENGTH + MAX_MESSAGE_LENGTH);
+  });
+
+  it.each([
+    ["", 0],
+    ["QQ==", 1],
+    ["QUI=", 2],
+    ["QUJD", 3],
+    [Buffer.from("hello world").toString("base64"), 11],
+  ])("base64ByteLength(%j) is %i", (base64, bytes) => {
+    expect(base64ByteLength(base64)).toBe(bytes);
+  });
+
+  it.each(["QQ", "QQ=", "Q===", "QU JD", "QUJD\n", "QU-_", "data:,QUJD"])(
+    "base64ByteLength refuses %j",
+    (base64) => {
+      expect(base64ByteLength(base64)).toBeNull();
+    }
+  );
 });

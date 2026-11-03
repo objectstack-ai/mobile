@@ -64,6 +64,8 @@
     "offlineMessage": "Prüfen Sie Ihre Verbindung. Die Seite lädt automatisch neu, sobald Sie wieder online sind.",
     "serverErrorTitle": "Der Server antwortet nicht",
     "serverErrorMessage": "Der Server hat mit Fehler {{code}} geantwortet. Versuchen Sie es gleich noch einmal.",
+    "policyTitle": "Diese Seite kann in der App nicht angezeigt werden",
+    "policyMessage": "Die Seite des Servers wechselt immer wieder zu einer Adresse, die die App nicht öffnet. Versuchen Sie es erneut oder wechseln Sie die Organisation.",
     "retry": "Erneut versuchen"
   },
   "excursion": {
@@ -148,7 +150,8 @@
     }
   },
   "permissions": {
-    "camera": "ObjectOS verwendet die Kamera, um QR-Codes und Barcodes zu scannen, etwa den Code, der die App mit Ihrem Server verbindet.",
+    "camera": "ObjectOS verwendet die Kamera, um QR-Codes und Barcodes zu scannen, etwa den Code, der die App mit Ihrem Server verbindet, und um Fotos aufzunehmen, die Sie in der App anhängen.",
+    "photos": "ObjectOS öffnet Ihre Fotomediathek, damit Sie Fotos auswählen können, die Sie in der App anhängen.",
     "faceId": "ObjectOS verwendet Face ID, um die App zu entsperren, wenn die App-Sperre an ist."
   }
 }

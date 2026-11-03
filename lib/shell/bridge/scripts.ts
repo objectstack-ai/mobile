@@ -9,7 +9,12 @@ import { consoleUrl, originOf, safeConsoleRoute } from "../console-url";
 import {
   BRIDGE_GLOBAL,
   BRIDGE_RESOLVE_GLOBAL,
+  CALL_TOO_LARGE_MESSAGE,
   CONNECTION_REMOVED_EVENT,
+  FILE_TOO_LARGE_MESSAGE,
+  MAX_FILE_BASE64_LENGTH,
+  MAX_FILE_MESSAGE_LENGTH,
+  MAX_MESSAGE_LENGTH,
   NAVIGATE_EVENT,
   PUSH_TOKEN_CHANGED_EVENT,
   type BridgeHostInfo,
@@ -56,12 +61,27 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
   function post(msg) {
     if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg));
   }
-  function call(method, args) {
+  function refuse(message) {
+    var err = new Error(message);
+    err.code = "bad_args";
+    return Promise.reject(err);
+  }
+  // A call longer than the shell parses would get no answer at all, so it is
+  // refused here, with the shell's own error shape. Only openFile carries
+  // file bytes, up to the file limit.
+  function call(method, args, limit) {
+    seq += 1;
+    var id = doc + "." + seq;
+    var raw;
+    try {
+      raw = JSON.stringify({ type: "call", id: id, method: method, args: args });
+    } catch (e) {
+      return Promise.reject(e);
+    }
+    if (raw.length > (limit || ${MAX_MESSAGE_LENGTH})) return refuse(${toScriptLiteral(CALL_TOO_LARGE_MESSAGE)});
     return new Promise(function (resolve, reject) {
-      seq += 1;
-      var id = doc + "." + seq;
       pending[id] = { resolve: resolve, reject: reject };
-      post({ type: "call", id: id, method: method, args: args });
+      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(raw);
     });
   }
   var api = {
@@ -79,6 +99,14 @@ export function buildBootstrapScript(info: BridgeHostInfo, serverUrl: string): s
     resetServer: function () { return call("resetServer"); },
     scan: function (opts) { return call("scan", opts); },
     showConnectionSwitcher: function () { return call("showConnectionSwitcher"); },
+    pickImage: function (opts) { return call("pickImage", opts); },
+    share: function (content) { return call("share", content); },
+    openFile: function (file) {
+      if (file && typeof file.base64 === "string" && file.base64.length > ${MAX_FILE_BASE64_LENGTH}) {
+        return refuse(${toScriptLiteral(FILE_TOO_LARGE_MESSAGE)});
+      }
+      return call("openFile", file, ${MAX_FILE_MESSAGE_LENGTH});
+    },
     getAppLock: function () { return call("getAppLock"); },
     openAppLockSettings: function () { return call("openAppLockSettings"); },
     ready: function () { post({ type: "event", name: "ready" }); },

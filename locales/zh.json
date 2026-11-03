@@ -64,6 +64,8 @@
     "offlineMessage": "请检查网络连接。恢复联网后页面会自动重新加载。",
     "serverErrorTitle": "服务器无响应",
     "serverErrorMessage": "服务器返回错误 {{code}}，请稍后重试。",
+    "policyTitle": "无法在应用内显示此页面",
+    "policyMessage": "服务器的页面一直跳转到应用不打开的地址。请重试，或切换组织。",
     "retry": "重试"
   },
   "excursion": {
@@ -148,7 +150,8 @@
     }
   },
   "permissions": {
-    "camera": "ObjectOS 使用相机扫描二维码和条码，例如用于连接服务器的二维码。",
+    "camera": "ObjectOS 使用相机扫描二维码和条码（例如用于连接服务器的二维码），以及拍摄要在应用中附加的照片。",
+    "photos": "ObjectOS 打开你的照片图库，以便你选择要在应用中附加的照片。",
     "faceId": "应用锁开启时，ObjectOS 使用面容 ID 解锁应用。"
   }
 }

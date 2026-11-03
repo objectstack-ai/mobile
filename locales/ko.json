@@ -64,6 +64,8 @@
     "offlineMessage": "연결을 확인하세요. 다시 온라인 상태가 되면 페이지가 자동으로 새로고침됩니다.",
     "serverErrorTitle": "서버가 응답하지 않습니다",
     "serverErrorMessage": "서버에서 오류 {{code}}을(를) 반환했습니다. 잠시 후 다시 시도하세요.",
+    "policyTitle": "이 페이지는 앱에서 표시할 수 없습니다",
+    "policyMessage": "서버 페이지가 앱에서 열지 않는 주소로 계속 이동합니다. 다시 시도하거나 조직을 전환하세요.",
     "retry": "다시 시도"
   },
   "excursion": {
@@ -148,7 +150,8 @@
     }
   },
   "permissions": {
-    "camera": "ObjectOS는 QR 코드와 바코드(서버에 연결하기 위한 QR 코드 등)를 스캔하는 데 카메라를 사용합니다.",
+    "camera": "ObjectOS는 QR 코드와 바코드(서버에 연결하기 위한 QR 코드 등)를 스캔하고 앱에서 첨부할 사진을 촬영하는 데 카메라를 사용합니다.",
+    "photos": "ObjectOS는 앱에서 첨부할 사진을 선택할 수 있도록 사진 보관함을 엽니다.",
     "faceId": "앱 잠금이 켜져 있으면 ObjectOS는 Face ID로 앱 잠금을 해제합니다."
   }
 }

@@ -16,6 +16,7 @@ import { triggerHaptic } from "~/lib/haptics";
 import { shellConfig } from "~/lib/shell/config";
 import { openExternalUrl } from "~/lib/shell/external";
 import { requestScan } from "~/lib/shell/bridge/scan-session";
+import { openFileBytes, pickImage, shareContent } from "~/lib/shell/file-handoff";
 import { DEFAULT_ROUTE_RULES } from "~/lib/shell/route-owner";
 import { AVAILABLE_NATIVE_SCREENS, NATIVE_SCREENS } from "~/lib/shell/native-screens";
 import { useServerStore } from "~/stores/server-store";
@@ -91,6 +92,9 @@ export default function ConsoleScreen() {
       },
       scan: (formats) => requestScan(formats, () => router.push("/bridge-scan")),
       showConnectionSwitcher: openSwitcher,
+      pickImage,
+      share: shareContent,
+      openFile: openFileBytes,
       // Read-only: the setting changes only on the native screen, after biometrics.
       getAppLock: () => appLockSnapshot(useSecurityStore.getState()),
       openAppLockSettings: () => router.push(APP_LOCK_SETTINGS),

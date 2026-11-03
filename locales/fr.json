@@ -64,6 +64,8 @@
     "offlineMessage": "Vérifiez votre connexion. La page se recharge d'elle-même dès que vous êtes de nouveau en ligne.",
     "serverErrorTitle": "Le serveur ne répond pas",
     "serverErrorMessage": "Le serveur a répondu avec l'erreur {{code}}. Réessayez dans un instant.",
+    "policyTitle": "Impossible d'afficher cette page dans l'application",
+    "policyMessage": "La page du serveur continue d'aller vers une adresse que l'application n'ouvre pas. Réessayez ou changez d'organisation.",
     "retry": "Réessayer"
   },
   "excursion": {
@@ -148,7 +150,8 @@
     }
   },
   "permissions": {
-    "camera": "ObjectOS utilise l'appareil photo pour scanner des codes QR et des codes-barres, comme le code qui le connecte à votre serveur.",
+    "camera": "ObjectOS utilise l'appareil photo pour scanner des codes QR et des codes-barres, comme le code qui le connecte à votre serveur, et pour prendre les photos que vous joignez dans l'app.",
+    "photos": "ObjectOS ouvre votre photothèque pour que vous choisissiez les photos à joindre dans l'app.",
     "faceId": "ObjectOS utilise Face ID pour déverrouiller l'app quand le verrouillage de l'app est activé."
   }
 }

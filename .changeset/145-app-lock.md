@@ -24,9 +24,10 @@ authentication first, and turning it on needs a screen lock on the device.
   `getAppLock()` reads the setting (`{ enabled, timeoutSeconds }`). Both are
   read-only capabilities behind the origin check: no bridge method changes the
   lock. While the app is locked, bridge methods that open native UI
-  (`openExternal`, `scan`, `showConnectionSwitcher`, `openAppLockSettings`)
-  fail with "The app is locked".
-- New native dependency `expo-screen-capture` (SDK 55); the permissions it
-  declares for a screenshot listener the app does not use are blocked. The
+  (`openExternal`, `scan`, `showConnectionSwitcher`, `pickImage`, `share`,
+  `openFile`, `openAppLockSettings`) fail with "The app is locked".
+- New native dependency `expo-screen-capture` (SDK 55). Two permissions it
+  declares for a screenshot listener the app does not use, `READ_MEDIA_IMAGES`
+  and `DETECT_SCREEN_CAPTURE`, are blocked. The
   Face ID usage text is localized in all ten languages, and the unlock prompt
   says "Unlock ObjectOS".

@@ -1,5 +1,6 @@
 import {
   decideNavigation,
+  decideTopFrameLoad,
   isSignInSurface,
   type NavigationContext,
 } from "~/lib/shell/navigation-policy";
@@ -93,6 +94,57 @@ describe("decideNavigation", () => {
     expect(decideNavigation("data:image/png;base64,AA", { ...ctx, isTopFrame: false })).toEqual({
       kind: "load",
     });
+  });
+});
+
+describe("decideTopFrameLoad", () => {
+  it("keeps the server's own pages, a route a native screen owns included", () => {
+    expect(decideTopFrameLoad("https://acme.example.com/_console/apps/crm", ctx)).toEqual({
+      kind: "stay",
+    });
+    expect(decideTopFrameLoad("https://acme.example.com/_console/approvals/9", ctx)).toEqual({
+      kind: "stay",
+    });
+    expect(decideTopFrameLoad("https://acme.example.com/api/v1/auth/callback/x", ctx)).toEqual({
+      kind: "stay",
+    });
+    expect(decideTopFrameLoad("https://acme.example.com:443/_console/home", ctx)).toEqual({
+      kind: "stay",
+    });
+  });
+
+  it("keeps what the policy loads in the top frame: trusted hosts, about:, blob:", () => {
+    expect(decideTopFrameLoad("https://login.acme-idp.example/authorize", ctx)).toEqual({
+      kind: "stay",
+    });
+    expect(decideTopFrameLoad("about:blank", ctx)).toEqual({ kind: "stay" });
+    expect(decideTopFrameLoad("blob:https://acme.example.com/abc", ctx)).toEqual({ kind: "stay" });
+  });
+
+  it("stops any other page, to open it where the policy sends it", () => {
+    expect(decideTopFrameLoad("https://docs.example.org/page", ctx)).toEqual({
+      kind: "stop",
+      open: "https://docs.example.org/page",
+    });
+    expect(decideTopFrameLoad("http://acme.example.com/_console/home", ctx)).toEqual({
+      kind: "stop",
+      open: "http://acme.example.com/_console/home",
+    });
+  });
+
+  it("stops a page the policy blocks, opening nothing", () => {
+    expect(decideTopFrameLoad("data:text/html,<b>x</b>", ctx)).toEqual({
+      kind: "stop",
+      open: null,
+    });
+    expect(decideTopFrameLoad("file:///etc/passwd", ctx)).toEqual({ kind: "stop", open: null });
+    expect(decideTopFrameLoad("not a url", ctx)).toEqual({ kind: "stop", open: null });
+  });
+
+  it("judges every load as the top frame's, whatever the context says", () => {
+    expect(
+      decideTopFrameLoad("https://maps.example.org/embed", { ...ctx, isTopFrame: false })
+    ).toEqual({ kind: "stop", open: "https://maps.example.org/embed" });
   });
 });
 
