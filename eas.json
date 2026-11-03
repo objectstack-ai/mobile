@@ -18,16 +18,10 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview",
-      "env": {
-        "EXPO_PUBLIC_DEFAULT_SERVER_URL": ""
-      }
+      "channel": "preview"
     },
     "production": {
-      "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_DEFAULT_SERVER_URL": ""
-      }
+      "autoIncrement": true
     }
   },
   "submit": {
