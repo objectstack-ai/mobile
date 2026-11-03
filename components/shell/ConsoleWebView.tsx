@@ -28,7 +28,7 @@ import {
   routeFromConsoleUrl,
   safeConsoleRoute,
 } from "~/lib/shell/console-url";
-import { decideNavigation, SIGN_IN_ROUTE } from "~/lib/shell/navigation-policy";
+import { decideNavigation, decideTopFrameLoad, SIGN_IN_ROUTE } from "~/lib/shell/navigation-policy";
 import {
   EXCURSION_TIMEOUT_MS,
   IDLE_EXCURSION,
@@ -190,8 +190,14 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     // can re-create the WebView meanwhile. Load starts do not count: Android
     // reports one for every SPA history change too. A page replaced within the
     // same WebView is covered by the bootstrap's per-document call ids. Bumped
-    // only by the load state machine's `recreate` effect.
+    // only by the load state machine's `recreate` effect, with `instance`: a
+    // WebView's own reports are the ones made while the two still match.
     const documentRef = useRef(0);
+    // The navigation policy at load start (`observeTopFrame`): set when a
+    // top-frame load is stopped, cleared once a Console is ready or on a
+    // switch. A second stop before that is the server's page itself going
+    // there again, so the failure page says so instead of another re-create.
+    const stoppedRef = useRef(false);
 
     // Sign-in excursion (`lib/shell/sign-in-excursion.ts`): an off-server
     // https page loads in the top frame because the server's sign-in surface
@@ -262,6 +268,7 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         const { state, effects } = stepConsoleLoad(previous, event);
         loadRef.current = state;
         setPhase(state.phase);
+        if (state.phase === "ready" || event.type === "switch") stoppedRef.current = false;
         if (
           (event.type === "routeChanged" || event.type === "navigationState") &&
           state.lastRoute !== null &&
@@ -600,19 +607,78 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     // Android also for every history change) and at a load end (on iOS also
     // for history changes). That URL is the excursion's record of where the
     // top frame is. A page message never is.
+    //
+    // The navigation policy is also enforced on that URL, so every top-frame
+    // load follows it. The excursion judges its own pages first. Any other
+    // page that `decideTopFrameLoad` would not keep in the WebView is
+    // stopped and sent where the policy sends it (the in-app browser or the
+    // OS, as for a request), and the WebView is re-created on the server where
+    // the Console was: the page and its history are gone, as after an
+    // excursion that ends without returning. A reload would load the stopped
+    // page again.
+    const observeTopFrame = useCallback(
+      (url: string, loaded: boolean) => {
+        const caller = documentRef.current;
+        const step = applyExcursion({ type: "location", url, loaded, now: Date.now() });
+        // An excursion that ended here has re-created the WebView already.
+        // The failure page has no top frame.
+        if (documentRef.current !== caller || loadRef.current.phase === "failed") return;
+        // A page of the active sign-in excursion: the excursion follows it.
+        if (step.state.active !== null && step.state.location === url) return;
+        const decision = decideTopFrameLoad(url, {
+          serverUrl,
+          rules,
+          availableScreens,
+          trustedHosts,
+        });
+        if (decision.kind === "stay") return;
+        webviewRef.current?.stopLoading();
+        const again = stoppedRef.current;
+        addBreadcrumb({
+          category: "shell",
+          message: "top-frame load stopped by the navigation policy",
+          data: { host: parseUrl(url)?.host ?? null, again },
+        });
+        if (again) {
+          fail({ kind: "policy" });
+          return;
+        }
+        stoppedRef.current = true;
+        if (decision.open !== null) onOpenExternal(decision.open);
+        dispatch({ type: "recreate" });
+      },
+      [
+        serverUrl,
+        rules,
+        availableScreens,
+        trustedHosts,
+        applyExcursion,
+        fail,
+        onOpenExternal,
+        dispatch,
+      ]
+    );
+
+    // A report from a WebView that is being re-created is not the top
+    // frame's: once the re-create is decided, the old WebView's reports are
+    // dropped.
     const onLoadStart = useCallback(
       (e: { nativeEvent: { url?: string } }) => {
+        if (documentRef.current !== instance) return;
         const url = e.nativeEvent.url ?? "";
-        if (url) applyExcursion({ type: "location", url, loaded: false, now: Date.now() });
+        if (url) observeTopFrame(url, false);
       },
-      [applyExcursion]
+      [instance, observeTopFrame]
     );
 
     const onLoadEnd = useCallback(
       (e: { nativeEvent: { url?: string; loading: boolean } }) => {
+        if (documentRef.current !== instance) return;
         const { loading } = e.nativeEvent;
         const url = e.nativeEvent.url ?? "";
-        if (url) applyExcursion({ type: "location", url, loaded: !loading, now: Date.now() });
+        if (url) observeTopFrame(url, !loading);
+        // This load sent the WebView back to the server: it is not the Console's.
+        if (documentRef.current !== instance) return;
         // `loading` is still true when a load is superseded by a redirect.
         // react-native-webview also calls this after `onError`; the load
         // state ignores it on a failed load.
@@ -631,17 +697,18 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
         }
         dispatch({ type: "loadEnd" });
       },
-      [applyExcursion, dispatch]
+      [instance, observeTopFrame, dispatch]
     );
 
     const onNavigationStateChange = useCallback(
       (nav: WebViewNavigation) => {
+        if (documentRef.current !== instance) return;
         canGoBackRef.current = nav.canGoBack;
         // Fallback only: once the Console posts `routeChanged`, it decides.
         const route = nav.url ? routeFromConsoleUrl(serverUrl, nav.url) : null;
         dispatch({ type: "navigationState", route });
       },
-      [serverUrl, dispatch]
+      [instance, serverUrl, dispatch]
     );
 
     if (failure) {

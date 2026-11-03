@@ -10,6 +10,10 @@
  * - `mailto:` / `tel:` / `sms:` / app schemes → hand to the OS;
  * - `javascript:` / `file:` / top-frame `data:` → block.
  *
+ * The policy is enforced when a navigation is requested ({@link decideNavigation})
+ * and again when a top-frame load starts ({@link decideTopFrameLoad}), so every
+ * top-frame load follows it.
+ *
  * This is the policy outside a sign-in excursion, and it does not change
  * during one. `lib/shell/sign-in-excursion.ts` sits on top of it. An
  * off-server https page that this policy sends to the system browser may
@@ -111,4 +115,35 @@ export function decideNavigation(url: string, ctx: NavigationContext): Navigatio
   if (host && ctx.trustedHosts?.includes(host)) return { kind: "load" };
 
   return { kind: "external", url };
+}
+
+/**
+ * What the shell does with a top-frame load the WebView reports as started (or
+ * ended), judged on the URL it reports, never on the event alone: on Android
+ * every history change of a page reports a load start too.
+ *
+ * - `stay`: the policy loads `url` in the WebView, or `url` is on the server's
+ *   origin. A Console route a native screen owns stays as well: it is the
+ *   server's own page, and handing a route to a native screen is the answer to
+ *   a navigation request, not to a load.
+ * - `stop`: anything else. The shell stops the load and goes back to the
+ *   server; `open` is where the policy sends `url` (the in-app browser or the
+ *   OS, as for a request), or `null` when it blocks it.
+ *
+ * A page of an active sign-in excursion is the excursion's to judge
+ * (`sign-in-excursion.ts`), before this.
+ */
+export type TopFrameLoadDecision = { kind: "stay" } | { kind: "stop"; open: string | null };
+
+export function decideTopFrameLoad(url: string, ctx: NavigationContext): TopFrameLoadDecision {
+  const decision = decideNavigation(url, { ...ctx, isTopFrame: true });
+  switch (decision.kind) {
+    case "load":
+    case "native":
+      return { kind: "stay" };
+    case "external":
+      return { kind: "stop", open: decision.url };
+    default:
+      return { kind: "stop", open: null };
+  }
 }

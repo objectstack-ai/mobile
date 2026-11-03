@@ -64,6 +64,8 @@
     "offlineMessage": "연결을 확인하세요. 다시 온라인 상태가 되면 페이지가 자동으로 새로고침됩니다.",
     "serverErrorTitle": "서버가 응답하지 않습니다",
     "serverErrorMessage": "서버에서 오류 {{code}}을(를) 반환했습니다. 잠시 후 다시 시도하세요.",
+    "policyTitle": "이 페이지는 앱에서 표시할 수 없습니다",
+    "policyMessage": "서버 페이지가 앱에서 열지 않는 주소로 계속 이동합니다. 다시 시도하거나 조직을 전환하세요.",
     "retry": "다시 시도"
   },
   "excursion": {
