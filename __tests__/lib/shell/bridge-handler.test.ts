@@ -22,6 +22,9 @@ function setup(overrides: Partial<BridgeDeps> = {}) {
     resetServer: jest.fn().mockResolvedValue(undefined),
     scan: jest.fn().mockResolvedValue("4006381333931"),
     showConnectionSwitcher: jest.fn(),
+    pickImage: jest.fn().mockResolvedValue(null),
+    share: jest.fn().mockResolvedValue(undefined),
+    openFile: jest.fn().mockResolvedValue(undefined),
     onEvent: jest.fn(),
     ...overrides,
   };
