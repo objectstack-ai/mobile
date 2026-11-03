@@ -14,6 +14,8 @@ import { BRIDGE_RESOLVE_GLOBAL, CONNECTION_REMOVED_EVENT } from "~/lib/shell/bri
 
 const mockWebView = {
   props: null as any,
+  /** Each mounted WebView's latest props, in mount order: what its native side calls. */
+  instances: [] as any[],
   mounts: 0,
   injectJavaScript: jest.fn(),
   reload: jest.fn(),
@@ -26,6 +28,8 @@ jest.mock("react-native-webview", () => {
   const React = require("react");
   const { View } = require("react-native");
   const WebView = React.forwardRef(function MockWebView(props: any, ref: any) {
+    const [index] = React.useState(() => mockWebView.instances.length);
+    mockWebView.instances[index] = props;
     mockWebView.props = props;
     React.useEffect(() => {
       mockWebView.mounts += 1;
@@ -153,6 +157,7 @@ const lastInjected = (): string => {
 beforeEach(() => {
   mockIsConnected = true;
   mockWebView.props = null;
+  mockWebView.instances = [];
   mockWebView.mounts = 0;
   mockWebView.injectJavaScript.mockReset();
   mockWebView.reload.mockReset();
@@ -995,9 +1000,9 @@ describe("ConsoleWebView — the navigation policy at load start", () => {
   it("drops the reports of the WebView it replaces", async () => {
     jest.useFakeTimers();
     const { props } = await onConsolePage();
-    const replaced = mockWebView.props;
     loadStart(ELSEWHERE);
     expect(mockWebView.mounts).toBe(2);
+    const replaced = mockWebView.instances[0];
     act(() => {
       replaced.onLoadEnd({ nativeEvent: { url: ELSEWHERE, loading: false } });
       replaced.onNavigationStateChange({ url: ELSEWHERE, loading: false, canGoBack: true });
@@ -1012,9 +1017,10 @@ describe("ConsoleWebView — the navigation policy at load start", () => {
 
   it("never judges a report from the WebView a switch replaced against the new server", async () => {
     const { props, view } = await onConsolePage();
-    const replaced = mockWebView.props;
     view.rerender(<ConsoleWebView {...props} serverUrl="https://erp.example.com" resumeRoute={null} />);
     expect(mockWebView.mounts).toBe(2);
+    // The WebView left behind was rendered once more, for the new server, before it was replaced.
+    const replaced = mockWebView.instances[0];
     act(() => replaced.onLoadEnd({ nativeEvent: { url: `${SERVER}/_console/home`, loading: false } }));
     expect(mockWebView.stopLoading).not.toHaveBeenCalled();
     expect(props.onOpenExternal).not.toHaveBeenCalled();
@@ -1158,9 +1164,9 @@ describe("ConsoleWebView — sign-in excursion", () => {
 
   it("opens nothing for the provider's page after 取消", async () => {
     const { props } = await inExcursion();
-    const replaced = mockWebView.props;
     fireEvent.press(screen.getByTestId("shell-excursion-cancel"));
     expect(mockWebView.mounts).toBe(2);
+    const replaced = mockWebView.instances[0];
     act(() => replaced.onLoadEnd({ nativeEvent: { url: IDP, loading: false } }));
     expect(props.onOpenExternal).not.toHaveBeenCalled();
     expect(mockWebView.stopLoading).not.toHaveBeenCalled();
