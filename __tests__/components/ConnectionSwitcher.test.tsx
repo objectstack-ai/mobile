@@ -218,7 +218,7 @@ describe("ConnectionSwitcher", () => {
     );
 
     await act(async () => {
-      await i18n.changeLanguage("zh");
+      await i18n.changeLanguage("zh-Hans");
     });
     expect(screen.queryByText("添加组织或公司服务器")).toBeNull();
   });

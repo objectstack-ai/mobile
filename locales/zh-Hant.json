@@ -1,0 +1,157 @@
+{
+  "common": {
+    "ok": "確定",
+    "cancel": "取消",
+    "retry": "重試",
+    "error": "錯誤",
+    "close": "關閉"
+  },
+  "errorBoundary": {
+    "title": "出錯了",
+    "message": "發生了意外錯誤。",
+    "retry": "重試"
+  },
+  "serverConfig": {
+    "title": "連線伺服器",
+    "subtitle": "輸入你的 ObjectOS 伺服器地址。",
+    "label": "伺服器地址",
+    "hint": "例如：https://erp.example.com",
+    "connect": "繼續",
+    "scan": "掃描二維碼",
+    "backTo": "返回 {{server}}",
+    "where": {
+      "title": "在哪裡找到地址？",
+      "step1": "在電腦瀏覽器中開啟 ObjectOS 並登入。",
+      "step2": "複製瀏覽器位址列中的地址。可以直接貼上整個連結，應用只保留伺服器部分。",
+      "step3": "仍不確定？請聯絡管理員。"
+    },
+    "vpnHint": "公司內網的伺服器可能需要手機先連線公司 VPN。",
+    "error": {
+      "empty": "請輸入伺服器地址。",
+      "invalid": "這看起來不是有效的伺服器地址。",
+      "insecure": "請使用 https:// 地址，http 僅允許用於本地伺服器。",
+      "unreachable": "無法連線伺服器。請檢查地址和網路，公司內網的伺服器可能需要先連線 VPN。",
+      "tls": "證書無效：無法驗證伺服器的安全證書，連線不安全。請聯絡管理員修復。",
+      "timeout": "伺服器響應超時。請檢查網路或 VPN 後重試。",
+      "notObjectOS": "這不是 ObjectOS 伺服器。請使用在瀏覽器中開啟 ObjectOS 的地址。",
+      "serverError": "伺服器返回錯誤（HTTP {{status}}）。請稍後重試或聯絡管理員。",
+      "unknown": "出現問題，請重試。"
+    },
+    "managed": {
+      "title": "由你的組織配置",
+      "checking": "正在檢查組織配置的伺服器…",
+      "contactIt": "請聯絡 IT 管理員。",
+      "retry": "重試",
+      "edit": "輸入其他地址",
+      "locked": "此 App 的伺服器由你的組織管理，無法在這裡更改。"
+    }
+  },
+  "serverConfirm": {
+    "title": "這是你的伺服器嗎？",
+    "secure": "安全連線（HTTPS）",
+    "signInLabel": "登入方式",
+    "signIn": {
+      "sso": "單點登入（SSO）",
+      "emailPassword": "郵箱和密碼"
+    },
+    "versionLabel": "平臺版本",
+    "confirm": "連線並登入",
+    "reject": "不是這臺伺服器"
+  },
+  "shell": {
+    "loading": "載入中…",
+    "offlineTitle": "網路已斷開",
+    "offlineMessage": "請檢查網路連線。恢復聯網後頁面會自動重新載入。",
+    "serverErrorTitle": "伺服器無響應",
+    "serverErrorMessage": "伺服器返回錯誤 {{code}}，請稍後重試。",
+    "policyTitle": "無法在應用內顯示此頁面",
+    "policyMessage": "伺服器的頁面一直跳轉到應用不開啟的地址。請重試，或切換組織。",
+    "retry": "重試"
+  },
+  "excursion": {
+    "signingIn": "正在外部頁面登入 · {{server}}",
+    "secure": "安全連線",
+    "cancel": "取消",
+    "endedTitle": "登入未完成",
+    "redirects": "登入頁面重定向次數過多。請重試，或聯絡管理員。",
+    "timeout": "登入用時超過 {{minutes}} 分鐘。請重新開始。",
+    "insecure": "登入頁面試圖通過不安全的連線（http）繼續，已被停止。",
+    "unsupported": "應用暫不支援此登入方式。請選擇其他登入方式。",
+    "dismiss": "關閉"
+  },
+  "switcher": {
+    "title": "切換組織",
+    "add": "新增組織或公司伺服器",
+    "footnote": "每個組織單獨儲存登入狀態。左滑可移除，並退出該組織的登入。",
+    "lockedFootnote": "每個組織單獨儲存登入狀態。{{label}} 由你的組織配置，無法移除。",
+    "appSettings": "App 設定",
+    "kind": {
+      "cloud": "Cloud",
+      "server": "私有"
+    },
+    "remove": "移除",
+    "removeNamed": "移除{{label}}"
+  },
+  "scanner": {
+    "hint": "將二維碼放入框內",
+    "codeHint": "將條碼或二維碼放入框內",
+    "connectNote": "只包含伺服器地址，不含任何賬號資訊",
+    "manual": "手動輸入地址",
+    "notConnectCode": "不是連線二維碼",
+    "unreadable": "無法讀取此碼",
+    "close": "關閉",
+    "torchOn": "開啟手電筒",
+    "torchOff": "關閉手電筒",
+    "permission": {
+      "title": "需要相機權限",
+      "body": "允許使用相機以掃描二維碼。",
+      "blocked": "ObjectOS 的相機權限已關閉。請在設定中開啟，或手動輸入地址。",
+      "allow": "允許使用相機",
+      "settings": "開啟設定",
+      "codeBody": "允許使用相機以掃描條碼或二維碼。",
+      "codeBlocked": "ObjectOS 的相機權限已關閉。請在設定中開啟後再掃描。"
+    }
+  },
+  "appLock": {
+    "entry": "應用鎖",
+    "on": "已開啟",
+    "off": "已關閉",
+    "prompt": {
+      "unlock": "解鎖 ObjectOS",
+      "change": "更改應用鎖"
+    },
+    "overlay": {
+      "title": "ObjectOS 已鎖定",
+      "unlock": "解鎖",
+      "failed": "無法確認是你本人，請重試。",
+      "noDeviceLock": "請先在手機設定中設定鎖屏，才能解鎖 ObjectOS。"
+    },
+    "settings": {
+      "title": "應用鎖",
+      "description": "回到 ObjectOS 時，需要通過面容 ID、觸控 ID、指紋或手機密碼才能檢視。",
+      "toggle": "鎖定應用",
+      "timeoutTitle": "鎖定時間",
+      "timeout": {
+        "0": "立即",
+        "60": "1 分鐘後",
+        "300": "5 分鐘後",
+        "900": "15 分鐘後",
+        "3600": "1 小時後"
+      },
+      "authNote": "更改應用鎖需要驗證面容 ID、觸控 ID、指紋或手機密碼。",
+      "unavailable": "請先在手機設定中設定鎖屏（密碼、面容 ID 或指紋），才能使用應用鎖。",
+      "notChanged": "未更改：無法確認是你本人。",
+      "saveFailed": "設定未能儲存，請重試。",
+      "back": "返回",
+      "privacy": {
+        "ios": "應用鎖開啟時，多工介面中的 ObjectOS 會顯示為模糊。",
+        "android": "應用鎖開啟時，最近任務中的 ObjectOS 顯示為空白，並且禁止截圖和錄屏。"
+      }
+    }
+  },
+  "permissions": {
+    "camera": "ObjectOS 使用相機掃描二維碼和條碼（例如用於連線伺服器的二維碼），以及拍攝要在應用中附加的照片。",
+    "photos": "ObjectOS 開啟你的照片相簿，以便你選擇要在應用中附加的照片。",
+    "faceId": "應用鎖開啟時，ObjectOS 使用面容 ID 解鎖應用。"
+  }
+}

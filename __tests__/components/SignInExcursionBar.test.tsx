@@ -40,7 +40,7 @@ describe("SignInExcursionBar", () => {
 
   it("reads 正在外部页面登录 · <server label> and 取消 in Chinese", async () => {
     await act(async () => {
-      await i18n.changeLanguage("zh");
+      await i18n.changeLanguage("zh-Hans");
     });
     render(
       <SignInExcursionBar host="sso.corp.example" serverLabel="Acme ERP" onCancel={jest.fn()} />

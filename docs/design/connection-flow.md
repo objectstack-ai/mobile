@@ -265,9 +265,10 @@ The timeout in the body follows the user's setting.
 
 ## Languages and layout
 
-Every native string ships in the Console UI's ten locales (en, zh, ja, ko, de, fr, es, pt, ru, ar)
-and follows the phone's language; Arabic lays out right-to-left (mobile#159). The tables above give
-zh and en; the other eight are translations of the en column.
+Every native string ships in the platform's 11 languages (en, zh-Hans, zh-Hant, es, ar, fr, pt-BR,
+ru, de, ja, ko; the table is objectstack-ai/objectstack#29428) and follows the phone's language;
+Arabic lays out right-to-left (mobile#159, mobile#182). The zh column above is zh-Hans; zh-Hant is
+converted from it, and the other eight are translations of the en column.
 
 ## Updating this design
 

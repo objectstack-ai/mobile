@@ -40,7 +40,7 @@ components/shell/
   OfflineFallback.tsx native page for network / 5xx failures
   AppLockOverlay.tsx  the app lock's cover over everything, with Unlock
 lib/
-  i18n.ts             shell strings in the Console's ten locales; follows the phone language
+  i18n.ts             shell strings in the platform's 11 languages; follows the phone language
   rtl.ts              right-to-left layout for Arabic
   server-probe.ts     anonymous probe of a server before it is saved
   server-url.ts       persistence of the saved connections (and the one-time migration)
@@ -94,20 +94,23 @@ Android WebView profiles), which react-native-webview 13.16 does not expose.
 The shell translates only its own native screens (server picker, confirm step,
 loading and offline pages); everything inside the WebView is the Console's.
 
-- **The locale set mirrors the Console UI's.** The shell ships the same ten
-  locales under the same short codes as the Console's built-in catalogues
-  (objectstack `ui/packages/i18n/src/locales/`): `en`, `zh`, `ja`, `ko`, `de`,
-  `fr`, `es`, `pt`, `ru`, `ar`. A test pins `SUPPORTED_LANGUAGES` to that list,
-  and another fails when any bundle in `locales/` misses a key `en.json` has —
-  a new native string ships in all ten.
-- **The phone language decides, with the Console's matching rule.** The shell
-  walks the phone's preferred languages in order and takes the first one that
-  resolves to a bundled locale, else `en`. A tag resolves exactly, else through
-  its base language: the Console's `matchLanguageTag`
-  (`ui/packages/i18n/src/locales/registry.ts`), ported as is. So `zh-Hans-CN` →
-  `zh`, `pt-BR` → `pt`, `es-MX` → `es`, and Traditional Chinese (`zh-TW`,
-  `zh-HK`, `zh-Hant`) → `zh`, because the Console has no Traditional Chinese
-  catalogue either.
+- **The locale set is the platform's table.** The shell ships the platform's
+  one list of 11 languages, keyed by the table's tags
+  (objectstack-ai/objectstack#29428, ruling F of #29349): `en`, `zh-Hans`,
+  `zh-Hant`, `es`, `ar`, `fr`, `pt-BR`, `ru`, `de`, `ja`, `ko`. A test pins
+  `SUPPORTED_LANGUAGES` to that list, and another fails when any bundle in
+  `locales/` misses a key `en.json` has — a new native string ships in all 11.
+  `zh-Hant.json` is converted from `zh-Hans.json` (opencc-js `s2twp`, with the
+  phrase overrides of `objectstack-ai/www.objectos.ai` `src/lib/zhconvert.ts`),
+  then reviewed; convert it again when `zh-Hans.json` changes.
+- **The phone language decides, by script.** The shell walks the phone's
+  preferred languages in order and takes the first one that resolves to a
+  bundled language, else `en` (`resolveLanguageTag` in `lib/i18n.ts`, the
+  table's alias rule). For Chinese an explicit script decides (`zh-Hant-*` →
+  `zh-Hant`, `zh-Hans-*` → `zh-Hans`); without one, `zh-TW`, `zh-HK` and
+  `zh-MO` → `zh-Hant` and every other `zh` → `zh-Hans`. Every Portuguese tag
+  (`pt-PT`, `pt-BR`, `pt`) → `pt-BR`. Any other tag resolves to its primary
+  subtag (`es-MX` → `es`) when that is bundled.
 - **No in-app language picker.** The phone setting is the only source for the
   native screens. A phone-language change is picked up the next time the app
   comes to the foreground.
@@ -202,8 +205,9 @@ server's Console and saves nothing.
   `permissions.camera` in each locale bundle, written by `app.config.ts` into
   the `expo-camera` and `expo-image-picker` plugins (both write
   `NSCameraUsageDescription`, so they get the same text) and per-language
-  `InfoPlist.strings` for all ten shell languages (`zh-Hans`, plus `zh-Hant`
-  reusing the `zh` text, as the shell's own strings do); both plugins are
+  `InfoPlist.strings` for all 11 shell languages (`zh-Hans` and `zh-Hant` each
+  with their own text; `pt-BR` written as the unqualified `pt` so every
+  Portuguese variant falls back to it); both plugins are
   configured without a microphone (no prompt, `RECORD_AUDIO` blocked). The
   photo-library text (`NSPhotoLibraryUsageDescription`, for the bridge's
   `pickImage()`) is `permissions.photos`, written the same way.

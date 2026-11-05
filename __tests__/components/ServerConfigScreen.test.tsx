@@ -381,7 +381,7 @@ describe("ServerConfigScreen — managed deployment (MDM)", () => {
   it("shows 「请联系 IT 管理员」 in Chinese", async () => {
     const i18n = require("~/lib/i18n").default;
     await act(async () => {
-      await i18n.changeLanguage("zh");
+      await i18n.changeLanguage("zh-Hans");
     });
     try {
       managedBy(LOCKED);

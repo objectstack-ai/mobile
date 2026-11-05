@@ -23,6 +23,7 @@ pnpm run lint       # tsc + ESLint
 
 - TypeScript strict; keep policy in pure modules under `lib/` with unit tests,
   and keep components thin.
-- Every user-visible string in `locales/{en,zh,ar}.json`.
+- Every user-visible string in every bundle under `locales/` (the 11 languages in
+  `lib/i18n.ts`); regenerate `zh-Hant.json` from `zh-Hans.json` when that changes.
 - Add a changeset (`pnpm changeset`) for user-facing changes.
 - Branch from `main`, open a PR, keep CI green.
