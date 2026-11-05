@@ -40,7 +40,7 @@
 
 - Biometric app lock (reuses `lib/biometric-auth.ts`, `lib/app-lock.ts`)
 - Bridge: `scan` (barcode / QR), `pickImage`, `openFile` / file download, `share`
-- External IdP sign-in through `ASWebAuthenticationSession` / Custom Tabs
+- External IdP sign-in through `ASWebAuthenticationSession` / Custom Tabs (mobile#148)
 
 ## Phase 5 — Release
 

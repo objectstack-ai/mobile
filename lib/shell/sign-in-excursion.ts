@@ -67,8 +67,7 @@ export const EXCURSION_TIMEOUT_MS = 10 * 60 * 1000;
 /**
  * Hosts whose sign-in refuses every embedded WebView. Google answers an
  * embedded user agent with its "Error 403: disallowed_useragent" page. That
- * sign-in needs the system authentication session, which the app does not
- * have yet.
+ * sign-in runs in the system authentication session (`system-sign-in.ts`).
  */
 export const EMBEDDED_WEBVIEW_REFUSERS: readonly string[] = ["accounts.google.com"];
 

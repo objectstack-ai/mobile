@@ -39,6 +39,8 @@ import {
   type ExcursionState,
   type ExcursionStep,
 } from "~/lib/shell/sign-in-excursion";
+import { buildRedeemScript } from "~/lib/shell/system-sign-in";
+import { openSystemSignIn } from "~/lib/shell/system-sign-in-session";
 import type { RouteRule } from "~/lib/shell/route-owner";
 import {
   BRIDGE_CAPABILITIES,
@@ -323,6 +325,57 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
     useEffect(() => clearReadyTimer, [clearReadyTimer]);
     useEffect(() => clearExcursionTimer, [clearExcursionTimer]);
 
+    // System sign-in (`lib/shell/system-sign-in.ts`): an identity provider that
+    // refuses embedded WebViews runs in the operating system's auth session.
+    // The token it brings back waits here until a Console is up to redeem it:
+    // the refusal has re-created the WebView at the sign-in page meanwhile.
+    const systemSignInBusyRef = useRef(false);
+    const pendingRedeemRef = useRef<{
+      serverUrl: string;
+      token: string;
+      codeVerifier: string;
+    } | null>(null);
+
+    const redeemPending = useCallback(() => {
+      const pending = pendingRedeemRef.current;
+      if (!pending || loadRef.current.phase !== "ready" || !webviewRef.current) return;
+      pendingRedeemRef.current = null;
+      // The user switched connection meanwhile: this token is another server's.
+      if (pending.serverUrl !== serverUrlRef.current) return;
+      const script = buildRedeemScript(pending.serverUrl, pending.token, pending.codeVerifier);
+      if (!script) return;
+      // The script moves the page either way, so the Console boots behind the cover.
+      dispatch({ type: "reload" });
+      webviewRef.current.injectJavaScript(script);
+    }, [dispatch]);
+    useEffect(redeemPending, [phase, redeemPending]);
+
+    const startSystemSignIn = useCallback(() => {
+      if (systemSignInBusyRef.current) return;
+      systemSignInBusyRef.current = true;
+      const server = serverUrlRef.current;
+      setExcursionNotice(null);
+      void openSystemSignIn(server).then((outcome) => {
+        systemSignInBusyRef.current = false;
+        // The outcome's kind only: its token and verifier are never logged.
+        addBreadcrumb({
+          category: "shell",
+          message: "system sign-in ended",
+          data: { outcome: outcome.kind },
+        });
+        if (outcome.kind === "signed-in") {
+          pendingRedeemRef.current = {
+            serverUrl: server,
+            token: outcome.token,
+            codeVerifier: outcome.codeVerifier,
+          };
+          redeemPending();
+        } else if (outcome.kind !== "cancelled" && serverUrlRef.current === server) {
+          setExcursionNotice("unsupported");
+        }
+      });
+    }, [redeemPending]);
+
     const applyExcursion = useCallback(
       (event: ExcursionEvent): ExcursionStep => {
         const previous = excursionRef.current;
@@ -354,7 +407,8 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
             data: { reason: step.ended },
           });
           if (step.ended !== "returned") {
-            if (step.ended !== "cancelled") setExcursionNotice(step.ended);
+            if (step.ended === "unsupported") startSystemSignIn();
+            else if (step.ended !== "cancelled") setExcursionNotice(step.ended);
             dispatch({ type: "switch", route: SIGN_IN_ROUTE });
           }
         }
@@ -364,12 +418,13 @@ export const ConsoleWebView = forwardRef<ConsoleWebViewHandle, ConsoleWebViewPro
             message: "sign-in excursion refused",
             data: { reason: step.refused },
           });
-          setExcursionNotice(step.refused);
+          if (step.refused === "unsupported") startSystemSignIn();
+          else setExcursionNotice(step.refused);
           dispatch({ type: "switch", route: SIGN_IN_ROUTE });
         }
         return step;
       },
-      [dispatch, clearExcursionTimer]
+      [dispatch, clearExcursionTimer, startSystemSignIn]
     );
     applyExcursionRef.current = applyExcursion;
 

@@ -193,6 +193,13 @@ describe("consoleScreenHref", () => {
 });
 
 describe("redirectIncomingPath", () => {
+  it("sends the sign-in hand-off's callback nowhere, so its token never becomes a path", () => {
+    expect(redirectIncomingPath("ai.objectos.mobile://auth/callback?token=abc")).toBe("");
+    expect(redirectIncomingPath("ai.objectos.mobile://auth/callback")).toBe("");
+    // Any other link on that scheme is an unknown link, as on the short scheme.
+    expect(redirectIncomingPath("ai.objectos.mobile://other")).toBe("/");
+  });
+
   it("maps app links onto the Console screen, with a nonce", () => {
     expect(redirectIncomingPath("objectos://console/apps/crm", () => 42)).toBe(
       "/console?route=%2Fapps%2Fcrm&n=42"

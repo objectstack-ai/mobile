@@ -14,6 +14,7 @@
  * than on an expo-router "not found" page.
  */
 import { normalizeServerUrl, safeConsoleRoute } from "./console-url";
+import { isHandoffCallback } from "./system-sign-in";
 
 const SCHEME_LINK_RE = /^[a-z][a-z0-9+.-]*:\/\/([^/?#]*)([^?#]*)(\?[^#]*)?/i;
 
@@ -134,12 +135,18 @@ export function consoleScreenHref(route: string, nonce?: string | number): strin
  * on our scheme land on the start screen, and anything that is not a scheme
  * URL (internal paths, the dev-client launcher) passes through.
  *
+ * The sign-in hand-off's callback goes nowhere (`""`, which expo-router drops).
+ * Android delivers it as an ordinary link while `openAuthSessionAsync` is
+ * listening for it, and the page under the auth session must stay. Its token
+ * never becomes a router path.
+ *
  * Each redirect carries a nonce (`now()`, injectable for tests) so opening the
  * same link twice navigates both times.
  */
 export function redirectIncomingPath(path: string, now: () => number = Date.now): string {
   if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(path)) return path;
   if (path.includes("expo-development-client")) return path;
+  if (isHandoffCallback(path)) return "";
   const route = routeFromIncomingLink(path);
   if (route) return consoleScreenHref(route, now());
   const connect = connectRequestFromLink(path);

@@ -64,6 +64,7 @@ lib/shell/
   native-screens.ts   native screens a route rule may target (empty today)
   navigation-policy.ts what each WebView navigation is allowed to do
   sign-in-excursion.ts identity-provider pages during sign-in (on top of the policy)
+  system-sign-in.ts   a provider that refuses WebViews: auth session and one-time token
   incoming-link.ts    objectos:// links: Console routes, `connect`, scanned codes
   config.ts           build-time config from app.config.ts `extra`
   external.ts         open URLs in the in-app browser / OS
@@ -314,9 +315,51 @@ store. The shell sees no credential: the provider and the server exchange them
 in the page, as in a browser. A white-label build that knows its provider can
 still list the host in `EXPO_PUBLIC_TRUSTED_HOSTS`, which loads it like the
 server's own pages, without the bar. Providers that refuse embedded WebViews
-(Google) need the system authentication session (`ASWebAuthenticationSession`,
-Custom Tabs). That is mobile#148, not built yet; the shell says such a sign-in
-method is not supported in the app yet.
+(Google) run in the system authentication session instead, and the session comes
+back through a one-time token (see "System sign-in" below).
+
+### System sign-in
+
+`lib/shell/system-sign-in.ts`. When the WebView is about to reach a provider
+that refuses it, the shell opens the sign-in again in the operating system's auth
+session (`ASWebAuthenticationSession`, Custom Tabs) and hands the result back to
+the WebView once:
+
+1. The shell makes an RFC 7636 `code_verifier` and keeps it in memory.
+2. It asks the server anonymously whether this app is registered
+   (`GET /api/v1/auth/one-time-token/handoff`; `401` means yes, sign in first). A
+   server that does not offer it keeps today's notice, and no session opens.
+3. It opens `<server>/_console/login?redirect=<the hand-off>` in the auth session.
+   The user chooses the provider there. It is the Console's own page, so a
+   federation hop (a server signing in through ObjectOS Cloud) works as in a
+   browser. The session is ephemeral on iOS; Android's Custom Tabs have no such
+   mode through expo-web-browser.
+4. After the sign-in the Console navigates to the hand-off, which answers
+   `302 ai.objectos.mobile://auth/callback?token=T`, the token bound to the
+   verifier's S256 challenge.
+5. The shell redeems `T.code_verifier` from inside the WebView, with a script
+   that runs only on the server's origin, and the page moves to the Console's
+   start, or to `/login?error=handoff_failed`, whose banner says it did not
+   finish. The session cookie lands in the WebView's store, and the shell keeps
+   no credential: the token and the verifier are dropped once the script is sent
+   and are never logged.
+
+The guarantees are the server's. The token is single-use and lasts one minute,
+so a replayed callback is refused. An app that registers the same scheme and
+intercepts the callback holds `T` alone, which the server refuses without using
+it up. The hand-off also takes only a session signed in within five minutes and
+refuses a cross-site navigation, so an existing browser session is not enough,
+and step 4 has to be the Console's navigation, not the last redirect of the
+provider's chain. See objectstack `one-time-token-handoff.ts`.
+
+The callback's own scheme is the reverse-domain one (`HANDOFF_APP_SCHEME`), because `AuthConfig.trustedAppSchemes` accepts
+nothing else. It is not an app link: `redirectIncomingPath` drops it, so its
+token never becomes a router path. A callback the app did not ask for finds no
+verifier and does nothing. So does one that arrives after the system killed the
+app during the session: the user signs in again.
+
+A deployment turns this on by registering the scheme, as
+[DEPLOYMENT.md](./DEPLOYMENT.md#system-sign-in) says.
 
 ### Managed deployment
 
@@ -488,8 +531,9 @@ excursion.
   WebView with "Error 403: disallowed_useragent". The shell detects that
   refusal before the page loads: a request to `accounts.google.com`, or any
   excursion URL that carries the `disallowed_useragent` code. It then blocks
-  the navigation, goes back to `/login`, and says that this sign-in method is
-  not supported in the app yet. A provider that refuses by its own user-agent
+  the navigation, goes back to `/login`, and starts a system sign-in (above). On
+  a server that does not offer it, it says that this sign-in method is not
+  supported in the app yet. A provider that refuses by its own user-agent
   check without that code cannot be told apart. Its error page shows under the
   bar, and 取消 goes back.
 - **The bridge is closed.** An excursion origin is never on the bridge's trust
