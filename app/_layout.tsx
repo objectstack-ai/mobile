@@ -40,7 +40,6 @@ hydrateAppLock();
  */
 export default function RootLayout() {
   const router = useRouter();
-  const serverUrl = useServerStore((s) => s.serverUrl);
   const hydrate = useServerStore((s) => s.hydrate);
 
   useEffect(() => {
@@ -65,7 +64,7 @@ export default function RootLayout() {
     (route: string) => router.navigate(consoleScreenHref(route, Date.now())),
     [router]
   );
-  usePushRouting(serverUrl, openRoute);
+  usePushRouting(openRoute);
 
   useEffect(() => startAppLock(), []);
   const appLocked = useSecurityStore(isAppLocked);

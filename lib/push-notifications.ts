@@ -11,7 +11,8 @@
  *  - tell the Console when the OS reports a token (rotation), so it can
  *    register the new one (`addPushTokenChangeListener`, delivered as the
  *    `objectstack-native:pushTokenChanged` window event);
- *  - turn a tapped notification into a Console route.
+ *  - turn a tapped notification into a Console route, on the saved connection
+ *    that sent it (`pushTapTarget`).
  *
  * No React here; `hooks/usePushRouting` owns the listener lifecycle.
  */
@@ -21,17 +22,21 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { routeFromConsoleUrl, safeConsoleRoute } from "~/lib/shell/console-url";
 import type { PushTokenResult } from "~/lib/shell/bridge/protocol";
+import { connectionByOrigin, type Connection } from "~/lib/connections/model";
+import { isLocked, lockedHost, type ManagedConfig } from "~/lib/managed-config/model";
 
 export type PermissionOutcome = "granted" | "denied" | "undetermined";
 
 /**
  * The `data` payload a server-sent notification carries. `route` is the
  * Console route to open on tap; `url` is accepted when it points into this
- * server's Console.
+ * server's Console. `origin` names the server that sent it (see
+ * {@link pushSenderFromResponse}).
  */
 export interface PushDataPayload {
   route?: string;
   url?: string;
+  origin?: string;
   [key: string]: unknown;
 }
 
@@ -195,19 +200,103 @@ export function routeFromResponse(
   response: Notifications.NotificationResponse | null | undefined,
   serverUrl: string | null
 ): string | null {
+  for (const data of payloadCandidates(response)) {
+    const route = routeFromPushData(data, serverUrl);
+    if (route) return route;
+  }
+  return null;
+}
+
+/** The dictionaries a tap response may carry the server's keys in, in reading order. */
+function payloadCandidates(
+  response: Notifications.NotificationResponse | null | undefined
+): (PushDataPayload | null)[] {
   const request = response?.notification?.request;
-  if (!request) return null;
+  if (!request) return [];
   const trigger = request.trigger as { payload?: unknown } | null | undefined;
   const userInfo = asPayload(trigger?.payload);
-  const candidates = [
+  return [
     asPayload(request.content?.data),
     userInfo,
     asPayload(userInfo?.body),
     asPayload(userInfo?.data),
   ];
-  for (const data of candidates) {
-    const route = routeFromPushData(data, serverUrl);
-    if (route) return route;
+}
+
+/**
+ * Which server a tapped push says it came from. APNs and FCM tell the app
+ * nothing about the sender, and every saved server registers the same device
+ * token, so the push data names it: `origin`, the origin the Console was
+ * loaded from when it registered the device (objectstack
+ * `PushDeliveryDataSchema.origin`).
+ *
+ * - `named: false`: no dictionary carries `origin` (a server from before the
+ *   member; `null` reads as absent too).
+ * - `named: true`: the first dictionary that carries one, read in the same
+ *   order as the route. The value is kept as sent, unvalidated: it is only
+ *   ever compared with a saved connection's origin, so a value that is not a
+ *   canonical origin (or not a string) names a sender no connection matches.
+ */
+export type PushSender = { named: false } | { named: true; origin: unknown };
+
+export function pushSenderFromResponse(
+  response: Notifications.NotificationResponse | null | undefined
+): PushSender {
+  for (const data of payloadCandidates(response)) {
+    if (data && data.origin !== undefined && data.origin !== null) {
+      return { named: true, origin: data.origin };
+    }
   }
-  return null;
+  return { named: false };
+}
+
+/** Why a tap opens nothing (see {@link pushTapTarget}). */
+export type PushTapDropReason =
+  /** The push names a server that is not a saved connection (any more). */
+  | "unsaved-origin"
+  /** The push names no server, and two or more are saved: the sender is unknown. */
+  | "unnamed-sender"
+  /** Nothing is saved. */
+  | "no-connection"
+  /** The organization locked the server, and this connection is not the managed one. */
+  | "server-locked";
+
+export type PushTapTarget =
+  | { kind: "open"; connection: Connection }
+  | { kind: "drop"; reason: PushTapDropReason };
+
+/**
+ * The saved connection a tapped push opens on — or none, and the route is
+ * dropped. docs/PUSH-NOTIFICATIONS.md, "Which server a tap opens on":
+ *
+ * 1. `origin` is a saved connection's origin (byte for byte,
+ *    `connectionByOrigin`): that connection. The current one routes as
+ *    before; another one is switched to first (the caller's part).
+ * 2. `origin` is present and no saved connection has it: none. The route is
+ *    never opened on another server.
+ * 3. No `origin` (an older server): the only saved connection, as before
+ *    servers named themselves. With two or more saved the sender cannot be
+ *    told, so none.
+ *
+ * Locked by the organization (MDM `lockServer`), only the managed connection
+ * is open to a tap: a push for any other is dropped, never switched to.
+ */
+export function pushTapTarget(
+  sender: PushSender,
+  state: { connections: readonly Connection[]; managed: ManagedConfig }
+): PushTapTarget {
+  const { connections, managed } = state;
+  let connection: Connection | null;
+  if (sender.named) {
+    connection = connectionByOrigin(connections, sender.origin);
+    if (!connection) return { kind: "drop", reason: "unsaved-origin" };
+  } else {
+    if (connections.length === 0) return { kind: "drop", reason: "no-connection" };
+    if (connections.length > 1) return { kind: "drop", reason: "unnamed-sender" };
+    connection = connections[0];
+  }
+  if (isLocked(managed) && lockedHost(connections, managed) !== connection.host) {
+    return { kind: "drop", reason: "server-locked" };
+  }
+  return { kind: "open", connection };
 }

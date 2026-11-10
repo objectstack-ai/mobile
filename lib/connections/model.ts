@@ -10,7 +10,7 @@
  * `stores/server-store.ts` publishes it, and removal's sign-out lives in
  * `./sign-out.ts`.
  */
-import { normalizeServerUrl, parseUrl, safeConsoleRoute } from "~/lib/shell/console-url";
+import { normalizeServerUrl, originOf, parseUrl, safeConsoleRoute } from "~/lib/shell/console-url";
 import {
   DEFAULT_BRAND_COLOR,
   displayName,
@@ -123,6 +123,27 @@ export function connectionFromLegacyUrl(value: string): ConnectionInput | null {
 
 export function currentConnection(state: Connections): Connection | null {
   return state.list.find((c) => c.host === state.current) ?? null;
+}
+
+/**
+ * The saved connection whose Console is loaded from `origin`, or `null`.
+ *
+ * A connection's origin is `scheme://host` of its server URL (`originOf`: the
+ * stored URL is normalized, so the host is lower-cased and the scheme's
+ * default port dropped), which is what its Console reads as
+ * `window.location.origin`. `origin` is compared with it byte for byte: no
+ * case folding, no port guessing, no host-only match. A value that is not a
+ * string matches nothing. One host is one connection, so at most one matches.
+ *
+ * A lookup key only: the shell never connects to, saves or builds a URL from
+ * an origin it was handed.
+ */
+export function connectionByOrigin(
+  list: readonly Connection[],
+  origin: unknown
+): Connection | null {
+  if (typeof origin !== "string") return null;
+  return list.find((c) => originOf(c.serverUrl) === origin) ?? null;
 }
 
 /**
