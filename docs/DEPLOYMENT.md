@@ -122,10 +122,20 @@ eas submit --platform ios|android --profile production
 The app builds under the EAS project `@objectstack/objectos`. `owner`, `slug` and
 `extra.eas.projectId` in `app.config.ts` name it together.
 
+Build numbers (iOS `buildNumber`, Android `versionCode`) live on EAS servers
+(`cli.appVersionSource: "remote"` in `eas.json`), not in `app.config.ts`. A
+`production` build increments them (`autoIncrement`); other profiles reuse the
+latest. `eas build:version:get` reads them and `eas build:version:set` changes
+them.
+
 CI (`.github/workflows/`):
 
 - `ci.yml` — Jest with coverage on every PR;
 - `lint-typecheck.yml` — `tsc` + ESLint;
+- `eas-build.yml` — a push to `main` builds Android with the `preview`
+  profile. iOS builds only when run by hand (`workflow_dispatch`, platform `ios`
+  or `all`) until the project has Apple signing credentials. Each platform is
+  its own job, so one failing does not stop the other;
 - `eas-build.yml`, `eas-update.yml`, `eas-submit.yml` — need the `EXPO_TOKEN`
   secret and are clean no-ops without it.
 
