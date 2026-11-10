@@ -88,9 +88,11 @@ jest.mock("~/lib/shell/external", () => ({ openExternalUrl: jest.fn() }));
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
+// The Console screen's search params: what a notification tap or app link asks for.
+let mockSearchParams: { route?: string; n?: string } = {};
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace, navigate: jest.fn() }),
-  useLocalSearchParams: () => ({}),
+  useLocalSearchParams: () => mockSearchParams,
   Redirect: ({ href }: { href: string }) => {
     const { Text } = require("react-native");
     return <Text testID="redirect">{href}</Text>;
@@ -180,6 +182,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   seed();
+  mockSearchParams = {};
   mockWebView.props = null;
   mockWebView.mounts = 0;
   mockWebView.injectJavaScript.mockReset();
@@ -309,6 +312,51 @@ describe("ConsoleScreen with saved connections", () => {
     expect(useServerStore.getState().serverUrl).toBeNull();
     expect(screen.getByTestId("redirect")).toHaveTextContent("/server-config");
     expect(mockClearHostCookies).toHaveBeenLastCalledWith(ERP, []);
+  });
+});
+
+describe("ConsoleScreen and a push tap for another saved connection", () => {
+  const ROUTE = "/apps/hr/leave/4";
+  const scripts = () => mockWebView.injectJavaScript.mock.calls.map(([script]) => script);
+  const gatedTo = (origin: string) => `window.location.origin !== ${JSON.stringify(origin)}`;
+
+  /** The route reaches only ACME's document, after its Console says ready. */
+  async function expectRouteOnAcmeOnly() {
+    expect(mockWebView.mounts).toBe(2);
+    expect(mockWebView.props.source).toEqual({ uri: `${ACME}/_console/apps/hr` });
+    // Held: the new Console has not said ready, and the old document is gone.
+    expect(scripts().filter((s) => s.includes(ROUTE))).toEqual([]);
+
+    await consoleReady(ACME);
+    const delivered = scripts().filter((s) => s.includes(ROUTE));
+    expect(delivered).toHaveLength(1);
+    expect(delivered[0]).toContain(gatedTo(ACME));
+    expect(delivered.some((s) => s.includes(gatedTo(ERP)))).toBe(false);
+  }
+
+  it("switched first, then asked for (usePushRouting's order): the route opens on the new connection's Console", async () => {
+    const { rerender } = render(<ConsoleScreen />);
+    await consoleReady();
+    mockWebView.injectJavaScript.mockReset();
+
+    await act(async () => useServerStore.getState().select("acme.objectos.ai"));
+    mockSearchParams = { route: ROUTE, n: "1" };
+    rerender(<ConsoleScreen />);
+    await expectRouteOnAcmeOnly();
+  });
+
+  it("switch and route in one render: the route still never reaches the document left", async () => {
+    const { rerender } = render(<ConsoleScreen />);
+    await consoleReady();
+    mockWebView.injectJavaScript.mockReset();
+
+    act(() => {
+      void useServerStore.getState().select("acme.objectos.ai");
+      mockSearchParams = { route: ROUTE, n: "1" };
+      rerender(<ConsoleScreen />);
+    });
+    await act(async () => undefined);
+    await expectRouteOnAcmeOnly();
   });
 });
 
