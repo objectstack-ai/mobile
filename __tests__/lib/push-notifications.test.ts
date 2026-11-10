@@ -2,12 +2,16 @@ import {
   acquireDeviceToken,
   addPushTokenChangeListener,
   ensurePermission,
+  pushSenderFromResponse,
+  pushTapTarget,
   pushTokenFromDevice,
   routeFromPushData,
   routeFromResponse,
   ANDROID_DEFAULT_CHANNEL_ID,
 } from "~/lib/push-notifications";
 import * as Notifications from "expo-notifications";
+import { EMPTY_CONNECTIONS, addConnection } from "~/lib/connections/model";
+import { NO_MANAGED_CONFIG } from "~/lib/managed-config/model";
 
 // The shared manual mock predates token events; add the one listener used here.
 jest.mock("expo-notifications", () => ({
@@ -174,6 +178,123 @@ describe("routeFromResponse", () => {
   it("refuses an escaping route under userInfo.data", () => {
     const response = iosResponse({ aps: {}, data: { route: "//evil.example/x" } });
     expect(routeFromResponse(response, SERVER)).toBeNull();
+  });
+});
+
+describe("pushSenderFromResponse", () => {
+  const android = (data: Record<string, unknown>) =>
+    ({
+      notification: { request: { content: { data }, trigger: { type: "push" } } },
+    }) as unknown as Notifications.NotificationResponse;
+  const ios = (userInfo: Record<string, unknown>) =>
+    ({
+      notification: {
+        request: {
+          content: { data: (userInfo.body as Record<string, unknown>) ?? null },
+          trigger: { type: "push", payload: userInfo },
+        },
+      },
+    }) as unknown as Notifications.NotificationResponse;
+
+  it("reads origin from the FCM data map and from beside aps (APNs)", () => {
+    expect(pushSenderFromResponse(android({ route: "/home", origin: SERVER }))).toEqual({
+      named: true,
+      origin: SERVER,
+    });
+    expect(pushSenderFromResponse(ios({ aps: {}, route: "/home", origin: SERVER }))).toEqual({
+      named: true,
+      origin: SERVER,
+    });
+  });
+
+  it("names no sender when no dictionary carries origin, or carries it as null", () => {
+    expect(pushSenderFromResponse(android({ route: "/home" }))).toEqual({ named: false });
+    expect(pushSenderFromResponse(android({ route: "/home", origin: null }))).toEqual({
+      named: false,
+    });
+    expect(pushSenderFromResponse(null)).toEqual({ named: false });
+  });
+
+  it("keeps a present value as sent, whatever its shape", () => {
+    expect(pushSenderFromResponse(android({ origin: 42 }))).toEqual({ named: true, origin: 42 });
+    expect(pushSenderFromResponse(android({ origin: "" }))).toEqual({ named: true, origin: "" });
+  });
+});
+
+describe("pushTapTarget", () => {
+  const ERP = "https://erp.example.com";
+  const ACME = "https://acme.objectos.ai:8443";
+  const DEV = "http://localhost:3000";
+  const input = (serverUrl: string) => ({
+    kind: "server" as const,
+    label: serverUrl,
+    serverUrl,
+    brandColor: "#000000",
+    initial: "X",
+  });
+  let state = addConnection(EMPTY_CONNECTIONS, input(ERP), 1);
+  state = addConnection(state, input(ACME), 2);
+  state = addConnection(state, input(`${DEV}/os`), 3);
+  const three = state.list;
+  const one = addConnection(EMPTY_CONNECTIONS, input(ERP), 1).list;
+  const named = (origin: unknown) => ({ named: true as const, origin });
+  const target = (sender: Parameters<typeof pushTapTarget>[0], connections = three, managed = NO_MANAGED_CONFIG) =>
+    pushTapTarget(sender, { connections, managed });
+  const hostOf = (t: ReturnType<typeof pushTapTarget>) =>
+    t.kind === "open" ? t.connection.host : t.reason;
+
+  it("opens on the saved connection whose origin the push names, current or not", () => {
+    expect(hostOf(target(named(ERP)))).toBe("erp.example.com");
+    expect(hostOf(target(named(ACME)))).toBe("acme.objectos.ai:8443");
+    // A base path is not part of the origin.
+    expect(hostOf(target(named(DEV)))).toBe("localhost:3000");
+  });
+
+  it("matches byte for byte: no case folding, port guessing, path or host-only match", () => {
+    for (const origin of [
+      "HTTPS://erp.example.com",
+      "https://ERP.example.com",
+      "https://erp.example.com:443",
+      "https://erp.example.com/",
+      "erp.example.com",
+      "http://erp.example.com",
+      "https://acme.objectos.ai",
+      `${DEV}/os`,
+      "",
+      42,
+    ]) {
+      expect(target(named(origin))).toEqual({ kind: "drop", reason: "unsaved-origin" });
+    }
+  });
+
+  it("drops a push from a server that is not saved, even with one connection", () => {
+    expect(target(named("https://gone.example.com"), one)).toEqual({
+      kind: "drop",
+      reason: "unsaved-origin",
+    });
+  });
+
+  it("without origin, opens on the only saved connection and drops with two or more", () => {
+    expect(hostOf(target({ named: false }, one))).toBe("erp.example.com");
+    expect(target({ named: false })).toEqual({ kind: "drop", reason: "unnamed-sender" });
+    expect(target({ named: false }, [])).toEqual({ kind: "drop", reason: "no-connection" });
+  });
+
+  it("locked by the organization, opens only on the managed connection", () => {
+    const locked = { serverUrl: ERP, lockServer: true };
+    expect(hostOf(target(named(ERP), three, locked))).toBe("erp.example.com");
+    expect(target(named(ACME), three, locked)).toEqual({ kind: "drop", reason: "server-locked" });
+    // Locked to an address with no saved connection yet: nothing is open to a tap.
+    const pending = { serverUrl: "https://mdm.example.com", lockServer: true };
+    expect(target(named(ERP), three, pending)).toEqual({ kind: "drop", reason: "server-locked" });
+    expect(target({ named: false }, one, pending)).toEqual({
+      kind: "drop",
+      reason: "server-locked",
+    });
+    // A managed address without the lock restricts nothing.
+    expect(hostOf(target(named(ACME), three, { serverUrl: ERP, lockServer: false }))).toBe(
+      "acme.objectos.ai:8443"
+    );
   });
 });
 

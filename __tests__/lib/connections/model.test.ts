@@ -2,6 +2,7 @@ import {
   CONNECTIONS_STORAGE_VERSION,
   EMPTY_CONNECTIONS,
   addConnection,
+  connectionByOrigin,
   connectionFromLegacyUrl,
   connectionFromProbe,
   currentConnection,
@@ -46,6 +47,45 @@ function three(): Connections {
 }
 
 const hosts = (state: Connections) => state.list.map((c) => c.host);
+
+describe("connectionByOrigin", () => {
+  it("finds the connection whose Console is loaded from that origin", () => {
+    const state = three();
+    expect(connectionByOrigin(state.list, "https://acme.objectos.ai")?.host).toBe(
+      "acme.objectos.ai"
+    );
+    expect(connectionByOrigin(state.list, "https://nowhere.example.com")).toBeNull();
+  });
+
+  it("derives the origin from the stored server URL: scheme kept, default port dropped, base path not part of it", () => {
+    const typed = connectionFromLegacyUrl("HTTP://Dev.Example.com:80/os/")!;
+    let state = addConnection(EMPTY_CONNECTIONS, typed, 1);
+    state = addConnection(state, { ...erp, serverUrl: "https://erp.example.com:8443" }, 2);
+    const stored = parseConnections(serializeConnections(state))!;
+    expect(connectionByOrigin(stored.list, "http://dev.example.com")?.serverUrl).toBe(
+      "http://dev.example.com/os"
+    );
+    expect(connectionByOrigin(stored.list, "https://erp.example.com:8443")?.host).toBe(
+      "erp.example.com:8443"
+    );
+  });
+
+  it("compares byte for byte, and matches nothing that is not a string", () => {
+    const { list } = three();
+    for (const origin of [
+      "https://ACME.objectos.ai",
+      "https://acme.objectos.ai:443",
+      "https://acme.objectos.ai/",
+      "http://acme.objectos.ai",
+      "acme.objectos.ai",
+      null,
+      undefined,
+      7,
+    ]) {
+      expect(connectionByOrigin(list, origin)).toBeNull();
+    }
+  });
+});
 
 describe("hostOf", () => {
   it("is the lower-cased host with the default port dropped", () => {

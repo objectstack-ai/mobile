@@ -264,7 +264,9 @@ the system settings page for the app.
 through the load state machine's `switch` event (see "Load states"): a new
 WebView on the chosen host at that connection's last route. The bridge's
 origin check is the current connection's from that render on, so the page
-left behind gets no answer.
+left behind gets no answer. A push tap from another saved connection switches
+the same way, then opens its route on that connection's Console
+([PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md#which-server-a-tap-opens-on)).
 
 **Removing** (swipe a row left; screen readers get a "Remove" action on the
 row) signs the connection out (`lib/connections/sign-out.ts`), in this order:
@@ -338,7 +340,8 @@ In the shell:
   connections stay in the store, unlisted, and come back when the lock is
   lifted) and hides add and the managed row's Remove; removal of that host is
   refused before any sign-out step, `resetServer()` is answered
-  `failed`, and the picker opens nothing else.
+  `failed`, the picker opens nothing else, and a push tap from another saved
+  connection is dropped rather than switched to.
 - `trustedHosts` is not read from MDM: the navigation policy and the bridge's
   trusted origins come only from the build.
 
@@ -1129,9 +1132,12 @@ See [PUSH-NOTIFICATIONS.md](./PUSH-NOTIFICATIONS.md).
 - **Android without `GET_COOKIE_INFO`.** On a WebView provider that lacks it,
   the cookie store reports no domains and refuses per-name clearing, so a
   removed connection's cookies stay.
-- **Push taps carry no connection.** A notification is routed by its `route`
-  to the current connection's Console; a tap on one from another saved server
-  opens that route on the current one.
+- **A push from an older server is dropped when two or more connections are
+  saved.** A server that predates the push data's `origin` names no sender,
+  and every saved server registers the same device token, so the shell cannot
+  tell which one sent it. With one saved connection the tap opens there; with
+  more it opens nothing (see PUSH-NOTIFICATIONS.md, "Which server a tap opens
+  on").
 - **The app lock counts every trip out of the app.** With a short timeout, a
   return from anything that sends the app to the background locks it: on
   Android that includes the Custom Tab of the in-app browser, a file chooser
